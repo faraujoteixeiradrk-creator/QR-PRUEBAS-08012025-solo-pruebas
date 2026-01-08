@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="app-title">DRK: Comparador Multitarifa</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Incluimos QRCode.js y jsQR.min.js para el manejo de QR -->
+    <!-- Incluimos QRCode.js para generar QR -->
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+    <!-- qr-scanner: Librería ULTRA-RÁPIDA de detección QR (2-8x más rápida que jsQR) -->
+    <script type="module">
+        import QrScanner from 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.min.js';
+        window.QrScanner = QrScanner;
+        QrScanner.WORKER_PATH = 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner-worker.min.js';
+    </script>
+    <!-- jsQR como fallback (solo si qr-scanner falla) -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <!-- Librerías para generar PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1819,30 +1826,12 @@
         let scannerRunning = false;
         let scanLoopCount = 0; // Contador de frames para procesamiento progresivo
         let stream = null, video = null, canvas = null, canvasCtx = null, animationFrameId = null;
+        let qrScannerInstance = null; // Instancia de qr-scanner (librería ultra-rápida)
         
         // Variables para detección Google Lens
         let qrRegionDetected = null; // Región del QR cuando se detecta: {x, y, width, height}
         let qrDetectionFrame = 0; // Frame en el que se detectó el QR
         let qrStableFrames = 0; // Frames consecutivos con QR detectado (para estabilidad)
-        
-        // Barcode Detection API - Detección nativa del navegador (como Google Lens)
-        let barcodeDetector = null;
-        let useBarcodeAPI = false;
-        
-        // Detectar si el navegador soporta Barcode Detection API
-        if ('BarcodeDetector' in window) {
-            BarcodeDetector.getSupportedFormats().then(formats => {
-                if (formats.includes('qr_code')) {
-                    barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
-                    useBarcodeAPI = true;
-                    console.log('🚀 Barcode Detection API disponible - Detección ultra-rápida activada!');
-                }
-            }).catch(() => {
-                console.log('⚡ Usando jsQR como método de detección');
-            });
-        } else {
-            console.log('⚡ Usando jsQR como método de detección');
-        }
         
         // Protección anti-duplicados para compareOffers
         let lastCompareOffersCall = 0;
@@ -13019,42 +13008,109 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             scannerRunning = true;
             
-            // Iniciar cámara con mínimas opciones para máxima velocidad
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: "environment"
-                    // Solo lo esencial - sin resolución forzada para apertura rápida
-                } 
-            }).then(s => {
-                stream = s; 
-                
-                // Crear video
-                video = document.createElement('video');
-                video.autoplay = true; 
-                video.playsInline = true;
-                video.srcObject = s;
-                
-                // Crear canvas
-                canvas = document.createElement('canvas'); 
-                canvasCtx = canvas.getContext('2d');
-                
-                // Limpiar el mensaje de carga y mostrar video
-                interactive.innerHTML = '';
-                interactive.appendChild(video);
-                
-                video.onloadedmetadata = () => { 
-                    video.play(); 
-                    // Iniciar escaneo inmediatamente
-                    scanLoop(); 
-                };
+            // Limpiar el mensaje de carga y preparar video
+            interactive.innerHTML = '';
+            
+            // Crear video
+            video = document.createElement('video');
+            video.style.width = '100%';
+            video.style.height = '100%';
+            video.style.objectFit = 'cover';
+            interactive.appendChild(video);
+            
+            // Crear canvas para compatibilidad
+            canvas = document.createElement('canvas');
+            canvasCtx = canvas.getContext('2d');
+            
+            // 🚀 USAR QR-SCANNER (2-8x MÁS RÁPIDO que jsQR)
+            console.log('🚀 Iniciando qr-scanner ultra-rápido...');
+            
+            // Verificar si QrScanner está disponible
+            if (typeof window.QrScanner === 'undefined') {
+                console.warn('⚠️ qr-scanner no disponible, usando jsQR fallback');
+                // Fallback a método antiguo
+                startScannerFallback();
+                return;
+            }
+            
+            // Configurar qr-scanner con detección ultra-rápida
+            qrScannerInstance = new window.QrScanner(
+                video,
+                result => {
+                    // ✅ QR DETECTADO - Callback ultra-rápido
+                    console.log('✅ QR detectado por qr-scanner:', result.data);
+                    
+                    // Actualizar UI inmediatamente
+                    const powerBar = document.getElementById('scan-power-bar');
+                    const powerLabel = document.getElementById('scan-power-label');
+                    if (powerBar) powerBar.style.width = '100%';
+                    if (powerLabel) powerLabel.textContent = '✅ QR DETECTADO';
+                    
+                    // Procesar QR
+                    handleQRRead(result.data);
+                },
+                {
+                    returnDetailedScanResult: true,
+                    highlightScanRegion: true,
+                    highlightCodeOutline: true,
+                    maxScansPerSecond: 10, // Escaneos por segundo (más = más rápido pero más CPU)
+                    preferredCamera: 'environment' // Cámara trasera por defecto
+                }
+            );
+            
+            // Iniciar el escáner
+            qrScannerInstance.start().then(() => {
+                console.log('✅ qr-scanner iniciado correctamente');
+                // Iniciar actualización de UI
+                updateScanUI();
             }).catch(err => {
-                console.error(err); 
-                stopScanner(); 
-                cancelScanner(); 
+                console.error('❌ Error iniciando qr-scanner:', err);
+                stopScanner();
+                cancelScanner();
                 window.showErrorModal("Error al acceder a la cámara. Intente subir una imagen.");
             });
         }
-        async function scanLoop() {
+        
+        // Función para actualizar la UI durante el escaneo
+        function updateScanUI() {
+            if (!scannerRunning) return;
+            
+            scanLoopCount++;
+            
+            const powerBar = document.getElementById('scan-power-bar');
+            const powerLabel = document.getElementById('scan-power-label');
+            
+            if (powerBar && !qrRegionDetected) {
+                const progress = Math.min(80, (scanLoopCount / 60) * 80);
+                powerBar.style.width = progress + '%';
+                powerLabel.textContent = '🚀 Buscando QR (Ultra-rápido)...';
+                powerBar.className = 'bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500';
+            }
+            
+            requestAnimationFrame(updateScanUI);
+        }
+        
+        // FALLBACK: Función antigua con jsQR (por si qr-scanner no funciona)
+        function startScannerFallback() {
+            navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "environment" } 
+            }).then(s => {
+                stream = s;
+                video.srcObject = s;
+                
+                video.onloadedmetadata = () => { 
+                    video.play(); 
+                    scanLoop(); // Usar método antiguo
+                };
+            }).catch(err => {
+                console.error(err);
+                stopScanner();
+                cancelScanner();
+                window.showErrorModal("Error al acceder a la cámara. Intente subir una imagen.");
+            });
+        }
+        
+        function scanLoop() {
             if (!scannerRunning || !video || video.readyState !== video.HAVE_ENOUGH_DATA) { 
                 animationFrameId = requestAnimationFrame(scanLoop); 
                 return; 
@@ -13077,50 +13133,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             if (!qrRegionDetected) {
                 const progress = Math.min(80, (scanLoopCount / 60) * 80);
                 powerBar.style.width = progress + '%';
-                // Indicar método de detección
-                const detectionMethod = useBarcodeAPI ? '🚀' : '⚡';
-                powerLabel.textContent = `${detectionMethod} Buscando QR...`;
+                powerLabel.textContent = 'Buscando QR...';
                 powerBar.className = 'bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500';
             }
             
-            // ⚡ DETECCIÓN EN TIEMPO REAL
-            // Prioridad 1: Barcode Detection API (Nativa, ultra-rápida como Google Lens)
-            // Prioridad 2: jsQR (Fallback para navegadores sin soporte)
-            
-            let code = null;
-            
-            // Si BarcodeDetector está disponible, usarlo (mucho más rápido)
-            if (useBarcodeAPI && barcodeDetector) {
-                try {
-                    // Detectar directamente desde el video - súper rápido
-                    const barcodes = await barcodeDetector.detect(video);
-                    
-                    if (barcodes.length > 0) {
-                        const barcode = barcodes[0];
-                        // Convertir formato de BarcodeDetector a formato jsQR para compatibilidad
-                        code = {
-                            data: barcode.rawValue,
-                            location: {
-                                topLeftCorner: { x: barcode.boundingBox.x, y: barcode.boundingBox.y },
-                                topRightCorner: { x: barcode.boundingBox.x + barcode.boundingBox.width, y: barcode.boundingBox.y },
-                                bottomLeftCorner: { x: barcode.boundingBox.x, y: barcode.boundingBox.y + barcode.boundingBox.height },
-                                bottomRightCorner: { x: barcode.boundingBox.x + barcode.boundingBox.width, y: barcode.boundingBox.y + barcode.boundingBox.height }
-                            }
-                        };
-                    }
-                } catch (e) {
-                    // Si falla BarcodeDetector, caer a jsQR
-                    console.log('⚠️ BarcodeDetector falló, usando jsQR');
-                    useBarcodeAPI = false; // Desactivar para futuros frames
-                }
-            }
-            
-            // Si no hay BarcodeDetector o falló, usar jsQR
-            if (!code) {
-                code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "attemptBoth"
-                });
-            }
+            // ⚡ DETECCIÓN EN TIEMPO REAL con jsQR (como Google Lens)
+            let code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "attemptBoth"
+            });
             
             const frame = document.getElementById('qr-detection-frame');
             const container = document.getElementById('interactive');
@@ -13244,6 +13264,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         function stopScanner() {
             scannerRunning = false;
             scanLoopCount = 0; // Reset del contador de frames
+            
+            // Detener qr-scanner si está activo
+            if (qrScannerInstance) {
+                try {
+                    qrScannerInstance.stop();
+                    qrScannerInstance.destroy();
+                    console.log('✅ qr-scanner detenido correctamente');
+                } catch(e) {
+                    console.log('⚠️ Error deteniendo qr-scanner:', e);
+                }
+                qrScannerInstance = null;
+            }
             
             // Reset variables de tracking QR
             qrRegionDetected = null;

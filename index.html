@@ -1882,6 +1882,7 @@
         let qrRegionDetected = null; // Región del QR cuando se detecta: {x, y, width, height}
         let qrDetectionFrame = 0; // Frame en el que se detectó el QR
         let qrStableFrames = 0; // Frames consecutivos con QR detectado (para estabilidad)
+        let autoProcessed = false; // Flag para evitar procesamiento múltiple automático
         
         // === BEAST MODE VARIABLES ===
         // Zoom digital
@@ -13069,6 +13070,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             }
             if (scannerRunning) return;
             
+            // Reset flag de auto-procesamiento
+            autoProcessed = false;
+            
             // FEEDBACK INMEDIATO: Mostrar que está cargando
             document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
             document.getElementById('initial-view').classList.add('hidden');
@@ -13080,8 +13084,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             interactive.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; background: #1e293b;">
                     <div style="width: 60px; height: 60px; border: 4px solid #22c55e; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-                    <p style="color: white; margin-top: 20px; font-size: 16px; font-weight: 600;">🚀 Iniciando BEAST MODE...</p>
-                    <p style="color: #4ade80; margin-top: 10px; font-size: 12px;">Resolución 4K/8K + Múltiples motores</p>
+                    <p style="color: white; margin-top: 20px; font-size: 16px; font-weight: 600;">🚀 Iniciando BEAST MODE AUTO...</p>
+                    <p style="color: #4ade80; margin-top: 10px; font-size: 12px;">Resolución 4K/8K + Detección Automática</p>
                 </div>
                 <style>
                     @keyframes spin {
@@ -13498,6 +13502,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             if (!code || !code.location || !frame || !container) return;
             
+            // Si ya procesamos este QR, no hacer nada
+            if (autoProcessed) return;
+            
             qrStableFrames++;
             
             if (qrStableFrames >= 3) { // Reducido de 5 a 3 para ser más ágil
@@ -13528,7 +13535,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 if (!qrRegionDetected) {
                     qrRegionDetected = { x: qrX, y: qrY, width: qrWidth, height: qrHeight };
-                    console.log('🎯 QR localizado - Listo para capturar');
+                    console.log('🎯 QR localizado - Procesando automáticamente...');
                 }
                 
                 const powerBar = document.getElementById('scan-power-bar');
@@ -13549,6 +13556,19 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             `;
                         }, 10);
                     }
+                }
+                
+                // === PROCESAMIENTO AUTOMÁTICO ===
+                // Esperar 5 frames más de estabilidad para asegurar lectura correcta
+                if (qrStableFrames >= 8 && !autoProcessed) {
+                    console.log('🚀 Auto-procesando QR detectado...');
+                    autoProcessed = true; // Marcar como procesado
+                    
+                    // Pequeño delay para mostrar feedback visual (marco verde)
+                    setTimeout(() => {
+                        console.log('📊 Datos del QR:', code.data);
+                        handleQRRead(code.data); // Procesar automáticamente
+                    }, 300); // 300ms para ver el marco verde
                 }
             }
         }
@@ -13679,6 +13699,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // Mostrar estadísticas
             console.log('📊 Estadísticas de detección:', detectionStats);
             detectionStats = { jsqr: 0, zxing: 0, qrscanner: 0, barcode: 0 };
+            
+            // Reset flag de auto-procesamiento
+            autoProcessed = false;
             
             // Reset variables de tracking QR
             qrRegionDetected = null;

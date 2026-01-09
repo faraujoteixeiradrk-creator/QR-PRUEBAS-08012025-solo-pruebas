@@ -1147,16 +1147,6 @@
                     </div>
                 </button>
                 
-                <!-- Botón de Detección IA (Google Vision API) -->
-                <button id="ai-detect-btn" class="absolute bottom-6 right-6 px-6 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 hidden" style="z-index: 200;">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
-                        </svg>
-                        <span>Detección IA</span>
-                    </div>
-                </button>
-                
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none"><div class="w-64 h-1 bg-red-500 opacity-30"></div></div>
             </div>
             
@@ -1837,12 +1827,6 @@
         let scanLoopCount = 0; // Contador de frames para procesamiento progresivo
         let stream = null, video = null, canvas = null, canvasCtx = null, animationFrameId = null;
         let qrScannerInstance = null; // Instancia de qr-scanner (librería ultra-rápida)
-        
-        // Google Vision API - Detección perfecta como Google Lens
-        const GOOGLE_VISION_API_KEY = 'AIzaSyA6-hn821jk-MgJT9OsUZTUuDBUx-IDbqw';
-        let aiDetectionAvailable = true;
-        let noDetectionTimer = null; // Timer para mostrar botón de IA si no detecta nada
-        let aiDetectionInProgress = false;
         
         // Variables para detección Google Lens
         let qrRegionDetected = null; // Región del QR cuando se detecta: {x, y, width, height}
@@ -12178,7 +12162,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             document.getElementById('start-scan-btn').onclick = startScanner;
             document.getElementById('capture-photo-btn').onclick = capturePhoto;
-            document.getElementById('ai-detect-btn').onclick = detectQRWithGoogleVision;
             
             // Modificación del botón de volver para la vista de entrada
             document.querySelector('#initial-view button:first-child').onclick = () => {
@@ -13080,16 +13063,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 console.log('✅ qr-scanner iniciado correctamente');
                 // Iniciar actualización de UI
                 updateScanUI();
-                
-                // Mostrar botón de IA después de 10 segundos si no detecta nada
-                noDetectionTimer = setTimeout(() => {
-                    const aiBtn = document.getElementById('ai-detect-btn');
-                    if (aiBtn && scannerRunning) {
-                        aiBtn.classList.remove('hidden');
-                        console.log('💡 Mostrando botón de Detección IA (10s sin detección)');
-                    }
-                }, 10000);
-                
             }).catch(err => {
                 console.error('❌ Error iniciando qr-scanner:', err);
                 stopScanner();
@@ -13292,16 +13265,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             scannerRunning = false;
             scanLoopCount = 0; // Reset del contador de frames
             
-            // Limpiar timer de botón de IA
-            if (noDetectionTimer) {
-                clearTimeout(noDetectionTimer);
-                noDetectionTimer = null;
-            }
-            
-            // Ocultar botón de IA
-            const aiBtn = document.getElementById('ai-detect-btn');
-            if (aiBtn) aiBtn.classList.add('hidden');
-            
             // Detener qr-scanner si está activo
             if (qrScannerInstance) {
                 try {
@@ -13387,111 +13350,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 // Usar el motor de fotos que funciona perfecto
                 decodeQRFromImage(blob);
             }, 'image/jpeg', 0.95);
-        }
-        
-        // 🤖 GOOGLE VISION API - Detección perfecta como Google Lens
-        async function detectQRWithGoogleVision() {
-            if (!video || !aiDetectionAvailable || aiDetectionInProgress) return;
-            
-            aiDetectionInProgress = true;
-            
-            // Mostrar overlay de carga
-            const overlay = document.getElementById('qr-analyzing-overlay');
-            const progressMsg = document.getElementById('qr-progress-message');
-            const attemptCounter = document.getElementById('qr-attempt-counter');
-            
-            if (overlay) {
-                overlay.classList.remove('hidden');
-                overlay.classList.add('flex');
-            }
-            if (progressMsg) progressMsg.textContent = '🤖 Analizando con IA de Google...';
-            if (attemptCounter) attemptCounter.textContent = '';
-            
-            try {
-                // Capturar frame actual en máxima calidad
-                const tempCanvas = document.createElement('canvas');
-                const tempCtx = tempCanvas.getContext('2d');
-                tempCanvas.width = video.videoWidth;
-                tempCanvas.height = video.videoHeight;
-                tempCtx.drawImage(video, 0, 0);
-                
-                // Convertir a base64
-                const base64Image = tempCanvas.toDataURL('image/jpeg', 1.0).split(',')[1];
-                
-                // Llamar a Google Vision API
-                const response = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_VISION_API_KEY}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        requests: [{
-                            image: {
-                                content: base64Image
-                            },
-                            features: [{
-                                type: 'TEXT_DETECTION',
-                                maxResults: 10
-                            }]
-                        }]
-                    })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Google Vision API error: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                // Buscar QR code en el texto detectado
-                if (data.responses && data.responses[0] && data.responses[0].textAnnotations) {
-                    const fullText = data.responses[0].textAnnotations[0]?.description || '';
-                    
-                    console.log('🤖 Texto detectado por Google Vision:', fullText);
-                    
-                    // Buscar patrones de QR de factura eléctrica
-                    // Los QR de facturas suelen contener estos campos
-                    const qrPattern = /CUPS|P\d=|E\d=/i;
-                    
-                    if (qrPattern.test(fullText)) {
-                        // Es un QR de factura - procesar
-                        if (progressMsg) progressMsg.textContent = '✅ ¡QR detectado por IA!';
-                        
-                        setTimeout(() => {
-                            if (overlay) {
-                                overlay.classList.add('hidden');
-                                overlay.classList.remove('flex');
-                            }
-                            // Limpiar saltos de línea y espacios extras
-                            const cleanText = fullText.replace(/\n/g, '&').replace(/\s+/g, '');
-                            handleQRRead(cleanText);
-                        }, 500);
-                    } else {
-                        throw new Error('No se encontró un código QR válido en la imagen');
-                    }
-                } else {
-                    throw new Error('No se detectó texto en la imagen');
-                }
-                
-            } catch (error) {
-                console.error('❌ Error en Google Vision:', error);
-                
-                if (overlay) {
-                    overlay.classList.add('hidden');
-                    overlay.classList.remove('flex');
-                }
-                
-                window.showErrorModal(
-                    "❌ No se detectó el código QR con IA.\n\n" +
-                    "💡 Consejos:\n" +
-                    "• Acerca más el QR a la cámara\n" +
-                    "• Asegura buena iluminación\n" +
-                    "• Mantén el papel estable\n" +
-                    "• Prueba con el escáner normal"
-                );
-            } finally {
-                aiDetectionInProgress = false;
-            }
         }
         
         

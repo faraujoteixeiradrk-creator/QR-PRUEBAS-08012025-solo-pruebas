@@ -1889,7 +1889,7 @@
         let currentZoom = 1.0;
         let maxZoom = 10.0;
         let minZoom = 1.0;
-        let zoomStep = 0.5;
+        let zoomStep = 1.0; // Incrementos más grandes = Más rápido
         let videoTrack = null;
         
         // Flash/Linterna
@@ -13415,7 +13415,27 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 canvas.height = video.videoHeight; 
             }
             
-            canvasCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            // === ZOOM DIGITAL (SOFTWARE) - INSTANTÁNEO ===
+            // Aplicar crop según nivel de zoom
+            if (currentZoom > 1.0) {
+                // Calcular área central según zoom
+                const zoomFactor = 1 / currentZoom;
+                const cropWidth = video.videoWidth * zoomFactor;
+                const cropHeight = video.videoHeight * zoomFactor;
+                const cropX = (video.videoWidth - cropWidth) / 2;
+                const cropY = (video.videoHeight - cropHeight) / 2;
+                
+                // Dibujar solo el área con zoom (crop + scale)
+                canvasCtx.drawImage(
+                    video,
+                    cropX, cropY, cropWidth, cropHeight,  // Área de origen (crop)
+                    0, 0, canvas.width, canvas.height      // Destino (canvas completo = zoom)
+                );
+            } else {
+                // Sin zoom, dibujar normal
+                canvasCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            }
+            
             const imageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
             
             scanLoopCount++;
@@ -13429,7 +13449,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 if (powerBar) powerBar.style.width = progress + '%';
                 if (powerLabel) {
                     const modeText = turboMode ? '⚡ TURBO' : '🚀 BEAST';
-                    powerLabel.textContent = `${modeText} - Buscando QR...`;
+                    const zoomText = currentZoom > 1.0 ? ` ZOOM ${currentZoom.toFixed(1)}x` : '';
+                    powerLabel.textContent = `${modeText}${zoomText} - Buscando QR...`;
                 }
                 if (powerBar) powerBar.className = 'bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500';
             }
@@ -13507,7 +13528,11 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             qrStableFrames++;
             
-            if (qrStableFrames >= 3) { // Reducido de 5 a 3 para ser más ágil
+            // Con zoom: marco verde INSTANTÁNEO (1 frame)
+            // Sin zoom: marco verde rápido (3 frames)
+            const framesForGreen = currentZoom > 1.0 ? 1 : 3;
+            
+            if (qrStableFrames >= framesForGreen) {
                 const rect = container.getBoundingClientRect();
                 const scaleX = rect.width / canvas.width;
                 const scaleY = rect.height / canvas.height;
@@ -13559,38 +13584,34 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 }
                 
                 // === PROCESAMIENTO AUTOMÁTICO ===
-                // Esperar 5 frames más de estabilidad para asegurar lectura correcta
-                if (qrStableFrames >= 8 && !autoProcessed) {
-                    console.log('🚀 Auto-procesando QR detectado...');
+                // Con zoom: detección ULTRA-RÁPIDA (2 frames)
+                // Sin zoom: detección normal (8 frames)
+                const framesNeeded = currentZoom > 1.0 ? 2 : 8;
+                
+                if (qrStableFrames >= framesNeeded && !autoProcessed) {
+                    console.log(`🚀 Auto-procesando QR (${framesNeeded} frames, zoom ${currentZoom.toFixed(1)}x)...`);
                     autoProcessed = true; // Marcar como procesado
                     
-                    // Pequeño delay para mostrar feedback visual (marco verde)
+                    // Con zoom: delay más corto (más rápido)
+                    const delayMs = currentZoom > 1.0 ? 100 : 300;
+                    
                     setTimeout(() => {
                         console.log('📊 Datos del QR:', code.data);
                         handleQRRead(code.data); // Procesar automáticamente
-                    }, 300); // 300ms para ver el marco verde
+                    }, delayMs);
                 }
             }
         }
         
         // Aplicar zoom
-        async function applyZoom(zoomLevel) {
-            if (!videoTrack) return;
+        // === ZOOM DIGITAL (SOFTWARE) - INSTANTÁNEO ===
+        function applyZoom(zoomLevel) {
+            currentZoom = Math.max(minZoom, Math.min(maxZoom, zoomLevel));
+            document.getElementById('zoom-level').textContent = currentZoom.toFixed(1);
+            console.log(`🔍 Zoom digital: ${currentZoom.toFixed(1)}x (instantáneo)`);
             
-            try {
-                const capabilities = videoTrack.getCapabilities();
-                if ('zoom' in capabilities) {
-                    const clampedZoom = Math.max(capabilities.zoom.min, Math.min(capabilities.zoom.max, zoomLevel));
-                    await videoTrack.applyConstraints({
-                        advanced: [{ zoom: clampedZoom }]
-                    });
-                    currentZoom = clampedZoom;
-                    document.getElementById('zoom-level').textContent = currentZoom.toFixed(1);
-                    console.log(`🔍 Zoom aplicado: ${currentZoom.toFixed(1)}x`);
-                }
-            } catch(e) {
-                console.error('Error aplicando zoom:', e);
-            }
+            // No tocamos la cámara - el zoom se aplica en el procesamiento de imagen
+            // Esto es MUCHO más rápido y no afecta al enfoque
         }
         
         // Toggle flash/linterna
@@ -13644,15 +13665,55 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         }
         
         // Zoom In
-        async function zoomIn() {
+        function zoomIn() {
             const newZoom = Math.min(maxZoom, currentZoom + zoomStep);
-            await applyZoom(newZoom);
+            applyZoom(newZoom);
+            
+            // AUTO-ACTIVAR TURBO MODE cuando hay zoom
+            if (newZoom > 1.0 && !turboMode) {
+                turboMode = true;
+                const turboIndicator = document.getElementById('turbo-indicator');
+                const turboBtn = document.getElementById('turbo-btn');
+                turboIndicator.classList.remove('hidden');
+                turboBtn.style.background = 'linear-gradient(to right, #dc2626, #ea580c)';
+                console.log('⚡ TURBO MODE auto-activado por ZOOM');
+                
+                if (qrScannerInstance) {
+                    qrScannerInstance._qrEnginePromise.then(qrEngine => {
+                        qrEngine._maxScansPerSecond = 20;
+                    });
+                }
+            }
+            
+            // RESETEAR frames de estabilidad para detección más rápida
+            qrStableFrames = 0;
+            qrRegionDetected = null;
         }
         
         // Zoom Out
-        async function zoomOut() {
+        function zoomOut() {
             const newZoom = Math.max(minZoom, currentZoom - zoomStep);
-            await applyZoom(newZoom);
+            applyZoom(newZoom);
+            
+            // Desactivar TURBO si volvemos a zoom 1.0
+            if (newZoom <= 1.0 && turboMode) {
+                turboMode = false;
+                const turboIndicator = document.getElementById('turbo-indicator');
+                const turboBtn = document.getElementById('turbo-btn');
+                turboIndicator.classList.add('hidden');
+                turboBtn.style.background = 'linear-gradient(to right, #dc2626, #ea580c)';
+                console.log('⚡ TURBO MODE auto-desactivado');
+                
+                if (qrScannerInstance) {
+                    qrScannerInstance._qrEnginePromise.then(qrEngine => {
+                        qrEngine._maxScansPerSecond = 10;
+                    });
+                }
+            }
+            
+            // RESETEAR frames de estabilidad
+            qrStableFrames = 0;
+            qrRegionDetected = null;
         }
         
         function stopScanner() {

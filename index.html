@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title id="app-title">DRK: Comparador Multitarifa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Incluimos QRCode.js y jsQR.min.js para el manejo de QR -->
@@ -1818,6 +1818,7 @@
         // Variables Escáner
         let scannerRunning = false;
         let scanLoopCount = 0; // Contador de frames para procesamiento progresivo
+        let frameCount = 0; // Contador para ciclo híbrido de modos
         let stream = null, video = null, canvas = null, canvasCtx = null, animationFrameId = null;
         
         // Variables para detección Google Lens
@@ -13020,6 +13021,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 video = document.createElement('video');
                 video.autoplay = true; 
                 video.playsInline = true;
+                video.muted = true; // CRÍTICO para iOS - evita problemas de reproducción
                 video.srcObject = s;
                 
                 // Crear canvas con configuración optimizada
@@ -13055,14 +13057,51 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             canvasCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            // 🔥 TRUCO INDUSTRIAL: ESCANEO POR RECORTE CENTRAL
-            // En lugar de escanear toda la pantalla, solo escaneamos el 70% del centro
-            // donde el usuario pone el papel. Esto mejora la detección de QRs pequeños.
-            const scanSize = Math.min(canvas.width, canvas.height) * 0.7;
-            const sx = (canvas.width - scanSize) / 2;
-            const sy = (canvas.height - scanSize) / 2;
+            // 🔥🔥🔥 CICLO HÍBRIDO DE 3 MODOS 🔥🔥🔥
+            // Alterna automáticamente entre 3 estrategias cada frame
+            // para detectar QRs de CUALQUIER tamaño sin botones
             
-            const imageData = canvasCtx.getImageData(sx, sy, scanSize, scanSize);
+            let code = null;
+            let imageData = null;
+            let scanMode = "";
+            let offsetX = 0;
+            let offsetY = 0;
+            let scanSizeUsed = canvas.width;
+            
+            frameCount++;
+            const mode = frameCount % 3;
+            
+            if (mode === 0) {
+                // MODO 1: PANORÁMICO (100% imagen)
+                // Para QRs GRANDES o lejanos
+                scanMode = "Panorámico 100%";
+                imageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
+                code = jsQR(imageData.data, imageData.width, imageData.height);
+            }
+            else if (mode === 1) {
+                // MODO 2: ENFOQUE PAPEL (Zoom 50% = 2x)
+                // Para QRs PEQUEÑOS en papel 🔥
+                scanMode = "Papel 2x";
+                const scanSize = Math.min(canvas.width, canvas.height) * 0.5;
+                offsetX = (canvas.width - scanSize) / 2;
+                offsetY = (canvas.height - scanSize) / 2;
+                scanSizeUsed = scanSize;
+                imageData = canvasCtx.getImageData(offsetX, offsetY, scanSize, scanSize);
+                code = jsQR(imageData.data, imageData.width, imageData.height);
+            }
+            else {
+                // MODO 3: PRECISIÓN PRO (Zoom 75% + Inversión)
+                // Para QRs DIFÍCILES/borrosos/dañados 🔥🔥
+                scanMode = "Precisión 1.3x";
+                const scanSize = Math.min(canvas.width, canvas.height) * 0.75;
+                offsetX = (canvas.width - scanSize) / 2;
+                offsetY = (canvas.height - scanSize) / 2;
+                scanSizeUsed = scanSize;
+                imageData = canvasCtx.getImageData(offsetX, offsetY, scanSize, scanSize);
+                code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "attemptBoth"
+                });
+            }
             
             scanLoopCount++;
             
@@ -13073,14 +13112,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             if (!qrRegionDetected) {
                 const progress = Math.min(80, (scanLoopCount / 60) * 80);
                 powerBar.style.width = progress + '%';
-                powerLabel.textContent = '🔍 Buscando QR (Zona Central)...';
+                powerLabel.textContent = `🔍 Modo: ${scanMode} - Buscando...`;
                 powerBar.className = 'bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500';
             }
-            
-            // ⚡ DETECCIÓN con jsQR en el área central recortada
-            let code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "attemptBoth"
-            });
             
             const frame = document.getElementById('qr-detection-frame');
             const container = document.getElementById('interactive');
@@ -13096,13 +13130,11 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     const scaleX = rect.width / canvas.width;
                     const scaleY = rect.height / canvas.height;
                     
-                    // Calcular bounding box del QR (ajustado por el recorte central)
+                    // Calcular bounding box del QR
                     const points = code.location;
                     
-                    // Ajustar coordenadas porque estamos escaneando solo el centro
-                    const scanSize = Math.min(canvas.width, canvas.height) * 0.7;
-                    const offsetX = (canvas.width - scanSize) / 2;
-                    const offsetY = (canvas.height - scanSize) / 2;
+                    // offsetX y offsetY ya están calculados según el modo activo
+                    // (0 para panorámico, calculados para papel y precisión)
                     
                     const minX = Math.min(points.topLeftCorner.x, points.bottomLeftCorner.x) + offsetX;
                     const maxX = Math.max(points.topRightCorner.x, points.bottomRightCorner.x) + offsetX;
@@ -13129,7 +13161,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     // Guardar región detectada
                     if (!qrRegionDetected) {
                         qrRegionDetected = { x: qrX, y: qrY, width: qrWidth, height: qrHeight };
-                        console.log('🎯 QR localizado (escaneo central)');
+                        console.log(`🎯 QR localizado (Modo: ${scanMode})`);
                     }
                     
                     // Actualizar UI para indicar que se detectó QR

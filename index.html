@@ -5,16 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="app-title">DRK: Comparador Multitarifa</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Incluimos QRCode.js para generar QR -->
+    <!-- === ARSENAL COMPLETO DE DETECCIÓN QR === -->
+    
+    <!-- QRCode.js para GENERAR QR -->
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
-    <!-- qr-scanner: Librería ULTRA-RÁPIDA de detección QR (2-8x más rápida que jsQR) -->
+    
+    <!-- jsQR - Motor básico pero efectivo -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    
+    <!-- ZXing-js - EL MEJOR para QRs difíciles y pequeños -->
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
+    
+    <!-- qr-scanner (Nimiq) - Ultra-rápida con WebWorker -->
     <script type="module">
         import QrScanner from 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.min.js';
         window.QrScanner = QrScanner;
         QrScanner.WORKER_PATH = 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner-worker.min.js';
     </script>
-    <!-- jsQR como fallback (solo si qr-scanner falla) -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    
     <!-- Librerías para generar PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1147,6 +1155,49 @@
                     </div>
                 </button>
                 
+                <!-- 🎮 CONTROLES AVANZADOS - Zoom, Flash, Turbo -->
+                <div class="absolute bottom-6 right-6 flex flex-col gap-3" style="z-index: 200;">
+                    <!-- Botón TURBO MODE -->
+                    <button id="turbo-btn" class="w-14 h-14 rounded-full bg-gradient-to-r from-red-600 to-orange-600 text-white flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95">
+                        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M13 10V3L4 14h7v7l9-11z"/>
+                        </svg>
+                    </button>
+                    
+                    <!-- Botón FLASH/LINTERNA -->
+                    <button id="flash-btn" class="w-14 h-14 rounded-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-white flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95">
+                        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
+                        </svg>
+                    </button>
+                    
+                    <!-- Botón ZOOM + -->
+                    <button id="zoom-in-btn" class="w-14 h-14 rounded-full bg-gradient-to-r from-green-600 to-green-700 text-white flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/>
+                        </svg>
+                    </button>
+                    
+                    <!-- Botón ZOOM - -->
+                    <button id="zoom-out-btn" class="w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 text-white flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="M21 21l-4.35-4.35M8 11h6"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Indicador de ZOOM actual -->
+                <div id="zoom-indicator" class="absolute top-6 right-6 bg-black bg-opacity-70 text-white px-4 py-2 rounded-full font-bold shadow-lg" style="z-index: 200;">
+                    ZOOM: <span id="zoom-level">1.0</span>x
+                </div>
+                
+                <!-- Indicador de MODO TURBO -->
+                <div id="turbo-indicator" class="absolute top-6 left-6 bg-gradient-to-r from-red-600 to-orange-600 text-white px-4 py-2 rounded-full font-bold shadow-lg hidden animate-pulse" style="z-index: 200;">
+                    ⚡ TURBO MODE ⚡
+                </div>
+                
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none"><div class="w-64 h-1 bg-red-500 opacity-30"></div></div>
             </div>
             
@@ -1826,12 +1877,39 @@
         let scannerRunning = false;
         let scanLoopCount = 0; // Contador de frames para procesamiento progresivo
         let stream = null, video = null, canvas = null, canvasCtx = null, animationFrameId = null;
-        let qrScannerInstance = null; // Instancia de qr-scanner (librería ultra-rápida)
         
         // Variables para detección Google Lens
         let qrRegionDetected = null; // Región del QR cuando se detecta: {x, y, width, height}
         let qrDetectionFrame = 0; // Frame en el que se detectó el QR
         let qrStableFrames = 0; // Frames consecutivos con QR detectado (para estabilidad)
+        
+        // === BEAST MODE VARIABLES ===
+        // Zoom digital
+        let currentZoom = 1.0;
+        let maxZoom = 10.0;
+        let minZoom = 1.0;
+        let zoomStep = 0.5;
+        let videoTrack = null;
+        
+        // Flash/Linterna
+        let flashEnabled = false;
+        let torchSupported = false;
+        
+        // Turbo Mode (procesamiento agresivo)
+        let turboMode = false;
+        
+        // Múltiples motores de detección
+        let qrScannerInstance = null; // qr-scanner (Nimiq)
+        let zxingReader = null; // ZXing-js
+        let barcodeDetector = null; // BarcodeDetector API nativa
+        
+        // Estadísticas de detección
+        let detectionStats = {
+            jsqr: 0,
+            zxing: 0,
+            qrscanner: 0,
+            barcode: 0
+        };
         
         // Protección anti-duplicados para compareOffers
         let lastCompareOffersCall = 0;
@@ -12163,6 +12241,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             document.getElementById('start-scan-btn').onclick = startScanner;
             document.getElementById('capture-photo-btn').onclick = capturePhoto;
             
+            // === BEAST MODE EVENT LISTENERS ===
+            document.getElementById('zoom-in-btn').onclick = zoomIn;
+            document.getElementById('zoom-out-btn').onclick = zoomOut;
+            document.getElementById('flash-btn').onclick = toggleFlash;
+            document.getElementById('turbo-btn').onclick = toggleTurbo;
+            
             // Modificación del botón de volver para la vista de entrada
             document.querySelector('#initial-view button:first-child').onclick = () => {
                 currentTariffType === 'MULTICUPS' ? showMultiCupsSagaView() : goBackFromInitialView();
@@ -12964,7 +13048,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             img.src = url;
         }
         
-        function startScanner() {
+        async function startScanner() {
             // Use multiCupsAddType for the check if we are in MultiCups mode
             const currentTypeCheck = currentTariffType === 'MULTICUPS' ? multiCupsAddType : currentTariffType;
 
@@ -12996,7 +13080,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             interactive.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; background: #1e293b;">
                     <div style="width: 60px; height: 60px; border: 4px solid #22c55e; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-                    <p style="color: white; margin-top: 20px; font-size: 16px; font-weight: 600;">📷 Abriendo cámara...</p>
+                    <p style="color: white; margin-top: 20px; font-size: 16px; font-weight: 600;">🚀 Iniciando BEAST MODE...</p>
+                    <p style="color: #4ade80; margin-top: 10px; font-size: 12px;">Resolución 4K/8K + Múltiples motores</p>
                 </div>
                 <style>
                     @keyframes spin {
@@ -13008,108 +13093,94 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             scannerRunning = true;
             
-            // Limpiar el mensaje de carga y preparar video
-            interactive.innerHTML = '';
+            // === BEAST MODE: CONFIGURACIÓN ULTRA-POTENTE ===
+            console.log('🚀 BEAST MODE iniciando...');
             
-            // Crear video
-            video = document.createElement('video');
-            video.style.width = '100%';
-            video.style.height = '100%';
-            video.style.objectFit = 'cover';
-            interactive.appendChild(video);
-            
-            // Crear canvas para compatibilidad
-            canvas = document.createElement('canvas');
-            canvasCtx = canvas.getContext('2d');
-            
-            // 🚀 USAR QR-SCANNER (2-8x MÁS RÁPIDO que jsQR)
-            console.log('🚀 Iniciando qr-scanner ultra-rápido...');
-            
-            // Verificar si QrScanner está disponible
-            if (typeof window.QrScanner === 'undefined') {
-                console.warn('⚠️ qr-scanner no disponible, usando jsQR fallback');
-                // Fallback a método antiguo
-                startScannerFallback();
-                return;
-            }
-            
-            // Configurar qr-scanner con detección ultra-rápida
-            qrScannerInstance = new window.QrScanner(
-                video,
-                result => {
-                    // ✅ QR DETECTADO - Callback ultra-rápido
-                    console.log('✅ QR detectado por qr-scanner:', result.data);
-                    
-                    // Actualizar UI inmediatamente
-                    const powerBar = document.getElementById('scan-power-bar');
-                    const powerLabel = document.getElementById('scan-power-label');
-                    if (powerBar) powerBar.style.width = '100%';
-                    if (powerLabel) powerLabel.textContent = '✅ QR DETECTADO';
-                    
-                    // Procesar QR
-                    handleQRRead(result.data);
+            // Configuración de cámara con MÁXIMA CALIDAD
+            const constraints = {
+                video: {
+                    facingMode: "environment",
+                    // Resolución 4K/8K - Lo más alto posible
+                    width: { ideal: 7680 },   // 8K width
+                    height: { ideal: 4320 },  // 8K height
+                    // Si 8K no está disponible, intentar 4K
+                    // Si 4K no está disponible, usar la máxima disponible
+                    aspectRatio: { ideal: 16/9 },
+                    // Configuraciones avanzadas
+                    frameRate: { ideal: 60, min: 30 },  // Alta tasa de frames
+                    // HDR y ajustes avanzados (si están disponibles)
+                    exposureMode: 'continuous',
+                    whiteBalanceMode: 'continuous',
+                    focusMode: 'continuous'
                 },
-                {
-                    returnDetailedScanResult: true,
-                    highlightScanRegion: true,
-                    highlightCodeOutline: true,
-                    maxScansPerSecond: 10, // Escaneos por segundo (más = más rápido pero más CPU)
-                    preferredCamera: 'environment' // Cámara trasera por defecto
-                }
-            );
+                audio: false
+            };
             
-            // Iniciar el escáner
-            qrScannerInstance.start().then(() => {
-                console.log('✅ qr-scanner iniciado correctamente');
-                // Iniciar actualización de UI
-                updateScanUI();
-            }).catch(err => {
-                console.error('❌ Error iniciando qr-scanner:', err);
-                stopScanner();
-                cancelScanner();
-                window.showErrorModal("Error al acceder a la cámara. Intente subir una imagen.");
-            });
-        }
-        
-        // Función para actualizar la UI durante el escaneo
-        function updateScanUI() {
-            if (!scannerRunning) return;
-            
-            scanLoopCount++;
-            
-            const powerBar = document.getElementById('scan-power-bar');
-            const powerLabel = document.getElementById('scan-power-label');
-            
-            if (powerBar && !qrRegionDetected) {
-                const progress = Math.min(80, (scanLoopCount / 60) * 80);
-                powerBar.style.width = progress + '%';
-                powerLabel.textContent = '🚀 Buscando QR (Ultra-rápido)...';
-                powerBar.className = 'bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500';
-            }
-            
-            requestAnimationFrame(updateScanUI);
-        }
-        
-        // FALLBACK: Función antigua con jsQR (por si qr-scanner no funciona)
-        function startScannerFallback() {
-            navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "environment" } 
-            }).then(s => {
-                stream = s;
-                video.srcObject = s;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
                 
-                video.onloadedmetadata = () => { 
-                    video.play(); 
-                    scanLoop(); // Usar método antiguo
+                // Obtener el track de video para controlar zoom y flash
+                videoTrack = stream.getVideoTracks()[0];
+                const capabilities = videoTrack.getCapabilities();
+                
+                console.log('📹 Capacidades de cámara:', capabilities);
+                
+                // Verificar soporte de torch (flash/linterna)
+                torchSupported = 'torch' in capabilities;
+                if (torchSupported) {
+                    console.log('✅ Flash/Linterna disponible');
+                    document.getElementById('flash-btn').style.opacity = '1';
+                } else {
+                    console.log('⚠️ Flash/Linterna no disponible');
+                    document.getElementById('flash-btn').style.opacity = '0.5';
+                }
+                
+                // Aplicar zoom inicial si está disponible
+                if ('zoom' in capabilities) {
+                    maxZoom = capabilities.zoom.max;
+                    minZoom = capabilities.zoom.min;
+                    console.log(`✅ Zoom disponible: ${minZoom}x - ${maxZoom}x`);
+                    await applyZoom(currentZoom);
+                } else {
+                    console.log('⚠️ Zoom no disponible en hardware');
+                }
+                
+                // Crear video
+                video = document.createElement('video');
+                video.autoplay = true; 
+                video.playsInline = true;
+                video.srcObject = stream;
+                video.style.width = '100%';
+                video.style.height = '100%';
+                video.style.objectFit = 'cover';
+                
+                // Crear canvas
+                canvas = document.createElement('canvas'); 
+                canvasCtx = canvas.getContext('2d', { willReadFrequently: true });
+                
+                // Limpiar el mensaje de carga y mostrar video
+                interactive.innerHTML = '';
+                interactive.appendChild(video);
+                
+                video.onloadedmetadata = async () => { 
+                    await video.play();
+                    
+                    console.log(`📹 Resolución obtenida: ${video.videoWidth}x${video.videoHeight}`);
+                    
+                    // Inicializar múltiples motores de detección
+                    await initializeDetectionEngines();
+                    
+                    // Iniciar escaneo BEAST MODE
+                    scanLoopBeast(); 
                 };
-            }).catch(err => {
-                console.error(err);
-                stopScanner();
-                cancelScanner();
+                
+            } catch (err) {
+                console.error('❌ Error iniciando cámara BEAST MODE:', err); 
+                stopScanner(); 
+                cancelScanner(); 
                 window.showErrorModal("Error al acceder a la cámara. Intente subir una imagen.");
-            });
+            }
         }
-        
         function scanLoop() {
             if (!scannerRunning || !video || video.readyState !== video.HAVE_ENOUGH_DATA) { 
                 animationFrameId = requestAnimationFrame(scanLoop); 
@@ -13261,21 +13332,353 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             return new ImageData(data, imageData.width, imageData.height);
         }
         
+        // ========================================
+        // === BEAST MODE FUNCTIONS ===
+        // ========================================
+        
+        // Inicializar todos los motores de detección
+        async function initializeDetectionEngines() {
+            console.log('🔧 Inicializando motores de detección...');
+            
+            // 1. ZXing-js (EL MEJOR para QRs difíciles)
+            try {
+                if (typeof ZXing !== 'undefined') {
+                    zxingReader = new ZXing.BrowserQRCodeReader();
+                    console.log('✅ ZXing-js inicializado');
+                } else {
+                    console.log('⚠️ ZXing-js no disponible');
+                }
+            } catch(e) {
+                console.log('⚠️ Error inicializando ZXing:', e.message);
+            }
+            
+            // 2. qr-scanner (Nimiq) - Ultra-rápida
+            try {
+                if (typeof window.QrScanner !== 'undefined') {
+                    qrScannerInstance = new window.QrScanner(
+                        video,
+                        result => {
+                            console.log('✅ QR detectado por qr-scanner:', result.data);
+                            detectionStats.qrscanner++;
+                            handleQRRead(result.data);
+                        },
+                        {
+                            returnDetailedScanResult: true,
+                            highlightScanRegion: false,
+                            highlightCodeOutline: false,
+                            maxScansPerSecond: turboMode ? 20 : 10
+                        }
+                    );
+                    await qrScannerInstance.start();
+                    console.log('✅ qr-scanner inicializado');
+                } else {
+                    console.log('⚠️ qr-scanner no disponible');
+                }
+            } catch(e) {
+                console.log('⚠️ Error inicializando qr-scanner:', e.message);
+            }
+            
+            // 3. BarcodeDetector API (nativa del navegador)
+            try {
+                if ('BarcodeDetector' in window) {
+                    const formats = await BarcodeDetector.getSupportedFormats();
+                    if (formats.includes('qr_code')) {
+                        barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+                        console.log('✅ BarcodeDetector API disponible');
+                    }
+                }
+            } catch(e) {
+                console.log('⚠️ BarcodeDetector no disponible');
+            }
+            
+            console.log('🚀 Motores activos:', {
+                jsQR: true,  // Siempre disponible
+                zxing: !!zxingReader,
+                qrscanner: !!qrScannerInstance,
+                barcode: !!barcodeDetector
+            });
+        }
+        
+        // Loop principal BEAST MODE con múltiples motores
+        function scanLoopBeast() {
+            if (!scannerRunning || !video || video.readyState !== video.HAVE_ENOUGH_DATA) { 
+                animationFrameId = requestAnimationFrame(scanLoopBeast); 
+                return; 
+            }
+            
+            if (canvas.width !== video.videoWidth) { 
+                canvas.width = video.videoWidth; 
+                canvas.height = video.videoHeight; 
+            }
+            
+            canvasCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
+            
+            scanLoopCount++;
+            
+            // Actualizar barra de progreso
+            const powerBar = document.getElementById('scan-power-bar');
+            const powerLabel = document.getElementById('scan-power-label');
+            
+            if (!qrRegionDetected) {
+                const progress = Math.min(80, (scanLoopCount / 60) * 80);
+                if (powerBar) powerBar.style.width = progress + '%';
+                if (powerLabel) {
+                    const modeText = turboMode ? '⚡ TURBO' : '🚀 BEAST';
+                    powerLabel.textContent = `${modeText} - Buscando QR...`;
+                }
+                if (powerBar) powerBar.className = 'bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500';
+            }
+            
+            // === DETECCIÓN CON MÚLTIPLES MOTORES ===
+            
+            // 1. jsQR (siempre activo)
+            let code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "attemptBoth"
+            });
+            
+            if (code) {
+                console.log('✅ QR detectado por jsQR');
+                detectionStats.jsqr++;
+                processQRDetection(code);
+            }
+            
+            // 2. ZXing-js (cada 2 frames en modo normal, cada frame en turbo)
+            if (zxingReader && (turboMode || scanLoopCount % 2 === 0)) {
+                try {
+                    zxingReader.decodeFromImageData(imageData).then(result => {
+                        if (result) {
+                            console.log('✅ QR detectado por ZXing');
+                            detectionStats.zxing++;
+                            const zxingCode = {
+                                data: result.text,
+                                location: {
+                                    topLeftCorner: { x: result.resultPoints[0]?.x || 0, y: result.resultPoints[0]?.y || 0 },
+                                    topRightCorner: { x: result.resultPoints[1]?.x || 0, y: result.resultPoints[1]?.y || 0 },
+                                    bottomRightCorner: { x: result.resultPoints[2]?.x || 0, y: result.resultPoints[2]?.y || 0 },
+                                    bottomLeftCorner: { x: result.resultPoints[3]?.x || 0, y: result.resultPoints[3]?.y || 0 }
+                                }
+                            };
+                            processQRDetection(zxingCode);
+                        }
+                    }).catch(() => {});
+                } catch(e) {}
+            }
+            
+            // 3. BarcodeDetector (cada 3 frames en modo normal, cada frame en turbo)
+            if (barcodeDetector && (turboMode || scanLoopCount % 3 === 0)) {
+                barcodeDetector.detect(video).then(barcodes => {
+                    if (barcodes.length > 0) {
+                        const barcode = barcodes[0];
+                        console.log('✅ QR detectado por BarcodeDetector');
+                        detectionStats.barcode++;
+                        const barcodeCode = {
+                            data: barcode.rawValue,
+                            location: {
+                                topLeftCorner: { x: barcode.cornerPoints[0]?.x || 0, y: barcode.cornerPoints[0]?.y || 0 },
+                                topRightCorner: { x: barcode.cornerPoints[1]?.x || 0, y: barcode.cornerPoints[1]?.y || 0 },
+                                bottomRightCorner: { x: barcode.cornerPoints[2]?.x || 0, y: barcode.cornerPoints[2]?.y || 0 },
+                                bottomLeftCorner: { x: barcode.cornerPoints[3]?.x || 0, y: barcode.cornerPoints[3]?.y || 0 }
+                            }
+                        };
+                        processQRDetection(barcodeCode);
+                    }
+                }).catch(() => {});
+            }
+            
+            // Continuar loop
+            animationFrameId = requestAnimationFrame(scanLoopBeast);
+        }
+        
+        // Procesar detección de QR
+        function processQRDetection(code) {
+            const frame = document.getElementById('qr-detection-frame');
+            const container = document.getElementById('interactive');
+            const captureBtn = document.getElementById('capture-photo-btn');
+            
+            if (!code || !code.location || !frame || !container) return;
+            
+            qrStableFrames++;
+            
+            if (qrStableFrames >= 3) { // Reducido de 5 a 3 para ser más ágil
+                const rect = container.getBoundingClientRect();
+                const scaleX = rect.width / canvas.width;
+                const scaleY = rect.height / canvas.height;
+                
+                const points = code.location;
+                const minX = Math.min(points.topLeftCorner.x, points.bottomLeftCorner.x);
+                const maxX = Math.max(points.topRightCorner.x, points.bottomRightCorner.x);
+                const minY = Math.min(points.topLeftCorner.y, points.topRightCorner.y);
+                const maxY = Math.max(points.bottomLeftCorner.y, points.bottomRightCorner.y);
+                
+                const marginX = (maxX - minX) * 0.2;
+                const marginY = (maxY - minY) * 0.2;
+                
+                const qrX = Math.max(0, minX - marginX);
+                const qrY = Math.max(0, minY - marginY);
+                const qrWidth = (maxX - minX) + (marginX * 2);
+                const qrHeight = (maxY - minY) + (marginY * 2);
+                
+                frame.style.left = (qrX * scaleX) + 'px';
+                frame.style.top = (qrY * scaleY) + 'px';
+                frame.style.width = (qrWidth * scaleX) + 'px';
+                frame.style.height = (qrHeight * scaleY) + 'px';
+                frame.style.opacity = '1';
+                frame.classList.remove('hidden');
+                
+                if (!qrRegionDetected) {
+                    qrRegionDetected = { x: qrX, y: qrY, width: qrWidth, height: qrHeight };
+                    console.log('🎯 QR localizado - Listo para capturar');
+                }
+                
+                const powerBar = document.getElementById('scan-power-bar');
+                const powerLabel = document.getElementById('scan-power-label');
+                if (powerBar) powerBar.style.width = '100%';
+                if (powerLabel) powerLabel.textContent = '✅ QR DETECTADO';
+                if (powerBar) powerBar.className = 'bg-gradient-to-r from-green-500 to-green-600 h-full transition-all duration-300';
+                
+                if (captureBtn) {
+                    const innerCircle = captureBtn.querySelector('div');
+                    if (innerCircle) {
+                        setTimeout(() => {
+                            innerCircle.className = 'w-16 h-16 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center';
+                            innerCircle.innerHTML = `
+                                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            `;
+                        }, 10);
+                    }
+                }
+            }
+        }
+        
+        // Aplicar zoom
+        async function applyZoom(zoomLevel) {
+            if (!videoTrack) return;
+            
+            try {
+                const capabilities = videoTrack.getCapabilities();
+                if ('zoom' in capabilities) {
+                    const clampedZoom = Math.max(capabilities.zoom.min, Math.min(capabilities.zoom.max, zoomLevel));
+                    await videoTrack.applyConstraints({
+                        advanced: [{ zoom: clampedZoom }]
+                    });
+                    currentZoom = clampedZoom;
+                    document.getElementById('zoom-level').textContent = currentZoom.toFixed(1);
+                    console.log(`🔍 Zoom aplicado: ${currentZoom.toFixed(1)}x`);
+                }
+            } catch(e) {
+                console.error('Error aplicando zoom:', e);
+            }
+        }
+        
+        // Toggle flash/linterna
+        async function toggleFlash() {
+            if (!videoTrack || !torchSupported) {
+                console.log('⚠️ Flash no disponible');
+                return;
+            }
+            
+            try {
+                flashEnabled = !flashEnabled;
+                await videoTrack.applyConstraints({
+                    advanced: [{ torch: flashEnabled }]
+                });
+                
+                const flashBtn = document.getElementById('flash-btn');
+                if (flashEnabled) {
+                    flashBtn.style.background = 'linear-gradient(to right, #fbbf24, #f59e0b)';
+                    console.log('💡 Flash activado');
+                } else {
+                    flashBtn.style.background = 'linear-gradient(to right, #eab308, #ca8a04)';
+                    console.log('💡 Flash desactivado');
+                }
+            } catch(e) {
+                console.error('Error toggling flash:', e);
+            }
+        }
+        
+        // Toggle turbo mode
+        function toggleTurbo() {
+            turboMode = !turboMode;
+            const turboIndicator = document.getElementById('turbo-indicator');
+            const turboBtn = document.getElementById('turbo-btn');
+            
+            if (turboMode) {
+                turboIndicator.classList.remove('hidden');
+                turboBtn.style.background = 'linear-gradient(to right, #dc2626, #ea580c)';
+                console.log('⚡ TURBO MODE activado');
+            } else {
+                turboIndicator.classList.add('hidden');
+                turboBtn.style.background = 'linear-gradient(to right, #dc2626, #ea580c)';
+                console.log('⚡ TURBO MODE desactivado');
+            }
+            
+            // Reiniciar qr-scanner con nueva configuración
+            if (qrScannerInstance) {
+                qrScannerInstance._qrEnginePromise.then(qrEngine => {
+                    qrEngine._maxScansPerSecond = turboMode ? 20 : 10;
+                });
+            }
+        }
+        
+        // Zoom In
+        async function zoomIn() {
+            const newZoom = Math.min(maxZoom, currentZoom + zoomStep);
+            await applyZoom(newZoom);
+        }
+        
+        // Zoom Out
+        async function zoomOut() {
+            const newZoom = Math.max(minZoom, currentZoom - zoomStep);
+            await applyZoom(newZoom);
+        }
+        
         function stopScanner() {
             scannerRunning = false;
             scanLoopCount = 0; // Reset del contador de frames
             
-            // Detener qr-scanner si está activo
+            // === BEAST MODE CLEANUP ===
+            
+            // Detener qr-scanner
             if (qrScannerInstance) {
                 try {
                     qrScannerInstance.stop();
                     qrScannerInstance.destroy();
-                    console.log('✅ qr-scanner detenido correctamente');
-                } catch(e) {
-                    console.log('⚠️ Error deteniendo qr-scanner:', e);
-                }
+                    console.log('✅ qr-scanner detenido');
+                } catch(e) {}
                 qrScannerInstance = null;
             }
+            
+            // Limpiar ZXing
+            zxingReader = null;
+            
+            // Limpiar BarcodeDetector
+            barcodeDetector = null;
+            
+            // Desactivar flash si está activo
+            if (flashEnabled && videoTrack) {
+                try {
+                    videoTrack.applyConstraints({ advanced: [{ torch: false }] });
+                } catch(e) {}
+                flashEnabled = false;
+            }
+            
+            // Reset zoom
+            currentZoom = 1.0;
+            document.getElementById('zoom-level').textContent = '1.0';
+            
+            // Ocultar indicador turbo
+            document.getElementById('turbo-indicator').classList.add('hidden');
+            turboMode = false;
+            
+            // Reset track de video
+            videoTrack = null;
+            
+            // Mostrar estadísticas
+            console.log('📊 Estadísticas de detección:', detectionStats);
+            detectionStats = { jsqr: 0, zxing: 0, qrscanner: 0, barcode: 0 };
             
             // Reset variables de tracking QR
             qrRegionDetected = null;

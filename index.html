@@ -5,23 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="app-title">DRK: Comparador Multitarifa</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- === ARSENAL COMPLETO DE DETECCIÓN QR === -->
-    
-    <!-- QRCode.js para GENERAR QR -->
+    <!-- QRCode.js para generar QR -->
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
     
-    <!-- jsQR - Motor básico pero efectivo -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-    
-    <!-- ZXing-js - EL MEJOR para QRs difíciles y pequeños -->
-    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
-    
-    <!-- qr-scanner (Nimiq) - Ultra-rápida con WebWorker -->
-    <script type="module">
-        import QrScanner from 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.min.js';
-        window.QrScanner = QrScanner;
-        QrScanner.WORKER_PATH = 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner-worker.min.js';
-    </script>
+    <!-- ZXing-js - EL MEJOR motor para detectar QRs difíciles y pequeños -->
+    <script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script>
     
     <!-- Librerías para generar PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1155,59 +1143,21 @@
                     </div>
                 </button>
                 
-                <!-- 🎮 CONTROLES AVANZADOS - Zoom, Flash, Turbo, ULTRA -->
-                <div class="absolute bottom-6 right-6 flex flex-col gap-3" style="z-index: 200;">
-                    <!-- Botón ULTRA MODE - Procesamiento extremo -->
-                    <button id="ultra-btn" class="w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95">
-                        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                        </svg>
+                <!-- BOTONES ZOOM - Simples y grandes para iPhone -->
+                <div class="absolute bottom-6 right-6 flex flex-col gap-4" style="z-index: 200;">
+                    <!-- ZOOM + -->
+                    <button id="zoom-plus" class="w-16 h-16 rounded-full bg-green-600 text-white font-bold text-2xl shadow-2xl active:bg-green-700">
+                        +
                     </button>
-                    
-                    <!-- Botón TURBO MODE -->
-                    <button id="turbo-btn" class="w-14 h-14 rounded-full bg-gradient-to-r from-red-600 to-orange-600 text-white flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95">
-                        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M13 10V3L4 14h7v7l9-11z"/>
-                        </svg>
-                    </button>
-                    
-                    <!-- Botón FLASH/LINTERNA -->
-                    <button id="flash-btn" class="w-14 h-14 rounded-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-white flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95">
-                        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
-                        </svg>
-                    </button>
-                    
-                    <!-- Botón ZOOM + -->
-                    <button id="zoom-in-btn" class="w-14 h-14 rounded-full bg-gradient-to-r from-green-600 to-green-700 text-white flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/>
-                        </svg>
-                    </button>
-                    
-                    <!-- Botón ZOOM - -->
-                    <button id="zoom-out-btn" class="w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 text-white flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="M21 21l-4.35-4.35M8 11h6"/>
-                        </svg>
+                    <!-- ZOOM - -->
+                    <button id="zoom-minus" class="w-16 h-16 rounded-full bg-blue-600 text-white font-bold text-2xl shadow-2xl active:bg-blue-700">
+                        −
                     </button>
                 </div>
                 
-                <!-- Indicador de ZOOM actual -->
-                <div id="zoom-indicator" class="absolute top-6 right-6 bg-black bg-opacity-70 text-white px-4 py-2 rounded-full font-bold shadow-lg" style="z-index: 200;">
-                    ZOOM: <span id="zoom-level">1.0</span>x
-                </div>
-                
-                <!-- Indicador de MODO TURBO -->
-                <div id="turbo-indicator" class="absolute top-6 left-6 bg-gradient-to-r from-red-600 to-orange-600 text-white px-4 py-2 rounded-full font-bold shadow-lg hidden animate-pulse" style="z-index: 200;">
-                    ⚡ TURBO MODE ⚡
-                </div>
-                
-                <!-- Indicador de MODO ULTRA -->
-                <div id="ultra-indicator" class="absolute top-20 left-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-full font-bold shadow-lg hidden animate-pulse" style="z-index: 200;">
-                    🔬 ULTRA MODE 🔬
+                <!-- Indicador ZOOM -->
+                <div class="absolute top-6 right-6 bg-black bg-opacity-70 text-white px-4 py-2 rounded-full font-bold shadow-lg" style="z-index: 200;">
+                    <span id="zoom-display">1.0x</span>
                 </div>
                 
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none"><div class="w-64 h-1 bg-red-500 opacity-30"></div></div>
@@ -1894,39 +1844,13 @@
         let qrRegionDetected = null; // Región del QR cuando se detecta: {x, y, width, height}
         let qrDetectionFrame = 0; // Frame en el que se detectó el QR
         let qrStableFrames = 0; // Frames consecutivos con QR detectado (para estabilidad)
-        let autoProcessed = false; // Flag para evitar procesamiento múltiple automático
         
-        // === BEAST MODE VARIABLES ===
-        // Zoom digital
+        // ZOOM SIMPLE
         let currentZoom = 1.0;
-        let maxZoom = 10.0;
-        let minZoom = 1.0;
-        let zoomStep = 1.0; // Incrementos más grandes = Más rápido
-        let videoTrack = null;
+        let maxZoom = 5.0; // Máximo 5x (suficiente para QRs pequeños)
         
-        // Flash/Linterna
-        let flashEnabled = false;
-        let torchSupported = false;
-        
-        // Turbo Mode (procesamiento agresivo)
-        let turboMode = false;
-        
-        // Ultra Mode (procesamiento EXTREMO multi-nivel)
-        let ultraMode = false;
-        let ultraAttempts = 0; // Contador de intentos en modo ULTRA
-        
-        // Múltiples motores de detección
-        let qrScannerInstance = null; // qr-scanner (Nimiq)
-        let zxingReader = null; // ZXing-js
-        let barcodeDetector = null; // BarcodeDetector API nativa
-        
-        // Estadísticas de detección
-        let detectionStats = {
-            jsqr: 0,
-            zxing: 0,
-            qrscanner: 0,
-            barcode: 0
-        };
+        // ZXing reader
+        let zxingReader = null;
         
         // Protección anti-duplicados para compareOffers
         let lastCompareOffersCall = 0;
@@ -12258,12 +12182,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             document.getElementById('start-scan-btn').onclick = startScanner;
             document.getElementById('capture-photo-btn').onclick = capturePhoto;
             
-            // === BEAST MODE EVENT LISTENERS ===
-            document.getElementById('zoom-in-btn').onclick = zoomIn;
-            document.getElementById('zoom-out-btn').onclick = zoomOut;
-            document.getElementById('flash-btn').onclick = toggleFlash;
-            document.getElementById('turbo-btn').onclick = toggleTurbo;
-            document.getElementById('ultra-btn').onclick = toggleUltra;
+            // BOTONES ZOOM
+            document.getElementById('zoom-plus').onclick = zoomIn;
+            document.getElementById('zoom-minus').onclick = zoomOut;
             
             // Modificación del botón de volver para la vista de entrada
             document.querySelector('#initial-view button:first-child').onclick = () => {
@@ -13066,7 +12987,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             img.src = url;
         }
         
-        async function startScanner() {
+        function startScanner() {
             // Use multiCupsAddType for the check if we are in MultiCups mode
             const currentTypeCheck = currentTariffType === 'MULTICUPS' ? multiCupsAddType : currentTariffType;
 
@@ -13087,9 +13008,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             }
             if (scannerRunning) return;
             
-            // Reset flag de auto-procesamiento
-            autoProcessed = false;
-            
             // FEEDBACK INMEDIATO: Mostrar que está cargando
             document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
             document.getElementById('initial-view').classList.add('hidden');
@@ -13101,8 +13019,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             interactive.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; background: #1e293b;">
                     <div style="width: 60px; height: 60px; border: 4px solid #22c55e; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-                    <p style="color: white; margin-top: 20px; font-size: 16px; font-weight: 600;">🚀 Iniciando BEAST MODE AUTO...</p>
-                    <p style="color: #4ade80; margin-top: 10px; font-size: 12px;">Resolución 4K/8K + Detección Automática</p>
+                    <p style="color: white; margin-top: 20px; font-size: 16px; font-weight: 600;">📷 Abriendo cámara...</p>
                 </div>
                 <style>
                     @keyframes spin {
@@ -13114,93 +13031,46 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             scannerRunning = true;
             
-            // === BEAST MODE: CONFIGURACIÓN ULTRA-POTENTE ===
-            console.log('🚀 BEAST MODE iniciando...');
-            
-            // Configuración de cámara con MÁXIMA CALIDAD
-            const constraints = {
-                video: {
-                    facingMode: "environment",
-                    // Resolución 4K/8K - Lo más alto posible
-                    width: { ideal: 7680 },   // 8K width
-                    height: { ideal: 4320 },  // 8K height
-                    // Si 8K no está disponible, intentar 4K
-                    // Si 4K no está disponible, usar la máxima disponible
-                    aspectRatio: { ideal: 16/9 },
-                    // Configuraciones avanzadas
-                    frameRate: { ideal: 60, min: 30 },  // Alta tasa de frames
-                    // HDR y ajustes avanzados (si están disponibles)
-                    exposureMode: 'continuous',
-                    whiteBalanceMode: 'continuous',
-                    focusMode: 'continuous'
-                },
-                audio: false
-            };
-            
-            try {
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
-                
-                // Obtener el track de video para controlar zoom y flash
-                videoTrack = stream.getVideoTracks()[0];
-                const capabilities = videoTrack.getCapabilities();
-                
-                console.log('📹 Capacidades de cámara:', capabilities);
-                
-                // Verificar soporte de torch (flash/linterna)
-                torchSupported = 'torch' in capabilities;
-                if (torchSupported) {
-                    console.log('✅ Flash/Linterna disponible');
-                    document.getElementById('flash-btn').style.opacity = '1';
-                } else {
-                    console.log('⚠️ Flash/Linterna no disponible');
-                    document.getElementById('flash-btn').style.opacity = '0.5';
-                }
-                
-                // Aplicar zoom inicial si está disponible
-                if ('zoom' in capabilities) {
-                    maxZoom = capabilities.zoom.max;
-                    minZoom = capabilities.zoom.min;
-                    console.log(`✅ Zoom disponible: ${minZoom}x - ${maxZoom}x`);
-                    await applyZoom(currentZoom);
-                } else {
-                    console.log('⚠️ Zoom no disponible en hardware');
-                }
+            // Iniciar cámara con mínimas opciones para máxima velocidad
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: "environment"
+                    // Solo lo esencial - sin resolución forzada para apertura rápida
+                } 
+            }).then(s => {
+                stream = s; 
                 
                 // Crear video
                 video = document.createElement('video');
                 video.autoplay = true; 
                 video.playsInline = true;
-                video.srcObject = stream;
-                video.style.width = '100%';
-                video.style.height = '100%';
-                video.style.objectFit = 'cover';
+                video.srcObject = s;
                 
                 // Crear canvas
                 canvas = document.createElement('canvas'); 
-                canvasCtx = canvas.getContext('2d', { willReadFrequently: true });
+                canvasCtx = canvas.getContext('2d');
                 
                 // Limpiar el mensaje de carga y mostrar video
                 interactive.innerHTML = '';
                 interactive.appendChild(video);
                 
-                video.onloadedmetadata = async () => { 
-                    await video.play();
+                video.onloadedmetadata = () => { 
+                    video.play();
                     
-                    console.log(`📹 Resolución obtenida: ${video.videoWidth}x${video.videoHeight}`);
+                    // Inicializar ZXing
+                    console.log('✅ Inicializando ZXing...');
+                    zxingReader = new ZXing.BrowserQRCodeReader();
+                    console.log('✅ ZXing inicializado');
                     
-                    // Inicializar múltiples motores de detección
-                    await initializeDetectionEngines();
-                    
-                    // Iniciar escaneo BEAST MODE
-                    scanLoopBeast(); 
+                    // Iniciar escaneo con ZXing
+                    scanLoopZXing(); 
                 };
-                
-            } catch (err) {
-                console.error('❌ Error iniciando cámara BEAST MODE:', err); 
+            }).catch(err => {
+                console.error(err); 
                 stopScanner(); 
                 cancelScanner(); 
                 window.showErrorModal("Error al acceder a la cámara. Intente subir una imagen.");
-            }
+            });
         }
         function scanLoop() {
             if (!scannerRunning || !video || video.readyState !== video.HAVE_ENOUGH_DATA) { 
@@ -13354,635 +13224,160 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         }
         
         // ========================================
-        // === BEAST MODE FUNCTIONS ===
+        // SCAN LOOP con ZXing + ZOOM SIMPLE
         // ========================================
-        
-        // Inicializar todos los motores de detección
-        async function initializeDetectionEngines() {
-            console.log('🔧 Inicializando motores de detección...');
-            
-            // 1. ZXing-js (EL MEJOR para QRs difíciles)
-            try {
-                if (typeof ZXing !== 'undefined') {
-                    zxingReader = new ZXing.BrowserQRCodeReader();
-                    console.log('✅ ZXing-js inicializado');
-                } else {
-                    console.log('⚠️ ZXing-js no disponible');
-                }
-            } catch(e) {
-                console.log('⚠️ Error inicializando ZXing:', e.message);
+        function scanLoopZXing() {
+            if (!scannerRunning || !video || video.readyState !== video.HAVE_ENOUGH_DATA) {
+                animationFrameId = requestAnimationFrame(scanLoopZXing);
+                return;
             }
             
-            // 2. qr-scanner (Nimiq) - Ultra-rápida
-            try {
-                if (typeof window.QrScanner !== 'undefined') {
-                    qrScannerInstance = new window.QrScanner(
-                        video,
-                        result => {
-                            console.log('✅ QR detectado por qr-scanner:', result.data);
-                            detectionStats.qrscanner++;
-                            handleQRRead(result.data);
-                        },
-                        {
-                            returnDetailedScanResult: true,
-                            highlightScanRegion: false,
-                            highlightCodeOutline: false,
-                            maxScansPerSecond: turboMode ? 20 : 10
-                        }
-                    );
-                    await qrScannerInstance.start();
-                    console.log('✅ qr-scanner inicializado');
-                } else {
-                    console.log('⚠️ qr-scanner no disponible');
-                }
-            } catch(e) {
-                console.log('⚠️ Error inicializando qr-scanner:', e.message);
-            }
-            
-            // 3. BarcodeDetector API (nativa del navegador)
-            try {
-                if ('BarcodeDetector' in window) {
-                    const formats = await BarcodeDetector.getSupportedFormats();
-                    if (formats.includes('qr_code')) {
-                        barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
-                        console.log('✅ BarcodeDetector API disponible');
-                    }
-                }
-            } catch(e) {
-                console.log('⚠️ BarcodeDetector no disponible');
-            }
-            
-            console.log('🚀 Motores activos:', {
-                jsQR: true,  // Siempre disponible
-                zxing: !!zxingReader,
-                qrscanner: !!qrScannerInstance,
-                barcode: !!barcodeDetector
-            });
-        }
-        
-        // Loop principal BEAST MODE con múltiples motores
-        function scanLoopBeast() {
-            if (!scannerRunning || !video || video.readyState !== video.HAVE_ENOUGH_DATA) { 
-                animationFrameId = requestAnimationFrame(scanLoopBeast); 
-                return; 
-            }
-            
-            if (canvas.width !== video.videoWidth) { 
-                canvas.width = video.videoWidth; 
-                canvas.height = video.videoHeight; 
-            }
-            
-            // === ZOOM DIGITAL (SOFTWARE) - INSTANTÁNEO ===
-            // Aplicar crop según nivel de zoom
-            if (currentZoom > 1.0) {
-                // Calcular área central según zoom
-                const zoomFactor = 1 / currentZoom;
-                const cropWidth = video.videoWidth * zoomFactor;
-                const cropHeight = video.videoHeight * zoomFactor;
-                const cropX = (video.videoWidth - cropWidth) / 2;
-                const cropY = (video.videoHeight - cropHeight) / 2;
-                
-                // Dibujar solo el área con zoom (crop + scale)
-                canvasCtx.drawImage(
-                    video,
-                    cropX, cropY, cropWidth, cropHeight,  // Área de origen (crop)
-                    0, 0, canvas.width, canvas.height      // Destino (canvas completo = zoom)
-                );
-            } else {
-                // Sin zoom, dibujar normal
-                canvasCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            }
-            
-            const imageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
-            
-            scanLoopCount++;
-            
-            // Actualizar barra de progreso
-            const powerBar = document.getElementById('scan-power-bar');
-            const powerLabel = document.getElementById('scan-power-label');
-            
-            if (!qrRegionDetected) {
-                const progress = Math.min(80, (scanLoopCount / 60) * 80);
-                if (powerBar) powerBar.style.width = progress + '%';
-                if (powerLabel) {
-                    const modeText = turboMode ? '⚡ TURBO' : '🚀 BEAST';
-                    const zoomText = currentZoom > 1.0 ? ` ZOOM ${currentZoom.toFixed(1)}x` : '';
-                    powerLabel.textContent = `${modeText}${zoomText} - Buscando QR...`;
-                }
-                if (powerBar) powerBar.className = 'bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500';
-            }
-            
-            // === DETECCIÓN CON MÚLTIPLES MOTORES ===
-            
-            // 1. jsQR (siempre activo)
-            let code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "attemptBoth"
-            });
-            
-            if (code) {
-                console.log('✅ QR detectado por jsQR');
-                detectionStats.jsqr++;
-                processQRDetection(code);
-            }
-            
-            // 2. ZXing-js (cada 2 frames en modo normal, cada frame en turbo)
-            if (zxingReader && (turboMode || scanLoopCount % 2 === 0)) {
-                try {
-                    zxingReader.decodeFromImageData(imageData).then(result => {
-                        if (result) {
-                            console.log('✅ QR detectado por ZXing');
-                            detectionStats.zxing++;
-                            const zxingCode = {
-                                data: result.text,
-                                location: {
-                                    topLeftCorner: { x: result.resultPoints[0]?.x || 0, y: result.resultPoints[0]?.y || 0 },
-                                    topRightCorner: { x: result.resultPoints[1]?.x || 0, y: result.resultPoints[1]?.y || 0 },
-                                    bottomRightCorner: { x: result.resultPoints[2]?.x || 0, y: result.resultPoints[2]?.y || 0 },
-                                    bottomLeftCorner: { x: result.resultPoints[3]?.x || 0, y: result.resultPoints[3]?.y || 0 }
-                                }
-                            };
-                            processQRDetection(zxingCode);
-                        }
-                    }).catch(() => {});
-                } catch(e) {}
-            }
-            
-            // 3. BarcodeDetector (cada 3 frames en modo normal, cada frame en turbo)
-            if (barcodeDetector && (turboMode || scanLoopCount % 3 === 0)) {
-                barcodeDetector.detect(video).then(barcodes => {
-                    if (barcodes.length > 0) {
-                        const barcode = barcodes[0];
-                        console.log('✅ QR detectado por BarcodeDetector');
-                        detectionStats.barcode++;
-                        const barcodeCode = {
-                            data: barcode.rawValue,
-                            location: {
-                                topLeftCorner: { x: barcode.cornerPoints[0]?.x || 0, y: barcode.cornerPoints[0]?.y || 0 },
-                                topRightCorner: { x: barcode.cornerPoints[1]?.x || 0, y: barcode.cornerPoints[1]?.y || 0 },
-                                bottomRightCorner: { x: barcode.cornerPoints[2]?.x || 0, y: barcode.cornerPoints[2]?.y || 0 },
-                                bottomLeftCorner: { x: barcode.cornerPoints[3]?.x || 0, y: barcode.cornerPoints[3]?.y || 0 }
-                            }
-                        };
-                        processQRDetection(barcodeCode);
-                    }
-                }).catch(() => {});
-            }
-            
-            // Continuar loop
-            animationFrameId = requestAnimationFrame(scanLoopBeast);
-        }
-        
-        // ========================================
-        // === PRE-PROCESAMIENTO EXTREMO ===
-        // === (Imita Google Vision sin IA) ===
-        // ========================================
-        
-        // 1. CONTRASTE EXTREMO
-        function extremeContrast(imageData) {
-            const data = new Uint8ClampedArray(imageData.data);
-            const factor = 2.5; // Contraste muy alto
-            const intercept = -128 * (factor - 1);
-            
-            for (let i = 0; i < data.length; i += 4) {
-                data[i] = Math.min(255, Math.max(0, data[i] * factor + intercept));
-                data[i + 1] = Math.min(255, Math.max(0, data[i + 1] * factor + intercept));
-                data[i + 2] = Math.min(255, Math.max(0, data[i + 2] * factor + intercept));
-            }
-            
-            return new ImageData(data, imageData.width, imageData.height);
-        }
-        
-        // 2. SHARPENING AGRESIVO (enfoque extremo)
-        function sharpenImage(imageData) {
-            const data = imageData.data;
-            const width = imageData.width;
-            const height = imageData.height;
-            const output = new Uint8ClampedArray(data);
-            
-            // Kernel de sharpening agresivo
-            const kernel = [
-                0, -1, 0,
-                -1, 5, -1,
-                0, -1, 0
-            ];
-            
-            for (let y = 1; y < height - 1; y++) {
-                for (let x = 1; x < width - 1; x++) {
-                    for (let c = 0; c < 3; c++) { // RGB
-                        let sum = 0;
-                        for (let ky = -1; ky <= 1; ky++) {
-                            for (let kx = -1; kx <= 1; kx++) {
-                                const idx = ((y + ky) * width + (x + kx)) * 4 + c;
-                                const kernelIdx = (ky + 1) * 3 + (kx + 1);
-                                sum += data[idx] * kernel[kernelIdx];
-                            }
-                        }
-                        const idx = (y * width + x) * 4 + c;
-                        output[idx] = Math.min(255, Math.max(0, sum));
-                    }
-                }
-            }
-            
-            return new ImageData(output, width, height);
-        }
-        
-        // 3. BINARIZACIÓN ADAPTATIVA
-        function adaptiveThreshold(imageData) {
-            const data = imageData.data;
-            const width = imageData.width;
-            const height = imageData.height;
-            const output = new Uint8ClampedArray(data);
-            const blockSize = 15;
-            
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    // Calcular media local
-                    let sum = 0, count = 0;
-                    for (let by = Math.max(0, y - blockSize); by < Math.min(height, y + blockSize); by++) {
-                        for (let bx = Math.max(0, x - blockSize); bx < Math.min(width, x + blockSize); bx++) {
-                            const idx = (by * width + bx) * 4;
-                            sum += (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
-                            count++;
-                        }
-                    }
-                    const threshold = sum / count - 10;
-                    const idx = (y * width + x) * 4;
-                    const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
-                    const value = gray > threshold ? 255 : 0;
-                    output[idx] = output[idx + 1] = output[idx + 2] = value;
-                }
-            }
-            
-            return new ImageData(output, width, height);
-        }
-        
-        // 4. PROCESAMIENTO MULTI-NIVEL
-        async function ultraProcessFrame() {
-            if (!ultraMode || autoProcessed || !video || !canvas) return;
-            
-            ultraAttempts++;
-            const powerLabel = document.getElementById('scan-power-label');
-            if (powerLabel) {
-                powerLabel.textContent = `🔬 ULTRA - Procesando ${ultraAttempts} variaciones...`;
-            }
-            
-            // Capturar frame
             if (canvas.width !== video.videoWidth) {
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
             }
             
-            // Aplicar zoom si está activo
+            // ZOOM DIGITAL SIMPLE (crop + scale)
             if (currentZoom > 1.0) {
-                const zoomFactor = 1 / currentZoom;
-                const cropWidth = video.videoWidth * zoomFactor;
-                const cropHeight = video.videoHeight * zoomFactor;
-                const cropX = (video.videoWidth - cropWidth) / 2;
-                const cropY = (video.videoHeight - cropHeight) / 2;
-                canvasCtx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
+                const factor = 1 / currentZoom;
+                const w = video.videoWidth * factor;
+                const h = video.videoHeight * factor;
+                const x = (video.videoWidth - w) / 2;
+                const y = (video.videoHeight - h) / 2;
+                canvasCtx.drawImage(video, x, y, w, h, 0, 0, canvas.width, canvas.height);
             } else {
                 canvasCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
             }
             
-            const originalData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
+            const imageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
+            scanLoopCount++;
             
-            // Array de variaciones a probar
-            const variations = [
-                { name: 'Original', data: originalData },
-                { name: 'Contraste extremo', data: extremeContrast(originalData) },
-                { name: 'Sharpening', data: sharpenImage(originalData) },
-                { name: 'Binarización', data: adaptiveThreshold(originalData) },
-                { name: 'Contraste + Sharpen', data: sharpenImage(extremeContrast(originalData)) },
-                { name: 'Contraste + Binarización', data: adaptiveThreshold(extremeContrast(originalData)) },
-            ];
+            // Barra de progreso
+            const powerBar = document.getElementById('scan-power-bar');
+            const powerLabel = document.getElementById('scan-power-label');
             
-            // Probar cada variación con todos los motores
-            for (let i = 0; i < variations.length; i++) {
-                if (autoProcessed) break;
-                
-                const variation = variations[i];
-                console.log(`🔬 ULTRA: Probando ${variation.name}...`);
-                
-                // jsQR
-                const codeJsQR = jsQR(variation.data.data, variation.data.width, variation.data.height, {
-                    inversionAttempts: "attemptBoth"
-                });
-                if (codeJsQR && !autoProcessed) {
-                    console.log(`✅ QR detectado por jsQR (${variation.name})`);
-                    detectionStats.jsqr++;
-                    processQRDetection(codeJsQR);
-                    break;
-                }
-                
-                // ZXing
-                if (zxingReader && !autoProcessed) {
-                    try {
-                        const resultZxing = await zxingReader.decodeFromImageData(variation.data);
-                        if (resultZxing && !autoProcessed) {
-                            console.log(`✅ QR detectado por ZXing (${variation.name})`);
-                            detectionStats.zxing++;
-                            const zxingCode = {
-                                data: resultZxing.text,
-                                location: {
-                                    topLeftCorner: { x: 0, y: 0 },
-                                    topRightCorner: { x: variation.data.width, y: 0 },
-                                    bottomRightCorner: { x: variation.data.width, y: variation.data.height },
-                                    bottomLeftCorner: { x: 0, y: variation.data.height }
+            if (!qrRegionDetected && powerBar && powerLabel) {
+                const progress = Math.min(80, (scanLoopCount / 60) * 80);
+                powerBar.style.width = progress + '%';
+                const zoomText = currentZoom > 1.0 ? ` (${currentZoom.toFixed(1)}x)` : '';
+                powerLabel.textContent = `🔍 Buscando QR${zoomText}...`;
+                powerBar.className = 'bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500';
+            }
+            
+            // DETECTAR con ZXing (cada 3 frames para no sobrecargar)
+            if (scanLoopCount % 3 === 0 && zxingReader) {
+                zxingReader.decodeFromImageData(imageData)
+                    .then(result => {
+                        if (result && scannerRunning) {
+                            console.log('✅ QR detectado por ZXing:', result.text);
+                            
+                            // Mostrar marco verde y procesar
+                            const frame = document.getElementById('qr-detection-frame');
+                            const container = document.getElementById('interactive');
+                            
+                            if (frame && container) {
+                                qrStableFrames++;
+                                
+                                if (qrStableFrames >= 2) {
+                                    // Mostrar marco verde (centrado simple)
+                                    frame.style.left = '25%';
+                                    frame.style.top = '25%';
+                                    frame.style.width = '50%';
+                                    frame.style.height = '50%';
+                                    frame.style.opacity = '1';
+                                    frame.classList.remove('hidden');
+                                    
+                                    if (powerBar) powerBar.style.width = '100%';
+                                    if (powerLabel) powerLabel.textContent = '✅ QR DETECTADO';
+                                    if (powerBar) powerBar.className = 'bg-gradient-to-r from-green-500 to-green-600 h-full';
+                                    
+                                    // Cambiar botón a verde
+                                    const captureBtn = document.getElementById('capture-photo-btn');
+                                    if (captureBtn) {
+                                        const innerCircle = captureBtn.querySelector('div');
+                                        if (innerCircle) {
+                                            innerCircle.className = 'w-16 h-16 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center';
+                                            innerCircle.innerHTML = `
+                                                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            `;
+                                        }
+                                    }
+                                    
+                                    // PROCESAR AUTOMÁTICAMENTE después de 2 frames
+                                    if (qrStableFrames >= 4) {
+                                        console.log('🚀 Auto-procesando QR...');
+                                        handleQRRead(result.text);
+                                        return; // Detener loop
+                                    }
                                 }
-                            };
-                            processQRDetection(zxingCode);
-                            break;
+                            }
                         }
-                    } catch(e) {}
-                }
+                    })
+                    .catch(() => {
+                        // No QR detectado - resetear
+                        if (qrStableFrames > 0) {
+                            qrStableFrames--;
+                        }
+                        if (qrStableFrames === 0) {
+                            const frame = document.getElementById('qr-detection-frame');
+                            if (frame) {
+                                frame.style.opacity = '0';
+                                setTimeout(() => frame.classList.add('hidden'), 300);
+                            }
+                            qrRegionDetected = null;
+                        }
+                    });
             }
             
-            // Si no detectó nada y no estamos procesando, seguir intentando
-            if (!autoProcessed && ultraMode && ultraAttempts < 20) {
-                setTimeout(() => ultraProcessFrame(), 500);
-            }
+            // Continuar loop
+            animationFrameId = requestAnimationFrame(scanLoopZXing);
         }
         
-        // Procesar detección de QR
-        function processQRDetection(code) {
-            const frame = document.getElementById('qr-detection-frame');
-            const container = document.getElementById('interactive');
-            const captureBtn = document.getElementById('capture-photo-btn');
-            
-            if (!code || !code.location || !frame || !container) return;
-            
-            // Si ya procesamos este QR, no hacer nada
-            if (autoProcessed) return;
-            
-            qrStableFrames++;
-            
-            // Con zoom: marco verde INSTANTÁNEO (1 frame)
-            // Sin zoom: marco verde rápido (3 frames)
-            const framesForGreen = currentZoom > 1.0 ? 1 : 3;
-            
-            if (qrStableFrames >= framesForGreen) {
-                const rect = container.getBoundingClientRect();
-                const scaleX = rect.width / canvas.width;
-                const scaleY = rect.height / canvas.height;
-                
-                const points = code.location;
-                const minX = Math.min(points.topLeftCorner.x, points.bottomLeftCorner.x);
-                const maxX = Math.max(points.topRightCorner.x, points.bottomRightCorner.x);
-                const minY = Math.min(points.topLeftCorner.y, points.topRightCorner.y);
-                const maxY = Math.max(points.bottomLeftCorner.y, points.bottomRightCorner.y);
-                
-                const marginX = (maxX - minX) * 0.2;
-                const marginY = (maxY - minY) * 0.2;
-                
-                const qrX = Math.max(0, minX - marginX);
-                const qrY = Math.max(0, minY - marginY);
-                const qrWidth = (maxX - minX) + (marginX * 2);
-                const qrHeight = (maxY - minY) + (marginY * 2);
-                
-                frame.style.left = (qrX * scaleX) + 'px';
-                frame.style.top = (qrY * scaleY) + 'px';
-                frame.style.width = (qrWidth * scaleX) + 'px';
-                frame.style.height = (qrHeight * scaleY) + 'px';
-                frame.style.opacity = '1';
-                frame.classList.remove('hidden');
-                
-                if (!qrRegionDetected) {
-                    qrRegionDetected = { x: qrX, y: qrY, width: qrWidth, height: qrHeight };
-                    console.log('🎯 QR localizado - Procesando automáticamente...');
-                }
-                
-                const powerBar = document.getElementById('scan-power-bar');
-                const powerLabel = document.getElementById('scan-power-label');
-                if (powerBar) powerBar.style.width = '100%';
-                if (powerLabel) powerLabel.textContent = '✅ QR DETECTADO';
-                if (powerBar) powerBar.className = 'bg-gradient-to-r from-green-500 to-green-600 h-full transition-all duration-300';
-                
-                if (captureBtn) {
-                    const innerCircle = captureBtn.querySelector('div');
-                    if (innerCircle) {
-                        setTimeout(() => {
-                            innerCircle.className = 'w-16 h-16 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center';
-                            innerCircle.innerHTML = `
-                                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            `;
-                        }, 10);
-                    }
-                }
-                
-                // === PROCESAMIENTO AUTOMÁTICO ===
-                // Con zoom: detección ULTRA-RÁPIDA (2 frames)
-                // Sin zoom: detección normal (8 frames)
-                const framesNeeded = currentZoom > 1.0 ? 2 : 8;
-                
-                if (qrStableFrames >= framesNeeded && !autoProcessed) {
-                    console.log(`🚀 Auto-procesando QR (${framesNeeded} frames, zoom ${currentZoom.toFixed(1)}x)...`);
-                    autoProcessed = true; // Marcar como procesado
-                    
-                    // Con zoom: delay más corto (más rápido)
-                    const delayMs = currentZoom > 1.0 ? 100 : 300;
-                    
-                    setTimeout(() => {
-                        console.log('📊 Datos del QR:', code.data);
-                        handleQRRead(code.data); // Procesar automáticamente
-                    }, delayMs);
-                }
-            }
-        }
-        
-        // Aplicar zoom
-        // === ZOOM DIGITAL (SOFTWARE) - INSTANTÁNEO ===
-        function applyZoom(zoomLevel) {
-            currentZoom = Math.max(minZoom, Math.min(maxZoom, zoomLevel));
-            document.getElementById('zoom-level').textContent = currentZoom.toFixed(1);
-            console.log(`🔍 Zoom digital: ${currentZoom.toFixed(1)}x (instantáneo)`);
-            
-            // No tocamos la cámara - el zoom se aplica en el procesamiento de imagen
-            // Esto es MUCHO más rápido y no afecta al enfoque
-        }
-        
-        // Toggle flash/linterna
-        async function toggleFlash() {
-            if (!videoTrack || !torchSupported) {
-                console.log('⚠️ Flash no disponible');
-                return;
-            }
-            
-            try {
-                flashEnabled = !flashEnabled;
-                await videoTrack.applyConstraints({
-                    advanced: [{ torch: flashEnabled }]
-                });
-                
-                const flashBtn = document.getElementById('flash-btn');
-                if (flashEnabled) {
-                    flashBtn.style.background = 'linear-gradient(to right, #fbbf24, #f59e0b)';
-                    console.log('💡 Flash activado');
-                } else {
-                    flashBtn.style.background = 'linear-gradient(to right, #eab308, #ca8a04)';
-                    console.log('💡 Flash desactivado');
-                }
-            } catch(e) {
-                console.error('Error toggling flash:', e);
-            }
-        }
-        
-        // Toggle turbo mode
-        function toggleTurbo() {
-            turboMode = !turboMode;
-            const turboIndicator = document.getElementById('turbo-indicator');
-            const turboBtn = document.getElementById('turbo-btn');
-            
-            if (turboMode) {
-                turboIndicator.classList.remove('hidden');
-                turboBtn.style.background = 'linear-gradient(to right, #dc2626, #ea580c)';
-                console.log('⚡ TURBO MODE activado');
-            } else {
-                turboIndicator.classList.add('hidden');
-                turboBtn.style.background = 'linear-gradient(to right, #dc2626, #ea580c)';
-                console.log('⚡ TURBO MODE desactivado');
-            }
-            
-            // Reiniciar qr-scanner con nueva configuración
-            if (qrScannerInstance) {
-                qrScannerInstance._qrEnginePromise.then(qrEngine => {
-                    qrEngine._maxScansPerSecond = turboMode ? 20 : 10;
-                });
-            }
-        }
-        
-        // Toggle ULTRA mode
-        function toggleUltra() {
-            ultraMode = !ultraMode;
-            const ultraIndicator = document.getElementById('ultra-indicator');
-            const ultraBtn = document.getElementById('ultra-btn');
-            
-            if (ultraMode) {
-                ultraIndicator.classList.remove('hidden');
-                ultraBtn.style.background = 'linear-gradient(to right, #9333ea, #db2777)';
-                console.log('🔬 ULTRA MODE activado - Pre-procesamiento extremo');
-                ultraAttempts = 0;
-                
-                // Iniciar procesamiento ULTRA
-                ultraProcessFrame();
-            } else {
-                ultraIndicator.classList.add('hidden');
-                ultraBtn.style.background = 'linear-gradient(to right, #9333ea, #db2777)';
-                console.log('🔬 ULTRA MODE desactivado');
-                ultraAttempts = 0;
-            }
-        }
-        
-        // Zoom In
+        // ========================================
+        // FUNCIONES ZOOM SIMPLES
+        // ========================================
         function zoomIn() {
-            const newZoom = Math.min(maxZoom, currentZoom + zoomStep);
-            applyZoom(newZoom);
-            
-            // AUTO-ACTIVAR TURBO MODE cuando hay zoom
-            if (newZoom > 1.0 && !turboMode) {
-                turboMode = true;
-                const turboIndicator = document.getElementById('turbo-indicator');
-                const turboBtn = document.getElementById('turbo-btn');
-                turboIndicator.classList.remove('hidden');
-                turboBtn.style.background = 'linear-gradient(to right, #dc2626, #ea580c)';
-                console.log('⚡ TURBO MODE auto-activado por ZOOM');
+            if (currentZoom < maxZoom) {
+                currentZoom += 0.5;
+                document.getElementById('zoom-display').textContent = currentZoom.toFixed(1) + 'x';
+                console.log(`🔍 Zoom: ${currentZoom.toFixed(1)}x`);
                 
-                if (qrScannerInstance) {
-                    qrScannerInstance._qrEnginePromise.then(qrEngine => {
-                        qrEngine._maxScansPerSecond = 20;
-                    });
-                }
+                // Reset detección para forzar nueva búsqueda
+                qrStableFrames = 0;
+                qrRegionDetected = null;
             }
-            
-            // RESETEAR frames de estabilidad para detección más rápida
-            qrStableFrames = 0;
-            qrRegionDetected = null;
         }
         
-        // Zoom Out
         function zoomOut() {
-            const newZoom = Math.max(minZoom, currentZoom - zoomStep);
-            applyZoom(newZoom);
-            
-            // Desactivar TURBO si volvemos a zoom 1.0
-            if (newZoom <= 1.0 && turboMode) {
-                turboMode = false;
-                const turboIndicator = document.getElementById('turbo-indicator');
-                const turboBtn = document.getElementById('turbo-btn');
-                turboIndicator.classList.add('hidden');
-                turboBtn.style.background = 'linear-gradient(to right, #dc2626, #ea580c)';
-                console.log('⚡ TURBO MODE auto-desactivado');
+            if (currentZoom > 1.0) {
+                currentZoom -= 0.5;
+                if (currentZoom < 1.0) currentZoom = 1.0;
+                document.getElementById('zoom-display').textContent = currentZoom.toFixed(1) + 'x';
+                console.log(`🔍 Zoom: ${currentZoom.toFixed(1)}x`);
                 
-                if (qrScannerInstance) {
-                    qrScannerInstance._qrEnginePromise.then(qrEngine => {
-                        qrEngine._maxScansPerSecond = 10;
-                    });
-                }
+                // Reset detección
+                qrStableFrames = 0;
+                qrRegionDetected = null;
             }
-            
-            // RESETEAR frames de estabilidad
-            qrStableFrames = 0;
-            qrRegionDetected = null;
         }
         
         function stopScanner() {
             scannerRunning = false;
             scanLoopCount = 0; // Reset del contador de frames
             
-            // === BEAST MODE CLEANUP ===
-            
-            // Detener qr-scanner
-            if (qrScannerInstance) {
-                try {
-                    qrScannerInstance.stop();
-                    qrScannerInstance.destroy();
-                    console.log('✅ qr-scanner detenido');
-                } catch(e) {}
-                qrScannerInstance = null;
-            }
-            
-            // Limpiar ZXing
-            zxingReader = null;
-            
-            // Limpiar BarcodeDetector
-            barcodeDetector = null;
-            
-            // Desactivar flash si está activo
-            if (flashEnabled && videoTrack) {
-                try {
-                    videoTrack.applyConstraints({ advanced: [{ torch: false }] });
-                } catch(e) {}
-                flashEnabled = false;
-            }
-            
-            // Reset zoom
-            currentZoom = 1.0;
-            document.getElementById('zoom-level').textContent = '1.0';
-            
-            // Ocultar indicador turbo
-            document.getElementById('turbo-indicator').classList.add('hidden');
-            turboMode = false;
-            
-            // Ocultar indicador ultra
-            document.getElementById('ultra-indicator').classList.add('hidden');
-            ultraMode = false;
-            ultraAttempts = 0;
-            
-            // Reset track de video
-            videoTrack = null;
-            
-            // Mostrar estadísticas
-            console.log('📊 Estadísticas de detección:', detectionStats);
-            detectionStats = { jsqr: 0, zxing: 0, qrscanner: 0, barcode: 0 };
-            
-            // Reset flag de auto-procesamiento
-            autoProcessed = false;
-            
             // Reset variables de tracking QR
             qrRegionDetected = null;
             qrDetectionFrame = 0;
             qrStableFrames = 0; // Reset contador de estabilidad
+            
+            // Reset ZOOM
+            currentZoom = 1.0;
+            document.getElementById('zoom-display').textContent = '1.0x';
+            
+            // Limpiar ZXing
+            zxingReader = null;
             
             // Ocultar marco Google Lens
             const frame = document.getElementById('qr-detection-frame');

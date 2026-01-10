@@ -23131,9 +23131,11 @@ async function loadPlanAmigoData() {
 // ========== CARGAR TEXTOS DINÁMICOS DESDE HOJA 2 ==========
 async function loadFriendsTexts() {
     const SHEET_ID = '1kLfQOZnTsBJ8lRXA0ab5RXk-QM3VeSRkDQsatL3-tVk';
+    const GID = 514707142; // Pestaña específica con los textos
     
-    console.log('📥 Cargando textos dinámicos desde Hoja 2...');
-    console.log('💡 IMPORTANTE: Abre la consola (F12) para ver los logs detallados');
+    console.log('📥 Cargando textos dinámicos de Código Amigos desde Google Sheets...');
+    console.log(`📊 Spreadsheet ID: ${SHEET_ID}`);
+    console.log(`📑 GID: ${GID}`);
     
     // Función para parsear CSV correctamente
     function parseCSVLine(line, delimiter = ',') {
@@ -23163,158 +23165,164 @@ async function loadFriendsTexts() {
         return result;
     }
     
-    // Probar múltiples gids (0, 1, 2, 3) para encontrar la Hoja 2
-    // gid=514707142 es tu Hoja 2 (obtenido de la URL)
-    const gidsToTry = [514707142, 0, 1, 2, 3]; // Prueba primero el correcto, luego los demás por si acaso
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
     
-    for (const gid of gidsToTry) {
-        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+    try {
+        console.log(`🌐 Cargando desde: ${CSV_URL}`);
+        const response = await fetch(CSV_URL);
         
-        console.log(`\n🔍 Probando gid=${gid}...`);
-        console.log(`📡 URL: ${CSV_URL}`);
-        
-        try {
-            const response = await fetch(CSV_URL);
-            
-            if (!response.ok) {
-                console.log(`❌ gid=${gid} falló: ${response.status} ${response.statusText}`);
-                continue;
-            }
-            
-            const csvText = await response.text();
-            
-            console.log(`📄 CSV recibido (primeras 300 chars):\n${csvText.substring(0, 300)}`);
-            
-            const lines = csvText.split('\n').filter(line => line.trim().length > 0);
-            
-            if (lines.length < 2) {
-                console.log(`⚠️ gid=${gid}: No hay suficientes líneas (solo ${lines.length})`);
-                continue;
-            }
-            
-            // Detectar delimitador
-            const delimiter = lines[0].includes(';') ? ';' : ',';
-            console.log(`🔍 Delimitador detectado: ${delimiter === ';' ? 'punto y coma (;)' : 'coma (,)'}`);
-            
-            // Parsear todas las líneas
-            const allRows = lines.map(line => parseCSVLine(line, delimiter));
-            
-            console.log(`📊 Total de filas parseadas: ${allRows.length}`);
-            
-            // Buscar la fila con encabezados "Texto_comercial" o datos válidos
-            let headerRow = -1;
-            let dataRow = -1;
-            
-            for (let i = 0; i < allRows.length; i++) {
-                const row = allRows[i];
-                console.log(`Fila ${i + 1}:`, row);
-                
-                // Verificar si es fila de encabezados
-                if (row[0] && row[0].toLowerCase().includes('texto') || 
-                    row[1] && row[1].toLowerCase().includes('condiciones')) {
-                    headerRow = i;
-                    console.log(`✅ Encontrados encabezados en fila ${i + 1}`);
-                }
-                
-                // Verificar si es fila de datos (texto largo en columnas)
-                if (row[0] && row[0].length > 20 && row[1] && row[1].length > 20) {
-                    dataRow = i;
-                    console.log(`✅ Encontrados datos en fila ${i + 1}`);
-                }
-            }
-            
-            // Si encontramos datos, usarlos
-            if (dataRow >= 0) {
-                const dataLine = allRows[dataRow];
-                
-                // Columna A: Texto comercial
-                const textoComercial = (dataLine[0] || '').replace(/"/g, '');
-                
-                // Columna B: Párrafo de condiciones
-                const condicionesIntro = (dataLine[1] || '').replace(/"/g, '');
-                
-                // Columna C: Los 5 puntos (pueden estar separados por ; o por saltos de línea)
-                let condicionesRaw = (dataLine[2] || '').replace(/"/g, '');
-                
-                // Si está cortado, intentar buscar en las siguientes celdas
-                if (dataLine.length > 3) {
-                    // Puede que las condiciones estén en múltiples celdas
-                    condicionesRaw = dataLine.slice(2).join(';');
-                }
-                
-                const condicionesPuntos = condicionesRaw
-                    .split(/[;\n]/)
-                    .map(c => c.trim())
-                    .filter(c => c.length > 5);
-                
-                console.log('\n🎯 TEXTOS ENCONTRADOS:');
-                console.log('─────────────────────────────────────────');
-                console.log('1️⃣ Texto Comercial:');
-                console.log(textoComercial.substring(0, 100) + '...');
-                console.log('\n2️⃣ Condiciones Intro:');
-                console.log(condicionesIntro.substring(0, 100) + '...');
-                console.log('\n3️⃣ Condiciones Puntos:');
-                condicionesPuntos.forEach((punto, idx) => {
-                    console.log(`   ${idx + 1}. ${punto.substring(0, 50)}...`);
-                });
-                console.log('─────────────────────────────────────────\n');
-                
-                // Validar que tenemos datos
-                if (!textoComercial || textoComercial.length < 10) {
-                    console.log(`⚠️ gid=${gid}: Texto comercial muy corto o vacío`);
-                    continue;
-                }
-                
-                // GUARDAR EN EL OBJETO DE TRADUCCIONES (español)
-                console.log('💾 Guardando textos en las traducciones de español...');
-                
-                // Actualizar las traducciones de español con los textos de Google Sheets
-                if (typeof translations !== 'undefined' && translations['es']) {
-                    translations['es']['friends-banner-code'] = textoComercial;
-                    translations['es']['friends-conditions-intro'] = condicionesIntro;
-                    
-                    for (let i = 0; i < Math.min(5, condicionesPuntos.length); i++) {
-                        if (condicionesPuntos[i]) {
-                            translations['es'][`friends-condition-${i + 1}`] = condicionesPuntos[i];
-                        }
-                    }
-                    
-                    console.log('✅ Traducciones de español actualizadas con datos de Google Sheets');
-                } else {
-                    console.warn('⚠️ Objeto de traducciones no disponible');
-                }
-                
-                // APLICAR TRADUCCIÓN SEGÚN EL IDIOMA ACTUAL
-                // Esto asegura que si el usuario está en otro idioma, se mantengan las traducciones
-                console.log('🌍 Aplicando traducciones según idioma actual...');
-                translatePanel();
-                
-                let updates = 7; // 1 banner + 1 intro + 5 condiciones
-                
-                if (updates > 0) {
-                    console.log(`\n🎉 ¡ÉXITO! Se actualizaron ${updates} elementos con gid=${gid}`);
-                    console.log('✅ Todos los textos dinámicos cargados correctamente\n');
-                    return; // Éxito, salir de la función
-                } else {
-                    console.log(`⚠️ gid=${gid}: No se pudo actualizar ningún elemento`);
-                }
-                
-            } else {
-                console.log(`⚠️ gid=${gid}: No se encontraron datos válidos en esta hoja`);
-            }
-            
-        } catch (error) {
-            console.log(`❌ Error con gid=${gid}:`, error.message);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
+        
+        const csvText = await response.text();
+        console.log(`✅ CSV recibido (${csvText.length} caracteres)`);
+        
+        const lines = csvText.split('\n').filter(line => line.trim().length > 0);
+        
+        if (lines.length < 2) {
+            throw new Error(`CSV vacío o incompleto (solo ${lines.length} líneas)`);
+        }
+        
+        // Detectar delimitador
+        const delimiter = lines[0].includes(';') ? ';' : ',';
+        console.log(`🔍 Delimitador detectado: ${delimiter === ';' ? ';' : ','}`);
+        
+        // Parsear todas las filas
+        const allRows = lines.map(line => parseCSVLine(line, delimiter));
+        
+        console.log(`📊 Total de filas: ${allRows.length}`);
+        
+        // Buscar fila de encabezados y fila de datos
+        let headerRowIndex = -1;
+        let dataRowIndex = -1;
+        
+        for (let i = 0; i < allRows.length; i++) {
+            const row = allRows[i];
+            
+            // Verificar si es fila de encabezados
+            if (row[0] && (row[0].toUpperCase().includes('TITULO') || row[0].toUpperCase().includes('TÍTULO'))) {
+                headerRowIndex = i;
+                console.log(`✅ Encabezados encontrados en fila ${i + 1}`);
+            }
+            
+            // Verificar si es fila de datos (al menos 3 columnas con texto)
+            const nonEmptyColumns = row.filter(cell => cell && cell.length > 10).length;
+            if (nonEmptyColumns >= 3 && i > headerRowIndex) {
+                dataRowIndex = i;
+                console.log(`✅ Datos encontrados en fila ${i + 1}`);
+                break;
+            }
+        }
+        
+        if (dataRowIndex < 0) {
+            throw new Error('No se encontró fila de datos válida en el CSV');
+        }
+        
+        const dataRow = allRows[dataRowIndex];
+        
+        // LEER LAS 5 COLUMNAS SEGÚN TU ESTRUCTURA
+        const titulo = (dataRow[0] || 'Código Amigos DRK').replace(/"/g, '');
+        const primerParrafo = (dataRow[1] || '').replace(/"/g, '');
+        const segundoTexto = (dataRow[2] || '').replace(/"/g, '');
+        const condicionesIntro = (dataRow[3] || '').replace(/"/g, '');
+        const condicionesPuntos = (dataRow[4] || '').replace(/"/g, '');
+        
+        console.log('\n🎯 TEXTOS EXTRAÍDOS DEL EXCEL:');
+        console.log('══════════════════════════════════════════');
+        console.log(`📌 A - TÍTULO: ${titulo.substring(0, 50)}`);
+        console.log(`📌 B - PRIMER PÁRRAFO: ${primerParrafo.substring(0, 80)}...`);
+        console.log(`📌 C - SEGUNDO TEXTO: ${segundoTexto.substring(0, 80)}...`);
+        console.log(`📌 D - CONDICIONES INTRO: ${condicionesIntro.substring(0, 80)}...`);
+        console.log(`📌 E - CONDICIONES PUNTOS: ${condicionesPuntos.substring(0, 80)}...`);
+        console.log('══════════════════════════════════════════\n');
+        
+        // Parsear los puntos de condiciones (separados por ; o saltos de línea)
+        const puntosArray = condicionesPuntos
+            .split(/[;\n]/)
+            .map(p => p.trim())
+            .filter(p => p.length > 5);
+        
+        console.log(`📋 ${puntosArray.length} puntos de condiciones encontrados`);
+        
+        // ACTUALIZAR EL HTML DIRECTAMENTE
+        console.log('🔄 Actualizando contenido del HTML...');
+        
+        // 1. Actualizar TÍTULO (múltiples lugares)
+        const tituloElements = document.querySelectorAll('[data-translate="friends-title"]');
+        tituloElements.forEach(el => {
+            el.innerHTML = `👥 ${titulo}`;
+        });
+        console.log(`✅ Título actualizado (${tituloElements.length} elementos)`);
+        
+        // 2. Actualizar BANNER TÍTULO + INTRO (primer párrafo)
+        // Separar el primer párrafo en título y descripción
+        const parrafoLines = primerParrafo.split('\n').filter(l => l.trim());
+        const bannerTitulo = parrafoLines[0] || '👍 Lo mejor de todo';
+        const bannerIntro = parrafoLines.slice(1).join(' ') || primerParrafo;
+        
+        const bannerTitleEl = document.querySelector('[data-translate="friends-banner-title"]');
+        if (bannerTitleEl) {
+            bannerTitleEl.textContent = bannerTitulo;
+            console.log('✅ Banner título actualizado');
+        }
+        
+        const bannerIntroEl = document.querySelector('[data-translate="friends-banner-intro"]');
+        if (bannerIntroEl) {
+            bannerIntroEl.textContent = bannerIntro;
+            console.log('✅ Banner intro actualizado');
+        }
+        
+        // 3. Actualizar SEGUNDO TEXTO (texto del código)
+        const codigoTextEl = document.querySelector('[data-translate="friends-banner-code"]');
+        if (codigoTextEl) {
+            codigoTextEl.innerHTML = segundoTexto;
+            console.log('✅ Texto del código actualizado');
+        }
+        
+        // 4. Actualizar CONDICIONES INTRO
+        const condIntroEl = document.querySelector('[data-translate="friends-conditions-intro"]');
+        if (condIntroEl) {
+            condIntroEl.innerHTML = condicionesIntro;
+            console.log('✅ Condiciones intro actualizadas');
+        }
+        
+        // 5. Actualizar PUNTOS DE CONDICIONES (hasta 5)
+        let puntosActualizados = 0;
+        for (let i = 0; i < Math.min(5, puntosArray.length); i++) {
+            const puntoEl = document.querySelector(`[data-translate="friends-condition-${i + 1}"]`);
+            if (puntoEl && puntosArray[i]) {
+                puntoEl.textContent = puntosArray[i];
+                puntosActualizados++;
+            }
+        }
+        console.log(`✅ ${puntosActualizados} puntos de condiciones actualizados`);
+        
+        // TAMBIÉN ACTUALIZAR EN TRADUCCIONES (para otros idiomas)
+        if (typeof translations !== 'undefined' && translations['es']) {
+            translations['es']['friends-title'] = `👥 ${titulo}`;
+            translations['es']['friends-banner-title'] = bannerTitulo;
+            translations['es']['friends-banner-intro'] = bannerIntro;
+            translations['es']['friends-banner-code'] = segundoTexto;
+            translations['es']['friends-conditions-intro'] = condicionesIntro;
+            
+            for (let i = 0; i < Math.min(5, puntosArray.length); i++) {
+                if (puntosArray[i]) {
+                    translations['es'][`friends-condition-${i + 1}`] = puntosArray[i];
+                }
+            }
+            console.log('✅ Traducciones de español actualizadas');
+        }
+        
+        console.log('\n🎉 ¡TODOS LOS TEXTOS DINÁMICOS CARGADOS CON ÉXITO!\n');
+        
+    } catch (error) {
+        console.error('\n❌ ERROR AL CARGAR TEXTOS DINÁMICOS:', error.message);
+        console.error('🔧 SOLUCIONES:');
+        console.error('1. Verifica que el spreadsheet sea PÚBLICO');
+        console.error('2. Verifica que el gid=514707142 sea correcto');
+        console.error('3. Abre la consola (F12) para ver más detalles\n');
     }
-    
-    // Si llegamos aquí, ningún gid funcionó
-    console.error('\n❌ ERROR CRÍTICO: No se pudo cargar la Hoja 2 con ningún gid');
-    console.error('🔧 SOLUCIONES:');
-    console.error('1. Verifica que la hoja sea PÚBLICA (Compartir > Cualquier persona con el enlace)');
-    console.error('2. Abre tu Google Sheet y mira la URL cuando estés en la Hoja 2');
-    console.error('3. Busca "#gid=XXXXX" en la URL y anota ese número');
-    console.error('4. Edita el código y cambia la línea 22960 con ese gid\n');
 }
 
 // ========== COMPARATIVA DE PRECIOS CON DATOS REALES ==========

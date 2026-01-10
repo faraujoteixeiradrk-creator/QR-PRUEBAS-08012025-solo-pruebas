@@ -23157,6 +23157,7 @@ async function loadFriendsTexts() {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log(`📊 Spreadsheet: ${SHEET_ID}`);
     console.log(`📑 GID: ${GID}`);
+    console.log(`🔄 Método: Google Sheets API (JSON)`);
     
     // 🔥 CREAR ALERTA VISUAL EN LA PÁGINA
     const alertDiv = document.createElement('div');
@@ -23178,39 +23179,12 @@ async function loadFriendsTexts() {
     alertDiv.innerHTML = '⏳ Cargando textos desde Excel...';
     document.body.appendChild(alertDiv);
     
-    // Función para parsear CSV correctamente
-    function parseCSVLine(line, delimiter = ',') {
-        const result = [];
-        let current = '';
-        let inQuotes = false;
-        
-        for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            const nextChar = line[i + 1];
-            
-            if (char === '"') {
-                if (inQuotes && nextChar === '"') {
-                    current += '"';
-                    i++;
-                } else {
-                    inQuotes = !inQuotes;
-                }
-            } else if (char === delimiter && !inQuotes) {
-                result.push(current.trim());
-                current = '';
-            } else {
-                current += char;
-            }
-        }
-        result.push(current.trim());
-        return result;
-    }
-    
-    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+    // 🔥 USAR API DE GOOGLE SHEETS (gviz/tq) - Maneja mejor saltos de línea
+    const API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
     
     try {
-        console.log(`\n🌐 Descargando CSV desde: ${CSV_URL}`);
-        const response = await fetch(CSV_URL);
+        console.log(`\n🌐 Descargando desde Google Sheets API: ${API_URL}`);
+        const response = await fetch(API_URL);
         
         console.log(`📬 Respuesta: ${response.status} ${response.statusText}`);
         
@@ -23218,103 +23192,79 @@ async function loadFriendsTexts() {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
-        const csvText = await response.text();
-        console.log(`✅ CSV recibido (${csvText.length} caracteres)`);
-        console.log(`📝 Primeros 200 chars:\n${csvText.substring(0, 200)}...\n`);
+        let jsonText = await response.text();
+        console.log(`✅ Respuesta recibida (${jsonText.length} caracteres)`);
         
-        const lines = csvText.split('\n').filter(line => line.trim().length > 0);
-        console.log(`📊 Total líneas: ${lines.length}`);
-        
-        if (lines.length < 2) {
-            throw new Error(`CSV incompleto (solo ${lines.length} líneas)`);
+        // Google devuelve: google.visualization.Query.setResponse({...})
+        // Necesitamos extraer el JSON
+        const jsonMatch = jsonText.match(/google\.visualization\.Query\.setResponse\((.*)\);?$/);
+        if (!jsonMatch) {
+            throw new Error('Formato de respuesta inválido');
         }
         
-        // Detectar delimitador
-        const delimiter = lines[0].includes(';') ? ';' : ',';
-        console.log(`🔍 Delimitador: ${delimiter === ';' ? ';' : ','}`);
+        const data = JSON.parse(jsonMatch[1]);
+        console.log(`📊 Datos parseados correctamente`);
         
-        // Parsear filas
-        const allRows = lines.map((line, idx) => {
-            const parsed = parseCSVLine(line, delimiter);
-            if (idx < 3) {
-                console.log(`   Fila ${idx + 1}: ${parsed.length} columnas`);
-                console.log(`      A: ${(parsed[0] || '').substring(0, 30)}...`);
-                console.log(`      B: ${(parsed[1] || '').substring(0, 30)}...`);
-            }
-            return parsed;
-        });
+        if (!data.table || !data.table.rows || data.table.rows.length < 2) {
+            throw new Error(`No hay suficientes filas (encontradas: ${data.table.rows.length})`);
+        }
         
-        // 🔥 BUSCAR ENCABEZADOS Y LUEGO USAR LA SIGUIENTE FILA
+        const rows = data.table.rows;
+        console.log(`📊 Total de filas: ${rows.length}`);
+        
+        // Función auxiliar para obtener valor de celda
+        function getCellValue(row, colIndex) {
+            if (!row.c || !row.c[colIndex]) return '';
+            const cell = row.c[colIndex];
+            return cell.v || cell.f || '';
+        }
+        
+        // Buscar fila de encabezados (fila 1)
         let headerRowIndex = -1;
-        let dataRowIndex = -1;
-        
-        // Buscar fila de encabezados (contiene palabras como TITULO, PARRAFO, etc.)
-        for (let i = 0; i < allRows.length; i++) {
-            const row = allRows[i];
-            const firstCell = (row[0] || '').toUpperCase();
-            
-            // Si la primera celda contiene "TITULO" o palabras clave de encabezado
-            if (firstCell.includes('TITULO') || firstCell.includes('TÍTULO') || 
-                firstCell.includes('HEADER') || firstCell === 'A') {
+        for (let i = 0; i < rows.length; i++) {
+            const firstCell = getCellValue(rows[i], 0).toString().toUpperCase();
+            if (firstCell.includes('TITULO') || firstCell.includes('TÍTULO')) {
                 headerRowIndex = i;
                 console.log(`\n✅ Encabezados encontrados en fila ${i + 1}`);
                 break;
             }
         }
         
-        // La fila de datos es la siguiente a los encabezados
-        if (headerRowIndex >= 0 && headerRowIndex + 1 < allRows.length) {
-            dataRowIndex = headerRowIndex + 1;
-            console.log(`✅ Usando fila de datos: ${dataRowIndex + 1} (siguiente a encabezados)`);
-        } else if (allRows.length >= 2) {
-            // Si no encontramos encabezados, asumir que fila 1 = encabezados, fila 2 = datos
-            dataRowIndex = 1;
-            console.log(`⚠️ No se detectaron encabezados, asumiendo fila 2 como datos`);
+        // Si no hay encabezados, asumir fila 1 = encabezados
+        if (headerRowIndex < 0 && rows.length >= 2) {
+            headerRowIndex = 0;
+            console.log(`⚠️ No se detectaron encabezados, asumiendo fila 1`);
         }
         
-        if (dataRowIndex < 0 || dataRowIndex >= allRows.length) {
-            throw new Error('No se encontró fila de datos válida');
+        // La fila de datos es la siguiente
+        const dataRowIndex = headerRowIndex + 1;
+        if (dataRowIndex >= rows.length) {
+            throw new Error('No hay fila de datos después de los encabezados');
         }
         
-        const dataRow = allRows[dataRowIndex];
-        console.log(`\n📦 Extrayendo ${dataRow.length} columnas de fila ${dataRowIndex + 1}:`);
+        console.log(`✅ Usando fila de datos: ${dataRowIndex + 1}`);
         
-        // MAPEO CORRECTO SEGÚN LA IMAGEN:
-        // A = Título
-        // B = Banner título + intro
-        // C = Texto del código
-        // D = Condiciones intro
-        // E = Condiciones puntos (5 puntos)
-        // F = Posible continuación
+        const dataRow = rows[dataRowIndex];
         
-        const titulo = (dataRow[0] || 'Código Amigos DRK').replace(/"/g, '').trim();
-        const bannerTexto = (dataRow[1] || '').replace(/"/g, '').trim();
-        const codigoTexto = (dataRow[2] || '').replace(/"/g, '').trim();
-        const condicionesIntro = (dataRow[3] || '').replace(/"/g, '').trim();
-        const condicionesPuntos = (dataRow[4] || '').replace(/"/g, '').trim();
-        
-        // Si hay columna F, agregarla a las condiciones
-        if (dataRow[5]) {
-            const extraCondiciones = dataRow[5].replace(/"/g, '').trim();
-            if (extraCondiciones && extraCondiciones.length > 5) {
-                // Agregar al final de condicionesPuntos si existe
-                const separator = condicionesPuntos.includes(';') ? ';' : '\n';
-                condicionesPuntos = condicionesPuntos + separator + extraCondiciones;
-            }
-        }
+        // Extraer valores de cada columna
+        const titulo = getCellValue(dataRow, 0).toString();
+        const bannerTexto = getCellValue(dataRow, 1).toString();
+        const codigoTexto = getCellValue(dataRow, 2).toString();
+        const condicionesIntro = getCellValue(dataRow, 3).toString();
+        const condicionesPuntos = getCellValue(dataRow, 4).toString();
         
         console.log('\n🎯 TEXTOS EXTRAÍDOS:');
         console.log('══════════════════════════════════════════════════');
         console.log(`📌 A - TÍTULO (${titulo.length} chars):`);
         console.log(`   "${titulo}"`);
         console.log(`\n📌 B - BANNER (${bannerTexto.length} chars):`);
-        console.log(`   "${bannerTexto.substring(0, 100)}..."`);
+        console.log(`   "${bannerTexto.substring(0, 100)}${bannerTexto.length > 100 ? '...' : ''}"`);
         console.log(`\n📌 C - CÓDIGO (${codigoTexto.length} chars):`);
-        console.log(`   "${codigoTexto.substring(0, 100)}..."`);
+        console.log(`   "${codigoTexto.substring(0, 100)}${codigoTexto.length > 100 ? '...' : ''}"`);
         console.log(`\n📌 D - CONDICIONES INTRO (${condicionesIntro.length} chars):`);
-        console.log(`   "${condicionesIntro.substring(0, 100)}..."`);
+        console.log(`   "${condicionesIntro.substring(0, 100)}${condicionesIntro.length > 100 ? '...' : ''}"`);
         console.log(`\n📌 E - CONDICIONES PUNTOS (${condicionesPuntos.length} chars):`);
-        console.log(`   "${condicionesPuntos.substring(0, 100)}..."`);
+        console.log(`   "${condicionesPuntos.substring(0, 100)}${condicionesPuntos.length > 100 ? '...' : ''}"`);
         console.log('══════════════════════════════════════════════════\n');
         
         // 🔥 SEPARAR BANNER CORRECTAMENTE (evitar duplicados)
@@ -23323,15 +23273,12 @@ async function loadFriendsTexts() {
         let bannerTitulo, bannerIntro;
         
         if (bannerLines.length >= 2) {
-            // Hay 2+ líneas: primera = título, resto = intro
             bannerTitulo = bannerLines[0];
             bannerIntro = bannerLines.slice(1).join(' ').trim();
         } else if (bannerLines.length === 1) {
-            // Solo 1 línea: usarla como título, intro vacía
             bannerTitulo = bannerLines[0];
-            bannerIntro = ''; // ✅ NO duplicar
+            bannerIntro = '';
         } else {
-            // Vacío: valores por defecto
             bannerTitulo = '👍 Lo mejor de todo';
             bannerIntro = 'Imagina poder ofrecer a tus seres queridos una tarifa energética tan increíble como esta:';
         }
@@ -23339,7 +23286,7 @@ async function loadFriendsTexts() {
         console.log('📝 Banner procesado:');
         console.log(`   Título: "${bannerTitulo}"`);
         console.log(`   Intro: "${bannerIntro ? bannerIntro.substring(0, 80) + '...' : '(vacío)'}"`);
-        console.log(`   Código texto: "${codigoTexto.substring(0, 80)}..."`);
+        console.log(`   Código texto: "${codigoTexto.substring(0, 80)}${codigoTexto.length > 80 ? '...' : ''}"`);
         
         // Parsear puntos de condiciones
         const puntosArray = condicionesPuntos
@@ -23349,7 +23296,7 @@ async function loadFriendsTexts() {
         
         console.log(`\n📋 ${puntosArray.length} puntos encontrados:`);
         puntosArray.forEach((punto, idx) => {
-            console.log(`   ${idx + 1}. ${punto.substring(0, 60)}...`);
+            console.log(`   ${idx + 1}. ${punto.substring(0, 60)}${punto.length > 60 ? '...' : ''}`);
         });
         
         // ACTUALIZAR HTML DIRECTAMENTE
@@ -23420,7 +23367,6 @@ async function loadFriendsTexts() {
         if (typeof translations !== 'undefined') {
             console.log('   🌍 Actualizando traducciones en todos los idiomas...');
             
-            // Actualizar para cada idioma disponible
             for (const lang in translations) {
                 translations[lang]['friends-title'] = `👥 ${titulo}`;
                 translations[lang]['friends-banner-title'] = bannerTitulo;
@@ -23472,7 +23418,6 @@ async function loadFriendsTexts() {
         if (alertDiv) {
             alertDiv.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
             alertDiv.innerHTML = `❌ Error cargando Excel<br><small>${error.message}</small><br><small style="font-size: 11px;">Ver consola (F12) para más detalles</small>`;
-            // No remover automáticamente el error para que el usuario lo vea
         }
     }
 }

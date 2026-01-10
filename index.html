@@ -22841,14 +22841,16 @@ async function showFriendsCode() {
     document.getElementById('friends-code-view').style.display = 'block';
     window.scrollTo(0, 0);
     
-    // Traducir la pantalla
-    translatePanel();
+    // 🔥 ORDEN CORRECTO: Primero cargar datos, luego traducir
     
-    // Cargar datos del PLAN AMIGO desde Google Sheets (Hoja 1)
+    // 1. Cargar datos del PLAN AMIGO desde Google Sheets (Hoja 1)
     await loadPlanAmigoData();
     
-    // Cargar textos dinámicos desde Google Sheets (Hoja 2)
+    // 2. Cargar textos dinámicos desde Google Sheets (Hoja 2)
     await loadFriendsTexts();
+    
+    // 3. Aplicar traducciones DESPUÉS de cargar (para que use los valores nuevos)
+    translatePanel();
 }
 
 function hideFriendsCode() {
@@ -23394,20 +23396,25 @@ async function loadFriendsTexts() {
         }
         console.log(`   ✅ ${puntosUpdated} puntos de condiciones`);
         
-        // ACTUALIZAR TRADUCCIONES
-        if (typeof translations !== 'undefined' && translations['es']) {
-            translations['es']['friends-title'] = `👥 ${titulo}`;
-            translations['es']['friends-banner-title'] = bannerTitulo;
-            translations['es']['friends-banner-intro'] = bannerIntro;
-            translations['es']['friends-banner-code'] = codigoTexto;
-            translations['es']['friends-conditions-intro'] = condicionesIntro;
+        // ACTUALIZAR TRADUCCIONES EN TODOS LOS IDIOMAS
+        if (typeof translations !== 'undefined') {
+            console.log('   🌍 Actualizando traducciones en todos los idiomas...');
             
-            for (let i = 0; i < Math.min(5, puntosArray.length); i++) {
-                if (puntosArray[i]) {
-                    translations['es'][`friends-condition-${i + 1}`] = puntosArray[i];
+            // Actualizar para cada idioma disponible
+            for (const lang in translations) {
+                translations[lang]['friends-title'] = `👥 ${titulo}`;
+                translations[lang]['friends-banner-title'] = bannerTitulo;
+                translations[lang]['friends-banner-intro'] = bannerIntro;
+                translations[lang]['friends-banner-code'] = codigoTexto;
+                translations[lang]['friends-conditions-intro'] = condicionesIntro;
+                
+                for (let i = 0; i < Math.min(5, puntosArray.length); i++) {
+                    if (puntosArray[i]) {
+                        translations[lang][`friends-condition-${i + 1}`] = puntosArray[i];
+                    }
                 }
             }
-            console.log('   ✅ Traducciones actualizadas');
+            console.log('   ✅ Traducciones actualizadas en todos los idiomas');
         }
         
         console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

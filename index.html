@@ -2384,10 +2384,18 @@
         // --- CONFIGURACIÓN DE TIPO DE TARIFAS ---
         // **ATENCIÓN: Los IDs de las hojas deben ser públicos para funcionar (CSV)**
         // Eliminamos 6.1TD de la configuración
-        // 2.0TD usa el NUEVO spreadsheet, 3.0TD mantiene el original
         const TARIFF_CONFIG = {
+            '2.0TD': { sheetId: '19CBiWVvxHoWW0fqdbSbLGs-hoISQGORAfebBztFYi3w', periods: 3, powerPeriods: 2, label: '2.0 TD', isHighVoltage: false, requiresQR: true, isMulti: false },
+            '3.0TD': { sheetId: '18nieA7yMD9Ytc2Z3EnktoNDZokuMrBet_ETGyhNZDuo', periods: 6, powerPeriods: 6, label: '3.0 TD', isHighVoltage: true, requiresQR: false, isMulti: false },
+            'MULTICUPS': { sheetId: 'MULTICUPS_MIXED_TARIF_SHEET_ID', periods: 6, powerPeriods: 6, label: 'MULTICUPS', isHighVoltage: false, requiresQR: true, isMulti: true, baseTariffType: '2.0TD' }
+        };
+
+        // **NUEVO: Configuración específica para el CALCULADOR DE AHORRO**
+        // Este spreadsheet se usa SOLO para "Calcula tu ahorro" (QR Scanner + Manual)
+        // NO se usa para la comparativa de precios
+        const CALCULATOR_TARIFF_CONFIG = {
             '2.0TD': { sheetId: '1kLfQOZnTsBJ8lRXA0ab5RXk-QM3VeSRkDQsatL3-tVk', gid: 0, periods: 3, powerPeriods: 2, label: '2.0 TD', isHighVoltage: false, requiresQR: true, isMulti: false },
-            '3.0TD': { sheetId: '18nieA7yMD9Ytc2Z3EnktoNDZokuMrBet_ETGyhNZDuo', gid: 0, periods: 6, powerPeriods: 6, label: '3.0 TD', isHighVoltage: true, requiresQR: false, isMulti: false },
+            '3.0TD': { sheetId: '1kLfQOZnTsBJ8lRXA0ab5RXk-QM3VeSRkDQsatL3-tVk', gid: 0, periods: 6, powerPeriods: 6, label: '3.0 TD', isHighVoltage: true, requiresQR: false, isMulti: false },
             'MULTICUPS': { sheetId: 'MULTICUPS_MIXED_TARIF_SHEET_ID', gid: 0, periods: 6, powerPeriods: 6, label: 'MULTICUPS', isHighVoltage: false, requiresQR: true, isMulti: true, baseTariffType: '2.0TD' }
         };
 
@@ -2462,7 +2470,6 @@
         // Variables Escáner
         let scannerRunning = false;
         let scanLoopCount = 0; // Contador de frames para procesamiento progresivo
-        let frameCount = 0; // Contador para ciclo híbrido de 3 modos
         let stream = null, video = null, canvas = null, canvasCtx = null, animationFrameId = null;
         
         // Variables para detección Google Lens
@@ -13661,12 +13668,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             scannerRunning = true;
             
             // Iniciar cámara con mínimas opciones para máxima velocidad
-            // 🔥 CONFIGURACIÓN ÓPTIMA (del código que funciona)
             navigator.mediaDevices.getUserMedia({ 
                 video: { 
-                    facingMode: "environment",
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 }
+                    facingMode: "environment"
+                    // Solo lo esencial - sin resolución forzada para apertura rápida
                 } 
             }).then(s => {
                 stream = s; 
@@ -13675,12 +13680,11 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 video = document.createElement('video');
                 video.autoplay = true; 
                 video.playsInline = true;
-                video.muted = true; // CRÍTICO para iOS
                 video.srcObject = s;
                 
-                // Crear canvas con configuración optimizada
+                // Crear canvas
                 canvas = document.createElement('canvas'); 
-                canvasCtx = canvas.getContext('2d', { alpha: false, willReadFrequently: true });
+                canvasCtx = canvas.getContext('2d');
                 
                 // Limpiar el mensaje de carga y mostrar video
                 interactive.innerHTML = '';
@@ -13710,66 +13714,125 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             }
             
             canvasCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
             
-            // 🔥🔥🔥 CICLO HÍBRIDO + AUTO-PROCESAMIENTO INMEDIATO (DEL CÓDIGO QUE FUNCIONA)
-            let code = null;
-            frameCount++;
-
-            // Ciclo de 3 modos para detectar QRs de cualquier tamaño
-            const mode = frameCount % 3;
-            
-            if (mode === 0) {
-                // MODO PANORÁMICO: Escanea toda la imagen (QRs grandes o lejanos)
-                const imageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
-                code = jsQR(imageData.data, imageData.width, imageData.height);
-            } 
-            else if (mode === 1) {
-                // MODO PAPEL: Zoom central 50% (QRs pequeños en papel)
-                const size = Math.min(canvas.width, canvas.height) * 0.5;
-                const sx = (canvas.width - size) / 2;
-                const sy = (canvas.height - size) / 2;
-                const imageData = canvasCtx.getImageData(sx, sy, size, size);
-                code = jsQR(imageData.data, imageData.width, imageData.height);
-            }
-            else {
-                // MODO PRECISIÓN: Zoom 75% + Inversión (QRs difíciles)
-                const size = Math.min(canvas.width, canvas.height) * 0.75;
-                const sx = (canvas.width - size) / 2;
-                const sy = (canvas.height - size) / 2;
-                const imageData = canvasCtx.getImageData(sx, sy, size, size);
-                code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "attemptBoth" });
-            }
-
             scanLoopCount++;
             
             // Actualizar barra de progreso
             const powerBar = document.getElementById('scan-power-bar');
             const powerLabel = document.getElementById('scan-power-label');
-            const container = document.getElementById('interactive');
             
-            // 🔥 AUTO-PROCESAMIENTO INMEDIATO (como el código que funciona)
-            if (code) {
-                // QR DETECTADO → PROCESAR INMEDIATAMENTE
-                console.log('✅ QR DETECTADO - Procesando automáticamente...');
-                if (powerLabel) powerLabel.textContent = '⚡ PROCESANDO...';
-                if (powerBar) {
+            if (!qrRegionDetected) {
+                const progress = Math.min(80, (scanLoopCount / 60) * 80);
+                powerBar.style.width = progress + '%';
+                powerLabel.textContent = 'Buscando QR...';
+                powerBar.className = 'bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500';
+            }
+            
+            // ⚡ DETECCIÓN EN TIEMPO REAL con jsQR (como Google Lens)
+            let code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "attemptBoth"
+            });
+            
+            const frame = document.getElementById('qr-detection-frame');
+            const container = document.getElementById('interactive');
+            const captureBtn = document.getElementById('capture-photo-btn');
+            
+            // Si detecta el QR → Incrementar contador de estabilidad
+            if (code && code.location && frame && container) {
+                qrStableFrames++;
+                
+                // Solo actualizar UI si llevamos 5 frames consecutivos detectando (estabilidad)
+                if (qrStableFrames >= 5) {
+                    const rect = container.getBoundingClientRect();
+                    const scaleX = rect.width / canvas.width;
+                    const scaleY = rect.height / canvas.height;
+                    
+                    // Calcular bounding box del QR
+                    const points = code.location;
+                    const minX = Math.min(points.topLeftCorner.x, points.bottomLeftCorner.x);
+                    const maxX = Math.max(points.topRightCorner.x, points.bottomRightCorner.x);
+                    const minY = Math.min(points.topLeftCorner.y, points.topRightCorner.y);
+                    const maxY = Math.max(points.bottomLeftCorner.y, points.bottomRightCorner.y);
+                    
+                    // Añadir margen 20%
+                    const marginX = (maxX - minX) * 0.2;
+                    const marginY = (maxY - minY) * 0.2;
+                    
+                    const qrX = Math.max(0, minX - marginX);
+                    const qrY = Math.max(0, minY - marginY);
+                    const qrWidth = (maxX - minX) + (marginX * 2);
+                    const qrHeight = (maxY - minY) + (marginY * 2);
+                    
+                    // Posicionar marco exactamente donde está el QR
+                    frame.style.left = (qrX * scaleX) + 'px';
+                    frame.style.top = (qrY * scaleY) + 'px';
+                    frame.style.width = (qrWidth * scaleX) + 'px';
+                    frame.style.height = (qrHeight * scaleY) + 'px';
+                    frame.style.opacity = '1';
+                    frame.classList.remove('hidden');
+                    
+                    // Guardar región detectada para cuando usuario pulse botón
+                    if (!qrRegionDetected) {
+                        qrRegionDetected = { x: qrX, y: qrY, width: qrWidth, height: qrHeight };
+                        console.log('🎯 QR localizado estable - Listo para capturar');
+                    }
+                    
+                    // Actualizar UI para indicar que se detectó QR
                     powerBar.style.width = '100%';
+                    powerLabel.textContent = '✅ QR DETECTADO';
                     powerBar.className = 'bg-gradient-to-r from-green-500 to-green-600 h-full transition-all duration-300';
+                    
+                    // Cambiar botón flotante circular a verde - FORZAR SIEMPRE
+                    if (captureBtn) {
+                        const innerCircle = captureBtn.querySelector('div');
+                        if (innerCircle) {
+                            // Micro-delay para asegurar que el DOM esté listo
+                            setTimeout(() => {
+                                // Forzar clase verde con animación
+                                innerCircle.className = 'w-16 h-16 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center button-detected';
+                                innerCircle.innerHTML = `
+                                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                `;
+                                console.log('✅ Botón verde activado con animación');
+                            }, 10);
+                        } else {
+                            console.warn('⚠️ No se encontró innerCircle');
+                        }
+                    } else {
+                        console.warn('⚠️ No se encontró captureBtn');
+                    }
+                }
+            } else {
+                // No detecta QR → Resetear contador y ocultar UI
+                if (qrStableFrames > 0) {
+                    qrStableFrames--;  // Decrementar gradualmente
                 }
                 
-                // Vibración (si está soportada)
-                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                
-                // PROCESAR INMEDIATAMENTE - SIN ESPERAS
-                handleQRRead(code.data);
-                return; // Salir del loop
-            } else {
-                // No detecta QR → Seguir buscando
-                if (powerLabel && !qrRegionDetected) {
-                    const progress = Math.min(80, (scanLoopCount / 60) * 80);
-                    if (powerBar) powerBar.style.width = progress + '%';
-                    powerLabel.textContent = `🔍 Buscando (Modo ${mode + 1}/3)...`;
-                    if (powerBar) powerBar.className = 'bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500';
+                // Solo resetear UI si perdimos la detección completamente
+                if (qrStableFrames === 0) {
+                    if (frame) {
+                        frame.style.opacity = '0';
+                        setTimeout(() => frame.classList.add('hidden'), 300);
+                    }
+                    qrRegionDetected = null;
+                    
+                    // Restaurar botón flotante circular a azul - SIEMPRE resetear
+                    if (captureBtn) {
+                        const innerCircle = captureBtn.querySelector('div');
+                        if (innerCircle) {
+                            // Resetear siempre, sin condiciones
+                            innerCircle.className = 'w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center';
+                            innerCircle.innerHTML = `
+                                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.35-4.35"></path>
+                                </svg>
+                            `;
+                        }
+                    }
                 }
             }
             
@@ -14340,10 +14403,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             }
         }
         
-        async function fetchTariffsFromSheet(tariffType) {
-            const config = TARIFF_CONFIG[tariffType];
+        async function fetchTariffsFromSheet(tariffType, useCalculatorConfig = true) {
+            // Usar CALCULATOR_TARIFF_CONFIG para el calculador de ahorro
+            // Usar TARIFF_CONFIG para la comparativa de precios
+            const config = useCalculatorConfig ? CALCULATOR_TARIFF_CONFIG[tariffType] : TARIFF_CONFIG[tariffType];
             const sheetId = config.sheetId;
-            const gid = config.gid || 0; // Usar gid configurado o 0 por defecto
+            const gid = config.gid !== undefined ? config.gid : 0; // Usar gid si está definido
+
+            console.log(`📥 Cargando tarifas ${tariffType} desde:`, useCalculatorConfig ? 'CALCULADOR' : 'COMPARATIVA');
+            console.log(`   SheetID: ${sheetId}`);
+            console.log(`   GID: ${gid}`);
 
             const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid}&t=${Date.now()}`;
 
@@ -14353,13 +14422,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 const text = await response.text();
                 currentTariffs[tariffType] = parseCSV(text, tariffType);
                 
+                console.log(`✅ ${currentTariffs[tariffType].length} tarifas cargadas para ${tariffType}`);
+                
                 if (currentTariffType !== 'MULTICUPS' && tariffType === currentTariffType) {
                     const count = currentTariffs[currentTariffType].length;
                     document.getElementById('tariff-display-badge').textContent = count;
                 }
 
             } catch (e) {
-                console.error(`Error al cargar ${tariffType}:`, e);
+                console.error(`❌ Error al cargar ${tariffType}:`, e);
                 currentTariffs[tariffType] = [];  
                 if (currentTariffType !== 'MULTICUPS' && tariffType === currentTariffType) {
                     document.getElementById('tariff-display-badge').textContent = 'Error';
@@ -23131,11 +23202,9 @@ async function loadPlanAmigoData() {
 // ========== CARGAR TEXTOS DINÁMICOS DESDE HOJA 2 ==========
 async function loadFriendsTexts() {
     const SHEET_ID = '1kLfQOZnTsBJ8lRXA0ab5RXk-QM3VeSRkDQsatL3-tVk';
-    const GID = 514707142; // Pestaña específica con los textos
     
-    console.log('📥 Cargando textos dinámicos de Código Amigos desde Google Sheets...');
-    console.log(`📊 Spreadsheet ID: ${SHEET_ID}`);
-    console.log(`📑 GID: ${GID}`);
+    console.log('📥 Cargando textos dinámicos desde Hoja 2...');
+    console.log('💡 IMPORTANTE: Abre la consola (F12) para ver los logs detallados');
     
     // Función para parsear CSV correctamente
     function parseCSVLine(line, delimiter = ',') {
@@ -23165,164 +23234,158 @@ async function loadFriendsTexts() {
         return result;
     }
     
-    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+    // Probar múltiples gids (0, 1, 2, 3) para encontrar la Hoja 2
+    // gid=514707142 es tu Hoja 2 (obtenido de la URL)
+    const gidsToTry = [514707142, 0, 1, 2, 3]; // Prueba primero el correcto, luego los demás por si acaso
     
-    try {
-        console.log(`🌐 Cargando desde: ${CSV_URL}`);
-        const response = await fetch(CSV_URL);
+    for (const gid of gidsToTry) {
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
         
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+        console.log(`\n🔍 Probando gid=${gid}...`);
+        console.log(`📡 URL: ${CSV_URL}`);
         
-        const csvText = await response.text();
-        console.log(`✅ CSV recibido (${csvText.length} caracteres)`);
-        
-        const lines = csvText.split('\n').filter(line => line.trim().length > 0);
-        
-        if (lines.length < 2) {
-            throw new Error(`CSV vacío o incompleto (solo ${lines.length} líneas)`);
-        }
-        
-        // Detectar delimitador
-        const delimiter = lines[0].includes(';') ? ';' : ',';
-        console.log(`🔍 Delimitador detectado: ${delimiter === ';' ? ';' : ','}`);
-        
-        // Parsear todas las filas
-        const allRows = lines.map(line => parseCSVLine(line, delimiter));
-        
-        console.log(`📊 Total de filas: ${allRows.length}`);
-        
-        // Buscar fila de encabezados y fila de datos
-        let headerRowIndex = -1;
-        let dataRowIndex = -1;
-        
-        for (let i = 0; i < allRows.length; i++) {
-            const row = allRows[i];
+        try {
+            const response = await fetch(CSV_URL);
             
-            // Verificar si es fila de encabezados
-            if (row[0] && (row[0].toUpperCase().includes('TITULO') || row[0].toUpperCase().includes('TÍTULO'))) {
-                headerRowIndex = i;
-                console.log(`✅ Encabezados encontrados en fila ${i + 1}`);
+            if (!response.ok) {
+                console.log(`❌ gid=${gid} falló: ${response.status} ${response.statusText}`);
+                continue;
             }
             
-            // Verificar si es fila de datos (al menos 3 columnas con texto)
-            const nonEmptyColumns = row.filter(cell => cell && cell.length > 10).length;
-            if (nonEmptyColumns >= 3 && i > headerRowIndex) {
-                dataRowIndex = i;
-                console.log(`✅ Datos encontrados en fila ${i + 1}`);
-                break;
-            }
-        }
-        
-        if (dataRowIndex < 0) {
-            throw new Error('No se encontró fila de datos válida en el CSV');
-        }
-        
-        const dataRow = allRows[dataRowIndex];
-        
-        // LEER LAS 5 COLUMNAS SEGÚN TU ESTRUCTURA
-        const titulo = (dataRow[0] || 'Código Amigos DRK').replace(/"/g, '');
-        const primerParrafo = (dataRow[1] || '').replace(/"/g, '');
-        const segundoTexto = (dataRow[2] || '').replace(/"/g, '');
-        const condicionesIntro = (dataRow[3] || '').replace(/"/g, '');
-        const condicionesPuntos = (dataRow[4] || '').replace(/"/g, '');
-        
-        console.log('\n🎯 TEXTOS EXTRAÍDOS DEL EXCEL:');
-        console.log('══════════════════════════════════════════');
-        console.log(`📌 A - TÍTULO: ${titulo.substring(0, 50)}`);
-        console.log(`📌 B - PRIMER PÁRRAFO: ${primerParrafo.substring(0, 80)}...`);
-        console.log(`📌 C - SEGUNDO TEXTO: ${segundoTexto.substring(0, 80)}...`);
-        console.log(`📌 D - CONDICIONES INTRO: ${condicionesIntro.substring(0, 80)}...`);
-        console.log(`📌 E - CONDICIONES PUNTOS: ${condicionesPuntos.substring(0, 80)}...`);
-        console.log('══════════════════════════════════════════\n');
-        
-        // Parsear los puntos de condiciones (separados por ; o saltos de línea)
-        const puntosArray = condicionesPuntos
-            .split(/[;\n]/)
-            .map(p => p.trim())
-            .filter(p => p.length > 5);
-        
-        console.log(`📋 ${puntosArray.length} puntos de condiciones encontrados`);
-        
-        // ACTUALIZAR EL HTML DIRECTAMENTE
-        console.log('🔄 Actualizando contenido del HTML...');
-        
-        // 1. Actualizar TÍTULO (múltiples lugares)
-        const tituloElements = document.querySelectorAll('[data-translate="friends-title"]');
-        tituloElements.forEach(el => {
-            el.innerHTML = `👥 ${titulo}`;
-        });
-        console.log(`✅ Título actualizado (${tituloElements.length} elementos)`);
-        
-        // 2. Actualizar BANNER TÍTULO + INTRO (primer párrafo)
-        // Separar el primer párrafo en título y descripción
-        const parrafoLines = primerParrafo.split('\n').filter(l => l.trim());
-        const bannerTitulo = parrafoLines[0] || '👍 Lo mejor de todo';
-        const bannerIntro = parrafoLines.slice(1).join(' ') || primerParrafo;
-        
-        const bannerTitleEl = document.querySelector('[data-translate="friends-banner-title"]');
-        if (bannerTitleEl) {
-            bannerTitleEl.textContent = bannerTitulo;
-            console.log('✅ Banner título actualizado');
-        }
-        
-        const bannerIntroEl = document.querySelector('[data-translate="friends-banner-intro"]');
-        if (bannerIntroEl) {
-            bannerIntroEl.textContent = bannerIntro;
-            console.log('✅ Banner intro actualizado');
-        }
-        
-        // 3. Actualizar SEGUNDO TEXTO (texto del código)
-        const codigoTextEl = document.querySelector('[data-translate="friends-banner-code"]');
-        if (codigoTextEl) {
-            codigoTextEl.innerHTML = segundoTexto;
-            console.log('✅ Texto del código actualizado');
-        }
-        
-        // 4. Actualizar CONDICIONES INTRO
-        const condIntroEl = document.querySelector('[data-translate="friends-conditions-intro"]');
-        if (condIntroEl) {
-            condIntroEl.innerHTML = condicionesIntro;
-            console.log('✅ Condiciones intro actualizadas');
-        }
-        
-        // 5. Actualizar PUNTOS DE CONDICIONES (hasta 5)
-        let puntosActualizados = 0;
-        for (let i = 0; i < Math.min(5, puntosArray.length); i++) {
-            const puntoEl = document.querySelector(`[data-translate="friends-condition-${i + 1}"]`);
-            if (puntoEl && puntosArray[i]) {
-                puntoEl.textContent = puntosArray[i];
-                puntosActualizados++;
-            }
-        }
-        console.log(`✅ ${puntosActualizados} puntos de condiciones actualizados`);
-        
-        // TAMBIÉN ACTUALIZAR EN TRADUCCIONES (para otros idiomas)
-        if (typeof translations !== 'undefined' && translations['es']) {
-            translations['es']['friends-title'] = `👥 ${titulo}`;
-            translations['es']['friends-banner-title'] = bannerTitulo;
-            translations['es']['friends-banner-intro'] = bannerIntro;
-            translations['es']['friends-banner-code'] = segundoTexto;
-            translations['es']['friends-conditions-intro'] = condicionesIntro;
+            const csvText = await response.text();
             
-            for (let i = 0; i < Math.min(5, puntosArray.length); i++) {
-                if (puntosArray[i]) {
-                    translations['es'][`friends-condition-${i + 1}`] = puntosArray[i];
+            console.log(`📄 CSV recibido (primeras 300 chars):\n${csvText.substring(0, 300)}`);
+            
+            const lines = csvText.split('\n').filter(line => line.trim().length > 0);
+            
+            if (lines.length < 2) {
+                console.log(`⚠️ gid=${gid}: No hay suficientes líneas (solo ${lines.length})`);
+                continue;
+            }
+            
+            // Detectar delimitador
+            const delimiter = lines[0].includes(';') ? ';' : ',';
+            console.log(`🔍 Delimitador detectado: ${delimiter === ';' ? 'punto y coma (;)' : 'coma (,)'}`);
+            
+            // Parsear todas las líneas
+            const allRows = lines.map(line => parseCSVLine(line, delimiter));
+            
+            console.log(`📊 Total de filas parseadas: ${allRows.length}`);
+            
+            // Buscar la fila con encabezados "Texto_comercial" o datos válidos
+            let headerRow = -1;
+            let dataRow = -1;
+            
+            for (let i = 0; i < allRows.length; i++) {
+                const row = allRows[i];
+                console.log(`Fila ${i + 1}:`, row);
+                
+                // Verificar si es fila de encabezados
+                if (row[0] && row[0].toLowerCase().includes('texto') || 
+                    row[1] && row[1].toLowerCase().includes('condiciones')) {
+                    headerRow = i;
+                    console.log(`✅ Encontrados encabezados en fila ${i + 1}`);
+                }
+                
+                // Verificar si es fila de datos (texto largo en columnas)
+                if (row[0] && row[0].length > 20 && row[1] && row[1].length > 20) {
+                    dataRow = i;
+                    console.log(`✅ Encontrados datos en fila ${i + 1}`);
                 }
             }
-            console.log('✅ Traducciones de español actualizadas');
+            
+            // Si encontramos datos, usarlos
+            if (dataRow >= 0) {
+                const dataLine = allRows[dataRow];
+                
+                // Columna A: Texto comercial
+                const textoComercial = (dataLine[0] || '').replace(/"/g, '');
+                
+                // Columna B: Párrafo de condiciones
+                const condicionesIntro = (dataLine[1] || '').replace(/"/g, '');
+                
+                // Columna C: Los 5 puntos (pueden estar separados por ; o por saltos de línea)
+                let condicionesRaw = (dataLine[2] || '').replace(/"/g, '');
+                
+                // Si está cortado, intentar buscar en las siguientes celdas
+                if (dataLine.length > 3) {
+                    // Puede que las condiciones estén en múltiples celdas
+                    condicionesRaw = dataLine.slice(2).join(';');
+                }
+                
+                const condicionesPuntos = condicionesRaw
+                    .split(/[;\n]/)
+                    .map(c => c.trim())
+                    .filter(c => c.length > 5);
+                
+                console.log('\n🎯 TEXTOS ENCONTRADOS:');
+                console.log('─────────────────────────────────────────');
+                console.log('1️⃣ Texto Comercial:');
+                console.log(textoComercial.substring(0, 100) + '...');
+                console.log('\n2️⃣ Condiciones Intro:');
+                console.log(condicionesIntro.substring(0, 100) + '...');
+                console.log('\n3️⃣ Condiciones Puntos:');
+                condicionesPuntos.forEach((punto, idx) => {
+                    console.log(`   ${idx + 1}. ${punto.substring(0, 50)}...`);
+                });
+                console.log('─────────────────────────────────────────\n');
+                
+                // Validar que tenemos datos
+                if (!textoComercial || textoComercial.length < 10) {
+                    console.log(`⚠️ gid=${gid}: Texto comercial muy corto o vacío`);
+                    continue;
+                }
+                
+                // GUARDAR EN EL OBJETO DE TRADUCCIONES (español)
+                console.log('💾 Guardando textos en las traducciones de español...');
+                
+                // Actualizar las traducciones de español con los textos de Google Sheets
+                if (typeof translations !== 'undefined' && translations['es']) {
+                    translations['es']['friends-banner-code'] = textoComercial;
+                    translations['es']['friends-conditions-intro'] = condicionesIntro;
+                    
+                    for (let i = 0; i < Math.min(5, condicionesPuntos.length); i++) {
+                        if (condicionesPuntos[i]) {
+                            translations['es'][`friends-condition-${i + 1}`] = condicionesPuntos[i];
+                        }
+                    }
+                    
+                    console.log('✅ Traducciones de español actualizadas con datos de Google Sheets');
+                } else {
+                    console.warn('⚠️ Objeto de traducciones no disponible');
+                }
+                
+                // APLICAR TRADUCCIÓN SEGÚN EL IDIOMA ACTUAL
+                // Esto asegura que si el usuario está en otro idioma, se mantengan las traducciones
+                console.log('🌍 Aplicando traducciones según idioma actual...');
+                translatePanel();
+                
+                let updates = 7; // 1 banner + 1 intro + 5 condiciones
+                
+                if (updates > 0) {
+                    console.log(`\n🎉 ¡ÉXITO! Se actualizaron ${updates} elementos con gid=${gid}`);
+                    console.log('✅ Todos los textos dinámicos cargados correctamente\n');
+                    return; // Éxito, salir de la función
+                } else {
+                    console.log(`⚠️ gid=${gid}: No se pudo actualizar ningún elemento`);
+                }
+                
+            } else {
+                console.log(`⚠️ gid=${gid}: No se encontraron datos válidos en esta hoja`);
+            }
+            
+        } catch (error) {
+            console.log(`❌ Error con gid=${gid}:`, error.message);
         }
-        
-        console.log('\n🎉 ¡TODOS LOS TEXTOS DINÁMICOS CARGADOS CON ÉXITO!\n');
-        
-    } catch (error) {
-        console.error('\n❌ ERROR AL CARGAR TEXTOS DINÁMICOS:', error.message);
-        console.error('🔧 SOLUCIONES:');
-        console.error('1. Verifica que el spreadsheet sea PÚBLICO');
-        console.error('2. Verifica que el gid=514707142 sea correcto');
-        console.error('3. Abre la consola (F12) para ver más detalles\n');
     }
+    
+    // Si llegamos aquí, ningún gid funcionó
+    console.error('\n❌ ERROR CRÍTICO: No se pudo cargar la Hoja 2 con ningún gid');
+    console.error('🔧 SOLUCIONES:');
+    console.error('1. Verifica que la hoja sea PÚBLICA (Compartir > Cualquier persona con el enlace)');
+    console.error('2. Abre tu Google Sheet y mira la URL cuando estés en la Hoja 2');
+    console.error('3. Busca "#gid=XXXXX" en la URL y anota ese número');
+    console.error('4. Edita el código y cambia la línea 22960 con ese gid\n');
 }
 
 // ========== COMPARATIVA DE PRECIOS CON DATOS REALES ==========
@@ -23346,8 +23409,9 @@ async function showComparison() {
         // Cargar tarifas primero
         if (typeof fetchTariffsFromSheet === 'function') {
             try {
-                await fetchTariffsFromSheet('2.0TD');
-                console.log('✅ Tarifas cargadas para comparación');
+                // IMPORTANTE: Usar false para cargar desde el spreadsheet de COMPARATIVA
+                await fetchTariffsFromSheet('2.0TD', false);
+                console.log('✅ Tarifas cargadas para comparación desde spreadsheet de COMPARATIVA');
                 
                 // Esperar un momento y luego generar la comparación
                 setTimeout(() => generateComparison(), 500);

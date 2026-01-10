@@ -23295,14 +23295,29 @@ async function loadFriendsTexts() {
         console.log(`   "${condicionesPuntos.substring(0, 100)}..."`);
         console.log('══════════════════════════════════════════════════\n');
         
-        // Separar banner en título y descripción
+        // 🔥 SEPARAR BANNER CORRECTAMENTE (evitar duplicados)
         const bannerLines = bannerTexto.split('\n').filter(l => l.trim());
-        const bannerTitulo = bannerLines[0] || '👍 Lo mejor de todo';
-        const bannerIntro = bannerLines.slice(1).join(' ').trim() || bannerTexto;
         
-        console.log('📝 Banner separado:');
+        let bannerTitulo, bannerIntro;
+        
+        if (bannerLines.length >= 2) {
+            // Hay 2+ líneas: primera = título, resto = intro
+            bannerTitulo = bannerLines[0];
+            bannerIntro = bannerLines.slice(1).join(' ').trim();
+        } else if (bannerLines.length === 1) {
+            // Solo 1 línea: usarla como título, intro vacía
+            bannerTitulo = bannerLines[0];
+            bannerIntro = ''; // ✅ NO duplicar
+        } else {
+            // Vacío: valores por defecto
+            bannerTitulo = '👍 Lo mejor de todo';
+            bannerIntro = 'Imagina poder ofrecer a tus seres queridos una tarifa energética tan increíble como esta:';
+        }
+        
+        console.log('📝 Banner procesado:');
         console.log(`   Título: "${bannerTitulo}"`);
-        console.log(`   Intro: "${bannerIntro.substring(0, 80)}..."`);
+        console.log(`   Intro: "${bannerIntro ? bannerIntro.substring(0, 80) + '...' : '(vacío)'}"`);
+        console.log(`   Código texto: "${codigoTexto.substring(0, 80)}..."`);
         
         // Parsear puntos de condiciones
         const puntosArray = condicionesPuntos

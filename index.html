@@ -2384,11 +2384,10 @@
         // --- CONFIGURACIÓN DE TIPO DE TARIFAS ---
         // **ATENCIÓN: Los IDs de las hojas deben ser públicos para funcionar (CSV)**
         // Eliminamos 6.1TD de la configuración
-        // 2.0TD usa el NUEVO spreadsheet, 3.0TD mantiene el original
         const TARIFF_CONFIG = {
-            '2.0TD': { sheetId: '1kLfQOZnTsBJ8lRXA0ab5RXk-QM3VeSRkDQsatL3-tVk', gid: 0, periods: 3, powerPeriods: 2, label: '2.0 TD', isHighVoltage: false, requiresQR: true, isMulti: false },
-            '3.0TD': { sheetId: '18nieA7yMD9Ytc2Z3EnktoNDZokuMrBet_ETGyhNZDuo', gid: 0, periods: 6, powerPeriods: 6, label: '3.0 TD', isHighVoltage: true, requiresQR: false, isMulti: false },
-            'MULTICUPS': { sheetId: 'MULTICUPS_MIXED_TARIF_SHEET_ID', gid: 0, periods: 6, powerPeriods: 6, label: 'MULTICUPS', isHighVoltage: false, requiresQR: true, isMulti: true, baseTariffType: '2.0TD' }
+            '2.0TD': { sheetId: '19CBiWVvxHoWW0fqdbSbLGs-hoISQGORAfebBztFYi3w', periods: 3, powerPeriods: 2, label: '2.0 TD', isHighVoltage: false, requiresQR: true, isMulti: false },
+            '3.0TD': { sheetId: '18nieA7yMD9Ytc2Z3EnktoNDZokuMrBet_ETGyhNZDuo', periods: 6, powerPeriods: 6, label: '3.0 TD', isHighVoltage: true, requiresQR: false, isMulti: false },
+            'MULTICUPS': { sheetId: 'MULTICUPS_MIXED_TARIF_SHEET_ID', periods: 6, powerPeriods: 6, label: 'MULTICUPS', isHighVoltage: false, requiresQR: true, isMulti: true, baseTariffType: '2.0TD' }
         };
 
         const BRANDS = {
@@ -14398,9 +14397,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         async function fetchTariffsFromSheet(tariffType) {
             const config = TARIFF_CONFIG[tariffType];
             const sheetId = config.sheetId;
-            const gid = config.gid || 0; // Usar gid configurado o 0 por defecto
 
-            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid}&t=${Date.now()}`;
+            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=0&t=${Date.now()}`;
 
             try {
                 const response = await fetch(url);

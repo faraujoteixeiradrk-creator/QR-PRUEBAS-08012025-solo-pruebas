@@ -691,6 +691,45 @@
                 <p style="font-size: 1rem; font-weight: 600; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.3em;" data-translate="panel-subtitle">Smart Solutions</p>
             </div>
 
+            <!-- Tarjeta de Noticias CENTRADA -->
+            <div style="max-width: 400px; margin: 3rem auto 3rem auto;">
+                <div class="dept-card" onclick="showNews()" style="cursor: pointer;">
+                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.5rem;">
+                        <div class="icon-box">
+                            <!-- Icono: Periódico/Noticias EN ROJO -->
+                            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <!-- Periódico -->
+                                <rect x="12" y="15" width="36" height="30" rx="2" fill="#ef4444" opacity="0.2"/>
+                                <rect x="12" y="15" width="36" height="30" rx="2" stroke="#ef4444" stroke-width="2"/>
+                                
+                                <!-- Título principal -->
+                                <line x1="16" y1="21" x2="44" y2="21" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+                                
+                                <!-- Líneas de texto -->
+                                <line x1="16" y1="27" x2="35" y2="27" stroke="#f87171" stroke-width="1.5" stroke-linecap="round"/>
+                                <line x1="16" y1="31" x2="40" y2="31" stroke="#f87171" stroke-width="1.5" stroke-linecap="round"/>
+                                <line x1="16" y1="35" x2="32" y2="35" stroke="#f87171" stroke-width="1.5" stroke-linecap="round"/>
+                                
+                                <!-- Imagen/foto -->
+                                <rect x="16" y="38" width="12" height="5" rx="1" fill="#f87171" opacity="0.5"/>
+                                
+                                <!-- Más líneas -->
+                                <line x1="30" y1="39" x2="44" y2="39" stroke="#f87171" stroke-width="1.5" stroke-linecap="round"/>
+                                <line x1="30" y1="42" x2="44" y2="42" stroke="#f87171" stroke-width="1.5" stroke-linecap="round"/>
+                                
+                                <!-- Icono de "nuevo" -->
+                                <circle cx="46" cy="18" r="6" fill="#dc2626"/>
+                                <text x="46" y="21" text-anchor="middle" font-size="7" font-weight="bold" fill="#ffffff">N</text>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="dept-label" data-translate="dept5-label" style="text-align: center;">Información</p>
+                            <h3 class="dept-title" data-translate="dept5-title" style="text-align: center;">Noticias</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Grid de Departamentos 2x2 -->
             <div class="grid-container" style="margin: 0 auto;">
                 
@@ -782,40 +821,6 @@
                     </div>
                 </div>
 
-                <!-- Departamento 5: Noticias -->
-                <div class="dept-card" onclick="showNews()">
-                    <div class="icon-box">
-                        <!-- Icono: Periódico/Noticias -->
-                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <!-- Periódico -->
-                            <rect x="12" y="15" width="36" height="30" rx="2" fill="#fbbf24" opacity="0.2"/>
-                            <rect x="12" y="15" width="36" height="30" rx="2" stroke="#fbbf24" stroke-width="2"/>
-                            
-                            <!-- Título principal -->
-                            <line x1="16" y1="21" x2="44" y2="21" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
-                            
-                            <!-- Líneas de texto -->
-                            <line x1="16" y1="27" x2="35" y2="27" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
-                            <line x1="16" y1="31" x2="40" y2="31" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
-                            <line x1="16" y1="35" x2="32" y2="35" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
-                            
-                            <!-- Imagen/foto -->
-                            <rect x="16" y="38" width="12" height="5" rx="1" fill="#f59e0b" opacity="0.5"/>
-                            
-                            <!-- Más líneas -->
-                            <line x1="30" y1="39" x2="44" y2="39" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
-                            <line x1="30" y1="42" x2="44" y2="42" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
-                            
-                            <!-- Icono de "nuevo" -->
-                            <circle cx="46" cy="18" r="6" fill="#ef4444"/>
-                            <text x="46" y="21" text-anchor="middle" font-size="7" font-weight="bold" fill="#ffffff">N</text>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="dept-label" data-translate="dept5-label">Información</p>
-                        <h3 class="dept-title" data-translate="dept5-title">Noticias</h3>
-                    </div>
-                </div>
 
             </div>
         </div>
@@ -2379,10 +2384,11 @@
         // --- CONFIGURACIÓN DE TIPO DE TARIFAS ---
         // **ATENCIÓN: Los IDs de las hojas deben ser públicos para funcionar (CSV)**
         // Eliminamos 6.1TD de la configuración
+        // 2.0TD usa el NUEVO spreadsheet, 3.0TD mantiene el original
         const TARIFF_CONFIG = {
-            '2.0TD': { sheetId: '19CBiWVvxHoWW0fqdbSbLGs-hoISQGORAfebBztFYi3w', periods: 3, powerPeriods: 2, label: '2.0 TD', isHighVoltage: false, requiresQR: true, isMulti: false },
-            '3.0TD': { sheetId: '18nieA7yMD9Ytc2Z3EnktoNDZokuMrBet_ETGyhNZDuo', periods: 6, powerPeriods: 6, label: '3.0 TD', isHighVoltage: true, requiresQR: false, isMulti: false },
-            'MULTICUPS': { sheetId: 'MULTICUPS_MIXED_TARIF_SHEET_ID', periods: 6, powerPeriods: 6, label: 'MULTICUPS', isHighVoltage: false, requiresQR: true, isMulti: true, baseTariffType: '2.0TD' }
+            '2.0TD': { sheetId: '1kLfQOZnTsBJ8lRXA0ab5RXk-QM3VeSRkDQsatL3-tVk', gid: 0, periods: 3, powerPeriods: 2, label: '2.0 TD', isHighVoltage: false, requiresQR: true, isMulti: false },
+            '3.0TD': { sheetId: '18nieA7yMD9Ytc2Z3EnktoNDZokuMrBet_ETGyhNZDuo', gid: 0, periods: 6, powerPeriods: 6, label: '3.0 TD', isHighVoltage: true, requiresQR: false, isMulti: false },
+            'MULTICUPS': { sheetId: 'MULTICUPS_MIXED_TARIF_SHEET_ID', gid: 0, periods: 6, powerPeriods: 6, label: 'MULTICUPS', isHighVoltage: false, requiresQR: true, isMulti: true, baseTariffType: '2.0TD' }
         };
 
         const BRANDS = {
@@ -14392,8 +14398,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         async function fetchTariffsFromSheet(tariffType) {
             const config = TARIFF_CONFIG[tariffType];
             const sheetId = config.sheetId;
+            const gid = config.gid || 0; // Usar gid configurado o 0 por defecto
 
-            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=0&t=${Date.now()}`;
+            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid}&t=${Date.now()}`;
 
             try {
                 const response = await fetch(url);

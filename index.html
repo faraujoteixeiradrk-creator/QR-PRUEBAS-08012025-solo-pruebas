@@ -22841,16 +22841,17 @@ async function showFriendsCode() {
     document.getElementById('friends-code-view').style.display = 'block';
     window.scrollTo(0, 0);
     
-    // 🔥 ORDEN CORRECTO: Primero cargar datos, luego traducir
+    // 🔥 ORDEN CORRECTO: Cargar datos y NO llamar a translatePanel (para evitar sobrescribir)
     
     // 1. Cargar datos del PLAN AMIGO desde Google Sheets (Hoja 1)
     await loadPlanAmigoData();
     
     // 2. Cargar textos dinámicos desde Google Sheets (Hoja 2)
+    // Esta función YA actualiza el HTML directamente, no necesitamos translatePanel
     await loadFriendsTexts();
     
-    // 3. Aplicar traducciones DESPUÉS de cargar (para que use los valores nuevos)
-    translatePanel();
+    // 3. NO llamar a translatePanel() aquí porque sobrescribiría los textos del Excel
+    // Los textos ya están actualizados por loadFriendsTexts()
 }
 
 function hideFriendsCode() {

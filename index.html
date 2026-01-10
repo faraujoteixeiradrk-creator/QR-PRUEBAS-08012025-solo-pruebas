@@ -23222,19 +23222,35 @@ async function loadFriendsTexts() {
             return parsed;
         });
         
-        // Buscar fila de datos (primera fila con texto en A y B)
+        // 🔥 BUSCAR ENCABEZADOS Y LUEGO USAR LA SIGUIENTE FILA
+        let headerRowIndex = -1;
         let dataRowIndex = -1;
+        
+        // Buscar fila de encabezados (contiene palabras como TITULO, PARRAFO, etc.)
         for (let i = 0; i < allRows.length; i++) {
             const row = allRows[i];
-            // Buscar fila con texto en las primeras columnas
-            if (row[0] && row[0].length > 5 && row[1] && row[1].length > 5) {
-                dataRowIndex = i;
-                console.log(`\n✅ Fila de datos encontrada: ${i + 1}`);
+            const firstCell = (row[0] || '').toUpperCase();
+            
+            // Si la primera celda contiene "TITULO" o palabras clave de encabezado
+            if (firstCell.includes('TITULO') || firstCell.includes('TÍTULO') || 
+                firstCell.includes('HEADER') || firstCell === 'A') {
+                headerRowIndex = i;
+                console.log(`\n✅ Encabezados encontrados en fila ${i + 1}`);
                 break;
             }
         }
         
-        if (dataRowIndex < 0) {
+        // La fila de datos es la siguiente a los encabezados
+        if (headerRowIndex >= 0 && headerRowIndex + 1 < allRows.length) {
+            dataRowIndex = headerRowIndex + 1;
+            console.log(`✅ Usando fila de datos: ${dataRowIndex + 1} (siguiente a encabezados)`);
+        } else if (allRows.length >= 2) {
+            // Si no encontramos encabezados, asumir que fila 1 = encabezados, fila 2 = datos
+            dataRowIndex = 1;
+            console.log(`⚠️ No se detectaron encabezados, asumiendo fila 2 como datos`);
+        }
+        
+        if (dataRowIndex < 0 || dataRowIndex >= allRows.length) {
             throw new Error('No se encontró fila de datos válida');
         }
         

@@ -12143,9 +12143,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // NUEVO: Botón Capturar Foto QR - Abre cámara nativa
             document.getElementById('camera-capture-btn').onclick = () => {
+                console.log('🔵 [CLICK] Botón "Capturar Foto" presionado');
                 document.getElementById('qr-options-modal').classList.add('hidden');
                 document.getElementById('qr-options-modal').classList.remove('flex');
-                // Usar captura híbrida con MediaStream (como el escáner)
+                // USAR CAPTURA HÍBRIDA
                 capturePhotoFromCamera();
             };
             
@@ -12608,7 +12609,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             return croppedData;
         }
         
-        // === CAPTURADOR HÍBRIDO CORREGIDO ===
+        // === CAPTURADOR HÍBRIDO - VERSIÓN CON CONTROL TOTAL ===
         
         function capturePhotoFromCamera() {
             const overlay = document.getElementById('qr-processing-overlay');
@@ -12618,119 +12619,211 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             overlay.classList.remove('hidden');
             overlay.classList.add('flex');
             progressMsg.textContent = '📷 Abriendo cámara...';
-            attemptCounter.textContent = 'Preparando';
+            attemptCounter.textContent = 'Iniciando';
             
-            console.log('🔵 Iniciando captura híbrida...');
+            console.log('🔵 [INICIO] capturePhotoFromCamera()');
             
-            // Abrir cámara con configuración óptima
-            navigator.mediaDevices.getUserMedia({ 
+            // Variable para controlar si capturamos exitosamente
+            let captureSuccess = false;
+            
+            // Configuración de cámara
+            const constraints = { 
                 video: { 
                     facingMode: "environment",
                     width: { ideal: 1920 },
                     height: { ideal: 1080 }
                 } 
-            }).then(stream => {
-                console.log('✅ Stream obtenido');
-                
-                const video = document.createElement('video');
-                video.srcObject = stream;
-                video.setAttribute("playsinline", true);
-                
-                // CRÍTICO: Esperar a que el video esté completamente cargado
-                video.onloadedmetadata = () => {
-                    console.log('✅ Metadata cargada, reproduciendo...');
-                    video.play();
+            };
+            
+            console.log('📱 Solicitando permiso de cámara...');
+            
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(stream => {
+                    console.log('✅ [ÉXITO] Stream obtenido');
+                    console.log('📊 Stream activo:', stream.active);
+                    console.log('📊 Tracks:', stream.getTracks().length);
                     
-                    // Esperar a que tenga suficientes datos
-                    video.oncanplay = () => {
-                        console.log('✅ Video listo para captura');
-                        progressMsg.textContent = '📸 Capturando en 1 segundo...';
+                    const video = document.createElement('video');
+                    video.srcObject = stream;
+                    video.setAttribute("playsinline", true);
+                    video.muted = true; // Silenciar por si acaso
+                    
+                    progressMsg.textContent = '📹 Inicializando video...';
+                    
+                    // Handler para cuando metadata esté lista
+                    video.onloadedmetadata = () => {
+                        console.log('✅ [METADATA] Cargada');
+                        console.log(`📐 Dimensiones: ${video.videoWidth}x${video.videoHeight}`);
                         
-                        // Dar tiempo para enfoque automático y estabilización
+                        progressMsg.textContent = '▶️ Reproduciendo video...';
+                        
+                        // Intentar reproducir
+                        const playPromise = video.play();
+                        
+                        if (playPromise !== undefined) {
+                            playPromise.then(() => {
+                                console.log('✅ [PLAY] Video reproduciéndose');
+                                progressMsg.textContent = '⏳ Esperando video...';
+                            }).catch(err => {
+                                console.error('❌ [ERROR PLAY]:', err);
+                                stream.getTracks().forEach(t => t.stop());
+                                overlay.classList.add('hidden');
+                                overlay.classList.remove('flex');
+                                window.showErrorModal("❌ Error reproduciendo video: " + err.message);
+                            });
+                        }
+                    };
+                    
+                    // Handler CRÍTICO: cuando el video tenga datos
+                    video.oncanplay = () => {
+                        console.log('✅ [CANPLAY] Video tiene datos');
+                        console.log('📊 ReadyState:', video.readyState);
+                        console.log('📊 CurrentTime:', video.currentTime);
+                        
+                        // Solo capturar UNA VEZ
+                        if (captureSuccess) {
+                            console.log('⚠️ [SKIP] Ya capturado, ignorando');
+                            return;
+                        }
+                        
+                        captureSuccess = true;
+                        
+                        progressMsg.textContent = '📸 Preparando captura...';
+                        attemptCounter.textContent = 'Enfocando';
+                        
+                        // Esperar 1 segundo para enfoque automático
                         setTimeout(() => {
-                            console.log('📸 Capturando frame...');
-                            progressMsg.textContent = '📸 Capturando frame...';
+                            console.log('📸 [CAPTURA] Iniciando...');
+                            progressMsg.textContent = '📸 Capturando ahora...';
                             
                             try {
-                                // Capturar frame de alta calidad
+                                // Verificar que el video tiene dimensiones válidas
+                                if (video.videoWidth === 0 || video.videoHeight === 0) {
+                                    throw new Error('Video sin dimensiones válidas');
+                                }
+                                
+                                // Crear canvas
                                 const canvas = document.createElement('canvas');
                                 canvas.width = video.videoWidth;
                                 canvas.height = video.videoHeight;
                                 
-                                console.log(`📸 Captura: ${canvas.width}x${canvas.height}`);
+                                console.log(`📐 Canvas: ${canvas.width}x${canvas.height}`);
                                 
                                 const ctx = canvas.getContext('2d');
-                                ctx.drawImage(video, 0, 0);
                                 
-                                // IMPORTANTE: Detener stream ANTES de procesar
-                                console.log('🛑 Deteniendo cámara...');
-                                stream.getTracks().forEach(t => t.stop());
+                                // Capturar frame
+                                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                                 
-                                progressMsg.textContent = '🔍 Analizando imagen...';
+                                console.log('✅ [FRAME] Capturado');
                                 
-                                // Convertir a blob de alta calidad (PNG sin compresión)
+                                // IMPORTANTE: Detener stream AHORA
+                                console.log('🛑 Cerrando cámara...');
+                                stream.getTracks().forEach(track => {
+                                    console.log(`🛑 Deteniendo track: ${track.kind}`);
+                                    track.stop();
+                                });
+                                
+                                progressMsg.textContent = '🔄 Convirtiendo imagen...';
+                                
+                                // Convertir a blob PNG (sin compresión)
                                 canvas.toBlob(blob => {
-                                    console.log(`📦 Blob creado: ${(blob.size / 1024).toFixed(2)} KB`);
-                                    // Procesar con el motor mejorado
+                                    if (!blob) {
+                                        console.error('❌ [BLOB] No se pudo crear');
+                                        overlay.classList.add('hidden');
+                                        overlay.classList.remove('flex');
+                                        window.showErrorModal("❌ Error convirtiendo imagen");
+                                        return;
+                                    }
+                                    
+                                    console.log(`✅ [BLOB] Creado: ${(blob.size / 1024).toFixed(2)} KB`);
+                                    console.log(`📊 Tipo: ${blob.type}`);
+                                    
+                                    // AHORA SÍ procesar
+                                    progressMsg.textContent = '🔍 Procesando...';
+                                    console.log('🔵 [PROCESANDO] Llamando a decodeQRFromImage()');
+                                    
                                     decodeQRFromImage(blob);
-                                }, 'image/png', 1.0); // PNG calidad máxima
+                                    
+                                }, 'image/png', 1.0); // PNG máxima calidad
                                 
-                            } catch (e) {
-                                console.error('❌ Error capturando:', e);
+                            } catch (captureError) {
+                                console.error('❌ [ERROR CAPTURA]:', captureError);
                                 stream.getTracks().forEach(t => t.stop());
                                 overlay.classList.add('hidden');
                                 overlay.classList.remove('flex');
-                                window.showErrorModal("❌ Error al capturar foto. Intente de nuevo.");
+                                window.showErrorModal("❌ Error capturando: " + captureError.message);
                             }
                             
-                        }, 1000); // 1 segundo para enfoque automático
+                        }, 1000); // 1 segundo para enfoque
                     };
-                };
-                
-                // Timeout de seguridad por si el video no carga
-                setTimeout(() => {
-                    if (stream.active) {
-                        console.error('⏱️ Timeout esperando video');
+                    
+                    // Error handlers
+                    video.onerror = (err) => {
+                        console.error('❌ [VIDEO ERROR]:', err);
                         stream.getTracks().forEach(t => t.stop());
                         overlay.classList.add('hidden');
                         overlay.classList.remove('flex');
-                        window.showErrorModal("⏱️ La cámara no responde. Use el Escáner en Vivo.");
+                        window.showErrorModal("❌ Error en video");
+                    };
+                    
+                    // Timeout de seguridad (15 segundos)
+                    setTimeout(() => {
+                        if (!captureSuccess && stream.active) {
+                            console.error('⏱️ [TIMEOUT] Video no respondió');
+                            stream.getTracks().forEach(t => t.stop());
+                            overlay.classList.add('hidden');
+                            overlay.classList.remove('flex');
+                            window.showErrorModal("⏱️ Timeout: La cámara no respondió.\n\nPruebe con el ESCÁNER EN VIVO.");
+                        }
+                    }, 15000); // 15 segundos
+                    
+                })
+                .catch(err => {
+                    console.error('❌ [getUserMedia ERROR]:', err);
+                    console.error('📊 Error name:', err.name);
+                    console.error('📊 Error message:', err.message);
+                    
+                    overlay.classList.add('hidden');
+                    overlay.classList.remove('flex');
+                    
+                    let errorMsg = "❌ No se pudo acceder a la cámara.\n\n";
+                    
+                    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                        errorMsg += "🔒 Permiso denegado.\n\nDebe permitir el acceso a la cámara en su navegador.";
+                    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                        errorMsg += "📷 No se detectó cámara.\n\nVerifique que su dispositivo tenga cámara disponible.";
+                    } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                        errorMsg += "🚫 Cámara ocupada.\n\nOtra aplicación está usando la cámara.";
+                    } else if (err.name === 'OverconstrainedError') {
+                        errorMsg += "⚙️ Configuración no soportada.\n\nIntente con el ESCÁNER EN VIVO.";
+                    } else {
+                        errorMsg += "Error: " + err.message;
                     }
-                }, 10000); // 10 segundos máximo
-                
-            }).catch(err => {
-                console.error('❌ Error cámara:', err);
-                overlay.classList.add('hidden');
-                overlay.classList.remove('flex');
-                
-                let errorMsg = "❌ No se pudo acceder a la cámara.\n\n";
-                if (err.name === 'NotAllowedError') {
-                    errorMsg += "Debe permitir el acceso a la cámara en su navegador.";
-                } else if (err.name === 'NotFoundError') {
-                    errorMsg += "No se detectó ninguna cámara en el dispositivo.";
-                } else {
-                    errorMsg += "Error: " + err.message;
-                }
-                
-                window.showErrorModal(errorMsg);
-            });
+                    
+                    window.showErrorModal(errorMsg);
+                });
         }
         
+        // Handler para input file (mantener como fallback)
         function handleFile(e) {
             const file = e.target.files[0];
             if (file) {
-                console.log('📁 Archivo seleccionado desde input');
+                console.log('📁 [FILE INPUT] Archivo seleccionado');
+                console.log(`📊 Tamaño: ${(file.size / 1024).toFixed(2)} KB`);
+                console.log(`📊 Tipo: ${file.type}`);
                 decodeQRFromImage(file);
             }
         }
 
-        // === MOTOR DE DETECCIÓN OPTIMIZADO ===
+        // === MOTOR DE DETECCIÓN ===
         function decodeQRFromImage(imageFileOrBlob) {
+            console.log('🔵 [DECODE] Iniciando decodeQRFromImage()');
+            
             const overlay = document.getElementById('qr-processing-overlay');
             const progressMsg = document.getElementById('qr-progress-message');
             const attemptCounter = document.getElementById('qr-attempt-counter');
             
-            // Si el overlay ya está visible, mantenerlo
+            // Si el overlay no está visible, mostrarlo
             if (!overlay.classList.contains('flex')) {
                 overlay.classList.remove('hidden');
                 overlay.classList.add('flex');
@@ -12739,12 +12832,13 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             progressMsg.textContent = '🔍 Analizando imagen...';
             attemptCounter.textContent = '0 / 15';
             
-            console.log(`🔵 Procesando blob/file: ${(imageFileOrBlob.size / 1024).toFixed(2)} KB`);
+            console.log(`📊 Blob/File size: ${(imageFileOrBlob.size / 1024).toFixed(2)} KB`);
+            console.log(`📊 Blob/File type: ${imageFileOrBlob.type}`);
             
             let processingComplete = false;
             const timeoutId = setTimeout(() => {
                 if (!processingComplete) {
-                    console.error('⏱️ TIMEOUT procesamiento');
+                    console.error('⏱️ [TIMEOUT] Procesamiento agotado');
                     overlay.classList.add('hidden');
                     overlay.classList.remove('flex');
                     window.showErrorModal("⏱️ Tiempo agotado analizando imagen.");
@@ -12757,7 +12851,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             img.onload = () => {
                 try {
                     URL.revokeObjectURL(url);
-                    console.log(`📸 Imagen cargada: ${img.width}x${img.height}`);
+                    console.log(`✅ [IMAGE] Cargada: ${img.width}x${img.height}`);
+                    
+                    // Validar dimensiones
+                    if (img.width === 0 || img.height === 0) {
+                        throw new Error('Imagen sin dimensiones válidas');
+                    }
                     
                     // NO redimensionar - usar resolución completa
                     let workingCanvas = document.createElement('canvas');
@@ -12768,12 +12867,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     workingCtx.drawImage(img, 0, 0);
                     let baseImageData = workingCtx.getImageData(0, 0, workingCanvas.width, workingCanvas.height);
                     
-                    // Aplicar mejora de nitidez
+                    console.log(`📊 ImageData: ${baseImageData.width}x${baseImageData.height}`);
+                    
+                    // Aplicar sharpen
                     progressMsg.textContent = '🎨 Mejorando nitidez...';
                     baseImageData = sharpenImage(baseImageData);
                     
                     // Smart Crop
-                    progressMsg.textContent = '🔍 Detectando zona QR...';
+                    progressMsg.textContent = '✂️ Recortando zona QR...';
                     const croppedImageData = smartCropQRRegion(baseImageData);
                     
                     console.log(`✂️ Recorte: ${baseImageData.width}x${baseImageData.height} → ${croppedImageData.width}x${croppedImageData.height}`);
@@ -12793,7 +12894,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             scaledCanvas.width = Math.floor(canvas.width * scale);
                             scaledCanvas.height = Math.floor(canvas.height * scale);
                             
-                            // Usar interpolación de alta calidad
                             scaledCtx.imageSmoothingEnabled = true;
                             scaledCtx.imageSmoothingQuality = 'high';
                             scaledCtx.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
@@ -12808,8 +12908,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                 processingComplete = true;
                                 clearTimeout(timeoutId);
                                 progressMsg.textContent = '✅ ¡QR Detectado!';
-                                console.log(`✅ QR detectado en intento ${attemptNum}: ${label}`);
-                                console.log(`📊 Datos QR: ${code.data.substring(0, 50)}...`);
+                                console.log(`✅ [DETECTADO] Intento ${attemptNum}: ${label}`);
+                                console.log(`📊 QR data: ${code.data.substring(0, 100)}...`);
                                 setTimeout(() => {
                                     overlay.classList.add('hidden');
                                     overlay.classList.remove('flex');
@@ -12819,45 +12919,45 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             }
                             return false;
                         } catch (e) {
-                            console.error(`Error intento ${attemptNum}:`, e);
+                            console.error(`❌ Error intento ${attemptNum}:`, e);
                             return false;
                         }
                     };
                     
                     const tryScale = (scale, label, canvas = croppedCanvas) => {
                         attemptNum++;
-                        progressMsg.textContent = label;
+                        progressMsg.textContent = `🔍 ${label}`;
                         attemptCounter.textContent = `${attemptNum} / 15`;
-                        console.log(`🔄 Intento ${attemptNum}/15: ${label}`);
+                        console.log(`🔄 Intento ${attemptNum}/15: ${label} (${Math.floor(canvas.width * scale)}x${Math.floor(canvas.height * scale)})`);
                         return tryScaleSafe(scale, label, canvas);
                     };
                     
                     // === SECUENCIA 15 INTENTOS ===
                     const runAttempts = () => {
-                        if (tryScale(1.0, "📷 1x")) return;
+                        if (tryScale(1.0, "1x")) return;
                         setTimeout(() => {
-                            if (tryScale(1.5, "🔍 1.5x")) return;
+                            if (tryScale(1.5, "1.5x")) return;
                             setTimeout(() => {
-                                if (tryScale(2.0, "🔍 2x")) return;
+                                if (tryScale(2.0, "2x")) return;
                                 setTimeout(() => {
-                                    if (tryScale(2.5, "🔍 2.5x")) return;
+                                    if (tryScale(2.5, "2.5x")) return;
                                     setTimeout(() => {
-                                        if (tryScale(3.0, "🔍 3x")) return;
+                                        if (tryScale(3.0, "3x")) return;
                                         setTimeout(() => {
-                                            if (tryScale(4.0, "🔍 4x")) return;
+                                            if (tryScale(4.0, "4x")) return;
                                             setTimeout(() => {
-                                                if (tryScale(5.0, "🔍 5x")) return;
+                                                if (tryScale(5.0, "5x")) return;
                                                 setTimeout(() => {
-                                                    if (tryScale(6.0, "🔍 6x")) return;
+                                                    if (tryScale(6.0, "6x")) return;
                                                     setTimeout(() => {
-                                                        if (tryScale(8.0, "🔍 8x")) return;
+                                                        if (tryScale(8.0, "8x")) return;
                                                         setTimeout(() => {
-                                                            if (tryScale(10.0, "🔍 10x")) return;
+                                                            if (tryScale(10.0, "10x")) return;
                                                             
                                                             setTimeout(() => {
                                                                 // Anti-blur
                                                                 attemptNum++;
-                                                                progressMsg.textContent = '🔧 Anti-blur...';
+                                                                progressMsg.textContent = '🔧 Anti-blur';
                                                                 attemptCounter.textContent = `${attemptNum} / 15`;
                                                                 console.log(`🔄 Intento ${attemptNum}/15: Anti-blur`);
                                                                 
@@ -12874,7 +12974,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                                                 if (code) {
                                                                     processingComplete = true;
                                                                     clearTimeout(timeoutId);
-                                                                    console.log('✅ QR detectado con anti-blur');
+                                                                    console.log('✅ [DETECTADO] Anti-blur');
                                                                     overlay.classList.add('hidden');
                                                                     overlay.classList.remove('flex');
                                                                     handleQRRead(code.data);
@@ -12882,19 +12982,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                                                 }
                                                                 
                                                                 setTimeout(() => {
-                                                                    // Imagen completa
-                                                                    if (tryScale(1.5, "📐 Completa 1.5x", workingCanvas)) return;
+                                                                    if (tryScale(1.5, "Completa 1.5x", workingCanvas)) return;
                                                                     setTimeout(() => {
-                                                                        if (tryScale(2.0, "📐 Completa 2x", workingCanvas)) return;
+                                                                        if (tryScale(2.0, "Completa 2x", workingCanvas)) return;
                                                                         setTimeout(() => {
-                                                                            if (tryScale(3.0, "📐 Completa 3x", workingCanvas)) return;
+                                                                            if (tryScale(3.0, "Completa 3x", workingCanvas)) return;
                                                                             
                                                                             setTimeout(() => {
-                                                                                // Original puro
+                                                                                // Original
                                                                                 attemptNum++;
-                                                                                progressMsg.textContent = '📷 Original...';
+                                                                                progressMsg.textContent = '📷 Original';
                                                                                 attemptCounter.textContent = `${attemptNum} / 15`;
-                                                                                console.log(`🔄 Intento ${attemptNum}/15: Original puro`);
+                                                                                console.log(`🔄 Intento ${attemptNum}/15: Original`);
                                                                                 
                                                                                 const codeOrig = jsQR(baseImageData.data, baseImageData.width, baseImageData.height, {
                                                                                     inversionAttempts: "attemptBoth"
@@ -12903,7 +13002,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                                                                 if (codeOrig) {
                                                                                     processingComplete = true;
                                                                                     clearTimeout(timeoutId);
-                                                                                    console.log('✅ QR detectado en original');
+                                                                                    console.log('✅ [DETECTADO] Original');
                                                                                     overlay.classList.add('hidden');
                                                                                     overlay.classList.remove('flex');
                                                                                     handleQRRead(codeOrig.data);
@@ -12913,15 +13012,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                                                                 // NO DETECTADO
                                                                                 processingComplete = true;
                                                                                 clearTimeout(timeoutId);
-                                                                                console.log('❌ No detectado tras 15 intentos');
+                                                                                console.log('❌ [NO DETECTADO] Tras 15 intentos');
                                                                                 overlay.classList.add('hidden');
                                                                                 overlay.classList.remove('flex');
                                                                                 window.showErrorModal(
                                                                                     "❌ No se detectó el QR.\n\n" +
                                                                                     "💡 Sugerencias:\n" +
                                                                                     "📸 Use el ESCÁNER EN VIVO\n" +
-                                                                                    "🔍 Acerque más la cámara al QR\n" +
-                                                                                    "💡 Mejore la iluminación"
+                                                                                    "🔍 Acerque más al QR\n" +
+                                                                                    "💡 Mejore la luz"
                                                                                 );
                                                                             }, 100);
                                                                         }, 100);
@@ -12944,17 +13043,17 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 } catch (e) {
                     processingComplete = true;
                     clearTimeout(timeoutId);
-                    console.error('❌ Error procesando:', e);
+                    console.error('❌ [ERROR PROCESANDO]:', e);
                     overlay.classList.add('hidden');
                     overlay.classList.remove('flex');
-                    window.showErrorModal("❌ Error procesando imagen.");
+                    window.showErrorModal("❌ Error: " + e.message);
                 }
             };
             
             img.onerror = () => {
                 processingComplete = true;
                 clearTimeout(timeoutId);
-                console.error('❌ Error cargando imagen');
+                console.error('❌ [ERROR] No se pudo cargar imagen');
                 overlay.classList.add('hidden');
                 overlay.classList.remove('flex');
                 window.showErrorModal("❌ Error cargando imagen.");
@@ -12963,24 +13062,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             img.src = url;
         }
         
-        // === FUNCIÓN SHARPEN ===
+        // === SHARPEN ===
         function sharpenImage(imageData) {
             const width = imageData.width;
             const height = imageData.height;
             const data = imageData.data;
             const output = new Uint8ClampedArray(data.length);
             
-            // Kernel sharpen 3x3
-            const kernel = [
-                0, -1, 0,
-                -1, 5, -1,
-                0, -1, 0
-            ];
+            const kernel = [0, -1, 0, -1, 5, -1, 0, -1, 0];
             
             for (let y = 1; y < height - 1; y++) {
                 for (let x = 1; x < width - 1; x++) {
                     let r = 0, g = 0, b = 0;
-                    
                     for (let ky = -1; ky <= 1; ky++) {
                         for (let kx = -1; kx <= 1; kx++) {
                             const idx = ((y + ky) * width + (x + kx)) * 4;
@@ -12990,7 +13083,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             b += data[idx + 2] * k;
                         }
                     }
-                    
                     const outIdx = (y * width + x) * 4;
                     output[outIdx] = Math.max(0, Math.min(255, r));
                     output[outIdx + 1] = Math.max(0, Math.min(255, g));
@@ -13003,26 +13095,20 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             for (let x = 0; x < width; x++) {
                 const idx0 = x * 4;
                 const idxH = ((height - 1) * width + x) * 4;
-                output[idx0] = data[idx0];
-                output[idx0 + 1] = data[idx0 + 1];
-                output[idx0 + 2] = data[idx0 + 2];
-                output[idx0 + 3] = 255;
-                output[idxH] = data[idxH];
-                output[idxH + 1] = data[idxH + 1];
-                output[idxH + 2] = data[idxH + 2];
-                output[idxH + 3] = 255;
+                for (let c = 0; c < 3; c++) {
+                    output[idx0 + c] = data[idx0 + c];
+                    output[idxH + c] = data[idxH + c];
+                }
+                output[idx0 + 3] = output[idxH + 3] = 255;
             }
             for (let y = 0; y < height; y++) {
                 const idx0 = y * width * 4;
                 const idxW = (y * width + width - 1) * 4;
-                output[idx0] = data[idx0];
-                output[idx0 + 1] = data[idx0 + 1];
-                output[idx0 + 2] = data[idx0 + 2];
-                output[idx0 + 3] = 255;
-                output[idxW] = data[idxW];
-                output[idxW + 1] = data[idxW + 1];
-                output[idxW + 2] = data[idxW + 2];
-                output[idxW + 3] = 255;
+                for (let c = 0; c < 3; c++) {
+                    output[idx0 + c] = data[idx0 + c];
+                    output[idxW + c] = data[idxW + c];
+                }
+                output[idx0 + 3] = output[idxW + 3] = 255;
             }
             
             return new ImageData(output, width, height);

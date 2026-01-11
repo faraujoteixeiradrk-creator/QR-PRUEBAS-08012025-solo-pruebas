@@ -23108,19 +23108,22 @@ async function loadPlanAmigoData() {
                 // Columna E (4): p3_price = "0,099"
                 // Columna F (5): p_potencia_1 = "36,135"
                 // Columna G (6): p_potencia_2 = "36,135"
+                // Columna H (7): descuento = "10" (porcentaje)
                 
                 const p1Price = parseEuropeanNumber(values[2]);
                 const p2Price = parseEuropeanNumber(values[3]);
                 const p3Price = parseEuropeanNumber(values[4]);
                 const pPotencia1 = parseEuropeanNumber(values[5]);
                 const pPotencia2 = parseEuropeanNumber(values[6]);
+                const descuento = parseEuropeanNumber(values[7]); // 🔥 NUEVO: Leer descuento de columna H
                 
                 console.log('📊 Valores parseados correctamente:', {
                     'p1_price (Punta)': p1Price,
                     'p2_price (Llano)': p2Price,
                     'p3_price (Valle)': p3Price,
                     'p_potencia_1 (P1)': pPotencia1,
-                    'p_potencia_2 (P2)': pPotencia2
+                    'p_potencia_2 (P2)': pPotencia2,
+                    'descuento': descuento + '%' // 🔥 NUEVO
                 });
                 
                 // Actualizar UI
@@ -23129,8 +23132,9 @@ async function loadPlanAmigoData() {
                 document.getElementById('plan-amigo-p3-price').textContent = p3Price.toFixed(4);
                 document.getElementById('plan-amigo-p-potencia-1').textContent = pPotencia1.toFixed(3);
                 document.getElementById('plan-amigo-p-potencia-2').textContent = pPotencia2.toFixed(3);
+                document.getElementById('plan-amigo-discount').textContent = Math.round(descuento); // 🔥 NUEVO: Actualizar descuento
                 
-                console.log('✅ UI actualizada exitosamente');
+                console.log('✅ UI actualizada exitosamente (incluyendo descuento)');
                 return;
             }
         }
@@ -23145,6 +23149,7 @@ async function loadPlanAmigoData() {
         document.getElementById('plan-amigo-p3-price').textContent = '0.0990';
         document.getElementById('plan-amigo-p-potencia-1').textContent = '36.135';
         document.getElementById('plan-amigo-p-potencia-2').textContent = '36.135';
+        document.getElementById('plan-amigo-discount').textContent = '10'; // 🔥 NUEVO: Valor por defecto
     }
 }
 
@@ -24498,6 +24503,19 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </div>
                                 <div style="font-size: 0.875rem; color: #0c4a6e;">
                                     Valle: <strong id="plan-amigo-p3-price" style="color: #2596be;">--</strong> €/kWh
+                                </div>
+                                
+                                <!-- 🔥 NUEVO: Mensaje de descuento en ROJO y grande -->
+                                <div style="margin-top: 1rem; padding: 0.75rem; background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-radius: 0.5rem; border: 2px solid #ef4444; text-align: center;">
+                                    <div style="font-size: 0.75rem; color: #991b1b; font-weight: 600; margin-bottom: 0.25rem;">
+                                        CONSIGUE TU CÓDIGO AMIGO
+                                    </div>
+                                    <div style="font-size: 2rem; font-weight: 800; color: #dc2626; line-height: 1; margin-bottom: 0.25rem;">
+                                        <span id="plan-amigo-discount" style="font-size: 2.5rem;">10</span> %
+                                    </div>
+                                    <div style="font-size: 0.875rem; color: #991b1b; font-weight: 600;">
+                                        en tu energía
+                                    </div>
                                 </div>
                             </div>
                         </div>

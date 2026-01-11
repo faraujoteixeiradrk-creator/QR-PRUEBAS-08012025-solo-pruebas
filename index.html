@@ -1773,6 +1773,7 @@
         // Variables Escáner
         let scannerRunning = false;
         let scanLoopCount = 0; // Contador de frames para procesamiento progresivo
+        let frameCount = 0; // Contador para ciclo híbrido de 3 modos
         let stream = null, video = null, canvas = null, canvasCtx = null, animationFrameId = null;
         
         // Variables para detección Google Lens
@@ -12951,10 +12952,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             scannerRunning = true;
             
             // Iniciar cámara con mínimas opciones para máxima velocidad
+            // 🔥 CONFIGURACIÓN ÓPTIMA (del código que funciona)
             navigator.mediaDevices.getUserMedia({ 
                 video: { 
-                    facingMode: "environment"
-                    // Solo lo esencial - sin resolución forzada para apertura rápida
+                    facingMode: "environment",
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
                 } 
             }).then(s => {
                 stream = s; 
@@ -12963,11 +12966,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 video = document.createElement('video');
                 video.autoplay = true; 
                 video.playsInline = true;
+                video.muted = true; // CRÍTICO para iOS
                 video.srcObject = s;
                 
-                // Crear canvas
+                // Crear canvas con configuración optimizada
                 canvas = document.createElement('canvas'); 
-                canvasCtx = canvas.getContext('2d');
+                canvasCtx = canvas.getContext('2d', { alpha: false, willReadFrequently: true });
                 
                 // Limpiar el mensaje de carga y mostrar video
                 interactive.innerHTML = '';
@@ -12997,125 +13001,66 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             }
             
             canvasCtx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
             
+            // 🔥🔥🔥 CICLO HÍBRIDO + AUTO-PROCESAMIENTO INMEDIATO (DEL CÓDIGO QUE FUNCIONA)
+            let code = null;
+            frameCount++;
+
+            // Ciclo de 3 modos para detectar QRs de cualquier tamaño
+            const mode = frameCount % 3;
+            
+            if (mode === 0) {
+                // MODO PANORÁMICO: Escanea toda la imagen (QRs grandes o lejanos)
+                const imageData = canvasCtx.getImageData(0, 0, canvas.width, canvas.height);
+                code = jsQR(imageData.data, imageData.width, imageData.height);
+            } 
+            else if (mode === 1) {
+                // MODO PAPEL: Zoom central 50% (QRs pequeños en papel)
+                const size = Math.min(canvas.width, canvas.height) * 0.5;
+                const sx = (canvas.width - size) / 2;
+                const sy = (canvas.height - size) / 2;
+                const imageData = canvasCtx.getImageData(sx, sy, size, size);
+                code = jsQR(imageData.data, imageData.width, imageData.height);
+            }
+            else {
+                // MODO PRECISIÓN: Zoom 75% + Inversión (QRs difíciles)
+                const size = Math.min(canvas.width, canvas.height) * 0.75;
+                const sx = (canvas.width - size) / 2;
+                const sy = (canvas.height - size) / 2;
+                const imageData = canvasCtx.getImageData(sx, sy, size, size);
+                code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "attemptBoth" });
+            }
+
             scanLoopCount++;
             
             // Actualizar barra de progreso
             const powerBar = document.getElementById('scan-power-bar');
             const powerLabel = document.getElementById('scan-power-label');
-            
-            if (!qrRegionDetected) {
-                const progress = Math.min(80, (scanLoopCount / 60) * 80);
-                powerBar.style.width = progress + '%';
-                powerLabel.textContent = 'Buscando QR...';
-                powerBar.className = 'bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500';
-            }
-            
-            // ⚡ DETECCIÓN EN TIEMPO REAL con jsQR (como Google Lens)
-            let code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "attemptBoth"
-            });
-            
-            const frame = document.getElementById('qr-detection-frame');
             const container = document.getElementById('interactive');
-            const captureBtn = document.getElementById('capture-photo-btn');
             
-            // Si detecta el QR → Incrementar contador de estabilidad
-            if (code && code.location && frame && container) {
-                qrStableFrames++;
-                
-                // Solo actualizar UI si llevamos 5 frames consecutivos detectando (estabilidad)
-                if (qrStableFrames >= 5) {
-                    const rect = container.getBoundingClientRect();
-                    const scaleX = rect.width / canvas.width;
-                    const scaleY = rect.height / canvas.height;
-                    
-                    // Calcular bounding box del QR
-                    const points = code.location;
-                    const minX = Math.min(points.topLeftCorner.x, points.bottomLeftCorner.x);
-                    const maxX = Math.max(points.topRightCorner.x, points.bottomRightCorner.x);
-                    const minY = Math.min(points.topLeftCorner.y, points.topRightCorner.y);
-                    const maxY = Math.max(points.bottomLeftCorner.y, points.bottomRightCorner.y);
-                    
-                    // Añadir margen 20%
-                    const marginX = (maxX - minX) * 0.2;
-                    const marginY = (maxY - minY) * 0.2;
-                    
-                    const qrX = Math.max(0, minX - marginX);
-                    const qrY = Math.max(0, minY - marginY);
-                    const qrWidth = (maxX - minX) + (marginX * 2);
-                    const qrHeight = (maxY - minY) + (marginY * 2);
-                    
-                    // Posicionar marco exactamente donde está el QR
-                    frame.style.left = (qrX * scaleX) + 'px';
-                    frame.style.top = (qrY * scaleY) + 'px';
-                    frame.style.width = (qrWidth * scaleX) + 'px';
-                    frame.style.height = (qrHeight * scaleY) + 'px';
-                    frame.style.opacity = '1';
-                    frame.classList.remove('hidden');
-                    
-                    // Guardar región detectada para cuando usuario pulse botón
-                    if (!qrRegionDetected) {
-                        qrRegionDetected = { x: qrX, y: qrY, width: qrWidth, height: qrHeight };
-                        console.log('🎯 QR localizado estable - Listo para capturar');
-                    }
-                    
-                    // Actualizar UI para indicar que se detectó QR
+            // 🔥 AUTO-PROCESAMIENTO INMEDIATO (como el código que funciona)
+            if (code) {
+                // QR DETECTADO → PROCESAR INMEDIATAMENTE
+                console.log('✅ QR DETECTADO - Procesando automáticamente...');
+                if (powerLabel) powerLabel.textContent = '⚡ PROCESANDO...';
+                if (powerBar) {
                     powerBar.style.width = '100%';
-                    powerLabel.textContent = '✅ QR DETECTADO';
                     powerBar.className = 'bg-gradient-to-r from-green-500 to-green-600 h-full transition-all duration-300';
-                    
-                    // Cambiar botón flotante circular a verde - FORZAR SIEMPRE
-                    if (captureBtn) {
-                        const innerCircle = captureBtn.querySelector('div');
-                        if (innerCircle) {
-                            // Micro-delay para asegurar que el DOM esté listo
-                            setTimeout(() => {
-                                // Forzar clase verde con animación
-                                innerCircle.className = 'w-16 h-16 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center button-detected';
-                                innerCircle.innerHTML = `
-                                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                `;
-                                console.log('✅ Botón verde activado con animación');
-                            }, 10);
-                        } else {
-                            console.warn('⚠️ No se encontró innerCircle');
-                        }
-                    } else {
-                        console.warn('⚠️ No se encontró captureBtn');
-                    }
-                }
-            } else {
-                // No detecta QR → Resetear contador y ocultar UI
-                if (qrStableFrames > 0) {
-                    qrStableFrames--;  // Decrementar gradualmente
                 }
                 
-                // Solo resetear UI si perdimos la detección completamente
-                if (qrStableFrames === 0) {
-                    if (frame) {
-                        frame.style.opacity = '0';
-                        setTimeout(() => frame.classList.add('hidden'), 300);
-                    }
-                    qrRegionDetected = null;
-                    
-                    // Restaurar botón flotante circular a azul - SIEMPRE resetear
-                    if (captureBtn) {
-                        const innerCircle = captureBtn.querySelector('div');
-                        if (innerCircle) {
-                            // Resetear siempre, sin condiciones
-                            innerCircle.className = 'w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center';
-                            innerCircle.innerHTML = `
-                                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                                    <circle cx="11" cy="11" r="8"></circle>
-                                    <path d="m21 21-4.35-4.35"></path>
-                                </svg>
-                            `;
-                        }
-                    }
+                // Vibración (si está soportada)
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                
+                // PROCESAR INMEDIATAMENTE - SIN ESPERAS
+                handleQRRead(code.data);
+                return; // Salir del loop
+            } else {
+                // No detecta QR → Seguir buscando
+                if (powerLabel && !qrRegionDetected) {
+                    const progress = Math.min(80, (scanLoopCount / 60) * 80);
+                    if (powerBar) powerBar.style.width = progress + '%';
+                    powerLabel.textContent = `🔍 Buscando (Modo ${mode + 1}/3)...`;
+                    if (powerBar) powerBar.className = 'bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500';
                 }
             }
             

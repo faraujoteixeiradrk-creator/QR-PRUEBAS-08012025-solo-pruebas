@@ -1773,6 +1773,7 @@
         // Variables Escáner
         let scannerRunning = false;
         let scanLoopCount = 0; // Contador de frames para procesamiento progresivo
+        let frameCount = 0; // 🔥 Contador para ciclo de 3 modos
         let stream = null, video = null, canvas = null, canvasCtx = null, animationFrameId = null;
         
         // Variables para detección Google Lens
@@ -13046,6 +13047,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             `;
             
             scannerRunning = true;
+            frameCount = 0; // 🔥 Iniciar contador de modos
+            scanLoopCount = 0; // Iniciar contador de frames
             
             // Iniciar cámara con mínimas opciones para máxima velocidad
             navigator.mediaDevices.getUserMedia({ 
@@ -13258,6 +13261,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         function stopScanner() {
             scannerRunning = false;
             scanLoopCount = 0; // Reset del contador de frames
+            frameCount = 0; // 🔥 Reset contador de modos
             
             // Reset variables de tracking QR
             qrRegionDetected = null;

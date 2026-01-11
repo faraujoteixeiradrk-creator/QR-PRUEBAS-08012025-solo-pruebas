@@ -12143,10 +12143,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // NUEVO: Botón Capturar Foto QR - Abre cámara nativa
             document.getElementById('camera-capture-btn').onclick = () => {
-                console.log('🔵 [CLICK] Capturar Foto');
+                console.log('🔵 [CLICK] Capturar Foto → Abriendo escáner');
                 document.getElementById('qr-options-modal').classList.add('hidden');
                 document.getElementById('qr-options-modal').classList.remove('flex');
-                // CAPTURA CON VIDEO VISIBLE (como el escáner pero con countdown)
+                // Usar EXACTAMENTE el mismo código que el escáner en vivo
                 capturePhotoFromCamera();
             };
             
@@ -12609,138 +12609,13 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             return croppedData;
         }
         
-        // === CAPTURADOR CON VIDEO VISIBLE ===
+        // === CAPTURAR FOTO = ESCÁNER EN VIVO ===
+        // (Exactamente el mismo código)
         
         function capturePhotoFromCamera() {
-            console.log('🔵 [INICIO] capturePhotoFromCamera()');
-            
-            // Ocultar pantalla actual y mostrar vista de captura
-            document.getElementById('screen-inicio').classList.remove('active');
-            document.getElementById('scanner-view').classList.remove('hidden');
-            document.getElementById('scanner-view').classList.add('active', 'flex');
-            
-            // Cambiar texto del botón
-            const closeBtn = document.querySelector('#scanner-view button');
-            if (closeBtn) {
-                closeBtn.textContent = 'Capturando...';
-                closeBtn.disabled = true;
-                closeBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            }
-            
-            console.log('📱 Solicitando cámara...');
-            
-            let captureSuccess = false;
-            
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: "environment",
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 }
-                } 
-            }).then(stream => {
-                console.log('✅ Stream obtenido');
-                
-                const video = document.createElement('video');
-                video.srcObject = stream;
-                video.setAttribute("playsinline", true);
-                video.muted = true;
-                
-                // MOSTRAR VIDEO EN PANTALLA (como el escáner)
-                const container = document.getElementById('interactive');
-                container.innerHTML = '';
-                container.appendChild(video);
-                
-                video.onloadedmetadata = () => {
-                    console.log('✅ Metadata cargada');
-                    video.play();
-                };
-                
-                video.oncanplay = () => {
-                    console.log('✅ Video listo');
-                    
-                    if (captureSuccess) return;
-                    captureSuccess = true;
-                    
-                    // Mostrar countdown
-                    const overlay = document.createElement('div');
-                    overlay.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:white;font-size:72px;font-weight:bold;text-shadow:0 0 20px black;z-index:1000;';
-                    container.appendChild(overlay);
-                    
-                    let countdown = 3;
-                    overlay.textContent = countdown;
-                    
-                    const countInterval = setInterval(() => {
-                        countdown--;
-                        if (countdown > 0) {
-                            overlay.textContent = countdown;
-                        } else {
-                            clearInterval(countInterval);
-                            overlay.textContent = '📸';
-                            
-                            setTimeout(() => {
-                                console.log('📸 Capturando...');
-                                
-                                try {
-                                    const canvas = document.createElement('canvas');
-                                    canvas.width = video.videoWidth;
-                                    canvas.height = video.videoHeight;
-                                    canvas.getContext('2d').drawImage(video, 0, 0);
-                                    
-                                    console.log(`✅ Frame capturado: ${canvas.width}x${canvas.height}`);
-                                    
-                                    // CERRAR TODO
-                                    stream.getTracks().forEach(t => t.stop());
-                                    document.getElementById('scanner-view').classList.add('hidden');
-                                    document.getElementById('scanner-view').classList.remove('active');
-                                    
-                                    // Mostrar overlay de procesamiento
-                                    const procOverlay = document.getElementById('qr-processing-overlay');
-                                    procOverlay.classList.remove('hidden');
-                                    procOverlay.classList.add('flex');
-                                    document.getElementById('qr-progress-message').textContent = '🔍 Analizando...';
-                                    document.getElementById('qr-attempt-counter').textContent = 'Preparando';
-                                    
-                                    // Convertir y procesar
-                                    canvas.toBlob(blob => {
-                                        console.log(`✅ Blob: ${(blob.size / 1024).toFixed(2)} KB`);
-                                        decodeQRFromImage(blob);
-                                    }, 'image/png');
-                                    
-                                } catch (e) {
-                                    console.error('❌ Error captura:', e);
-                                    stream.getTracks().forEach(t => t.stop());
-                                    document.getElementById('scanner-view').classList.add('hidden');
-                                    resetToLanding();
-                                    window.showErrorModal("❌ Error capturando.");
-                                }
-                            }, 300);
-                        }
-                    }, 1000);
-                };
-                
-                video.onerror = () => {
-                    console.error('❌ Error video');
-                    stream.getTracks().forEach(t => t.stop());
-                    document.getElementById('scanner-view').classList.add('hidden');
-                    resetToLanding();
-                    window.showErrorModal("❌ Error en video.");
-                };
-                
-            }).catch(err => {
-                console.error('❌ getUserMedia error:', err);
-                document.getElementById('scanner-view').classList.add('hidden');
-                resetToLanding();
-                
-                let msg = "❌ Error cámara.\n\n";
-                if (err.name === 'NotAllowedError') {
-                    msg += "Debe permitir acceso a la cámara.";
-                } else if (err.name === 'NotFoundError') {
-                    msg += "No se detectó cámara.";
-                } else {
-                    msg += err.message;
-                }
-                window.showErrorModal(msg);
-            });
+            console.log('🔵 Iniciando captura (igual que escáner)');
+            // Simplemente llamar al escáner en vivo
+            startLiveScanner();
         }
         
         function handleFile(e) {
@@ -12751,7 +12626,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             }
         }
 
-        // === MOTOR DE DETECCIÓN (SIN CAMBIOS) ===
+        // === MOTOR DE DETECCIÓN (sin cambios) ===
         function decodeQRFromImage(imageFileOrBlob) {
             console.log('🔵 [DECODE] Iniciando');
             
@@ -12927,8 +12802,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                                                                 overlay.classList.remove('flex');
                                                                                 window.showErrorModal(
                                                                                     "❌ No se detectó el QR.\n\n" +
-                                                                                    "💡 Use el ESCÁNER EN VIVO\n" +
-                                                                                    "o acerque más al QR."
+                                                                                    "💡 Acerque más al QR\n" +
+                                                                                    "o use el ESCÁNER EN VIVO."
                                                                                 );
                                                                             }, 100);
                                                                         }, 100);

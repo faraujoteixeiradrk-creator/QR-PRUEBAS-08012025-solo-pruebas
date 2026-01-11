@@ -12608,7 +12608,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         }
         
         function decodeQRFromImage(imageFileOrBlob) {
-            // Mostrar overlay grande
             const overlay = document.getElementById('qr-processing-overlay');
             const progressMsg = document.getElementById('qr-progress-message');
             const attemptCounter = document.getElementById('qr-attempt-counter');
@@ -12616,21 +12615,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             overlay.classList.remove('hidden');
             overlay.classList.add('flex');
             progressMsg.textContent = 'Cargando imagen...';
-            attemptCounter.textContent = '0 / 12';
             
-            // TIMEOUT DE SEGURIDAD (60 segundos)
+            // Timeout de seguridad
             let processingComplete = false;
-            const timeoutId = setTimeout(() => {
+            setTimeout(() => {
                 if (!processingComplete) {
-                    console.error('⏱️ TIMEOUT: Procesamiento tomó más de 60s');
                     overlay.classList.add('hidden');
                     overlay.classList.remove('flex');
-                    window.showErrorModal(
-                        "⏱️ El procesamiento tardó demasiado.\n\n" +
-                        "💡 Intenta:\n" +
-                        "• Usar el ESCÁNER EN VIVO\n" +
-                        "• Hacer nueva foto más cerca del QR"
-                    );
+                    if(!document.getElementById('results-view').classList.contains('active')) {
+                        alert("Tiempo de espera agotado. Intente con el Escáner en Vivo o una foto más clara.");
+                    }
                 }
             }, 60000);
             
@@ -12641,10 +12635,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 try {
                     URL.revokeObjectURL(url);
                     
-                    console.log(`📸 Imagen original: ${img.width}x${img.height}`);
-                    
-                    // === MOTOR V3 CLÁSICO - 1. REDIMENSIONADO INICIAL ===
-                    const MAX_DIMENSION = 2000;
+                    // 1. Redimensionado Inicial Inteligente (Evita cuelgues en iOS)
+                    const MAX_DIMENSION = 2000; 
                     let workingCanvas = document.createElement('canvas');
                     let workingCtx = workingCanvas.getContext('2d');
                     
@@ -12652,20 +12644,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         const scale = MAX_DIMENSION / Math.max(img.width, img.height);
                         workingCanvas.width = Math.floor(img.width * scale);
                         workingCanvas.height = Math.floor(img.height * scale);
-                        console.log(`⚡ Optimizando: ${img.width}x${img.height} → ${workingCanvas.width}x${workingCanvas.height}`);
-                        progressMsg.textContent = '⚡ Optimizando imagen grande...';
                     } else {
                         workingCanvas.width = img.width;
                         workingCanvas.height = img.height;
                     }
-                    
                     workingCtx.drawImage(img, 0, 0, workingCanvas.width, workingCanvas.height);
                     const baseImageData = workingCtx.getImageData(0, 0, workingCanvas.width, workingCanvas.height);
                     
-                    // === MOTOR V3 CLÁSICO - 2. SMART CROP (Detección por píxeles oscuros) ===
-                    progressMsg.textContent = '🔍 Detectando región QR...';
+                    // 2. DETECCIÓN Y RECORTE (La parte "magica" del código antiguo)
+                    progressMsg.textContent = 'Buscando zona QR...';
                     const croppedImageData = smartCropQRRegion(baseImageData);
                     
+                    // Canvas para el recorte
                     const croppedCanvas = document.createElement('canvas');
                     const croppedCtx = croppedCanvas.getContext('2d');
                     croppedCanvas.width = croppedImageData.width;
@@ -12674,7 +12664,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     
                     let attemptNum = 0;
                     
-                    // === MOTOR V3 CLÁSICO - 3. FUNCIÓN DE INTENTO SEGURO ===
+                    // Función de intento segura
                     const tryScaleSafe = (scale, label, canvas) => {
                         try {
                             const scaledCanvas = document.createElement('canvas');
@@ -12690,21 +12680,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             
                             if (code) {
                                 processingComplete = true;
-                                clearTimeout(timeoutId);
                                 progressMsg.textContent = '✅ ¡QR Detectado!';
-                                console.log(`✅ QR detectado en intento ${attemptNum}: ${label}`);
                                 setTimeout(() => {
                                     overlay.classList.add('hidden');
                                     overlay.classList.remove('flex');
-                                    handleQRRead(code.data);
+                                    handleQRRead(code.data); // ÉXITO
                                 }, 500);
                                 return true;
                             }
                             return false;
-                        } catch (e) {
-                            console.error('Error intento:', e);
-                            return false;
-                        }
+                        } catch (e) { return false; }
                     };
                     
                     const tryScale = (scale, label, canvas = croppedCanvas) => {
@@ -12713,104 +12698,67 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         attemptCounter.textContent = `${attemptNum} / 12`;
                         const w = Math.floor(canvas.width * scale);
                         const h = Math.floor(canvas.height * scale);
-                        if (w > 4096 || h > 4096) {
-                            console.warn('Límite seguridad alcanzado');
-                            return false;
-                        }
+                        if (w > 4096 || h > 4096) return false; 
                         return tryScaleSafe(scale, label, canvas);
                     };
                     
-                    // === MOTOR V3 CLÁSICO - 4. SECUENCIA 12 INTENTOS ===
+                    // === SECUENCIA DE 12 INTENTOS (RESTAURADA EXACTAMENTE) ===
                     const runAttempts = () => {
-                        // Intento 1: Escala 1x
-                        if (tryScale(1.0, "📷 Escala 1x")) return;
+                        if (tryScale(1.0, "Escala 1x")) return;
                         
                         setTimeout(() => {
-                            // Intento 2: Zoom 2x
-                            if (tryScale(2.0, "🔍 Zoom 2x")) return;
+                            if (tryScale(2.0, "Zoom 2x")) return;
                             setTimeout(() => {
-                                // Intento 3: Zoom 3x
-                                if (tryScale(3.0, "🔍 Zoom 3x")) return;
+                                if (tryScale(3.0, "Zoom 3x")) return;
                                 setTimeout(() => {
-                                    // Intento 4: Zoom 4x
-                                    if (tryScale(4.0, "🔍 Zoom 4x")) return;
+                                    if (tryScale(4.0, "Zoom 4x")) return; // Para QRs muy pequeños
                                     setTimeout(() => {
-                                        // Intento 5: Zoom 6x
-                                        if (tryScale(6.0, "🔍 Zoom 6x")) return;
+                                        if (tryScale(6.0, "Zoom 6x")) return;
                                         setTimeout(() => {
-                                            // Intento 6: Zoom 8x
-                                            if (tryScale(8.0, "🔍 Zoom 8x")) return;
+                                            if (tryScale(8.0, "Zoom 8x")) return;
                                             setTimeout(() => {
-                                                // Intento 7: Zoom 10x
-                                                if (tryScale(10.0, "🔍 Zoom 10x")) return;
+                                                if (tryScale(10.0, "Zoom 10x")) return; // Extremo
                                                 setTimeout(() => {
-                                                    // Intento 8: Reducción (anti-blur)
+                                                    // Intento 8: Reducción (para eliminar desenfoque)
                                                     attemptNum++;
-                                                    progressMsg.textContent = '🔧 Reduciendo desenfoque...';
+                                                    progressMsg.textContent = 'Reduciendo desenfoque...';
                                                     attemptCounter.textContent = '8 / 12';
-                                                    
                                                     const reducedCanvas = document.createElement('canvas');
                                                     const reducedCtx = reducedCanvas.getContext('2d');
                                                     reducedCanvas.width = Math.floor(croppedCanvas.width / 2);
                                                     reducedCanvas.height = Math.floor(croppedCanvas.height / 2);
                                                     reducedCtx.drawImage(croppedCanvas, 0, 0, reducedCanvas.width, reducedCanvas.height);
                                                     const reducedData = reducedCtx.getImageData(0, 0, reducedCanvas.width, reducedCanvas.height);
-                                                    const code = jsQR(reducedData.data, reducedData.width, reducedData.height, {
-                                                        inversionAttempts: "attemptBoth"
-                                                    });
-                                                    
+                                                    const code = jsQR(reducedData.data, reducedData.width, reducedData.height);
                                                     if (code) {
                                                         processingComplete = true;
-                                                        clearTimeout(timeoutId);
                                                         overlay.classList.add('hidden');
                                                         overlay.classList.remove('flex');
                                                         handleQRRead(code.data);
                                                         return;
                                                     }
                                                     
-                                                    // Intentos finales con imagen completa
+                                                    // Intentos finales con imagen completa (si el recorte falló)
                                                     setTimeout(() => {
-                                                        // Intento 9: Imagen completa 2x
-                                                        if (tryScale(2.0, "📐 Completa 2x", workingCanvas)) return;
+                                                        if (tryScale(2.0, "Completa 2x", workingCanvas)) return;
                                                         setTimeout(() => {
-                                                            // Intento 10: Imagen completa 4x
-                                                            if (tryScale(4.0, "📐 Completa 4x", workingCanvas)) return;
+                                                            if (tryScale(4.0, "Completa 4x", workingCanvas)) return;
                                                             setTimeout(() => {
-                                                                // Intento 11: Original puro
-                                                                attemptNum++;
-                                                                progressMsg.textContent = '📷 Original sin procesar...';
-                                                                attemptCounter.textContent = '11 / 12';
-                                                                
-                                                                const codeOrig = jsQR(baseImageData.data, baseImageData.width, baseImageData.height, {
-                                                                    inversionAttempts: "attemptBoth"
-                                                                });
-                                                                
+                                                                // Último: Original puro
+                                                                const codeOrig = jsQR(baseImageData.data, baseImageData.width, baseImageData.height);
                                                                 if (codeOrig) {
                                                                     processingComplete = true;
-                                                                    clearTimeout(timeoutId);
                                                                     overlay.classList.add('hidden');
                                                                     overlay.classList.remove('flex');
                                                                     handleQRRead(codeOrig.data);
                                                                     return;
                                                                 }
                                                                 
-                                                                // Intento 12: Último recurso
-                                                                setTimeout(() => {
-                                                                    // NO DETECTADO - FIN
-                                                                    processingComplete = true;
-                                                                    clearTimeout(timeoutId);
-                                                                    console.log('❌ QR no detectado después de 12 intentos');
-                                                                    overlay.classList.add('hidden');
-                                                                    overlay.classList.remove('flex');
-                                                                    window.showErrorModal(
-                                                                        "❌ No se detectó el código QR.\n\n" +
-                                                                        "💡 Para mejores resultados:\n\n" +
-                                                                        "📸 Usa el ESCÁNER EN VIVO\n" +
-                                                                        "🔍 Haz foto MÁS CERCA del QR\n" +
-                                                                        "💡 Buena iluminación\n" +
-                                                                        "✂️ O recorta solo el QR"
-                                                                    );
-                                                                }, 100);
+                                                                // FALLO - ADAPTADO A TU CÓDIGO
+                                                                processingComplete = true;
+                                                                overlay.classList.add('hidden');
+                                                                overlay.classList.remove('flex');
+                                                                window.showErrorModal("No se detectó QR. Prueba con el Escáner en Vivo o acerca más la cámara.");
                                                             }, 100);
                                                         }, 100);
                                                     }, 100);
@@ -12827,24 +12775,11 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     
                 } catch (e) {
                     processingComplete = true;
-                    clearTimeout(timeoutId);
-                    URL.revokeObjectURL(url);
-                    console.error('❌ Error al cargar:', e);
                     overlay.classList.add('hidden');
                     overlay.classList.remove('flex');
-                    window.showErrorModal("❌ Error al procesar la imagen.");
+                    window.showErrorModal("Error procesando imagen.");
                 }
             };
-            
-            img.onerror = () => {
-                processingComplete = true;
-                clearTimeout(timeoutId);
-                URL.revokeObjectURL(url);
-                overlay.classList.add('hidden');
-                overlay.classList.remove('flex');
-                window.showErrorModal("❌ No se pudo cargar la imagen.");
-            };
-            
             img.src = url;
         }
 

@@ -12115,44 +12115,11 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('qr-options-modal').classList.add('flex');
             };
             
-            // FUNCIÓN: Capturar foto con MediaStream (alta calidad)
-            function capturePhotoHighQuality() {
-                console.log('📸 Captura con MediaStream...');
-                
-                navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "environment", width: {ideal: 1920}, height: {ideal: 1080} }
-                }).then(stream => {
-                    const video = document.createElement('video');
-                    video.srcObject = stream;
-                    video.setAttribute("playsinline", true);
-                    video.muted = true;
-                    video.play();
-                    
-                    video.oncanplay = () => {
-                        setTimeout(() => {
-                            const canvas = document.createElement('canvas');
-                            canvas.width = video.videoWidth;
-                            canvas.height = video.videoHeight;
-                            canvas.getContext('2d').drawImage(video, 0, 0);
-                            stream.getTracks().forEach(t => t.stop());
-                            
-                            canvas.toBlob(blob => {
-                                console.log('✅ Foto capturada en alta calidad');
-                                decodeQRFromImage(blob);
-                            }, 'image/png');
-                        }, 800);
-                    };
-                }).catch(err => {
-                    console.error('Error cámara:', err);
-                    alert('No se pudo acceder a la cámara. Verifique los permisos.');
-                });
-            }
-            
-            // NUEVO: Botón Capturar Foto QR - Usa MediaStream para alta calidad
+            // NUEVO: Botón Capturar Foto QR - Abre cámara nativa
             document.getElementById('camera-capture-btn').onclick = () => {
                 document.getElementById('qr-options-modal').classList.add('hidden');
                 document.getElementById('qr-options-modal').classList.remove('flex');
-                capturePhotoHighQuality(); // USA MEDIASTREAM (alta calidad)
+                document.getElementById('camera-capture-input').click();
             };
             
             document.getElementById('camera-capture-input').addEventListener('change', (e) => {

@@ -12143,10 +12143,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // NUEVO: Botón Capturar Foto QR - Abre cámara nativa
             document.getElementById('camera-capture-btn').onclick = () => {
-                console.log('🔵 [CLICK] Capturar Foto → Abriendo escáner');
+                console.log('🔵 [CLICK] Capturar Foto (modo potente)');
                 document.getElementById('qr-options-modal').classList.add('hidden');
                 document.getElementById('qr-options-modal').classList.remove('flex');
-                // Usar EXACTAMENTE el mismo código que el escáner en vivo
+                // CAPTURADOR POTENTE: Toma 1 foto con motor de 15 intentos
                 capturePhotoFromCamera();
             };
             
@@ -12609,13 +12609,125 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             return croppedData;
         }
         
-        // === CAPTURAR FOTO = ESCÁNER EN VIVO ===
-        // (Exactamente el mismo código)
+        // === CAPTURADOR DE FOTO POTENTE (TAN BUENO COMO EL ESCÁNER) ===
         
         function capturePhotoFromCamera() {
-            console.log('🔵 Iniciando captura (igual que escáner)');
-            // Simplemente llamar al escáner en vivo
-            startScanner();
+            console.log('🔵 [FOTO] Iniciando captura potente');
+            
+            // Mostrar vista del escáner
+            document.getElementById('screen-inicio').classList.remove('active');
+            document.getElementById('scanner-view').classList.remove('hidden');
+            document.getElementById('scanner-view').classList.add('active', 'flex');
+            
+            console.log('📱 Abriendo cámara...');
+            
+            let captureComplete = false;
+            
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: "environment",
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                } 
+            }).then(stream => {
+                console.log('✅ Cámara abierta');
+                
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true);
+                video.muted = true;
+                
+                // Mostrar video
+                const container = document.getElementById('interactive');
+                container.innerHTML = '';
+                container.appendChild(video);
+                
+                video.onloadedmetadata = () => {
+                    video.play();
+                    console.log('✅ Video reproduciéndose');
+                };
+                
+                video.oncanplay = () => {
+                    if (captureComplete) return;
+                    captureComplete = true;
+                    
+                    console.log('✅ Video listo, capturando en 1.5 seg...');
+                    
+                    // Esperar 1.5 segundos para que usuario vea y enfoque
+                    setTimeout(() => {
+                        console.log('📸 Capturando foto...');
+                        
+                        try {
+                            // Capturar frame en alta calidad
+                            const canvas = document.createElement('canvas');
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            canvas.getContext('2d').drawImage(video, 0, 0);
+                            
+                            console.log(`✅ Frame: ${canvas.width}x${canvas.height}`);
+                            
+                            // CERRAR cámara y vista
+                            stream.getTracks().forEach(t => t.stop());
+                            document.getElementById('scanner-view').classList.add('hidden');
+                            document.getElementById('scanner-view').classList.remove('active');
+                            
+                            // Mostrar overlay de procesamiento
+                            const overlay = document.getElementById('qr-processing-overlay');
+                            overlay.classList.remove('hidden');
+                            overlay.classList.add('flex');
+                            document.getElementById('qr-progress-message').textContent = '🔍 Analizando foto...';
+                            document.getElementById('qr-attempt-counter').textContent = 'Preparando';
+                            
+                            // Convertir a PNG y procesar con motor potente
+                            canvas.toBlob(blob => {
+                                console.log(`✅ Blob: ${(blob.size / 1024).toFixed(2)} KB`);
+                                decodeQRFromImage(blob);
+                            }, 'image/png', 1.0);
+                            
+                        } catch (e) {
+                            console.error('❌ Error captura:', e);
+                            stream.getTracks().forEach(t => t.stop());
+                            document.getElementById('scanner-view').classList.add('hidden');
+                            resetToLanding();
+                            window.showErrorModal("❌ Error capturando.");
+                        }
+                    }, 1500); // 1.5 segundos
+                };
+                
+                video.onerror = () => {
+                    console.error('❌ Error video');
+                    stream.getTracks().forEach(t => t.stop());
+                    document.getElementById('scanner-view').classList.add('hidden');
+                    resetToLanding();
+                    window.showErrorModal("❌ Error en video.");
+                };
+                
+                // Timeout de seguridad
+                setTimeout(() => {
+                    if (!captureComplete && stream.active) {
+                        console.error('⏱️ Timeout');
+                        stream.getTracks().forEach(t => t.stop());
+                        document.getElementById('scanner-view').classList.add('hidden');
+                        resetToLanding();
+                        window.showErrorModal("⏱️ Cámara no responde.");
+                    }
+                }, 10000);
+                
+            }).catch(err => {
+                console.error('❌ Error cámara:', err);
+                document.getElementById('scanner-view').classList.add('hidden');
+                resetToLanding();
+                
+                let msg = "❌ Error abriendo cámara.\n\n";
+                if (err.name === 'NotAllowedError') {
+                    msg += "Debe permitir acceso.";
+                } else if (err.name === 'NotFoundError') {
+                    msg += "No hay cámara disponible.";
+                } else {
+                    msg += err.message;
+                }
+                window.showErrorModal(msg);
+            });
         }
         
         function handleFile(e) {
@@ -12626,9 +12738,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             }
         }
 
-        // === MOTOR DE DETECCIÓN (sin cambios) ===
+        // === MOTOR DE DETECCIÓN POTENTE (15 INTENTOS) ===
         function decodeQRFromImage(imageFileOrBlob) {
-            console.log('🔵 [DECODE] Iniciando');
+            console.log('🔵 [DECODE] Motor potente iniciando');
             
             const overlay = document.getElementById('qr-processing-overlay');
             const progressMsg = document.getElementById('qr-progress-message');
@@ -12647,7 +12759,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             let processingComplete = false;
             const timeoutId = setTimeout(() => {
                 if (!processingComplete) {
-                    console.error('⏱️ Timeout');
+                    console.error('⏱️ Timeout procesamiento');
                     overlay.classList.add('hidden');
                     overlay.classList.remove('flex');
                     window.showErrorModal("⏱️ Tiempo agotado.");
@@ -12662,6 +12774,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     URL.revokeObjectURL(url);
                     console.log(`✅ Imagen: ${img.width}x${img.height}`);
                     
+                    // NO redimensionar - usar resolución completa
                     let workingCanvas = document.createElement('canvas');
                     let workingCtx = workingCanvas.getContext('2d');
                     workingCanvas.width = img.width;
@@ -12707,7 +12820,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                 processingComplete = true;
                                 clearTimeout(timeoutId);
                                 progressMsg.textContent = '✅ ¡Detectado!';
-                                console.log(`✅ QR en intento ${attemptNum}: ${label}`);
+                                console.log(`✅ QR detectado (intento ${attemptNum}): ${label}`);
                                 setTimeout(() => {
                                     overlay.classList.add('hidden');
                                     overlay.classList.remove('flex');
@@ -12728,7 +12841,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         return tryScaleSafe(scale, label, canvas);
                     };
                     
-                    // 15 intentos
+                    // === 15 INTENTOS POTENTES ===
                     const runAttempts = () => {
                         if (tryScale(1.0, "1x")) return;
                         setTimeout(() => {
@@ -12797,13 +12910,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                                                                 // NO DETECTADO
                                                                                 processingComplete = true;
                                                                                 clearTimeout(timeoutId);
-                                                                                console.log('❌ No detectado');
+                                                                                console.log('❌ No detectado tras 15 intentos');
                                                                                 overlay.classList.add('hidden');
                                                                                 overlay.classList.remove('flex');
                                                                                 window.showErrorModal(
                                                                                     "❌ No se detectó el QR.\n\n" +
-                                                                                    "💡 Acerque más al QR\n" +
-                                                                                    "o use el ESCÁNER EN VIVO."
+                                                                                    "💡 Pruebe:\n" +
+                                                                                    "• ESCÁNER EN VIVO\n" +
+                                                                                    "• Acercar más al QR\n" +
+                                                                                    "• Mejor iluminación"
                                                                                 );
                                                                             }, 100);
                                                                         }, 100);

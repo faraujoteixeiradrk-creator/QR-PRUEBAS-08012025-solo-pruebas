@@ -12615,16 +12615,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             overlay.classList.remove('hidden');
             overlay.classList.add('flex');
             progressMsg.textContent = 'Cargando imagen...';
+            attemptCounter.textContent = '0 / 18';
             
-            // Timeout de seguridad
             let processingComplete = false;
-            setTimeout(() => {
+            const timeoutId = setTimeout(() => {
                 if (!processingComplete) {
+                    console.error('⏱️ TIMEOUT');
                     overlay.classList.add('hidden');
                     overlay.classList.remove('flex');
-                    if(!document.getElementById('results-view').classList.contains('active')) {
-                        alert("Tiempo de espera agotado. Intente con el Escáner en Vivo o una foto más clara.");
-                    }
+                    window.showErrorModal("⏱️ Tiempo agotado. Intente con el Escáner en Vivo.");
                 }
             }, 60000);
             
@@ -12634,9 +12633,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             img.onload = () => {
                 try {
                     URL.revokeObjectURL(url);
+                    console.log(`📸 Imagen original: ${img.width}x${img.height}`);
                     
-                    // 1. Redimensionado Inicial Inteligente (Evita cuelgues en iOS)
-                    const MAX_DIMENSION = 2000; 
+                    // === 1. REDIMENSIONADO INICIAL ===
+                    const MAX_DIMENSION = 2000;
                     let workingCanvas = document.createElement('canvas');
                     let workingCtx = workingCanvas.getContext('2d');
                     
@@ -12644,34 +12644,63 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         const scale = MAX_DIMENSION / Math.max(img.width, img.height);
                         workingCanvas.width = Math.floor(img.width * scale);
                         workingCanvas.height = Math.floor(img.height * scale);
+                        console.log(`⚡ Optimizando: ${img.width}x${img.height} → ${workingCanvas.width}x${workingCanvas.height}`);
+                        progressMsg.textContent = '⚡ Optimizando...';
                     } else {
                         workingCanvas.width = img.width;
                         workingCanvas.height = img.height;
                     }
-                    workingCtx.drawImage(img, 0, 0, workingCanvas.width, workingCanvas.height);
-                    const baseImageData = workingCtx.getImageData(0, 0, workingCanvas.width, workingCanvas.height);
                     
-                    // 2. DETECCIÓN Y RECORTE (La parte "magica" del código antiguo)
-                    progressMsg.textContent = 'Buscando zona QR...';
+                    workingCtx.drawImage(img, 0, 0, workingCanvas.width, workingCanvas.height);
+                    let baseImageData = workingCtx.getImageData(0, 0, workingCanvas.width, workingCanvas.height);
+                    
+                    // === 2. PREPROCESAMIENTO: AUMENTAR CONTRASTE Y NITIDEZ ===
+                    progressMsg.textContent = '🎨 Mejorando contraste...';
+                    baseImageData = enhanceImageForQR(baseImageData);
+                    
+                    // === 3. SMART CROP (Detecta zona QR) ===
+                    progressMsg.textContent = '🔍 Detectando zona QR...';
                     const croppedImageData = smartCropQRRegion(baseImageData);
                     
-                    // Canvas para el recorte
                     const croppedCanvas = document.createElement('canvas');
                     const croppedCtx = croppedCanvas.getContext('2d');
                     croppedCanvas.width = croppedImageData.width;
                     croppedCanvas.height = croppedImageData.height;
                     croppedCtx.putImageData(croppedImageData, 0, 0);
                     
+                    // === 4. CREAR VERSIÓN CON ALTO CONTRASTE ===
+                    const highContrastCanvas = document.createElement('canvas');
+                    const highContrastCtx = highContrastCanvas.getContext('2d');
+                    highContrastCanvas.width = croppedCanvas.width;
+                    highContrastCanvas.height = croppedCanvas.height;
+                    highContrastCtx.putImageData(croppedImageData, 0, 0);
+                    
+                    // Aplicar filtro de alto contraste
+                    highContrastCtx.filter = 'contrast(2) brightness(1.1)';
+                    highContrastCtx.drawImage(highContrastCanvas, 0, 0);
+                    const highContrastData = highContrastCtx.getImageData(0, 0, highContrastCanvas.width, highContrastCanvas.height);
+                    
                     let attemptNum = 0;
                     
-                    // Función de intento segura
-                    const tryScaleSafe = (scale, label, canvas) => {
+                    // === 5. FUNCIÓN DE INTENTO MEJORADA ===
+                    const tryScaleSafe = (scale, label, canvas, imageData = null) => {
                         try {
                             const scaledCanvas = document.createElement('canvas');
                             const scaledCtx = scaledCanvas.getContext('2d');
                             scaledCanvas.width = Math.floor(canvas.width * scale);
                             scaledCanvas.height = Math.floor(canvas.height * scale);
-                            scaledCtx.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+                            
+                            if (imageData) {
+                                // Usar imageData directamente
+                                const tempCanvas = document.createElement('canvas');
+                                tempCanvas.width = imageData.width;
+                                tempCanvas.height = imageData.height;
+                                tempCanvas.getContext('2d').putImageData(imageData, 0, 0);
+                                scaledCtx.drawImage(tempCanvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+                            } else {
+                                scaledCtx.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+                            }
+                            
                             const scaledData = scaledCtx.getImageData(0, 0, scaledCanvas.width, scaledCanvas.height);
                             
                             const code = jsQR(scaledData.data, scaledData.width, scaledData.height, {
@@ -12680,85 +12709,165 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             
                             if (code) {
                                 processingComplete = true;
+                                clearTimeout(timeoutId);
                                 progressMsg.textContent = '✅ ¡QR Detectado!';
+                                console.log(`✅ QR detectado: ${label}`);
                                 setTimeout(() => {
                                     overlay.classList.add('hidden');
                                     overlay.classList.remove('flex');
-                                    handleQRRead(code.data); // ÉXITO
+                                    handleQRRead(code.data);
                                 }, 500);
                                 return true;
                             }
                             return false;
-                        } catch (e) { return false; }
+                        } catch (e) {
+                            console.error('Error intento:', e);
+                            return false;
+                        }
                     };
                     
-                    const tryScale = (scale, label, canvas = croppedCanvas) => {
+                    const tryScale = (scale, label, canvas = croppedCanvas, imageData = null) => {
                         attemptNum++;
                         progressMsg.textContent = label;
-                        attemptCounter.textContent = `${attemptNum} / 12`;
+                        attemptCounter.textContent = `${attemptNum} / 18`;
                         const w = Math.floor(canvas.width * scale);
                         const h = Math.floor(canvas.height * scale);
-                        if (w > 4096 || h > 4096) return false; 
-                        return tryScaleSafe(scale, label, canvas);
+                        if (w > 4096 || h > 4096) {
+                            console.warn('Límite seguridad');
+                            return false;
+                        }
+                        return tryScaleSafe(scale, label, canvas, imageData);
                     };
                     
-                    // === SECUENCIA DE 12 INTENTOS (RESTAURADA EXACTAMENTE) ===
+                    // === 6. SECUENCIA 18 INTENTOS ULTRA MEJORADA ===
                     const runAttempts = () => {
-                        if (tryScale(1.0, "Escala 1x")) return;
+                        // GRUPO 1: Imagen normal recortada (7 intentos)
+                        if (tryScale(1.0, "📷 Escala 1x")) return;
                         
                         setTimeout(() => {
-                            if (tryScale(2.0, "Zoom 2x")) return;
+                            if (tryScale(2.0, "🔍 Zoom 2x")) return;
                             setTimeout(() => {
-                                if (tryScale(3.0, "Zoom 3x")) return;
+                                if (tryScale(3.0, "🔍 Zoom 3x")) return;
                                 setTimeout(() => {
-                                    if (tryScale(4.0, "Zoom 4x")) return; // Para QRs muy pequeños
+                                    if (tryScale(4.0, "🔍 Zoom 4x")) return;
                                     setTimeout(() => {
-                                        if (tryScale(6.0, "Zoom 6x")) return;
+                                        if (tryScale(6.0, "🔍 Zoom 6x")) return;
                                         setTimeout(() => {
-                                            if (tryScale(8.0, "Zoom 8x")) return;
+                                            if (tryScale(8.0, "🔍 Zoom 8x")) return;
                                             setTimeout(() => {
-                                                if (tryScale(10.0, "Zoom 10x")) return; // Extremo
+                                                if (tryScale(10.0, "🔍 Zoom 10x")) return;
+                                                
                                                 setTimeout(() => {
-                                                    // Intento 8: Reducción (para eliminar desenfoque)
+                                                    // GRUPO 2: Alto contraste (4 intentos)
                                                     attemptNum++;
-                                                    progressMsg.textContent = 'Reduciendo desenfoque...';
-                                                    attemptCounter.textContent = '8 / 12';
-                                                    const reducedCanvas = document.createElement('canvas');
-                                                    const reducedCtx = reducedCanvas.getContext('2d');
-                                                    reducedCanvas.width = Math.floor(croppedCanvas.width / 2);
-                                                    reducedCanvas.height = Math.floor(croppedCanvas.height / 2);
-                                                    reducedCtx.drawImage(croppedCanvas, 0, 0, reducedCanvas.width, reducedCanvas.height);
-                                                    const reducedData = reducedCtx.getImageData(0, 0, reducedCanvas.width, reducedCanvas.height);
-                                                    const code = jsQR(reducedData.data, reducedData.width, reducedData.height);
-                                                    if (code) {
-                                                        processingComplete = true;
-                                                        overlay.classList.add('hidden');
-                                                        overlay.classList.remove('flex');
-                                                        handleQRRead(code.data);
-                                                        return;
-                                                    }
+                                                    progressMsg.textContent = '🎨 Alto contraste 1x...';
+                                                    attemptCounter.textContent = `${attemptNum} / 18`;
                                                     
-                                                    // Intentos finales con imagen completa (si el recorte falló)
+                                                    if (tryScale(1.0, "🎨 Alto contraste 1x", highContrastCanvas, highContrastData)) return;
+                                                    
                                                     setTimeout(() => {
-                                                        if (tryScale(2.0, "Completa 2x", workingCanvas)) return;
+                                                        if (tryScale(2.0, "🎨 Alto contraste 2x", highContrastCanvas, highContrastData)) return;
                                                         setTimeout(() => {
-                                                            if (tryScale(4.0, "Completa 4x", workingCanvas)) return;
+                                                            if (tryScale(3.0, "🎨 Alto contraste 3x", highContrastCanvas, highContrastData)) return;
                                                             setTimeout(() => {
-                                                                // Último: Original puro
-                                                                const codeOrig = jsQR(baseImageData.data, baseImageData.width, baseImageData.height);
-                                                                if (codeOrig) {
-                                                                    processingComplete = true;
-                                                                    overlay.classList.add('hidden');
-                                                                    overlay.classList.remove('flex');
-                                                                    handleQRRead(codeOrig.data);
-                                                                    return;
-                                                                }
+                                                                if (tryScale(4.0, "🎨 Alto contraste 4x", highContrastCanvas, highContrastData)) return;
                                                                 
-                                                                // FALLO - ADAPTADO A TU CÓDIGO
-                                                                processingComplete = true;
-                                                                overlay.classList.add('hidden');
-                                                                overlay.classList.remove('flex');
-                                                                window.showErrorModal("No se detectó QR. Prueba con el Escáner en Vivo o acerca más la cámara.");
+                                                                setTimeout(() => {
+                                                                    // GRUPO 3: Anti-blur (reducción)
+                                                                    attemptNum++;
+                                                                    progressMsg.textContent = '🔧 Anti-blur...';
+                                                                    attemptCounter.textContent = `${attemptNum} / 18`;
+                                                                    
+                                                                    const reducedCanvas = document.createElement('canvas');
+                                                                    const reducedCtx = reducedCanvas.getContext('2d');
+                                                                    reducedCanvas.width = Math.floor(croppedCanvas.width / 2);
+                                                                    reducedCanvas.height = Math.floor(croppedCanvas.height / 2);
+                                                                    reducedCtx.drawImage(croppedCanvas, 0, 0, reducedCanvas.width, reducedCanvas.height);
+                                                                    const reducedData = reducedCtx.getImageData(0, 0, reducedCanvas.width, reducedCanvas.height);
+                                                                    const code = jsQR(reducedData.data, reducedData.width, reducedData.height, {
+                                                                        inversionAttempts: "attemptBoth"
+                                                                    });
+                                                                    
+                                                                    if (code) {
+                                                                        processingComplete = true;
+                                                                        clearTimeout(timeoutId);
+                                                                        overlay.classList.add('hidden');
+                                                                        overlay.classList.remove('flex');
+                                                                        handleQRRead(code.data);
+                                                                        return;
+                                                                    }
+                                                                    
+                                                                    setTimeout(() => {
+                                                                        // GRUPO 4: Imagen completa (4 intentos)
+                                                                        if (tryScale(1.5, "📐 Completa 1.5x", workingCanvas)) return;
+                                                                        setTimeout(() => {
+                                                                            if (tryScale(2.0, "📐 Completa 2x", workingCanvas)) return;
+                                                                            setTimeout(() => {
+                                                                                if (tryScale(3.0, "📐 Completa 3x", workingCanvas)) return;
+                                                                                setTimeout(() => {
+                                                                                    if (tryScale(4.0, "📐 Completa 4x", workingCanvas)) return;
+                                                                                    
+                                                                                    setTimeout(() => {
+                                                                                        // GRUPO 5: Binarización adaptativa
+                                                                                        attemptNum++;
+                                                                                        progressMsg.textContent = '⚫ Binarización adaptativa...';
+                                                                                        attemptCounter.textContent = `${attemptNum} / 18`;
+                                                                                        
+                                                                                        const binarizedData = applyAdaptiveBinarization(croppedImageData);
+                                                                                        const code2 = jsQR(binarizedData.data, binarizedData.width, binarizedData.height, {
+                                                                                            inversionAttempts: "attemptBoth"
+                                                                                        });
+                                                                                        
+                                                                                        if (code2) {
+                                                                                            processingComplete = true;
+                                                                                            clearTimeout(timeoutId);
+                                                                                            overlay.classList.add('hidden');
+                                                                                            overlay.classList.remove('flex');
+                                                                                            handleQRRead(code2.data);
+                                                                                            return;
+                                                                                        }
+                                                                                        
+                                                                                        setTimeout(() => {
+                                                                                            // GRUPO 6: Original puro
+                                                                                            attemptNum++;
+                                                                                            progressMsg.textContent = '📷 Original puro...';
+                                                                                            attemptCounter.textContent = `${attemptNum} / 18`;
+                                                                                            
+                                                                                            const codeOrig = jsQR(baseImageData.data, baseImageData.width, baseImageData.height, {
+                                                                                                inversionAttempts: "attemptBoth"
+                                                                                            });
+                                                                                            
+                                                                                            if (codeOrig) {
+                                                                                                processingComplete = true;
+                                                                                                clearTimeout(timeoutId);
+                                                                                                overlay.classList.add('hidden');
+                                                                                                overlay.classList.remove('flex');
+                                                                                                handleQRRead(codeOrig.data);
+                                                                                                return;
+                                                                                            }
+                                                                                            
+                                                                                            setTimeout(() => {
+                                                                                                // NO DETECTADO
+                                                                                                processingComplete = true;
+                                                                                                clearTimeout(timeoutId);
+                                                                                                console.log('❌ No detectado tras 18 intentos');
+                                                                                                overlay.classList.add('hidden');
+                                                                                                overlay.classList.remove('flex');
+                                                                                                window.showErrorModal(
+                                                                                                    "❌ No se detectó QR después de 18 intentos.\n\n" +
+                                                                                                    "💡 Prueba con:\n" +
+                                                                                                    "📸 ESCÁNER EN VIVO (recomendado)\n" +
+                                                                                                    "🔍 Foto más cerca del QR\n" +
+                                                                                                    "💡 Mejor iluminación"
+                                                                                                );
+                                                                                            }, 100);
+                                                                                        }, 100);
+                                                                                    }, 100);
+                                                                                }, 100);
+                                                                            }, 100);
+                                                                        }, 100);
+                                                                    }, 100);
+                                                                }, 100);
                                                             }, 100);
                                                         }, 100);
                                                     }, 100);
@@ -12775,12 +12884,86 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     
                 } catch (e) {
                     processingComplete = true;
+                    clearTimeout(timeoutId);
+                    URL.revokeObjectURL(url);
+                    console.error('❌ Error:', e);
                     overlay.classList.add('hidden');
                     overlay.classList.remove('flex');
-                    window.showErrorModal("Error procesando imagen.");
+                    window.showErrorModal("❌ Error procesando imagen.");
                 }
             };
+            
+            img.onerror = () => {
+                processingComplete = true;
+                clearTimeout(timeoutId);
+                URL.revokeObjectURL(url);
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+                window.showErrorModal("❌ No se pudo cargar imagen.");
+            };
+            
             img.src = url;
+        }
+        
+        // === FUNCIÓN MEJORAR IMAGEN (NUEVA) ===
+        function enhanceImageForQR(imageData) {
+            const data = imageData.data;
+            const enhanced = new Uint8ClampedArray(data.length);
+            
+            // Aumentar contraste y nitidez
+            for (let i = 0; i < data.length; i += 4) {
+                // Convertir a escala de grises
+                let gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                
+                // Aumentar contraste (factor 1.5)
+                gray = ((gray - 128) * 1.5) + 128;
+                
+                // Clamp valores
+                gray = Math.max(0, Math.min(255, gray));
+                
+                enhanced[i] = enhanced[i + 1] = enhanced[i + 2] = gray;
+                enhanced[i + 3] = data[i + 3];
+            }
+            
+            return new ImageData(enhanced, imageData.width, imageData.height);
+        }
+        
+        // === FUNCIÓN BINARIZACIÓN ADAPTATIVA (NUEVA) ===
+        function applyAdaptiveBinarization(imageData) {
+            const width = imageData.width;
+            const height = imageData.height;
+            const data = imageData.data;
+            const output = new Uint8ClampedArray(data.length);
+            
+            // Calcular threshold adaptativo por bloques
+            const blockSize = 15;
+            
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    // Calcular promedio local
+                    let sum = 0;
+                    let count = 0;
+                    
+                    for (let by = Math.max(0, y - blockSize); by < Math.min(height, y + blockSize); by++) {
+                        for (let bx = Math.max(0, x - blockSize); bx < Math.min(width, x + blockSize); bx++) {
+                            const idx = (by * width + bx) * 4;
+                            const gray = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+                            sum += gray;
+                            count++;
+                        }
+                    }
+                    
+                    const threshold = sum / count;
+                    const idx = (y * width + x) * 4;
+                    const gray = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+                    
+                    const value = gray < threshold ? 0 : 255;
+                    output[idx] = output[idx + 1] = output[idx + 2] = value;
+                    output[idx + 3] = 255;
+                }
+            }
+            
+            return new ImageData(output, width, height);
         }
 
         

@@ -23238,6 +23238,8 @@ async function loadFriendsTexts() {
         const codigoTexto = getCellValue(dataRow, 2).toString();
         const condicionesIntro = getCellValue(dataRow, 3).toString();
         const condicionesPuntos = getCellValue(dataRow, 4).toString();
+        const discountTextTop = getCellValue(dataRow, 5).toString(); // 🔥 NUEVO: Columna F
+        const discountTextBottom = getCellValue(dataRow, 6).toString(); // 🔥 NUEVO: Columna G
         
         console.log('\n🎯 TEXTOS EXTRAÍDOS:');
         console.log('══════════════════════════════════════════════════');
@@ -23251,7 +23253,10 @@ async function loadFriendsTexts() {
         console.log(`   "${condicionesIntro.substring(0, 100)}${condicionesIntro.length > 100 ? '...' : ''}"`);
         console.log(`\n📌 E - CONDICIONES PUNTOS (${condicionesPuntos.length} chars):`);
         console.log(`   "${condicionesPuntos.substring(0, 100)}${condicionesPuntos.length > 100 ? '...' : ''}"`);
-        console.log('══════════════════════════════════════════════════\n');
+        console.log(`\n📌 F - TEXTO DESCUENTO ARRIBA (${discountTextTop.length} chars):`) // 🔥 NUEVO
+        console.log(`   "${discountTextTop}"`);
+        console.log(`\n📌 G - TEXTO DESCUENTO ABAJO (${discountTextBottom.length} chars):`) // 🔥 NUEVO
+        console.log(`   "${discountTextBottom}"`);
         
         // 🔥 SEPARAR BANNER CORRECTAMENTE (evitar duplicados)
         const bannerLines = bannerTexto.split('\n').filter(l => l.trim());
@@ -23348,6 +23353,26 @@ async function loadFriendsTexts() {
             }
         }
         console.log(`   ✅ ${puntosUpdated} puntos de condiciones`);
+        
+        // 7. TEXTO DESCUENTO ARRIBA (Columna F) 🔥 NUEVO
+        const discountTopEl = document.getElementById('discount-text-top');
+        if (discountTopEl && discountTextTop) {
+            discountTopEl.textContent = discountTextTop;
+            updateCount++;
+            console.log('   ✅ Texto descuento arriba (F2)');
+        } else {
+            console.log('   ⚠️ Texto descuento arriba NO encontrado o vacío');
+        }
+        
+        // 8. TEXTO DESCUENTO ABAJO (Columna G) 🔥 NUEVO
+        const discountBottomEl = document.getElementById('discount-text-bottom');
+        if (discountBottomEl && discountTextBottom) {
+            discountBottomEl.textContent = discountTextBottom;
+            updateCount++;
+            console.log('   ✅ Texto descuento abajo (G2)');
+        } else {
+            console.log('   ⚠️ Texto descuento abajo NO encontrado o vacío');
+        }
         
         // ACTUALIZAR TRADUCCIONES EN TODOS LOS IDIOMAS
         if (typeof translations !== 'undefined') {
@@ -24507,13 +24532,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                 
                                 <!-- 🔥 NUEVO: Mensaje de descuento en ROJO y grande -->
                                 <div style="margin-top: 1rem; padding: 0.75rem; background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-radius: 0.5rem; border: 2px solid #ef4444; text-align: center;">
-                                    <div style="font-size: 0.75rem; color: #991b1b; font-weight: 600; margin-bottom: 0.25rem;">
+                                    <div id="discount-text-top" style="font-size: 0.75rem; color: #991b1b; font-weight: 600; margin-bottom: 0.25rem;">
                                         CONSIGUE TU CÓDIGO AMIGO
                                     </div>
                                     <div style="font-size: 2rem; font-weight: 800; color: #dc2626; line-height: 1; margin-bottom: 0.25rem;">
                                         <span id="plan-amigo-discount" style="font-size: 2.5rem;">10</span> %
                                     </div>
-                                    <div style="font-size: 0.875rem; color: #991b1b; font-weight: 600;">
+                                    <div id="discount-text-bottom" style="font-size: 0.875rem; color: #991b1b; font-weight: 600;">
                                         en tu energía
                                     </div>
                                 </div>

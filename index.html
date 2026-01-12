@@ -1343,6 +1343,32 @@
             </div>
         </div>
 
+        <!-- NUEVO: Modal de Recorte de QR -->
+        <div id="qr-crop-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                <div class="p-4 bg-drk-800 text-white">
+                    <h3 class="text-lg font-bold">✂️ Recortar QR de la Foto</h3>
+                    <p class="text-sm text-slate-300 mt-1">Arrastra para seleccionar el área del código QR</p>
+                </div>
+                
+                <div class="flex-1 overflow-auto bg-slate-100 p-4">
+                    <div class="relative inline-block" id="crop-container">
+                        <canvas id="crop-canvas" class="max-w-full h-auto border-2 border-slate-300 rounded-lg"></canvas>
+                        <div id="crop-selection" class="absolute border-4 border-green-500 bg-green-500/20 hidden cursor-move" style="box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);"></div>
+                    </div>
+                </div>
+                
+                <div class="p-4 bg-slate-50 border-t flex gap-3">
+                    <button id="crop-confirm-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md flex items-center justify-center gap-2">
+                        ✓ Analizar QR Recortado
+                    </button>
+                    <button id="crop-cancel-btn" class="bg-slate-300 hover:bg-slate-400 text-slate-700 font-bold py-3 px-6 rounded-xl">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- 9. Send Offer Modal (Copy HTML) -->
         <div id="send-offer-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
             <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full">
@@ -12124,8 +12150,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             document.getElementById('camera-capture-input').addEventListener('change', (e) => {
                 if (e.target.files[0]) {
-                    console.log('📸 Imagen capturada desde cámara nativa');
-                    decodeQRFromImage(e.target.files[0]);
+                    console.log('📸 Imagen capturada - Mostrando herramienta de recorte');
+                    showCropModal(e.target.files[0]);
                     e.target.value = ''; // Limpiar input
                 }
             });
@@ -12138,11 +12164,163 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             document.getElementById('image-file-input').addEventListener('change', (e) => {
                 document.getElementById('qr-options-modal').classList.add('hidden');
                 document.getElementById('qr-options-modal').classList.remove('flex');
-                if (e.target.files[0]) decodeQRFromImage(e.target.files[0]);
+                if (e.target.files[0]) {
+                    console.log('📁 Imagen subida - Mostrando herramienta de recorte');
+                    showCropModal(e.target.files[0]);
+                }
                 e.target.value = '';
             });
             
             setupPasteCatcher(); // <-- Llamada ahora segura
+
+            // ========== FUNCIONES DE RECORTE DE QR ==========
+            let cropImageData = null;
+            let cropSelection = { startX: 0, startY: 0, endX: 0, endY: 0, isDragging: false };
+            
+            function showCropModal(file) {
+                const modal = document.getElementById('qr-crop-modal');
+                const canvas = document.getElementById('crop-canvas');
+                const ctx = canvas.getContext('2d');
+                const selectionDiv = document.getElementById('crop-selection');
+                
+                const img = new Image();
+                img.onload = () => {
+                    // Ajustar canvas al tamaño de la imagen
+                    const maxWidth = 800;
+                    const scale = Math.min(1, maxWidth / img.width);
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    cropImageData = { img, scale };
+                    
+                    // Mostrar modal
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    
+                    // Reset selección
+                    selectionDiv.classList.add('hidden');
+                    cropSelection = { startX: 0, startY: 0, endX: 0, endY: 0, isDragging: false };
+                };
+                img.src = URL.createObjectURL(file);
+            }
+            
+            // Eventos de selección en el canvas
+            document.getElementById('crop-canvas').addEventListener('mousedown', (e) => {
+                const rect = e.target.getBoundingClientRect();
+                cropSelection.startX = e.clientX - rect.left;
+                cropSelection.startY = e.clientY - rect.top;
+                cropSelection.isDragging = true;
+                document.getElementById('crop-selection').classList.add('hidden');
+            });
+            
+            document.getElementById('crop-canvas').addEventListener('mousemove', (e) => {
+                if (!cropSelection.isDragging) return;
+                
+                const rect = e.target.getBoundingClientRect();
+                cropSelection.endX = e.clientX - rect.left;
+                cropSelection.endY = e.clientY - rect.top;
+                
+                const selectionDiv = document.getElementById('crop-selection');
+                const x = Math.min(cropSelection.startX, cropSelection.endX);
+                const y = Math.min(cropSelection.startY, cropSelection.endY);
+                const width = Math.abs(cropSelection.endX - cropSelection.startX);
+                const height = Math.abs(cropSelection.endY - cropSelection.startY);
+                
+                selectionDiv.style.left = x + 'px';
+                selectionDiv.style.top = y + 'px';
+                selectionDiv.style.width = width + 'px';
+                selectionDiv.style.height = height + 'px';
+                selectionDiv.classList.remove('hidden');
+            });
+            
+            document.getElementById('crop-canvas').addEventListener('mouseup', () => {
+                cropSelection.isDragging = false;
+            });
+            
+            // Touch events para móvil
+            document.getElementById('crop-canvas').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const rect = e.target.getBoundingClientRect();
+                const touch = e.touches[0];
+                cropSelection.startX = touch.clientX - rect.left;
+                cropSelection.startY = touch.clientY - rect.top;
+                cropSelection.isDragging = true;
+                document.getElementById('crop-selection').classList.add('hidden');
+            });
+            
+            document.getElementById('crop-canvas').addEventListener('touchmove', (e) => {
+                if (!cropSelection.isDragging) return;
+                e.preventDefault();
+                
+                const rect = e.target.getBoundingClientRect();
+                const touch = e.touches[0];
+                cropSelection.endX = touch.clientX - rect.left;
+                cropSelection.endY = touch.clientY - rect.top;
+                
+                const selectionDiv = document.getElementById('crop-selection');
+                const x = Math.min(cropSelection.startX, cropSelection.endX);
+                const y = Math.min(cropSelection.startY, cropSelection.endY);
+                const width = Math.abs(cropSelection.endX - cropSelection.startX);
+                const height = Math.abs(cropSelection.endY - cropSelection.startY);
+                
+                selectionDiv.style.left = x + 'px';
+                selectionDiv.style.top = y + 'px';
+                selectionDiv.style.width = width + 'px';
+                selectionDiv.style.height = height + 'px';
+                selectionDiv.classList.remove('hidden');
+            });
+            
+            document.getElementById('crop-canvas').addEventListener('touchend', () => {
+                cropSelection.isDragging = false;
+            });
+            
+            // Botón confirmar recorte
+            document.getElementById('crop-confirm-btn').onclick = () => {
+                if (!cropImageData) return;
+                
+                const x = Math.min(cropSelection.startX, cropSelection.endX);
+                const y = Math.min(cropSelection.startY, cropSelection.endY);
+                const width = Math.abs(cropSelection.endX - cropSelection.startX);
+                const height = Math.abs(cropSelection.endY - cropSelection.startY);
+                
+                if (width < 10 || height < 10) {
+                    alert('Por favor, seleccione un área del QR arrastrando el mouse sobre la imagen.');
+                    return;
+                }
+                
+                console.log(`✂️ Recortando área: ${width}x${height}`);
+                
+                // Crear canvas para recortar
+                const cropCanvas = document.createElement('canvas');
+                const scale = 1 / cropImageData.scale;
+                cropCanvas.width = width * scale;
+                cropCanvas.height = height * scale;
+                const cropCtx = cropCanvas.getContext('2d');
+                
+                // Dibujar solo el área seleccionada
+                cropCtx.drawImage(
+                    cropImageData.img,
+                    x * scale, y * scale, width * scale, height * scale,
+                    0, 0, cropCanvas.width, cropCanvas.height
+                );
+                
+                // Convertir a blob y procesar
+                cropCanvas.toBlob(blob => {
+                    console.log('✅ Área recortada, procesando...');
+                    document.getElementById('qr-crop-modal').classList.add('hidden');
+                    document.getElementById('qr-crop-modal').classList.remove('flex');
+                    decodeQRFromImage(blob);
+                }, 'image/png');
+            };
+            
+            // Botón cancelar recorte
+            document.getElementById('crop-cancel-btn').onclick = () => {
+                document.getElementById('qr-crop-modal').classList.add('hidden');
+                document.getElementById('qr-crop-modal').classList.remove('flex');
+                cropImageData = null;
+            };
+            // ========== FIN FUNCIONES DE RECORTE ==========
 
             document.getElementById('send-offer-btn').onclick = () => {
                 if (lastComparisonResult) {
@@ -12444,80 +12622,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             return new ImageData(data, width, height);
         }
 
-        // === FUNCIONES DE MEJORA DE IMAGEN (para QRs comprimidos) ===
-        
-        function sharpenImage(imageData) {
-            const width = imageData.width;
-            const height = imageData.height;
-            const data = imageData.data;
-            const output = new Uint8ClampedArray(data.length);
-            
-            // Kernel de sharpen (enfoque)
-            const kernel = [
-                 0, -1,  0,
-                -1,  5, -1,
-                 0, -1,  0
-            ];
-            
-            for (let y = 1; y < height - 1; y++) {
-                for (let x = 1; x < width - 1; x++) {
-                    let r = 0, g = 0, b = 0;
-                    
-                    for (let ky = -1; ky <= 1; ky++) {
-                        for (let kx = -1; kx <= 1; kx++) {
-                            const idx = ((y + ky) * width + (x + kx)) * 4;
-                            const k = kernel[(ky + 1) * 3 + (kx + 1)];
-                            r += data[idx] * k;
-                            g += data[idx + 1] * k;
-                            b += data[idx + 2] * k;
-                        }
-                    }
-                    
-                    const outIdx = (y * width + x) * 4;
-                    output[outIdx] = Math.max(0, Math.min(255, r));
-                    output[outIdx + 1] = Math.max(0, Math.min(255, g));
-                    output[outIdx + 2] = Math.max(0, Math.min(255, b));
-                    output[outIdx + 3] = 255;
-                }
-            }
-            
-            // Copiar bordes (sin procesamiento)
-            for (let x = 0; x < width; x++) {
-                const idx0 = x * 4;
-                const idxH = ((height - 1) * width + x) * 4;
-                for (let c = 0; c < 4; c++) {
-                    output[idx0 + c] = data[idx0 + c];
-                    output[idxH + c] = data[idxH + c];
-                }
-            }
-            for (let y = 0; y < height; y++) {
-                const idx0 = y * width * 4;
-                const idxW = (y * width + width - 1) * 4;
-                for (let c = 0; c < 4; c++) {
-                    output[idx0 + c] = data[idx0 + c];
-                    output[idxW + c] = data[idxW + c];
-                }
-            }
-            
-            return new ImageData(output, width, height);
-        }
-        
-        function enhanceContrast(imageData) {
-            const data = imageData.data;
-            const factor = 1.3; // Factor de contraste (1.3 = +30%)
-            
-            for (let i = 0; i < data.length; i += 4) {
-                // Aplicar a RGB (no a alpha)
-                data[i] = Math.max(0, Math.min(255, (data[i] - 128) * factor + 128));
-                data[i + 1] = Math.max(0, Math.min(255, (data[i + 1] - 128) * factor + 128));
-                data[i + 2] = Math.max(0, Math.min(255, (data[i + 2] - 128) * factor + 128));
-            }
-            
-            return imageData;
-        }
-        
-        // === FIN FUNCIONES DE MEJORA ===
-
         // NUEVA FUNCIÓN: Detectar región del QR y recortar AGRESIVAMENTE
         function smartCropQRRegion(imageData) {
             const width = imageData.width;
@@ -12710,18 +12814,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                     
                     workingCtx.drawImage(img, 0, 0, workingCanvas.width, workingCanvas.height);
-                    let baseImageData = workingCtx.getImageData(0, 0, workingCanvas.width, workingCanvas.height);
-                    
-                    // === MEJORAS DE IMAGEN POTENTES (para recuperar QRs comprimidos) ===
-                    progressMsg.textContent = '🎨 Mejorando calidad de imagen...';
-                    
-                    // 1. SHARPEN (aumentar nitidez)
-                    baseImageData = sharpenImage(baseImageData);
-                    
-                    // 2. AUMENTAR CONTRASTE
-                    baseImageData = enhanceContrast(baseImageData);
-                    
-                    console.log('✅ Imagen mejorada con sharpen + contraste');
+                    const baseImageData = workingCtx.getImageData(0, 0, workingCanvas.width, workingCanvas.height);
                     
                     // PASO CRÍTICO: Detectar y recortar región QR PRIMERO
                     progressMsg.textContent = '🔍 Detectando región QR...';
@@ -12733,19 +12826,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     croppedCanvas.width = croppedImageData.width;
                     croppedCanvas.height = croppedImageData.height;
                     croppedCtx.putImageData(croppedImageData, 0, 0);
-                    
-                    // === CREAR VERSIÓN CON ALTA BINARIZACIÓN (para QRs muy degradados) ===
-                    progressMsg.textContent = '🔬 Creando versión de alto contraste...';
-                    const highContrastImageData = enhanceContrast(croppedImageData);
-                    const binarizedImageData = applyAdaptiveBinarization(highContrastImageData);
-                    
-                    const binarizedCanvas = document.createElement('canvas');
-                    const binarizedCtx = binarizedCanvas.getContext('2d');
-                    binarizedCanvas.width = binarizedImageData.width;
-                    binarizedCanvas.height = binarizedImageData.height;
-                    binarizedCtx.putImageData(binarizedImageData, 0, 0);
-                    
-                    console.log('✅ Versión binarizada creada');
                     
                     let attemptNum = 0;
                     
@@ -12896,10 +12976,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                                                     }
                                                                     
                                                                     setTimeout(() => { try {
-                                                                        // Intento 12: Reducción
+                                                                        // Intento 12: Último recurso
                                                                         attemptNum++;
-                                                                        progressMsg.textContent = '🔧 Reducción...';
-                                                                        attemptCounter.textContent = '12 / 15';
+                                                                        progressMsg.textContent = '🔧 Último intento...';
+                                                                        attemptCounter.textContent = '12 / 12';
                                                                         
                                                                         const finalCanvas = document.createElement('canvas');
                                                                         const finalCtx = finalCanvas.getContext('2d');
@@ -12908,49 +12988,31 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                                                         finalCtx.drawImage(workingCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
                                                                         
                                                                         const finalData = finalCtx.getImageData(0, 0, finalCanvas.width, finalCanvas.height);
-                                                                        const code1 = jsQR(finalData.data, finalData.width, finalData.height, {
+                                                                        const code = jsQR(finalData.data, finalData.width, finalData.height, {
                                                                             inversionAttempts: "attemptBoth"
                                                                         });
                                                                         
-                                                                        if (code1) {
-                                                                            processingComplete = true;
-                                                                            clearTimeout(timeoutId);
+                                                                        processingComplete = true;
+                                                                        clearTimeout(timeoutId);
+                                                                        
+                                                                        if (code) {
                                                                             progressMsg.textContent = '✅ ¡QR Detectado!';
                                                                             setTimeout(() => {
                                                                                 overlay.classList.add('hidden');
                                                                                 overlay.classList.remove('flex');
-                                                                                handleQRRead(code1.data);
+                                                                                handleQRRead(code.data);
                                                                             }, 500);
-                                                                            return;
-                                                                        }
-                                                                        
-                                                                        setTimeout(() => { try {
-                                                                            // === INTENTOS CON VERSIÓN BINARIZADA (13-15) ===
-                                                                            console.log('🔬 Probando versión binarizada (QRs degradados)...');
-                                                                            
-                                                                            // Intento 13: Binarizada 2x
-                                                                            if (tryScale(2.0, "⚫⚪ Binarizada 2x", binarizedCanvas)) return;
-                                                                            
-                                                                            setTimeout(() => { try {
-                                                                                // Intento 14: Binarizada 4x
-                                                                                if (tryScale(4.0, "⚫⚪ Binarizada 4x", binarizedCanvas)) return;
-                                                                                
-                                                                                setTimeout(() => { try {
-                                                                                    // Intento 15: Binarizada 6x (último recurso)
-                                                                                    if (tryScale(6.0, "⚫⚪ Binarizada 6x", binarizedCanvas)) return;
-                                                                                    
-                                                                                    // === NO ENCONTRADO ===
-                                                                                    processingComplete = true;
-                                                                                    clearTimeout(timeoutId);
-                                                                                    console.log('❌ QR no detectado después de 15 intentos');
-                                                                                    overlay.classList.add('hidden');
-                                                                                    overlay.classList.remove('flex');
-                                                                                    window.showErrorModal(
-                                                                                        "❌ No se detectó el código QR.\n\n" +
-                                                                                        "💡 Para mejores resultados:\n\n" +
-                                                                                        "📸 Usa el ESCÁNER EN VIVO\n" +
-                                                                                        "🔍 Haz foto CERCA del QR\n" +
-                                                                                        "💡 Buena iluminación\n" +
+                                                                        } else {
+                                                                            // NO ENCONTRADO
+                                                                            console.log('❌ QR no detectado después de 12 intentos');
+                                                                            overlay.classList.add('hidden');
+                                                                            overlay.classList.remove('flex');
+                                                                            window.showErrorModal(
+                                                                                "❌ No se detectó el código QR.\n\n" +
+                                                                                "💡 Para mejores resultados:\n\n" +
+                                                                                "📸 Usa el ESCÁNER EN VIVO\n" +
+                                                                                "🔍 Haz foto CERCA del QR\n" +
+                                                                                "💡 Buena iluminación\n" +
                                                                                 "✂️ O recorta solo el QR"
                                                                             );
                                                                         }

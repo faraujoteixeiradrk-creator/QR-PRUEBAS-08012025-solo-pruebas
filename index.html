@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <!-- Viewport optimizado para que se vea como una App nativa -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DRK - Escáner QR Pro</title>
-    <!-- Librería jsQR para leer los códigos -->
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <title>DRK - Escáner QR Pro V5</title>
+    <!-- CAMBIO IMPORTANTE: Usamos html5-qrcode que es mucho más robusto para archivos -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -136,7 +136,7 @@
 </head>
 <body>
 
-    <h1>DRK - Escáner V4 (Alta Precisión)</h1>
+    <h1>DRK - Escáner V5 (Motor ZXing)</h1>
 
     <div class="card">
         
@@ -166,8 +166,8 @@
         <button id="send-btn">ENVIAR DATOS</button>
     </div>
 
-    <!-- Canvas oculto para procesamiento de imagen pura -->
-    <canvas id="process-canvas" style="display: none;"></canvas>
+    <!-- Div necesario para inicializar la librería, aunque esté oculto -->
+    <div id="reader" style="display: none;"></div>
 
     <script>
         const cameraBtn = document.getElementById('camera-btn');
@@ -176,8 +176,6 @@
         const statusDiv = document.getElementById('status');
         const previewContainer = document.getElementById('preview-container');
         const photoPreview = document.getElementById('photo-preview');
-        const processCanvas = document.getElementById('process-canvas');
-        const ctx = processCanvas.getContext('2d', { willReadFrequently: true });
         const sendBtn = document.getElementById('send-btn');
 
         // Al pulsar el botón grande, activamos el input de archivo oculto
@@ -185,67 +183,55 @@
             fileInput.click();
         });
 
-        // Cuando el usuario toma la foto o selecciona un archivo
+        // Cuando el usuario selecciona la foto
         fileInput.addEventListener('change', async (e) => {
             if (e.target.files.length === 0) return;
 
             const file = e.target.files[0];
             
             // 1. Mostrar estado de "Procesando"
-            showStatus('Analizando imagen en alta resolución...', 'loading');
+            showStatus('Analizando imagen a fondo... (esto puede tardar un segundo)', 'loading');
             qrDataInput.value = '';
             
-            // 2. Leer el archivo como imagen
+            // Mostrar preview visualmente (para el usuario)
             const reader = new FileReader();
             reader.onload = function(event) {
-                const img = new Image();
-                img.onload = function() {
-                    // 3. Configurar canvas al tamaño REAL de la imagen
-                    // Esto es vital: NO reescalamos, usamos los megapíxeles completos
-                    processCanvas.width = img.width;
-                    processCanvas.height = img.height;
-                    
-                    // Dibujar imagen original en canvas
-                    ctx.drawImage(img, 0, 0);
-
-                    // Mostrar vista previa en pantalla (solo visual)
-                    previewContainer.style.display = 'flex';
-                    photoPreview.src = event.target.result;
-
-                    try {
-                        // 4. Extraer datos de píxeles puros del canvas completo
-                        const imageData = ctx.getImageData(0, 0, processCanvas.width, processCanvas.height);
-                        
-                        // 5. Intentar leer el QR con jsQR
-                        const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                            inversionAttempts: "attemptBoth", // Intenta leer normal e invertido (blanco sobre negro)
-                        });
-
-                        if (code) {
-                            // ¡ÉXITO!
-                            qrDataInput.value = code.data;
-                            showStatus('✅ ¡QR Detectado correctamente!', 'success');
-                            // Pequeña vibración si el móvil lo soporta
-                            if (navigator.vibrate) navigator.vibrate(200);
-                        } else {
-                            // FALLO DE DETECCIÓN
-                            qrDataInput.value = "";
-                            showStatus('❌ No se encontró QR. Intenta acercarte más o mejorar la luz.', 'error');
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        showStatus('Error al procesar la imagen.', 'error');
-                    }
-                };
-                img.src = event.target.result;
+                previewContainer.style.display = 'flex';
+                photoPreview.src = event.target.result;
             };
             reader.readAsDataURL(file);
+
+            // 2. Usar Html5Qrcode para escanear el archivo
+            // Esta librería maneja mejor el zoom y los QRs pequeños que jsQR
+            const html5QrCode = new Html5Qrcode("reader");
+
+            try {
+                // scanFile(file, true) -> El 'true' indica que intente mostrar la imagen (aunque aquí no lo usamos para display)
+                // Lo importante es que procesa el File object directamente
+                const decodedText = await html5QrCode.scanFile(file, true);
+                
+                // ¡ÉXITO!
+                console.log("QR Encontrado:", decodedText);
+                qrDataInput.value = decodedText;
+                showStatus('✅ ¡QR Detectado correctamente!', 'success');
+                if (navigator.vibrate) navigator.vibrate(200);
+
+            } catch (err) {
+                // FALLO
+                console.error("Error escaneando:", err);
+                qrDataInput.value = "";
+                // Mensaje más específico
+                showStatus('❌ No se encontró QR. Intenta acercarte un poco más o enfocar mejor.', 'error');
+            } finally {
+                // Limpieza si fuera necesaria (aunque scanFile es stateless en este sentido)
+                html5QrCode.clear();
+            }
         });
 
         // Función para mostrar mensajes
         function showStatus(text, type) {
             statusDiv.textContent = text;
-            statusDiv.className = ''; // Limpiar clases anteriores
+            statusDiv.className = ''; 
             statusDiv.style.display = 'block';
             
             if (type === 'loading') statusDiv.classList.add('status-loading');
@@ -259,8 +245,26 @@
                 alert("Por favor, captura un QR válido primero.");
                 return;
             }
-            alert("Datos enviados: " + qrDataInput.value);
-            // Aquí iría tu código fetch() para enviar al servidor
+            // Ejemplo de envío
+            const data = {
+                qr: qrDataInput.value,
+                comments: document.getElementById('comments').value
+            };
+            
+            // Simulación visual de envío
+            sendBtn.disabled = true;
+            sendBtn.textContent = "Enviando...";
+            setTimeout(() => {
+                alert("Datos enviados: " + data.qr);
+                sendBtn.disabled = false;
+                sendBtn.textContent = "ENVIAR DATOS";
+                // Limpiar
+                qrDataInput.value = '';
+                document.getElementById('comments').value = '';
+                previewContainer.style.display = 'none';
+                showStatus('', '');
+                statusDiv.style.display = 'none';
+            }, 1000);
         });
 
     </script>

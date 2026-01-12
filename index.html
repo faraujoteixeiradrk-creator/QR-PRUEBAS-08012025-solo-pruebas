@@ -208,28 +208,34 @@
     <!-- Main Content Area -->
     <div id="app" class="w-full max-w-lg mx-auto p-4 md:p-6 flex-grow">
 
-        <!-- MODO DE COMPARACIÓN - OCULTO (solo DRK) -->
-        <div id="modo-comparacion-section" class="hidden fade-in mb-6">
+        <!-- MODO DE COMPARACIÓN (Siempre visible al inicio) -->
+        <div id="modo-comparacion-section" class="fade-in mb-6">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                 <p class="text-sm font-bold text-drk-800 mb-3 text-center uppercase tracking-wider">MODO DE COMPARACIÓN</p>
                 <div class="flex flex-wrap justify-center gap-2 text-sm">
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400">
+                        <input type="radio" name="comparison_mode" value="drk_only" class="hidden">
+                        <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
+                    </label>
                     <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-500 text-white bg-drk-500 hover:bg-drk-600">
-                        <input type="radio" name="comparison_mode" value="drk_only" class="hidden" checked>
-                        <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
+                        <input type="radio" name="comparison_mode" value="drk_prioritized" class="hidden" checked>
+                        <span class="font-semibold flex items-center justify-between w-full">DRK Prioritario<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
+                    </label>
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400">
+                        <input type="radio" name="comparison_mode" value="overall_best" class="hidden">
+                        <span class="font-black flex flex-col items-center justify-center w-full leading-tight">
+                            <span class="text-base">POWER CUP</span><span class="text-xs font-semibold -mt-0.5">Global</span>
+                        </span>
+                        <svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     </label>
                 </div>
             </div>
         </div>
 
-        <!-- PANTALLA INICIAL: Unificada con opciones de escaneo -->
+        <!-- PANTALLA INICIAL: Solo selector de servicio -->
         <div id="screen-inicio" class="screen active">
             <div class="fade-in flex flex-col items-center justify-center min-h-[40vh] py-8">
-                <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500 relative">
-                    <!-- VERSION -->
-                    <div class="absolute bottom-2 right-2 text-xs text-gray-400">
-                        v2024.12.20
-                    </div>
-                    
+                <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                     <div class="w-16 h-16 bg-drk-50 rounded-full flex items-center justify-center mx-auto mb-4 text-drk-600 shadow-inner">
                         <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none">
                             <style>.drk-ring{fill:none;stroke-width:10;stroke-linecap:round;}</style>
@@ -239,31 +245,33 @@
                             <circle class="drk-ring" cx="55" cy="45" r="35" stroke="#00A859"/>
                         </svg>
                     </div>
-                    <h2 id="inicio-title" class="text-3xl font-black text-drk-900 mb-6 text-center">ANALIZA TU HOGAR</h2>
+                    <h2 id="inicio-title" class="text-3xl font-black text-drk-900 mb-2 text-center">DRK COMPARADOR</h2>
+                    <p id="inicio-subtitle" class="text-slate-500 mb-6 text-center">Selecciona el tipo de suministro.</p>
                     
-                    <!-- SECCIÓN DE ESCANEO -->
+                    <!-- SELECTOR DE SERVICIO -->
                     <div class="pt-4 border-t border-slate-200">
-                        <h3 class="text-xl font-bold text-slate-800 mb-6 text-center">HOGAR 2.0 TD</h3>
-                        
-                        <div class="space-y-3">
-                            <!-- Botón 1: ESCANEAR QR AHORA -->
-                            <button onclick="selectTariffType('2.0TD'); setTimeout(() => document.getElementById('start-scan-btn').click(), 300);" class="w-full bg-gradient-to-r from-drk-600 to-drk-800 hover:from-drk-700 hover:to-drk-900 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.125 3h3.75a2 2 0 011.664.89l.812 1.22a2 2 0 001.664.89H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                <span>ESCANEAR QR AHORA</span>
+                        <p id="inicio-supply-label" class="text-sm font-bold text-drk-800 mb-4 text-center uppercase tracking-wider">TIPO DE SUMINISTRO</p>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <button onclick="goToElectricidad()" style="padding: 2rem; border-radius: 1.5rem; border: 4px solid #cbd5e1; background: white; text-align: center; cursor: pointer;">
+                                <div style="font-size: 3rem; margin-bottom: 0.75rem;">⚡</div>
+                                <div style="font-size: 1.25rem; font-weight: 900; color: #1e3a8a;">ELECTRICIDAD</div>
+                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem;">MULTICUPS · 2.0 TD · 3.0 TD</div>
                             </button>
                             
-                            <!-- Botón 2: OTRAS OPCIONES DE CAPTURA -->
-                            <button onclick="selectTariffType('2.0TD'); setTimeout(() => document.getElementById('upload-menu-btn').click(), 300);" class="w-full bg-drk-50 hover:bg-drk-100 text-drk-800 font-bold py-3 px-6 rounded-xl shadow-sm transform transition active:scale-95 flex items-center justify-center gap-3">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                <span>OTRAS OPCIONES DE CAPTURA</span>
-                            </button>
-                            
-                            <!-- Botón 3: DATOS A MANO -->
-                            <button onclick="selectTariffType('2.0TD'); setTimeout(() => document.getElementById('manual-input-btn').click(), 300);" class="w-full bg-drk-50 hover:bg-drk-100 text-drk-800 font-bold py-3 px-6 rounded-xl shadow-sm transform transition active:scale-95 flex items-center justify-center gap-3">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                <span>DATOS A MANO</span>
+                            <button onclick="goToGas()" style="padding: 2rem; border-radius: 1.5rem; border: 4px solid #cbd5e1; background: white; text-align: center; cursor: pointer;">
+                                <div style="font-size: 3rem; margin-bottom: 0.75rem;">🔥</div>
+                                <div style="font-size: 1.25rem; font-weight: 900; color: #dc2626;">GAS</div>
+                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem;">RL1 · RL2 · RL3 · RL4 · RL5 · RL6</div>
                             </button>
                         </div>
+                        
+                        <!-- NUEVO: Botón DUAL -->
+                        <button onclick="goToDual()" style="padding: 2rem; border-radius: 1.5rem; border: 4px solid #84cc16; background: linear-gradient(135deg, #f0f9ff 0%, #f7fee7 100%); text-align: center; cursor: pointer; width: 100%;">
+                            <div style="font-size: 3rem; margin-bottom: 0.75rem;">⚡🔥</div>
+                            <div style="font-size: 1.5rem; font-weight: 900; background: linear-gradient(135deg, #0ea5e9 0%, #84cc16 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">DUAL</div>
+                            <div style="font-size: 0.875rem; font-weight: 700; color: #475569; margin-top: 0.5rem;">ELECTRICIDAD + GAS</div>
+                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">Múltiples suministros · Comparativa global</div>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -288,13 +296,35 @@
                 
                 <!-- Tariff Selection Buttons -->
                 <div class="w-full space-y-4">
+                    <button onclick="selectTariffType('MULTICUPS')" class="tariff-select-btn group">
+                        <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg>
+                        </div>
+                        <div class="text-left">
+                            <span class="text-lg font-bold text-drk-900">MULTICUPS</span>
+                            <span class="block text-xs text-slate-500">Gestor de múltiples contratos (2.0TD + 3.0TD)</span>
+                        </div>
+                        <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
+                    </button>
+
                     <button onclick="selectTariffType('2.0TD')" class="tariff-select-btn group">
                         <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                         </div>
                         <div class="text-left">
                             <span class="text-lg font-bold text-drk-900">2.0 TD</span>
-                            <span class="block text-xs text-slate-500">Hogar / Pequeño Negocio</span>
+                            <span class="block text-xs text-slate-500">Hogar / Pequeño Negocio (Individual)</span>
+                        </div>
+                        <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
+                    </button>
+
+                    <button onclick="selectTariffType('3.0TD')" class="tariff-select-btn group">
+                        <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.18a2 2 0 0 0 1.51-.72L11 1l2 2h3.18a2 2 0 0 1 1.51.72L20 5h1.18a2 2 0 0 1 2 2z"></path><path d="M14 9H8v8h8V9z"></path></svg>
+                        </div>
+                        <div class="text-left">
+                            <span class="text-lg font-bold text-drk-900">3.0 TD</span>
+                            <span class="block text-xs text-slate-500">Industria / Gran Consumo (Individual)</span>
                         </div>
                         <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
                     </button>
@@ -1025,6 +1055,17 @@
                         </div>
                         <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
                     </button>
+
+                    <button onclick="selectMultiCupType('3.0TD')" class="tariff-select-btn group border-drk-300 hover:border-drk-500">
+                        <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.18a2 2 0 0 0 1.51-.72L11 1l2 2h3.18a2 2 0 0 1 1.51.72L20 5h1.18a2 2 0 0 1 2 2z"></path><path d="M14 9H8v8h8V9z"></path></svg>
+                        </div>
+                        <div class="text-left">
+                            <span class="text-lg font-bold text-drk-900">3.0 TD</span>
+                            <span class="block text-xs text-slate-500">Solo Entrada de Datos Manual</span>
+                        </div>
+                        <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
+                    </button>
                 </div>
                 
                 <button id="multicups-finalize-btn-saga" onclick="finalizeMultiCups()" class="w-full bg-cta-green-500 hover:bg-cta-green-600 text-white font-bold py-4 rounded-2xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mt-8 hidden">
@@ -1483,7 +1524,7 @@
                                     </div>
                                     <div class="flex-1">
                                         <p class="font-black text-lg text-slate-900 mb-2">VER MEJOR OPCIÓN</p>
-                                        <p class="text-sm text-slate-600">Muestra automáticamente la mejor tarifa FIJA con tu ahorro</p>
+                                        <p class="text-sm text-slate-600">Muestra automáticamente la oferta con mayor ahorro y genera la comparativa</p>
                                     </div>
                                     <svg class="w-6 h-6 text-slate-400 group-hover:text-drk-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                 </div>
@@ -1532,7 +1573,7 @@
                             </div>
                         </div>
                         
-                        <!-- Opción 2: Elegir Manual - AHORA VISIBLE -->
+                        <!-- Opción 2: Elegir Manual -->
                         <button onclick="selectFromResults()" class="text-left p-6 rounded-xl border-2 border-slate-300 bg-white hover:border-drk-500 hover:bg-drk-50 transition group">
                             <div class="flex items-start gap-4">
                                 <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200">
@@ -1547,8 +1588,8 @@
                         </button>
                     </div>
                     
-                    <!-- Info adicional - OCULTO -->
-                    <div class="hidden mt-6 p-4 bg-slate-50 rounded-lg">
+                    <!-- Info adicional -->
+                    <div class="mt-6 p-4 bg-slate-50 rounded-lg">
                         <p id="advice-text" class="text-xs text-slate-600">
                             💡 <strong id="advice-label">Consejo:</strong> <span id="advice-content">Si quieres ver rápidamente la mejor oferta, elige la primera opción. Si necesitas comparar varias opciones o el cliente tiene preferencias específicas, elige la segunda.</span>
                         </p>
@@ -2231,35 +2272,15 @@
             document.querySelectorAll('.hidden-period').forEach(el => el.style.display = 'none');
             document.getElementById('tariff-display-badge').textContent = '0';
             
-            // FINALMENTE: Mostrar pantalla inicial y mantener oculto selector de modo
+            // FINALMENTE: Mostrar pantalla inicial y selector de modo
             document.getElementById('screen-inicio')?.classList.add('active');
             const modoComparacionSection = document.getElementById('modo-comparacion-section');
             if (modoComparacionSection) {
-                modoComparacionSection.style.display = 'none'; // Mantener oculto
+                modoComparacionSection.style.display = 'block';
             }
             
             console.log('✅ resetToLanding completada - screen-inicio activa');
-            
-            // NUEVO: Mostrar navbar al volver al inicio
-            showNavbar();
         };
-        
-        // NUEVAS FUNCIONES: Ocultar/Mostrar Navbar cuando se muestran resultados
-        function hideNavbar() {
-            const navbar = document.getElementById('navbar');
-            if (navbar) {
-                navbar.style.display = 'none';
-                console.log('🔒 Navbar ocultado');
-            }
-        }
-        
-        function showNavbar() {
-            const navbar = document.getElementById('navbar');
-            if (navbar) {
-                navbar.style.display = 'block';
-                console.log('👁️ Navbar mostrado');
-            }
-        }
         
         // NUEVA FUNCIÓN: Volver desde initial-view SIN hacer reset completo
         window.goBackFromInitialView = function() {
@@ -2269,10 +2290,10 @@
             // Solo ocultar initial-view
             document.getElementById('initial-view')?.classList.add('hidden');
             
-            // Mostrar la pantalla inicial (screen-inicio)
-            document.getElementById('screen-inicio')?.classList.add('active');
+            // Mostrar la pantalla de selección de tarifa (landing-view)
+            document.getElementById('landing-view')?.classList.remove('hidden');
             
-            console.log('✅ Vuelto a screen-inicio');
+            console.log('✅ Vuelto a landing-view sin resetear');
         };
         
         // NUEVA FUNCIÓN: Volver desde multicups-saga-view SIN hacer reset completo
@@ -2369,7 +2390,6 @@
                 toggleMultiCupsInputPeriods(currentTariffType, 'input');
 
                 // CRÍTICO: Ocultar todas las vistas antes de mostrar initial-view
-                document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
                 document.getElementById('landing-view').classList.add('hidden');
                 document.getElementById('multicups-saga-view').classList.add('hidden');
                 document.getElementById('initial-view').classList.remove('hidden');
@@ -2679,23 +2699,10 @@
                 // PERO SOLO en modo individual, NO en MultiCups
                 const isMultiCupsMode = currentTariffType === 'MULTICUPS';
                 
-                // DEBUG: Logs para entender por qué no se muestra el modal
-                console.log('🔍 DEBUG MODAL:');
-                console.log('  - isMultiCupsMode:', isMultiCupsMode);
-                console.log('  - currentTariffType:', currentTariffType);
-                console.log('  - availableOffers.length:', availableOffers.length);
-                console.log('  - availableOffers:', availableOffers);
-                console.log('  - Condition (!isMultiCupsMode && availableOffers.length >= 1):', !isMultiCupsMode && availableOffers.length >= 1);
-                
-                // CAMBIO: Mostrar modal SIEMPRE que haya ofertas (>= 1) para que el comercial pueda elegir
-                if (!isMultiCupsMode && availableOffers.length >= 1) {
-                    console.log('✅ MOSTRANDO MODAL DE DECISIÓN con', availableOffers.length, 'ofertas');
+                if (!isMultiCupsMode && availableOffers.length > 1) {
+                    console.log('Showing decision modal with', availableOffers.length, 'offers');
                     showOfferDecisionModal();
                     return; // No mostrar resultados todavía, esperar decisión del usuario
-                } else {
-                    console.log('⚠️ NO SE MUESTRA MODAL. Razones:');
-                    if (isMultiCupsMode) console.log('  - Es modo MultiCups');
-                    if (availableOffers.length < 1) console.log('  - No hay ofertas disponibles (<1)');
                 }
                 
                 // Si es MultiCups, solo hay 1 oferta, o ninguna, mostrar resultados directamente
@@ -2820,10 +2827,8 @@
                 
                 } else {
                     // Flujo normal - mostrar resultados
-                    document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
                     document.getElementById('results-view').classList.remove('hidden');
                     document.getElementById('results-view').classList.add('animate-fade-in-up');
-                    hideNavbar(); // Ocultar navbar al mostrar resultados
                     
                     // Detectar modo DUAL y mostrar botón si corresponde
                     if (window.checkDualMode) window.checkDualMode();
@@ -3103,13 +3108,11 @@
             
             renderMultiResultsUI(finalResult);
             
-            document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
             document.getElementById('initial-view').classList.add('hidden');
             document.getElementById('multicups-saga-view').classList.add('hidden');
             document.getElementById('scanner-view').classList.add('hidden');
             document.getElementById('results-view').classList.remove('hidden');
             document.getElementById('results-view').classList.add('animate-fade-in-up');
-            hideNavbar(); // Ocultar navbar al mostrar resultados
         }
 
 
@@ -10240,19 +10243,33 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         // --- NUEVO: Modal de Decisión (Mejor vs Elegir) ---
         
         function showOfferDecisionModal() {
-            console.log('🎯 MOSTRANDO MODAL DE DECISIÓN (VER MEJOR vs ELEGIR RESULTADOS)');
-            
-            // Ocultar loading
             document.getElementById('loading-status').classList.add('hidden');
+            document.getElementById('offer-decision-modal').classList.remove('hidden');
+            document.getElementById('offer-decision-modal').classList.add('flex');
             
-            // Obtener el modal
-            const modal = document.getElementById('offer-decision-modal');
+            // CRÍTICO: Traducir contenido del modal
+            if (window.translateAll) {
+                setTimeout(() => window.translateAll(), 50);
+            }
             
-            // MOSTRAR EL MODAL
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            // Ocultar el selector de tarifa al abrir el modal (se mostrará solo si es necesario)
+            document.getElementById('best-option-tariff-selector')?.classList.add('hidden');
             
-            console.log('✅ Modal de decisión mostrado correctamente');
+            // IMPORTANTE: El checkbox de comparación siempre visible (para DRK y POWER CUP)
+            const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
+            checkboxContainer?.classList.remove('hidden');
+            
+            // Resetear selector a FIJA por defecto
+            const fijaRadio = document.querySelector('input[name="best-option-tariff-type"][value="fija"]');
+            if (fijaRadio) {
+                fijaRadio.checked = true;
+                updateBestOptionTariffChoice('fija');
+            }
+            
+            // CRÍTICO: Traducir contenido del modal
+            if (window.translateAll) {
+                setTimeout(() => window.translateAll(), 50);
+            }
         }
         
         function closeOfferDecisionModal() {
@@ -10265,20 +10282,30 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const selectorDiv = document.getElementById('best-option-tariff-selector');
             const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
             
-            // Si es DRK Individual Y tiene tarifa indexada, mostrar selector
-            const isDrkIndividual = comparisonMode === 'drk_only' && currentTariffType !== 'MULTICUPS';
-            const hasIndexed = lastIndexedResult && lastIndexedResult.totalAnnual > 0;
+            // Detectar contexto
+            const isDrkMode = comparisonMode !== 'overall_best';
+            const isIndividual = currentTariffType !== 'MULTICUPS';
             
-            if (isDrkIndividual && hasIndexed) {
-                console.log('Mostrando selector de tipo de tarifa (FIJA vs INDEXADA)');
-                selectorDiv.classList.remove('hidden');
-                if (checkboxContainer) checkboxContainer.classList.add('hidden');
+            if (isDrkMode) {
+                // DRK (Individual o MULTICUPS)
+                
+                if (compareWithIndexed) {
+                    // CHECK MARCADO: Comparar automáticamente FIJO vs INDEXADO (NO mostrar selector)
+                    console.log('DRK con CHECK marcado: Comparando automáticamente FIJO vs INDEXADO');
+                    selectorDiv?.classList.add('hidden');
+                    if (checkboxContainer) checkboxContainer.classList.remove('hidden');
+                    selectBestOptionDirect(); // Ejecutar directamente
+                } else {
+                    // CHECK NO MARCADO: Mostrar selector para elegir FIJA o INDEXADA
+                    console.log('DRK sin CHECK: Mostrando selector de tipo de tarifa');
+                    selectorDiv?.classList.remove('hidden');
+                    // OCULTAR checkbox porque el usuario va a elegir un solo tipo
+                    if (checkboxContainer) checkboxContainer.classList.add('hidden');
+                }
             } else {
-                // POWER CUP o no hay indexada: ejecutar directamente con FIJA
-                console.log('Ejecutando directamente con TARIFA FIJA');
-                bestOptionTariffChoice = 'fija';
-                selectorDiv.classList.add('hidden');
-                if (checkboxContainer) checkboxContainer.classList.add('hidden');
+                // POWER CUP: Ejecutar directamente (respeta su propio checkbox)
+                selectorDiv?.classList.add('hidden');
+                if (checkboxContainer) checkboxContainer.classList.remove('hidden');
                 selectBestOptionDirect();
             }
         }
@@ -10826,12 +10853,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             } else {
                 // Contexto individual: Mostrar resultados CON comparación indexada
                 renderResultsUI(lastComparisonResult, lastIndexedResult);
-                document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
-                hideNavbar(); // Ocultar navbar al mostrar resultados
             }
         }
         
@@ -10979,12 +11004,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             } else {
                 // Contexto individual: Mostrar resultados (sin indexado)
                 renderResultsUI(lastComparisonResult, null);
-                document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
-                hideNavbar(); // Ocultar navbar al mostrar resultados
             }
         }
         
@@ -11276,12 +11299,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             } else {
                 // Contexto individual: Mostrar resultados
                 renderResultsUI(lastComparisonResult, lastIndexedResult);
-                document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
-                hideNavbar(); // Ocultar navbar al mostrar resultados
             }
         }
         
@@ -12115,12 +12136,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 console.log('Hiding initial-view and showing results-view');
                 document.getElementById('loading-status').classList.add('hidden');
-                document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
-                hideNavbar(); // Ocultar navbar al mostrar resultados
                 
                 console.log('Done showing results');
             }
@@ -13026,7 +13045,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             if (scannerRunning) return;
             
             // FEEDBACK INMEDIATO: Mostrar que está cargando
-            document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
             document.getElementById('initial-view').classList.add('hidden');
             document.getElementById('scanner-view').classList.remove('hidden');
             document.getElementById('scanner-view').classList.add('flex');

@@ -9011,28 +9011,28 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setFontSize(22);
                 doc.text(`${savingsText} ${tr('/ AÑO')}`, margin + 5, yPos + 16);
                 
-                yPos += 22; // Espacio después de la caja roja (ajustado para que entre la línea completa)
+                yPos += 16; // Espacio después de la caja roja
                 
                 // === CUADRO DE FORMALIZACION CON FONDO AZUL OSCURO ===
-                checkNewPage(50);
+                checkNewPage(48);
                 
                 // Cuadro principal con FONDO AZUL OSCURO y BORDE BLANCO
                 doc.setDrawColor(255, 255, 255);
                 doc.setLineWidth(2.5);
                 doc.setFillColor(...darkColor);
-                doc.roundedRect(margin, yPos, contentWidth, 45, 3, 3, 'FD');
+                doc.roundedRect(margin, yPos, contentWidth, 42, 3, 3, 'FD');
                 
                 // Encabezado (texto blanco)
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(9.5);
+                doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
-                doc.text('PARA FORMALIZAR ESTE CONTRATO:', margin + 5, yPos + 6.5);
+                doc.text('PARA FORMALIZAR ESTE CONTRATO:', margin + 5, yPos + 6);
                 
-                yPos += 10.5;
+                yPos += 10;
                 
                 // Instruccion principal (texto blanco)
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(8);
+                doc.setFontSize(7.5);
                 doc.setFont('helvetica', 'bold');
                 if (res.isMulti) {
                     doc.text(tr('Responde a este email adjuntando la documentación de los') + ` ${res.individualResults.length} CUPS:`, margin + 5, yPos);
@@ -9040,10 +9040,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.text(tr('Responde a este email adjuntando la siguiente documentación:'), margin + 5, yPos);
                 }
                 
-                yPos += 5;
+                yPos += 4.5;
                 
                 // Lista de documentos (texto blanco)
-                doc.setFontSize(7);
+                doc.setFontSize(6.5);
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(255, 255, 255);
                 
@@ -9057,30 +9057,30 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 docs.forEach((docItem, idx) => {
                     doc.text(docItem, margin + 8, yPos);
-                    yPos += 3.8;
+                    yPos += 3.5;
                 });
                 
-                yPos += 1.5;
+                yPos += 1.2;
                 
                 // Separador (blanco)
                 doc.setDrawColor(255, 255, 255);
                 doc.setLineWidth(0.4);
                 doc.line(margin + 5, yPos, pageWidth - margin - 5, yPos);
-                yPos += 3.5;
+                yPos += 3.2;
                 
                 // Email de contacto destacado (texto blanco)
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(7);
+                doc.setFontSize(6.5);
                 doc.setFont('helvetica', 'normal');
                 doc.text('Envia la documentacion al comercial:', margin + 5, yPos);
-                yPos += 3.5;
+                yPos += 3.2;
                 
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(11);
+                doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
                 doc.text(commercialCode, margin + 5, yPos);
                 
-                yPos += 8;
+                yPos += 7;
                 
                 // === PIE DE PÁGINA ===
                 const footerY = 280;

@@ -8997,7 +8997,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.addPage();
                     yPos = 20;
                 } else {
-                    yPos += 2; // Espacio antes de la caja roja (mínimo para que suba el bloque)
+                    yPos += 2; // Espacio antes de la caja roja (reducido)
+                }
                 
                 doc.setFillColor(...redColor); // ROJO
                 doc.roundedRect(margin, yPos, contentWidth, 20, 3, 3, 'F');
@@ -9010,7 +9011,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setFontSize(22);
                 doc.text(`${savingsText} ${tr('/ AÑO')}`, margin + 5, yPos + 16);
                 
-                yPos += 20; // Espacio después de la caja roja (optimizado)
+                yPos += 20; // Espacio después de la caja roja (reducido)
                 
                 // === CUADRO DE FORMALIZACION CON FONDO AZUL OSCURO ===
                 checkNewPage(48);

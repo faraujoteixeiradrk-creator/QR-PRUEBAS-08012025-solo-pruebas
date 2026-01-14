@@ -8567,12 +8567,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     
                     yPos += cardHeight + 8;
                     
-                    // Verificar espacio disponible para la sección de distribución de consumo (necesitamos ~60mm)
-                    if (yPos > 230) {
-                        doc.addPage();
-                        yPos = 20;
-                    }
-                    
                     // === DISTRIBUCIÓN DE CONSUMO ===
                     // Título con fondo VERDE y letras BLANCAS
                     doc.setFillColor(...greenColor); // VERDE
@@ -8587,7 +8581,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFillColor(255, 255, 255);
                     doc.setDrawColor(200, 200, 200);
                     doc.setLineWidth(0.3);
-                    const consumoBoxHeight = 38;
+                    const consumoBoxHeight = 28;
                     doc.roundedRect(margin, yPos, contentWidth, consumoBoxHeight, 2, 2, 'FD');
                     
                     // Tres tarjetas de periodos
@@ -8596,7 +8590,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     const periodoCardX2 = periodoCardX1 + periodoCardWidth + 3;
                     const periodoCardX3 = periodoCardX2 + periodoCardWidth + 3;
                     const periodoCardY = yPos + 3;
-                    const periodoCardHeight = 28;
+                    const periodoCardHeight = 22;
                     
                     // Punta (rojo)
                     doc.setFillColor(254, 242, 242);
@@ -8605,27 +8599,27 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.roundedRect(periodoCardX1, periodoCardY, periodoCardWidth, periodoCardHeight, 2, 2, 'FD');
                     
                     doc.setFillColor(220, 38, 38);
-                    doc.circle(periodoCardX1 + periodoCardWidth / 2 - 10, periodoCardY + 4, 1.5, 'F');
+                    doc.circle(periodoCardX1 + periodoCardWidth / 2 - 8, periodoCardY + 3, 1.2, 'F');
                     doc.setTextColor(153, 27, 27);
-                    doc.setFontSize(7.5);
+                    doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Periodo Punta'), periodoCardX1 + periodoCardWidth / 2 + 3, periodoCardY + 4.5, { align: 'center' });
+                    doc.text(tr('Periodo Punta'), periodoCardX1 + periodoCardWidth / 2 + 2, periodoCardY + 3.5, { align: 'center' });
                     
                     doc.setTextColor(220, 38, 38);
-                    doc.setFontSize(16);
-                    doc.text(puntaPct + '%', periodoCardX1 + periodoCardWidth / 2, periodoCardY + 13, { align: 'center' });
+                    doc.setFontSize(13);
+                    doc.text(puntaPct + '%', periodoCardX1 + periodoCardWidth / 2, periodoCardY + 10, { align: 'center' });
                     
                     doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(7);
+                    doc.setFontSize(6);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(puntaKwh.toFixed(0) + ' kWh', periodoCardX1 + periodoCardWidth / 2, periodoCardY + 18, { align: 'center' });
+                    doc.text(puntaKwh.toFixed(0) + ' kWh', periodoCardX1 + periodoCardWidth / 2, periodoCardY + 14, { align: 'center' });
                     
                     doc.setFillColor(255, 255, 255);
-                    doc.roundedRect(periodoCardX1 + 3, periodoCardY + 20, periodoCardWidth - 6, 6, 1, 1, 'F');
+                    doc.roundedRect(periodoCardX1 + 2, periodoCardY + 16, periodoCardWidth - 4, 4.5, 1, 1, 'F');
                     doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(5.5);
-                    doc.text(tr('Horario más caro'), periodoCardX1 + periodoCardWidth / 2, periodoCardY + 23, { align: 'center' });
-                    doc.text('10-14h, 18-22h (lab.)', periodoCardX1 + periodoCardWidth / 2, periodoCardY + 25.5, { align: 'center' });
+                    doc.setFontSize(4.5);
+                    doc.text(tr('Horario más caro'), periodoCardX1 + periodoCardWidth / 2, periodoCardY + 18.5, { align: 'center' });
+                    doc.text('10-14h, 18-22h (lab.)', periodoCardX1 + periodoCardWidth / 2, periodoCardY + 20, { align: 'center' });
                     
                     // Llano (amarillo)
                     doc.setFillColor(254, 252, 232);
@@ -8634,27 +8628,27 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.roundedRect(periodoCardX2, periodoCardY, periodoCardWidth, periodoCardHeight, 2, 2, 'FD');
                     
                     doc.setFillColor(250, 204, 21);
-                    doc.circle(periodoCardX2 + periodoCardWidth / 2 - 10, periodoCardY + 4, 1.5, 'F');
+                    doc.circle(periodoCardX2 + periodoCardWidth / 2 - 8, periodoCardY + 3, 1.2, 'F');
                     doc.setTextColor(161, 98, 7);
-                    doc.setFontSize(7.5);
+                    doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Periodo Llano'), periodoCardX2 + periodoCardWidth / 2 + 3, periodoCardY + 4.5, { align: 'center' });
+                    doc.text(tr('Periodo Llano'), periodoCardX2 + periodoCardWidth / 2 + 2, periodoCardY + 3.5, { align: 'center' });
                     
                     doc.setTextColor(202, 138, 4);
-                    doc.setFontSize(16);
-                    doc.text(llanoPct + '%', periodoCardX2 + periodoCardWidth / 2, periodoCardY + 13, { align: 'center' });
+                    doc.setFontSize(13);
+                    doc.text(llanoPct + '%', periodoCardX2 + periodoCardWidth / 2, periodoCardY + 10, { align: 'center' });
                     
                     doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(7);
+                    doc.setFontSize(6);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(llanoKwh.toFixed(0) + ' kWh', periodoCardX2 + periodoCardWidth / 2, periodoCardY + 18, { align: 'center' });
+                    doc.text(llanoKwh.toFixed(0) + ' kWh', periodoCardX2 + periodoCardWidth / 2, periodoCardY + 14, { align: 'center' });
                     
                     doc.setFillColor(255, 255, 255);
-                    doc.roundedRect(periodoCardX2 + 3, periodoCardY + 20, periodoCardWidth - 6, 6, 1, 1, 'F');
+                    doc.roundedRect(periodoCardX2 + 2, periodoCardY + 16, periodoCardWidth - 4, 4.5, 1, 1, 'F');
                     doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(5.5);
-                    doc.text(tr('Precio medio'), periodoCardX2 + periodoCardWidth / 2, periodoCardY + 23, { align: 'center' });
-                    doc.text('8-10h, 14-18h, 22-24h', periodoCardX2 + periodoCardWidth / 2, periodoCardY + 25.5, { align: 'center' });
+                    doc.setFontSize(4.5);
+                    doc.text(tr('Precio medio'), periodoCardX2 + periodoCardWidth / 2, periodoCardY + 18.5, { align: 'center' });
+                    doc.text('8-10h, 14-18h, 22-24h', periodoCardX2 + periodoCardWidth / 2, periodoCardY + 20, { align: 'center' });
                     
                     // Valle (verde)
                     doc.setFillColor(240, 253, 244);
@@ -8663,32 +8657,32 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.roundedRect(periodoCardX3, periodoCardY, periodoCardWidth, periodoCardHeight, 2, 2, 'FD');
                     
                     doc.setFillColor(22, 163, 74);
-                    doc.circle(periodoCardX3 + periodoCardWidth / 2 - 10, periodoCardY + 4, 1.5, 'F');
+                    doc.circle(periodoCardX3 + periodoCardWidth / 2 - 8, periodoCardY + 3, 1.2, 'F');
                     doc.setTextColor(22, 101, 52);
-                    doc.setFontSize(7.5);
+                    doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Periodo Valle'), periodoCardX3 + periodoCardWidth / 2 + 3, periodoCardY + 4.5, { align: 'center' });
+                    doc.text(tr('Periodo Valle'), periodoCardX3 + periodoCardWidth / 2 + 2, periodoCardY + 3.5, { align: 'center' });
                     
                     doc.setTextColor(22, 163, 74);
-                    doc.setFontSize(16);
-                    doc.text(vallePct + '%', periodoCardX3 + periodoCardWidth / 2, periodoCardY + 13, { align: 'center' });
+                    doc.setFontSize(13);
+                    doc.text(vallePct + '%', periodoCardX3 + periodoCardWidth / 2, periodoCardY + 10, { align: 'center' });
                     
                     doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(7);
+                    doc.setFontSize(6);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(valleKwh.toFixed(0) + ' kWh', periodoCardX3 + periodoCardWidth / 2, periodoCardY + 18, { align: 'center' });
+                    doc.text(valleKwh.toFixed(0) + ' kWh', periodoCardX3 + periodoCardWidth / 2, periodoCardY + 14, { align: 'center' });
                     
                     doc.setFillColor(255, 255, 255);
-                    doc.roundedRect(periodoCardX3 + 3, periodoCardY + 20, periodoCardWidth - 6, 6, 1, 1, 'F');
+                    doc.roundedRect(periodoCardX3 + 2, periodoCardY + 16, periodoCardWidth - 4, 4.5, 1, 1, 'F');
                     doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(5.5);
-                    doc.text(tr('Horario más barato'), periodoCardX3 + periodoCardWidth / 2, periodoCardY + 23, { align: 'center' });
-                    doc.text('0-8h + fines semana', periodoCardX3 + periodoCardWidth / 2, periodoCardY + 25.5, { align: 'center' });
+                    doc.setFontSize(4.5);
+                    doc.text(tr('Horario más barato'), periodoCardX3 + periodoCardWidth / 2, periodoCardY + 18.5, { align: 'center' });
+                    doc.text('0-8h + fines semana', periodoCardX3 + periodoCardWidth / 2, periodoCardY + 20, { align: 'center' });
                     
-                    yPos += consumoBoxHeight + 3;
+                    yPos += consumoBoxHeight + 2;
                     
                     // Barra de progreso
-                    const barHeight = 6;
+                    const barHeight = 5;
                     const barY = yPos;
                     
                     // Calcular anchos proporcionales
@@ -8701,9 +8695,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.roundedRect(margin, barY, puntaWidth, barHeight, 1, 1, 'F');
                     if (puntaPct > 8) {
                         doc.setTextColor(255, 255, 255);
-                        doc.setFontSize(7);
+                        doc.setFontSize(6.5);
                         doc.setFont('helvetica', 'bold');
-                        doc.text(puntaPct + '%', margin + puntaWidth / 2, barY + 4.5, { align: 'center' });
+                        doc.text(puntaPct + '%', margin + puntaWidth / 2, barY + 3.8, { align: 'center' });
                     }
                     
                     // Llano (amarillo)
@@ -8711,9 +8705,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.rect(margin + puntaWidth, barY, llanoWidth, barHeight, 'F');
                     if (llanoPct > 8) {
                         doc.setTextColor(30, 41, 59);
-                        doc.setFontSize(7);
+                        doc.setFontSize(6.5);
                         doc.setFont('helvetica', 'bold');
-                        doc.text(llanoPct + '%', margin + puntaWidth + llanoWidth / 2, barY + 4.5, { align: 'center' });
+                        doc.text(llanoPct + '%', margin + puntaWidth + llanoWidth / 2, barY + 3.8, { align: 'center' });
                     }
                     
                     // Valle (verde)
@@ -8721,12 +8715,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.roundedRect(margin + puntaWidth + llanoWidth, barY, valleWidth, barHeight, 1, 1, 'F');
                     if (vallePct > 8) {
                         doc.setTextColor(255, 255, 255);
-                        doc.setFontSize(7);
+                        doc.setFontSize(6.5);
                         doc.setFont('helvetica', 'bold');
-                        doc.text(vallePct + '%', margin + puntaWidth + llanoWidth + valleWidth / 2, barY + 4.5, { align: 'center' });
+                        doc.text(vallePct + '%', margin + puntaWidth + llanoWidth + valleWidth / 2, barY + 3.8, { align: 'center' });
                     }
                     
-                    yPos += barHeight + 5;
+                    yPos += barHeight + 3;
                     
                     // Recomendación
                     let recomendacion = '';
@@ -8741,24 +8735,24 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFillColor(239, 246, 255);
                     doc.setDrawColor(2, 132, 199);
                     doc.setLineWidth(1);
-                    const recoBoxHeight = 16;
+                    const recoBoxHeight = 11;
                     doc.rect(margin, yPos, 3, recoBoxHeight, 'F'); // Línea lateral izquierda
                     doc.setDrawColor(200, 200, 200);
                     doc.setLineWidth(0.3);
                     doc.roundedRect(margin, yPos, contentWidth, recoBoxHeight, 2, 2, 'FD');
                     
                     doc.setTextColor(12, 74, 110);
-                    doc.setFontSize(8);
+                    doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Recomendación Personalizada'), margin + 5, yPos + 5);
+                    doc.text(tr('Recomendación Personalizada'), margin + 5, yPos + 4);
                     
                     doc.setTextColor(51, 65, 85);
-                    doc.setFontSize(7);
+                    doc.setFontSize(6);
                     doc.setFont('helvetica', 'normal');
                     const recoLines = doc.splitTextToSize(recomendacion, contentWidth - 10);
-                    doc.text(recoLines, margin + 5, yPos + 10);
+                    doc.text(recoLines, margin + 5, yPos + 8);
                     
-                    yPos += recoBoxHeight + 8;
+                    yPos += recoBoxHeight + 5;
                 }
                 
                 // === PRECIOS DE LA OFERTA EN PÁGINA 1 (sin check de espacio) ===

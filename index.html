@@ -8472,7 +8472,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 yPos += 50;
                 } // Fin del condicional de columnas de precios en Individual
                 
-                // === ANÁLISIS DE HORARIOS (SOLO 2.0 TD) ===
+                // === ANÁLISIS DE HORARIOS (SOLO 2.0 TD) - VERSIÓN COMPACTA ===
                 if (tariffType === '2.0TD' && !res.isMulti) {
                     // Calcular distribución de consumo
                     const puntaKwh = res.energyCosts[0]?.kwh || 0;
@@ -8490,254 +8490,247 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     const llanoPct = llanoPctNum.toFixed(1);
                     const vallePct = vallePctNum.toFixed(1);
                     
-                    // NO hacer checkNewPage aquí - queremos mantenerlo en página 1
-                    
-                    // Título sección
+                    // Título sección - MÁS COMPACTO
                     doc.setFillColor(...primaryColor);
-                    doc.roundedRect(margin, yPos, contentWidth, 10, 3, 3, 'F');
+                    doc.roundedRect(margin, yPos, contentWidth, 8, 2, 2, 'F');
                     doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(11);
+                    doc.setFontSize(9);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('ANÁLISIS DE HORARIOS Y CONSUMO - TARIFA 2.0 TD'), margin + 5, yPos + 6.5);
-                    yPos += 14;
+                    doc.text(tr('ANÁLISIS DE HORARIOS Y CONSUMO - TARIFA 2.0 TD'), margin + 3, yPos + 5.5);
+                    yPos += 11;
                     
-                    // === TABLA DE HORARIOS (2 columnas) ===
+                    // === TABLA DE HORARIOS (2 columnas) - MÁS COMPACTA ===
                     // Columna 1: Laborables
                     doc.setFillColor(248, 250, 252);
                     doc.setDrawColor(226, 232, 240);
-                    doc.setLineWidth(0.5);
-                    doc.roundedRect(margin, yPos, contentWidth / 2 - 2, 28, 2, 2, 'FD');
+                    doc.setLineWidth(0.3);
+                    doc.roundedRect(margin, yPos, contentWidth / 2 - 2, 22, 1.5, 1.5, 'FD');
                     
                     doc.setTextColor(30, 41, 59);
-                    doc.setFontSize(9);
+                    doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Lunes a viernes laborables'), margin + (contentWidth / 4), yPos + 5, { align: 'center' });
+                    doc.text(tr('Lunes a viernes laborables'), margin + (contentWidth / 4), yPos + 4, { align: 'center' });
                     
-                    yPos += 9;
+                    yPos += 7;
                     
                     // Punta
                     doc.setFillColor(254, 226, 226);
-                    doc.roundedRect(margin + 3, yPos, contentWidth / 2 - 8, 5, 1, 1, 'F');
+                    doc.roundedRect(margin + 2, yPos, contentWidth / 2 - 6, 4, 0.8, 0.8, 'F');
                     doc.setFillColor(220, 38, 38);
-                    doc.circle(margin + 5, yPos + 2.5, 1.5, 'F');
+                    doc.circle(margin + 3.5, yPos + 2, 1, 'F');
                     doc.setTextColor(153, 27, 27);
-                    doc.setFontSize(7);
+                    doc.setFontSize(6);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Punta') + ':', margin + 8, yPos + 3.5);
+                    doc.text(tr('Punta') + ':', margin + 5.5, yPos + 2.8);
                     doc.setTextColor(100, 116, 139);
                     doc.setFont('helvetica', 'normal');
-                    doc.text('10-14h, 18-22h', margin + 20, yPos + 3.5);
+                    doc.text('10-14h, 18-22h', margin + 15, yPos + 2.8);
                     
-                    yPos += 6;
+                    yPos += 5;
                     
                     // Llano
                     doc.setFillColor(254, 249, 195);
-                    doc.roundedRect(margin + 3, yPos, contentWidth / 2 - 8, 5, 1, 1, 'F');
+                    doc.roundedRect(margin + 2, yPos, contentWidth / 2 - 6, 4, 0.8, 0.8, 'F');
                     doc.setFillColor(234, 179, 8);
-                    doc.circle(margin + 5, yPos + 2.5, 1.5, 'F');
+                    doc.circle(margin + 3.5, yPos + 2, 1, 'F');
                     doc.setTextColor(133, 77, 14);
-                    doc.setFontSize(7);
+                    doc.setFontSize(6);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Llano') + ':', margin + 8, yPos + 3.5);
+                    doc.text(tr('Llano') + ':', margin + 5.5, yPos + 2.8);
                     doc.setTextColor(100, 116, 139);
                     doc.setFont('helvetica', 'normal');
-                    doc.text('8-10h, 14-18h, 22-24h', margin + 20, yPos + 3.5);
+                    doc.text('8-10h, 14-18h, 22-24h', margin + 15, yPos + 2.8);
                     
-                    yPos += 6;
+                    yPos += 5;
                     
                     // Valle
                     doc.setFillColor(220, 252, 231);
-                    doc.roundedRect(margin + 3, yPos, contentWidth / 2 - 8, 5, 1, 1, 'F');
+                    doc.roundedRect(margin + 2, yPos, contentWidth / 2 - 6, 4, 0.8, 0.8, 'F');
                     doc.setFillColor(22, 163, 74);
-                    doc.circle(margin + 5, yPos + 2.5, 1.5, 'F');
+                    doc.circle(margin + 3.5, yPos + 2, 1, 'F');
                     doc.setTextColor(22, 101, 52);
-                    doc.setFontSize(7);
+                    doc.setFontSize(6);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Valle') + ':', margin + 8, yPos + 3.5);
+                    doc.text(tr('Valle') + ':', margin + 5.5, yPos + 2.8);
                     doc.setTextColor(100, 116, 139);
                     doc.setFont('helvetica', 'normal');
-                    doc.text('0-8h', margin + 20, yPos + 3.5);
+                    doc.text('0-8h', margin + 15, yPos + 2.8);
                     
                     // Volver a la posición inicial para la columna 2
-                    yPos -= 12;
+                    yPos -= 10;
                     
                     // Columna 2: Festivos
                     const col2X = margin + contentWidth / 2 + 2;
                     doc.setFillColor(248, 250, 252);
                     doc.setDrawColor(226, 232, 240);
-                    doc.setLineWidth(0.5);
-                    doc.roundedRect(col2X, yPos - 9, contentWidth / 2 - 2, 28, 2, 2, 'FD');
+                    doc.setLineWidth(0.3);
+                    doc.roundedRect(col2X, yPos - 7, contentWidth / 2 - 2, 22, 1.5, 1.5, 'FD');
                     
                     doc.setTextColor(30, 41, 59);
-                    doc.setFontSize(9);
+                    doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Sábados, domingos y festivos'), col2X + (contentWidth / 4), yPos - 4, { align: 'center' });
+                    doc.text(tr('Sábados, domingos y festivos'), col2X + (contentWidth / 4), yPos - 3, { align: 'center' });
                     
                     // Valle todo el día
                     doc.setFillColor(220, 252, 231);
-                    doc.roundedRect(col2X + (contentWidth / 4) - 25, yPos + 3, 50, 12, 2, 2, 'F');
+                    doc.roundedRect(col2X + (contentWidth / 4) - 20, yPos + 2, 40, 10, 1.5, 1.5, 'F');
                     doc.setFillColor(22, 163, 74);
-                    doc.circle(col2X + (contentWidth / 4), yPos + 6, 2, 'F');
+                    doc.circle(col2X + (contentWidth / 4), yPos + 4.5, 1.5, 'F');
                     doc.setTextColor(22, 101, 52);
-                    doc.setFontSize(10);
+                    doc.setFontSize(8);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Valle'), col2X + (contentWidth / 4), yPos + 11, { align: 'center' });
+                    doc.text(tr('Valle'), col2X + (contentWidth / 4), yPos + 8.5, { align: 'center' });
                     doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(7);
+                    doc.setFontSize(6);
                     doc.setFont('helvetica', 'normal');
-                    doc.text('24 horas (todo el día)', col2X + (contentWidth / 4), yPos + 14.5, { align: 'center' });
+                    doc.text('24 horas', col2X + (contentWidth / 4), yPos + 11, { align: 'center' });
                     
-                    yPos += 23;
+                    yPos += 18;
                     
-                    // === DISTRIBUCIÓN DE CONSUMO ===
-                    yPos += 5;
+                    // === DISTRIBUCIÓN DE CONSUMO - MÁS COMPACTA ===
+                    yPos += 3;
                     doc.setTextColor(...primaryColor);
-                    doc.setFontSize(10);
+                    doc.setFontSize(8);
                     doc.setFont('helvetica', 'bold');
                     doc.text(tr('Tu Distribución de Consumo'), margin, yPos);
-                    yPos += 6;
+                    yPos += 5;
                     
-                    // Tres tarjetas (Punta, Llano, Valle)
+                    // Tres tarjetas - MÁS COMPACTAS (altura 24mm en lugar de 32mm)
                     const cardWidth = (contentWidth - 8) / 3;
                     
                     // Tarjeta Punta
                     doc.setFillColor(254, 226, 226);
                     doc.setDrawColor(252, 165, 165);
-                    doc.setLineWidth(2);
-                    doc.roundedRect(margin, yPos, cardWidth, 32, 2, 2, 'FD');
+                    doc.setLineWidth(1.5);
+                    doc.roundedRect(margin, yPos, cardWidth, 24, 1.5, 1.5, 'FD');
                     
                     doc.setFillColor(220, 38, 38);
-                    doc.circle(margin + cardWidth / 2 - 3, yPos + 5, 1.5, 'F');
+                    doc.circle(margin + cardWidth / 2 - 2, yPos + 3.5, 1, 'F');
                     doc.setTextColor(153, 27, 27);
-                    doc.setFontSize(8);
+                    doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Periodo Punta'), margin + cardWidth / 2 + 1, yPos + 6);
+                    doc.text(tr('Periodo Punta'), margin + cardWidth / 2 + 0.5, yPos + 4.5);
                     
                     doc.setTextColor(220, 38, 38);
-                    doc.setFontSize(20);
+                    doc.setFontSize(16);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(`${puntaPct}%`, margin + cardWidth / 2, yPos + 15, { align: 'center' });
+                    doc.text(`${puntaPct}%`, margin + cardWidth / 2, yPos + 12, { align: 'center' });
                     
-                    doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(`${puntaKwh.toFixed(0)} kWh`, margin + cardWidth / 2, yPos + 20, { align: 'center' });
-                    
-                    doc.setFillColor(255, 255, 255);
-                    doc.roundedRect(margin + 2, yPos + 22, cardWidth - 4, 8, 1, 1, 'F');
                     doc.setTextColor(100, 116, 139);
                     doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(`${puntaKwh.toFixed(0)} kWh`, margin + cardWidth / 2, yPos + 16.5, { align: 'center' });
+                    
+                    doc.setFillColor(255, 255, 255);
+                    doc.roundedRect(margin + 1.5, yPos + 18, cardWidth - 3, 5, 0.8, 0.8, 'F');
+                    doc.setTextColor(100, 116, 139);
+                    doc.setFontSize(5);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(tr('Horario más caro'), margin + cardWidth / 2, yPos + 25.5, { align: 'center' });
-                    doc.text('10-14h, 18-22h (lab.)', margin + cardWidth / 2, yPos + 28.5, { align: 'center' });
+                    doc.text('10-14h, 18-22h', margin + cardWidth / 2, yPos + 21.5, { align: 'center' });
                     
                     // Tarjeta Llano
                     const llanoX = margin + cardWidth + 4;
                     doc.setFillColor(254, 249, 195);
                     doc.setDrawColor(253, 224, 71);
-                    doc.setLineWidth(2);
-                    doc.roundedRect(llanoX, yPos, cardWidth, 32, 2, 2, 'FD');
+                    doc.setLineWidth(1.5);
+                    doc.roundedRect(llanoX, yPos, cardWidth, 24, 1.5, 1.5, 'FD');
                     
                     doc.setFillColor(234, 179, 8);
-                    doc.circle(llanoX + cardWidth / 2 - 3, yPos + 5, 1.5, 'F');
+                    doc.circle(llanoX + cardWidth / 2 - 2, yPos + 3.5, 1, 'F');
                     doc.setTextColor(133, 77, 14);
-                    doc.setFontSize(8);
+                    doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Periodo Llano'), llanoX + cardWidth / 2 + 1, yPos + 6);
+                    doc.text(tr('Periodo Llano'), llanoX + cardWidth / 2 + 0.5, yPos + 4.5);
                     
                     doc.setTextColor(202, 138, 4);
-                    doc.setFontSize(20);
+                    doc.setFontSize(16);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(`${llanoPct}%`, llanoX + cardWidth / 2, yPos + 15, { align: 'center' });
+                    doc.text(`${llanoPct}%`, llanoX + cardWidth / 2, yPos + 12, { align: 'center' });
                     
-                    doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(`${llanoKwh.toFixed(0)} kWh`, llanoX + cardWidth / 2, yPos + 20, { align: 'center' });
-                    
-                    doc.setFillColor(255, 255, 255);
-                    doc.roundedRect(llanoX + 2, yPos + 22, cardWidth - 4, 8, 1, 1, 'F');
                     doc.setTextColor(100, 116, 139);
                     doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(`${llanoKwh.toFixed(0)} kWh`, llanoX + cardWidth / 2, yPos + 16.5, { align: 'center' });
+                    
+                    doc.setFillColor(255, 255, 255);
+                    doc.roundedRect(llanoX + 1.5, yPos + 18, cardWidth - 3, 5, 0.8, 0.8, 'F');
+                    doc.setTextColor(100, 116, 139);
+                    doc.setFontSize(5);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(tr('Horario intermedio'), llanoX + cardWidth / 2, yPos + 25.5, { align: 'center' });
-                    doc.text('8-10h, 14-18h, 22-24h', llanoX + cardWidth / 2, yPos + 28.5, { align: 'center' });
+                    doc.text('8-10h, 14-18h, 22-24h', llanoX + cardWidth / 2, yPos + 21.5, { align: 'center' });
                     
                     // Tarjeta Valle
                     const valleX = margin + (cardWidth + 4) * 2;
                     doc.setFillColor(220, 252, 231);
                     doc.setDrawColor(134, 239, 172);
-                    doc.setLineWidth(2);
-                    doc.roundedRect(valleX, yPos, cardWidth, 32, 2, 2, 'FD');
+                    doc.setLineWidth(1.5);
+                    doc.roundedRect(valleX, yPos, cardWidth, 24, 1.5, 1.5, 'FD');
                     
                     doc.setFillColor(22, 163, 74);
-                    doc.circle(valleX + cardWidth / 2 - 3, yPos + 5, 1.5, 'F');
+                    doc.circle(valleX + cardWidth / 2 - 2, yPos + 3.5, 1, 'F');
                     doc.setTextColor(22, 101, 52);
-                    doc.setFontSize(8);
+                    doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Periodo Valle'), valleX + cardWidth / 2 + 1, yPos + 6);
+                    doc.text(tr('Periodo Valle'), valleX + cardWidth / 2 + 0.5, yPos + 4.5);
                     
                     doc.setTextColor(22, 163, 74);
-                    doc.setFontSize(20);
+                    doc.setFontSize(16);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(`${vallePct}%`, valleX + cardWidth / 2, yPos + 15, { align: 'center' });
+                    doc.text(`${vallePct}%`, valleX + cardWidth / 2, yPos + 12, { align: 'center' });
                     
-                    doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(`${valleKwh.toFixed(0)} kWh`, valleX + cardWidth / 2, yPos + 20, { align: 'center' });
-                    
-                    doc.setFillColor(255, 255, 255);
-                    doc.roundedRect(valleX + 2, yPos + 22, cardWidth - 4, 8, 1, 1, 'F');
                     doc.setTextColor(100, 116, 139);
                     doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(`${valleKwh.toFixed(0)} kWh`, valleX + cardWidth / 2, yPos + 16.5, { align: 'center' });
+                    
+                    doc.setFillColor(255, 255, 255);
+                    doc.roundedRect(valleX + 1.5, yPos + 18, cardWidth - 3, 5, 0.8, 0.8, 'F');
+                    doc.setTextColor(100, 116, 139);
+                    doc.setFontSize(5);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(tr('Horario más barato'), valleX + cardWidth / 2, yPos + 25.5, { align: 'center' });
-                    doc.text('0-8h + fines semana', valleX + cardWidth / 2, yPos + 28.5, { align: 'center' });
+                    doc.text('0-8h + fines sem.', valleX + cardWidth / 2, yPos + 21.5, { align: 'center' });
                     
-                    yPos += 36;
+                    yPos += 27;
                     
-                    // === BARRA DE PROGRESO ===
-                    // IMPORTANTE: Usar los valores numéricos (puntaPctNum, llanoPctNum, vallePctNum)
+                    // === BARRA DE PROGRESO - MÁS COMPACTA ===
                     const puntaWidth = Math.max(0, contentWidth * (puntaPctNum / 100));
                     const llanoWidth = Math.max(0, contentWidth * (llanoPctNum / 100));
                     const valleWidth = Math.max(0, contentWidth * (vallePctNum / 100));
                     
                     if (puntaWidth > 0) {
                         doc.setFillColor(220, 38, 38);
-                        doc.rect(margin, yPos, puntaWidth, 6, 'F');
+                        doc.rect(margin, yPos, puntaWidth, 5, 'F');
                     }
                     
                     if (llanoWidth > 0) {
                         doc.setFillColor(234, 179, 8);
-                        doc.rect(margin + puntaWidth, yPos, llanoWidth, 6, 'F');
+                        doc.rect(margin + puntaWidth, yPos, llanoWidth, 5, 'F');
                     }
                     
                     if (valleWidth > 0) {
                         doc.setFillColor(22, 163, 74);
-                        doc.rect(margin + puntaWidth + llanoWidth, yPos, valleWidth, 6, 'F');
+                        doc.rect(margin + puntaWidth + llanoWidth, yPos, valleWidth, 5, 'F');
                     }
                     
-                    // Porcentajes en la barra (si hay espacio)
+                    // Porcentajes en la barra
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
                     if (puntaPctNum > 8) {
                         doc.setTextColor(255, 255, 255);
-                        doc.setFontSize(7);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text(`${puntaPct}%`, margin + puntaWidth / 2, yPos + 4, { align: 'center' });
+                        doc.text(`${puntaPct}%`, margin + puntaWidth / 2, yPos + 3.5, { align: 'center' });
                     }
                     if (llanoPctNum > 8) {
                         doc.setTextColor(30, 41, 59);
-                        doc.text(`${llanoPct}%`, margin + puntaWidth + llanoWidth / 2, yPos + 4, { align: 'center' });
+                        doc.text(`${llanoPct}%`, margin + puntaWidth + llanoWidth / 2, yPos + 3.5, { align: 'center' });
                     }
                     if (vallePctNum > 8) {
                         doc.setTextColor(255, 255, 255);
-                        doc.text(`${vallePct}%`, margin + puntaWidth + llanoWidth + valleWidth / 2, yPos + 4, { align: 'center' });
+                        doc.text(`${vallePct}%`, margin + puntaWidth + llanoWidth + valleWidth / 2, yPos + 3.5, { align: 'center' });
                     }
                     
-                    yPos += 10;
+                    yPos += 8;
                     
-                    // === RECOMENDACIÓN PERSONALIZADA ===
-                    // Generar recomendación
+                    // === RECOMENDACIÓN PERSONALIZADA - MÁS COMPACTA ===
                     let recommendation = '';
                     if (puntaPctNum > 30) {
                         recommendation = tr('Consumes más del 30% en horario Punta. Te recomendamos trasladar consumos al periodo Valle (madrugada y fines de semana) para maximizar tu ahorro.');
@@ -8749,21 +8742,21 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     
                     doc.setFillColor(239, 246, 255);
                     doc.setDrawColor(14, 165, 233);
-                    doc.setLineWidth(2);
-                    doc.roundedRect(margin, yPos, contentWidth, 16, 2, 2, 'FD');
+                    doc.setLineWidth(1.5);
+                    doc.roundedRect(margin, yPos, contentWidth, 12, 1.5, 1.5, 'FD');
                     
                     doc.setTextColor(12, 74, 110);
-                    doc.setFontSize(8);
+                    doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(`💡 ${tr('Recomendación Personalizada')}`, margin + 3, yPos + 5);
+                    doc.text(`💡 ${tr('Recomendación Personalizada')}`, margin + 2, yPos + 4);
                     
                     doc.setTextColor(51, 65, 85);
-                    doc.setFontSize(7);
+                    doc.setFontSize(6);
                     doc.setFont('helvetica', 'normal');
-                    const recommendLines = doc.splitTextToSize(recommendation, contentWidth - 6);
-                    doc.text(recommendLines, margin + 3, yPos + 10);
+                    const recommendLines = doc.splitTextToSize(recommendation, contentWidth - 4);
+                    doc.text(recommendLines, margin + 2, yPos + 7.5);
                     
-                    yPos += 20;
+                    yPos += 15;
                 }
                 
                 // Check para nueva página ANTES de mostrar precios (que puede ir en página 2)

@@ -173,6 +173,7 @@
             background-color: white;
         }
         
+        /* === ESTILOS PARA SISTEMA DE PESTAÑAS === */
         /* Ocultar scrollbar en menú de navegación */
         .scrollbar-hide {
             -ms-overflow-style: none;
@@ -203,29 +204,8 @@
         }
         
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        /* Contenido de secciones */
-        .section-content {
-            animation: fadeIn 0.3s ease-in;
-        }
-        
-        @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Efecto scroll suave */
-        html {
-            scroll-behavior: smooth;
         }
     </style>
 </head>
@@ -263,28 +243,34 @@
     <!-- Main Content Area -->
     <div id="app" class="w-full max-w-lg mx-auto p-4 md:p-6 flex-grow">
 
-        <!-- MODO DE COMPARACIÓN - OCULTO (solo DRK) -->
-        <div id="modo-comparacion-section" class="hidden fade-in mb-6">
+        <!-- MODO DE COMPARACIÓN (Siempre visible al inicio) -->
+        <div id="modo-comparacion-section" class="fade-in mb-6">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                 <p class="text-sm font-bold text-drk-800 mb-3 text-center uppercase tracking-wider">MODO DE COMPARACIÓN</p>
                 <div class="flex flex-wrap justify-center gap-2 text-sm">
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400">
+                        <input type="radio" name="comparison_mode" value="drk_only" class="hidden">
+                        <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
+                    </label>
                     <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-500 text-white bg-drk-500 hover:bg-drk-600">
-                        <input type="radio" name="comparison_mode" value="drk_only" class="hidden" checked>
-                        <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
+                        <input type="radio" name="comparison_mode" value="drk_prioritized" class="hidden" checked>
+                        <span class="font-semibold flex items-center justify-between w-full">DRK Prioritario<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
+                    </label>
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400">
+                        <input type="radio" name="comparison_mode" value="overall_best" class="hidden">
+                        <span class="font-black flex flex-col items-center justify-center w-full leading-tight">
+                            <span class="text-base">POWER CUP</span><span class="text-xs font-semibold -mt-0.5">Global</span>
+                        </span>
+                        <svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     </label>
                 </div>
             </div>
         </div>
 
-        <!-- PANTALLA INICIAL: Unificada con opciones de escaneo -->
+        <!-- PANTALLA INICIAL: Solo selector de servicio -->
         <div id="screen-inicio" class="screen active">
             <div class="fade-in flex flex-col items-center justify-center min-h-[40vh] py-8">
-                <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500 relative">
-                    <!-- VERSION -->
-                    <div class="absolute bottom-2 right-2 text-xs text-gray-400">
-                        v2024.12.20
-                    </div>
-                    
+                <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                     <div class="w-16 h-16 bg-drk-50 rounded-full flex items-center justify-center mx-auto mb-4 text-drk-600 shadow-inner">
                         <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none">
                             <style>.drk-ring{fill:none;stroke-width:10;stroke-linecap:round;}</style>
@@ -294,31 +280,33 @@
                             <circle class="drk-ring" cx="55" cy="45" r="35" stroke="#00A859"/>
                         </svg>
                     </div>
-                    <h2 id="inicio-title" class="text-3xl font-black text-drk-900 mb-6 text-center">ANALIZA TU HOGAR</h2>
+                    <h2 id="inicio-title" class="text-3xl font-black text-drk-900 mb-2 text-center">DRK COMPARADOR</h2>
+                    <p id="inicio-subtitle" class="text-slate-500 mb-6 text-center">Selecciona el tipo de suministro.</p>
                     
-                    <!-- SECCIÓN DE ESCANEO -->
+                    <!-- SELECTOR DE SERVICIO -->
                     <div class="pt-4 border-t border-slate-200">
-                        <h3 class="text-xl font-bold text-slate-800 mb-6 text-center">HOGAR 2.0 TD</h3>
-                        
-                        <div class="space-y-3">
-                            <!-- Botón 1: ESCANEAR QR AHORA -->
-                            <button onclick="selectTariffType('2.0TD'); setTimeout(() => document.getElementById('start-scan-btn').click(), 300);" class="w-full bg-gradient-to-r from-drk-600 to-drk-800 hover:from-drk-700 hover:to-drk-900 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.125 3h3.75a2 2 0 011.664.89l.812 1.22a2 2 0 001.664.89H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                <span>ESCANEAR QR AHORA</span>
+                        <p id="inicio-supply-label" class="text-sm font-bold text-drk-800 mb-4 text-center uppercase tracking-wider">TIPO DE SUMINISTRO</p>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <button onclick="goToElectricidad()" style="padding: 2rem; border-radius: 1.5rem; border: 4px solid #cbd5e1; background: white; text-align: center; cursor: pointer;">
+                                <div style="font-size: 3rem; margin-bottom: 0.75rem;">⚡</div>
+                                <div style="font-size: 1.25rem; font-weight: 900; color: #1e3a8a;">ELECTRICIDAD</div>
+                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem;">MULTICUPS · 2.0 TD · 3.0 TD</div>
                             </button>
                             
-                            <!-- Botón 2: OTRAS OPCIONES DE CAPTURA -->
-                            <button onclick="selectTariffType('2.0TD'); setTimeout(() => document.getElementById('upload-menu-btn').click(), 300);" class="w-full bg-drk-50 hover:bg-drk-100 text-drk-800 font-bold py-3 px-6 rounded-xl shadow-sm transform transition active:scale-95 flex items-center justify-center gap-3">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                <span>OTRAS OPCIONES DE CAPTURA</span>
-                            </button>
-                            
-                            <!-- Botón 3: DATOS A MANO -->
-                            <button onclick="selectTariffType('2.0TD'); setTimeout(() => document.getElementById('manual-input-btn').click(), 300);" class="w-full bg-drk-50 hover:bg-drk-100 text-drk-800 font-bold py-3 px-6 rounded-xl shadow-sm transform transition active:scale-95 flex items-center justify-center gap-3">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                <span>DATOS A MANO</span>
+                            <button onclick="goToGas()" style="padding: 2rem; border-radius: 1.5rem; border: 4px solid #cbd5e1; background: white; text-align: center; cursor: pointer;">
+                                <div style="font-size: 3rem; margin-bottom: 0.75rem;">🔥</div>
+                                <div style="font-size: 1.25rem; font-weight: 900; color: #dc2626;">GAS</div>
+                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.5rem;">RL1 · RL2 · RL3 · RL4 · RL5 · RL6</div>
                             </button>
                         </div>
+                        
+                        <!-- NUEVO: Botón DUAL -->
+                        <button onclick="goToDual()" style="padding: 2rem; border-radius: 1.5rem; border: 4px solid #84cc16; background: linear-gradient(135deg, #f0f9ff 0%, #f7fee7 100%); text-align: center; cursor: pointer; width: 100%;">
+                            <div style="font-size: 3rem; margin-bottom: 0.75rem;">⚡🔥</div>
+                            <div style="font-size: 1.5rem; font-weight: 900; background: linear-gradient(135deg, #0ea5e9 0%, #84cc16 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">DUAL</div>
+                            <div style="font-size: 0.875rem; font-weight: 700; color: #475569; margin-top: 0.5rem;">ELECTRICIDAD + GAS</div>
+                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">Múltiples suministros · Comparativa global</div>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -343,13 +331,35 @@
                 
                 <!-- Tariff Selection Buttons -->
                 <div class="w-full space-y-4">
+                    <button onclick="selectTariffType('MULTICUPS')" class="tariff-select-btn group">
+                        <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg>
+                        </div>
+                        <div class="text-left">
+                            <span class="text-lg font-bold text-drk-900">MULTICUPS</span>
+                            <span class="block text-xs text-slate-500">Gestor de múltiples contratos (2.0TD + 3.0TD)</span>
+                        </div>
+                        <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
+                    </button>
+
                     <button onclick="selectTariffType('2.0TD')" class="tariff-select-btn group">
                         <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                         </div>
                         <div class="text-left">
                             <span class="text-lg font-bold text-drk-900">2.0 TD</span>
-                            <span class="block text-xs text-slate-500">Hogar / Pequeño Negocio</span>
+                            <span class="block text-xs text-slate-500">Hogar / Pequeño Negocio (Individual)</span>
+                        </div>
+                        <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
+                    </button>
+
+                    <button onclick="selectTariffType('3.0TD')" class="tariff-select-btn group">
+                        <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.18a2 2 0 0 0 1.51-.72L11 1l2 2h3.18a2 2 0 0 1 1.51.72L20 5h1.18a2 2 0 0 1 2 2z"></path><path d="M14 9H8v8h8V9z"></path></svg>
+                        </div>
+                        <div class="text-left">
+                            <span class="text-lg font-bold text-drk-900">3.0 TD</span>
+                            <span class="block text-xs text-slate-500">Industria / Gran Consumo (Individual)</span>
                         </div>
                         <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
                     </button>
@@ -1080,6 +1090,17 @@
                         </div>
                         <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
                     </button>
+
+                    <button onclick="selectMultiCupType('3.0TD')" class="tariff-select-btn group border-drk-300 hover:border-drk-500">
+                        <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.18a2 2 0 0 0 1.51-.72L11 1l2 2h3.18a2 2 0 0 1 1.51.72L20 5h1.18a2 2 0 0 1 2 2z"></path><path d="M14 9H8v8h8V9z"></path></svg>
+                        </div>
+                        <div class="text-left">
+                            <span class="text-lg font-bold text-drk-900">3.0 TD</span>
+                            <span class="block text-xs text-slate-500">Solo Entrada de Datos Manual</span>
+                        </div>
+                        <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
+                    </button>
                 </div>
                 
                 <button id="multicups-finalize-btn-saga" onclick="finalizeMultiCups()" class="w-full bg-cta-green-500 hover:bg-cta-green-600 text-white font-bold py-4 rounded-2xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mt-8 hidden">
@@ -1538,7 +1559,7 @@
                                     </div>
                                     <div class="flex-1">
                                         <p class="font-black text-lg text-slate-900 mb-2">VER MEJOR OPCIÓN</p>
-                                        <p class="text-sm text-slate-600">Muestra automáticamente la mejor tarifa FIJA con tu ahorro</p>
+                                        <p class="text-sm text-slate-600">Muestra automáticamente la oferta con mayor ahorro y genera la comparativa</p>
                                     </div>
                                     <svg class="w-6 h-6 text-slate-400 group-hover:text-drk-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                 </div>
@@ -1587,7 +1608,7 @@
                             </div>
                         </div>
                         
-                        <!-- Opción 2: Elegir Manual - AHORA VISIBLE -->
+                        <!-- Opción 2: Elegir Manual -->
                         <button onclick="selectFromResults()" class="text-left p-6 rounded-xl border-2 border-slate-300 bg-white hover:border-drk-500 hover:bg-drk-50 transition group">
                             <div class="flex items-start gap-4">
                                 <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200">
@@ -1602,8 +1623,8 @@
                         </button>
                     </div>
                     
-                    <!-- Info adicional - OCULTO -->
-                    <div class="hidden mt-6 p-4 bg-slate-50 rounded-lg">
+                    <!-- Info adicional -->
+                    <div class="mt-6 p-4 bg-slate-50 rounded-lg">
                         <p id="advice-text" class="text-xs text-slate-600">
                             💡 <strong id="advice-label">Consejo:</strong> <span id="advice-content">Si quieres ver rápidamente la mejor oferta, elige la primera opción. Si necesitas comparar varias opciones o el cliente tiene preferencias específicas, elige la segunda.</span>
                         </p>
@@ -2286,35 +2307,15 @@
             document.querySelectorAll('.hidden-period').forEach(el => el.style.display = 'none');
             document.getElementById('tariff-display-badge').textContent = '0';
             
-            // FINALMENTE: Mostrar pantalla inicial y mantener oculto selector de modo
+            // FINALMENTE: Mostrar pantalla inicial y selector de modo
             document.getElementById('screen-inicio')?.classList.add('active');
             const modoComparacionSection = document.getElementById('modo-comparacion-section');
             if (modoComparacionSection) {
-                modoComparacionSection.style.display = 'none'; // Mantener oculto
+                modoComparacionSection.style.display = 'block';
             }
             
             console.log('✅ resetToLanding completada - screen-inicio activa');
-            
-            // NUEVO: Mostrar navbar al volver al inicio
-            showNavbar();
         };
-        
-        // NUEVAS FUNCIONES: Ocultar/Mostrar Navbar cuando se muestran resultados
-        function hideNavbar() {
-            const navbar = document.getElementById('navbar');
-            if (navbar) {
-                navbar.style.display = 'none';
-                console.log('🔒 Navbar ocultado');
-            }
-        }
-        
-        function showNavbar() {
-            const navbar = document.getElementById('navbar');
-            if (navbar) {
-                navbar.style.display = 'block';
-                console.log('👁️ Navbar mostrado');
-            }
-        }
         
         // NUEVA FUNCIÓN: Volver desde initial-view SIN hacer reset completo
         window.goBackFromInitialView = function() {
@@ -2324,10 +2325,10 @@
             // Solo ocultar initial-view
             document.getElementById('initial-view')?.classList.add('hidden');
             
-            // Mostrar la pantalla inicial (screen-inicio)
-            document.getElementById('screen-inicio')?.classList.add('active');
+            // Mostrar la pantalla de selección de tarifa (landing-view)
+            document.getElementById('landing-view')?.classList.remove('hidden');
             
-            console.log('✅ Vuelto a screen-inicio');
+            console.log('✅ Vuelto a landing-view sin resetear');
         };
         
         // NUEVA FUNCIÓN: Volver desde multicups-saga-view SIN hacer reset completo
@@ -2424,7 +2425,6 @@
                 toggleMultiCupsInputPeriods(currentTariffType, 'input');
 
                 // CRÍTICO: Ocultar todas las vistas antes de mostrar initial-view
-                document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
                 document.getElementById('landing-view').classList.add('hidden');
                 document.getElementById('multicups-saga-view').classList.add('hidden');
                 document.getElementById('initial-view').classList.remove('hidden');
@@ -2734,23 +2734,10 @@
                 // PERO SOLO en modo individual, NO en MultiCups
                 const isMultiCupsMode = currentTariffType === 'MULTICUPS';
                 
-                // DEBUG: Logs para entender por qué no se muestra el modal
-                console.log('🔍 DEBUG MODAL:');
-                console.log('  - isMultiCupsMode:', isMultiCupsMode);
-                console.log('  - currentTariffType:', currentTariffType);
-                console.log('  - availableOffers.length:', availableOffers.length);
-                console.log('  - availableOffers:', availableOffers);
-                console.log('  - Condition (!isMultiCupsMode && availableOffers.length >= 1):', !isMultiCupsMode && availableOffers.length >= 1);
-                
-                // CAMBIO: Mostrar modal SIEMPRE que haya ofertas (>= 1) para que el comercial pueda elegir
-                if (!isMultiCupsMode && availableOffers.length >= 1) {
-                    console.log('✅ MOSTRANDO MODAL DE DECISIÓN con', availableOffers.length, 'ofertas');
+                if (!isMultiCupsMode && availableOffers.length > 1) {
+                    console.log('Showing decision modal with', availableOffers.length, 'offers');
                     showOfferDecisionModal();
                     return; // No mostrar resultados todavía, esperar decisión del usuario
-                } else {
-                    console.log('⚠️ NO SE MUESTRA MODAL. Razones:');
-                    if (isMultiCupsMode) console.log('  - Es modo MultiCups');
-                    if (availableOffers.length < 1) console.log('  - No hay ofertas disponibles (<1)');
                 }
                 
                 // Si es MultiCups, solo hay 1 oferta, o ninguna, mostrar resultados directamente
@@ -2875,10 +2862,8 @@
                 
                 } else {
                     // Flujo normal - mostrar resultados
-                    document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
                     document.getElementById('results-view').classList.remove('hidden');
                     document.getElementById('results-view').classList.add('animate-fade-in-up');
-                    hideNavbar(); // Ocultar navbar al mostrar resultados
                     
                     // Detectar modo DUAL y mostrar botón si corresponde
                     if (window.checkDualMode) window.checkDualMode();
@@ -3158,13 +3143,11 @@
             
             renderMultiResultsUI(finalResult);
             
-            document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
             document.getElementById('initial-view').classList.add('hidden');
             document.getElementById('multicups-saga-view').classList.add('hidden');
             document.getElementById('scanner-view').classList.add('hidden');
             document.getElementById('results-view').classList.remove('hidden');
             document.getElementById('results-view').classList.add('animate-fade-in-up');
-            hideNavbar(); // Ocultar navbar al mostrar resultados
         }
 
 
@@ -4354,18 +4337,15 @@
                 }
             }
             
-            const detailsContainer = document.getElementById('details-container');
-
-            // Calcular porcentajes de consumo para tarifa 2.0TD
+            // Calcular distribución de consumo para 2.0 TD (para análisis de horarios)
             let scheduleAnalysisHTML = '';
             let navigationMenuHTML = '';
-            let defaultSection = 'datos-extraidos'; // Por defecto mostrar datos extraídos
             
             if (tariffType === '2.0TD') {
-                defaultSection = 'analisis'; // Para 2.0TD mostrar análisis primero
-                const puntaKwh = res.energyCosts[0].kwh;
-                const llanoKwh = res.energyCosts[1].kwh;
-                const valleKwh = res.energyCosts[2].kwh;
+                // Calcular kWh por período
+                const puntaKwh = res.energyCosts[0]?.kwh || 0;
+                const llanoKwh = res.energyCosts[1]?.kwh || 0;
+                const valleKwh = res.energyCosts[2]?.kwh || 0;
                 const totalKwh = puntaKwh + llanoKwh + valleKwh;
                 
                 const puntaPct = totalKwh > 0 ? (puntaKwh / totalKwh * 100).toFixed(1) : 0;
@@ -4459,11 +4439,11 @@
                                     </div>
                                     <div class="text-3xl font-black text-yellow-600 mb-1">${llanoPct}%</div>
                                     <div class="text-sm text-slate-600 mb-2">${num(llanoKwh, 0)} kWh</div>
-                                    <div class="text-xs text-slate-500 bg-white p-2 rounded">${tr('Precio medio')}<br>8-10h, 14-18h, 22-24h</div>
+                                    <div class="text-xs text-slate-500 bg-white p-2 rounded">${tr('Horario intermedio')}<br>8-10h, 14-18h, 22-24h</div>
                                 </div>
                                 
                                 <!-- Valle -->
-                                <div class="text-center p-4 bg-green-50 rounded-lg border-2 border-green-300">
+                                <div class="text-center p-4 bg-green-50 rounded-lg border-2 border-green-200">
                                     <div class="flex items-center justify-center gap-2 mb-2">
                                         <div class="w-4 h-4 rounded-full bg-green-600"></div>
                                         <h5 class="font-bold text-green-700">${tr('Periodo Valle')}</h5>
@@ -4530,10 +4510,12 @@
                 `;
             }
 
+            const detailsContainer = document.getElementById('details-container');
+
             detailsContainer.innerHTML = `
                 ${navigationMenuHTML}
                 ${scheduleAnalysisHTML}
-                <div id="section-datos-extraidos" class="section-content" style="display: none;">
+                <div id="section-datos-extraidos" class="section-content" style="display: ${tariffType === '2.0TD' ? 'none' : 'block'};">
                     <h3 class="text-lg font-bold text-slate-800 border-l-4 ${brand.BORDER.replace('border-', 'border-')} pl-3 mb-4">${tr('Datos Extraídos')}</h3>
                     <div id="user-consumption-details" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-sm">${consumptionHTML}</div>
                 </div>
@@ -4546,48 +4528,52 @@
                 </div>
             `;
             
-            // Función para mostrar/ocultar secciones
-            window.showSection = function(sectionName) {
-                // Ocultar todas las secciones
-                const sections = document.querySelectorAll('.section-content');
-                sections.forEach(section => {
-                    section.style.display = 'none';
-                });
-                
-                // Quitar estado activo de todos los botones
-                const tabs = document.querySelectorAll('.section-tab');
-                tabs.forEach(tab => {
-                    tab.classList.remove('text-drk-600', 'bg-drk-50', 'border-drk-600');
-                    tab.classList.add('text-slate-600', 'border-transparent');
-                });
-                
-                // Mostrar sección seleccionada
-                const targetSection = document.getElementById('section-' + sectionName);
-                if (targetSection) {
-                    targetSection.style.display = 'block';
-                    // Scroll suave a la sección
-                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-                
-                // Activar botón correspondiente
-                const targetButton = document.getElementById('btn-' + sectionName);
-                if (targetButton) {
-                    targetButton.classList.remove('text-slate-600', 'border-transparent');
-                    targetButton.classList.add('text-drk-600', 'bg-drk-50', 'border-drk-600');
-                }
-            };
-            
-            // Mostrar la sección por defecto según el tipo de tarifa
-            setTimeout(() => {
-                window.showSection(defaultSection);
-            }, 100);
-            
             console.log('renderResultsUI completed successfully');
             } catch (error) {
                 console.error('Error in renderResultsUI:', error);
                 window.showErrorModal(`Error al mostrar resultados: ${error.message}`);
             }
         }
+        
+        // === FUNCIÓN PARA NAVEGACIÓN POR PESTAÑAS ===
+        window.showSection = function(sectionName) {
+            // Ocultar todas las secciones
+            const sections = document.querySelectorAll('.section-content');
+            sections.forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Remover clase active de todos los botones
+            const tabs = document.querySelectorAll('.section-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar la sección seleccionada
+            const targetSection = document.getElementById(`section-${sectionName}`);
+            if (targetSection) {
+                targetSection.style.display = 'block';
+            }
+            
+            // Activar el botón correspondiente
+            const activeButton = document.getElementById(`btn-${sectionName}`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+            
+            // Scroll suave al inicio de la sección
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        
+        // === INICIALIZAR PRIMERA PESTAÑA ===
+        // Se ejecuta automáticamente después de cargar los resultados
+        setTimeout(() => {
+            const firstTab = document.querySelector('.section-tab');
+            if (firstTab && firstTab.onclick) {
+                // Hacer clic en la primera pestaña para activarla
+                firstTab.click();
+            }
+        }, 100);
         
         // --- COPIA HTML MEJORADA ---
 
@@ -4604,9 +4590,6 @@
             }
             
             const currentLang = localStorage.getItem('appLanguage') || 'es';
-            
-            // Obtener tipo de tarifa
-            const tariffType = lastComparisonResult.originalTariffType || lastComparisonResult.tariffType || currentTariffType;
             
             // NUEVO: Para TODOS LOS IDIOMAS, generar HTML con tablas traducidas
             console.log(`🌐 Generando HTML traducido para idioma: ${currentLang}`);
@@ -4677,171 +4660,6 @@
                                 </table>
                             </td>
                         </tr>
-                        
-                        ${(() => {
-                            // Solo para tarifa 2.0TD: añadir análisis de horarios y consumo
-                            if (tariffType === '2.0TD' && res.energyCosts && res.energyCosts.length >= 3) {
-                                const puntaKwh = res.energyCosts[0].kwh || 0;
-                                const llanoKwh = res.energyCosts[1].kwh || 0;
-                                const valleKwh = res.energyCosts[2].kwh || 0;
-                                const totalKwh = puntaKwh + llanoKwh + valleKwh;
-                                
-                                const puntaPct = totalKwh > 0 ? (puntaKwh / totalKwh * 100).toFixed(1) : 0;
-                                const llanoPct = totalKwh > 0 ? (llanoKwh / totalKwh * 100).toFixed(1) : 0;
-                                const vallePct = totalKwh > 0 ? (valleKwh / totalKwh * 100).toFixed(1) : 0;
-                                
-                                let recomendacion = '';
-                                if (puntaPct > 30) {
-                                    recomendacion = tr('Consumes más del 30% en horario Punta. Te recomendamos trasladar consumos al periodo Valle (madrugada y fines de semana) para maximizar tu ahorro.');
-                                } else if (vallePct > 50) {
-                                    recomendacion = tr('¡Excelente! Más del 50% de tu consumo está en Valle, el periodo más económico. Sigue así para maximizar tu ahorro.');
-                                } else {
-                                    recomendacion = tr('Tu consumo está bien distribuido. Considera trasladar más consumo al periodo Valle para aumentar tu ahorro.');
-                                }
-                                
-                                return `
-                                    <!-- ANÁLISIS DE HORARIOS Y CONSUMO (Solo 2.0TD) -->
-                                    <tr>
-                                        <td style="padding:20px;background:#f8fafc;">
-                                            <table width="100%" cellpadding="0" cellspacing="0">
-                                                <tr>
-                                                    <td style="padding-bottom:15px;">
-                                                        <h3 style="margin:0;color:#1e293b;font-size:16px;font-weight:bold;">
-                                                            🕐 ${tr('Análisis de Horarios y Consumo - Tarifa 2.0 TD')}
-                                                        </h3>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                            
-                                            <!-- Tarjetas de Horarios -->
-                                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:15px;">
-                                                <tr>
-                                                    <td width="48%" valign="top" style="background:#ffffff;padding:15px;border-radius:8px;">
-                                                        <p style="margin:0 0 10px 0;text-align:center;font-weight:bold;color:#334155;font-size:13px;">${tr('Lunes a viernes laborables')}</p>
-                                                        <table width="100%" cellpadding="5" cellspacing="0">
-                                                            <tr>
-                                                                <td style="background:#fef2f2;padding:8px;border-radius:6px;margin-bottom:5px;">
-                                                                    <span style="display:inline-block;width:10px;height:10px;background:#dc2626;border-radius:50%;margin-right:5px;"></span>
-                                                                    <span style="font-weight:bold;color:#991b1b;font-size:11px;">${tr('Punta')}:</span>
-                                                                    <span style="color:#475569;font-size:11px;">10-14h, 18-22h</span>
-                                                                </td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td style="background:#fefce8;padding:8px;border-radius:6px;margin-bottom:5px;">
-                                                                    <span style="display:inline-block;width:10px;height:10px;background:#facc15;border-radius:50%;margin-right:5px;"></span>
-                                                                    <span style="font-weight:bold;color:#a16207;font-size:11px;">${tr('Llano')}:</span>
-                                                                    <span style="color:#475569;font-size:11px;">8-10h, 14-18h, 22-24h</span>
-                                                                </td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td style="background:#f0fdf4;padding:8px;border-radius:6px;">
-                                                                    <span style="display:inline-block;width:10px;height:10px;background:#16a34a;border-radius:50%;margin-right:5px;"></span>
-                                                                    <span style="font-weight:bold;color:#166534;font-size:11px;">${tr('Valle')}:</span>
-                                                                    <span style="color:#475569;font-size:11px;">0-8h</span>
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-                                                    </td>
-                                                    <td width="4%"></td>
-                                                    <td width="48%" valign="top" style="background:#ffffff;padding:15px;border-radius:8px;">
-                                                        <p style="margin:0 0 10px 0;text-align:center;font-weight:bold;color:#334155;font-size:13px;">${tr('Sábados, domingos y festivos')}</p>
-                                                        <table width="100%" cellpadding="15" cellspacing="0">
-                                                            <tr>
-                                                                <td style="background:#f0fdf4;padding:20px;border-radius:8px;text-align:center;">
-                                                                    <span style="display:inline-block;width:14px;height:14px;background:#16a34a;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>
-                                                                    <span style="font-weight:bold;color:#166534;font-size:14px;vertical-align:middle;">${tr('Valle')}</span>
-                                                                    <p style="margin:8px 0 0 0;color:#475569;font-size:11px;">24 horas (todo el día)</p>
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                            
-                                            <!-- Distribución de Consumo -->
-                                            <table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:15px;border-radius:8px;margin-bottom:15px;">
-                                                <tr>
-                                                    <td style="padding-bottom:12px;">
-                                                        <p style="margin:0;font-weight:bold;color:#1e293b;font-size:14px;">
-                                                            📊 ${tr('Tu Distribución de Consumo')}
-                                                        </p>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>
-                                                        <table width="100%" cellpadding="8" cellspacing="0">
-                                                            <tr>
-                                                                <!-- Punta -->
-                                                                <td width="32%" style="background:#fef2f2;padding:12px;border-radius:8px;border:2px solid #fecaca;text-align:center;">
-                                                                    <span style="display:inline-block;width:12px;height:12px;background:#dc2626;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>
-                                                                    <span style="font-weight:bold;color:#991b1b;font-size:12px;vertical-align:middle;">${tr('Periodo Punta')}</span>
-                                                                    <p style="margin:8px 0 5px 0;color:#dc2626;font-size:24px;font-weight:bold;">${puntaPct}%</p>
-                                                                    <p style="margin:0 0 5px 0;color:#64748b;font-size:11px;">${puntaKwh.toFixed(0)} kWh</p>
-                                                                    <p style="margin:0;background:#ffffff;padding:6px;border-radius:4px;color:#64748b;font-size:9px;">
-                                                                        ${tr('Horario más caro')}<br>10-14h, 18-22h (lab.)
-                                                                    </p>
-                                                                </td>
-                                                                <td width="2%"></td>
-                                                                <!-- Llano -->
-                                                                <td width="32%" style="background:#fefce8;padding:12px;border-radius:8px;border:2px solid #fde047;text-align:center;">
-                                                                    <span style="display:inline-block;width:12px;height:12px;background:#facc15;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>
-                                                                    <span style="font-weight:bold;color:#a16207;font-size:12px;vertical-align:middle;">${tr('Periodo Llano')}</span>
-                                                                    <p style="margin:8px 0 5px 0;color:#ca8a04;font-size:24px;font-weight:bold;">${llanoPct}%</p>
-                                                                    <p style="margin:0 0 5px 0;color:#64748b;font-size:11px;">${llanoKwh.toFixed(0)} kWh</p>
-                                                                    <p style="margin:0;background:#ffffff;padding:6px;border-radius:4px;color:#64748b;font-size:9px;">
-                                                                        ${tr('Precio medio')}<br>8-10h, 14-18h, 22-24h
-                                                                    </p>
-                                                                </td>
-                                                                <td width="2%"></td>
-                                                                <!-- Valle -->
-                                                                <td width="32%" style="background:#f0fdf4;padding:12px;border-radius:8px;border:2px solid#bbf7d0;text-align:center;">
-                                                                    <span style="display:inline-block;width:12px;height:12px;background:#16a34a;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>
-                                                                    <span style="font-weight:bold;color:#166534;font-size:12px;vertical-align:middle;">${tr('Periodo Valle')}</span>
-                                                                    <p style="margin:8px 0 5px 0;color:#16a34a;font-size:24px;font-weight:bold;">${vallePct}%</p>
-                                                                    <p style="margin:0 0 5px 0;color:#64748b;font-size:11px;">${valleKwh.toFixed(0)} kWh</p>
-                                                                    <p style="margin:0;background:#ffffff;padding:6px;border-radius:4px;color:#64748b;font-size:9px;">
-                                                                        ${tr('Horario más barato')}<br>0-8h + fines semana
-                                                                    </p>
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-                                                    </td>
-                                                </tr>
-                                                <!-- Barra de progreso -->
-                                                <tr>
-                                                    <td style="padding-top:12px;">
-                                                        <table width="100%" cellpadding="0" cellspacing="0" style="height:25px;border-radius:6px;overflow:hidden;">
-                                                            <tr>
-                                                                <td width="${puntaPct}%" style="background:#dc2626;color:#ffffff;text-align:center;font-size:10px;font-weight:bold;padding:5px;">
-                                                                    ${puntaPct > 8 ? puntaPct + '%' : ''}
-                                                                </td>
-                                                                <td width="${llanoPct}%" style="background:#facc15;color:#1e293b;text-align:center;font-size:10px;font-weight:bold;padding:5px;">
-                                                                    ${llanoPct > 8 ? llanoPct + '%' : ''}
-                                                                </td>
-                                                                <td width="${vallePct}%" style="background:#16a34a;color:#ffffff;text-align:center;font-size:10px;font-weight:bold;padding:5px;">
-                                                                    ${vallePct > 8 ? vallePct + '%' : ''}
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                            
-                                            <!-- Recomendación -->
-                                            <table width="100%" cellpadding="0" cellspacing="0" style="background:#eff6ff;padding:12px;border-radius:8px;border-left:4px solid #0284c7;">
-                                                <tr>
-                                                    <td>
-                                                        <p style="margin:0 0 5px 0;font-weight:bold;color:#0c4a6e;font-size:12px;">💡 ${tr('Recomendación Personalizada')}</p>
-                                                        <p style="margin:0;color:#334155;font-size:11px;line-height:1.5;">${recomendacion}</p>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </td>
-                                    </tr>
-                                `;
-                            }
-                            return '';
-                        })()}
                         
                         <!-- DETALLES TÍTULO -->
                         <tr>
@@ -8292,13 +8110,13 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 // === CABECERA AZUL (MÁS PEQUEÑA) ===
                 doc.setFillColor(...primaryColor);
-                doc.roundedRect(margin, yPos, contentWidth, 24, 4, 4, 'F');
+                doc.roundedRect(margin, yPos, contentWidth, 32, 4, 4, 'F');
                 
                 // "LA MEJOR OPCIÓN PARA TI ES"
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(8);
+                doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
-                doc.text(tr('LA MEJOR OPCIÓN PARA TI ES'), pageWidth / 2, yPos + 6, { align: 'center' });
+                doc.text(tr('LA MEJOR OPCIÓN PARA TI ES'), pageWidth / 2, yPos + 8, { align: 'center' });
                 
                 // Comercializadora y Tarifa
                 const comercializadora = offer.name; // Nombre corto (ej: ELEIA)
@@ -8307,48 +8125,48 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 if (!isDrk) {
                     // POWER CUP Individual: Solo mostrar comercializadora (nombre corto)
-                    doc.setFontSize(26);
+                    doc.setFontSize(32);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(comercializadora.toUpperCase(), pageWidth / 2, yPos + 14, { align: 'center' });
+                    doc.text(comercializadora.toUpperCase(), pageWidth / 2, yPos + 18, { align: 'center' });
                     
                     // POWER CUP debajo
-                    doc.setFontSize(8);
+                    doc.setFontSize(9);
                     doc.setFont('helvetica', 'normal');
-                    doc.text('POWER CUP', pageWidth / 2, yPos + 21, { align: 'center' });
+                    doc.text('POWER CUP', pageWidth / 2, yPos + 27, { align: 'center' });
                 } else {
                     // DRK: Mostrar solo DRK y nombre de tarifa
-                    doc.setFontSize(20);
+                    doc.setFontSize(26);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('DRK', pageWidth / 2, yPos + 14, { align: 'center' });
+                    doc.text('DRK', pageWidth / 2, yPos + 18, { align: 'center' });
                     
-                    doc.setFontSize(8);
+                    doc.setFontSize(9);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(tarifaCompleta, pageWidth / 2, yPos + 21, { align: 'center' });
+                    doc.text(tarifaCompleta, pageWidth / 2, yPos + 27, { align: 'center' });
                 }
                 
-                yPos += 28;
+                yPos += 37;
                 
                 // === CAJA BLANCA COMPACTA ===
                 doc.setFillColor(255, 255, 255);
                 doc.setDrawColor(220, 220, 220);
                 doc.setLineWidth(0.3);
-                const boxHeightIndiv = res.savings > 0 ? 55 : 50;
+                const boxHeightIndiv = res.savings > 0 ? 75 : 65;
                 doc.roundedRect(margin, yPos, contentWidth, boxHeightIndiv, 4, 4, 'FD');
                 
                 if (res.savings > 0) {
                     // Ahorro positivo - diseño normal
                     doc.setTextColor(120, 120, 140);
-                    doc.setFontSize(9);
+                    doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('TU AHORRO ANUAL ESTIMADO'), pageWidth / 2, yPos + 6, { align: 'center' });
+                    doc.text(tr('TU AHORRO ANUAL ESTIMADO'), pageWidth / 2, yPos + 8, { align: 'center' });
                     
                     // Cifra de ahorro en VERDE (grande pero ajustado)
                     doc.setTextColor(...greenColor);
-                    doc.setFontSize(26);
+                    doc.setFontSize(32);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(savingsText, pageWidth / 2, yPos + 19, { align: 'center' });
+                    doc.text(savingsText, pageWidth / 2, yPos + 25, { align: 'center' });
                     
-                    yPos += 24;
+                    yPos += 32;
                 } else {
                     // Sin ahorro - mensaje grande centrado
                     doc.setTextColor(...primaryColor);
@@ -8377,7 +8195,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 const leftXResumen = margin + 10;
                 
                 doc.setTextColor(140, 150, 160);
-                doc.setFontSize(7);
+                doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
                 doc.text(tr('TU FACTURA ACTUAL'), leftXResumen + colWidthResumen / 2, yPos, { align: 'center' });
                 
@@ -8386,381 +8204,75 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 const precioMensualEstimado = (res.originalBillAnnual / 365) * 30;
                 const oldPrice = `${eur(precioMensualEstimado)}/mes`;
                 doc.setTextColor(...redColor);
-                doc.setFontSize(14);
+                doc.setFontSize(18);
                 doc.setFont('helvetica', 'bold');
                 const oldX = leftXResumen + colWidthResumen / 2;
-                const oldY = yPos + 9;
+                const oldY = yPos + 12;
                 doc.text(oldPrice, oldX, oldY, { align: 'center' });
                 
                 // Línea tachada
                 const oldWidth = doc.getTextWidth(oldPrice);
                 doc.setDrawColor(...redColor);
-                doc.setLineWidth(1.2);
-                doc.line(oldX - oldWidth/2 - 2, oldY - 2.5, oldX + oldWidth/2 + 2, oldY - 2.5);
+                doc.setLineWidth(1.5);
+                doc.line(oldX - oldWidth/2 - 2, oldY - 3, oldX + oldWidth/2 + 2, oldY - 3);
                 
                 // "Total Periodo"
                 doc.setTextColor(140, 150, 160);
-                doc.setFontSize(6);
+                doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
-                doc.text(`Total Periodo (${diasPeriodo} días)`, leftXResumen + colWidthResumen / 2, yPos + 14, { align: 'center' });
+                doc.text(`Total Periodo (${diasPeriodo} días)`, leftXResumen + colWidthResumen / 2, yPos + 19, { align: 'center' });
                 
                 // Precio anual tachado
                 const oldAnnual = eur(res.originalBillAnnual);
                 doc.setTextColor(...redColor);
-                doc.setFontSize(13);
+                doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
                 const oldAnnualX = leftXResumen + colWidthResumen / 2;
-                const oldAnnualY = yPos + 24;
+                const oldAnnualY = yPos + 32;
                 doc.text(`${oldAnnual}/año`, oldAnnualX, oldAnnualY, { align: 'center' });
                 
                 // Línea tachada
                 const oldAnnualWidth = doc.getTextWidth(`${oldAnnual}/año`);
                 doc.setDrawColor(...redColor);
-                doc.setLineWidth(1.2);
-                doc.line(oldAnnualX - oldAnnualWidth/2 - 2, oldAnnualY - 2.5, oldAnnualX + oldAnnualWidth/2 + 2, oldAnnualY - 2.5);
+                doc.setLineWidth(1.5);
+                doc.line(oldAnnualX - oldAnnualWidth/2 - 2, oldAnnualY - 3, oldAnnualX + oldAnnualWidth/2 + 2, oldAnnualY - 3);
                 
                 // SEPARADOR VERTICAL
                 doc.setDrawColor(220, 220, 220);
                 doc.setLineWidth(0.3);
-                doc.line(pageWidth / 2, yPos - 3, pageWidth / 2, yPos + 28);
+                doc.line(pageWidth / 2, yPos - 5, pageWidth / 2, yPos + 38);
                 
                 // COLUMNA DERECHA - TU NUEVO COSTE
                 const rightXResumen = margin + 10 + colWidthResumen + 10;
                 
                 doc.setTextColor(...primaryColor);
-                doc.setFontSize(7);
+                doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
                 const newLabel = `TU NUEVO COSTE ${brandName}`;
                 doc.text(newLabel, rightXResumen + colWidthResumen / 2, yPos, { align: 'center' });
                 
                 // Precio mensual en azul
                 doc.setTextColor(...primaryColor);
-                doc.setFontSize(16);
+                doc.setFontSize(20);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`${eur(res.totalAnnual / 12)}/mes`, rightXResumen + colWidthResumen / 2, yPos + 10, { align: 'center' });
+                doc.text(`${eur(res.totalAnnual / 12)}/mes`, rightXResumen + colWidthResumen / 2, yPos + 13, { align: 'center' });
                 
                 // "Estimado Mensual"
                 doc.setTextColor(140, 150, 160);
-                doc.setFontSize(6);
+                doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
-                doc.text(tr('Estimado Mensual'), rightXResumen + colWidthResumen / 2, yPos + 14, { align: 'center' });
+                doc.text(tr('Estimado Mensual'), rightXResumen + colWidthResumen / 2, yPos + 19, { align: 'center' });
                 
                 // Precio anual en azul
                 doc.setTextColor(...primaryColor);
-                doc.setFontSize(13);
+                doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`${eur(res.totalAnnual)}/año`, rightXResumen + colWidthResumen / 2, yPos + 24, { align: 'center' });
+                doc.text(`${eur(res.totalAnnual)}/año`, rightXResumen + colWidthResumen / 2, yPos + 32, { align: 'center' });
                 
-                yPos += 36;
+                yPos += 50;
                 } // Fin del condicional de columnas de precios en Individual
                 
-                // === ANÁLISIS DE HORARIOS Y CONSUMO (Solo 2.0TD) ===
-                if (tariffType === '2.0TD' && res.energyCosts && res.energyCosts.length >= 3 && !res.isMulti) {
-                    const puntaKwh = res.energyCosts[0].kwh || 0;
-                    const llanoKwh = res.energyCosts[1].kwh || 0;
-                    const valleKwh = res.energyCosts[2].kwh || 0;
-                    const totalKwh = puntaKwh + llanoKwh + valleKwh;
-                    
-                    const puntaPct = totalKwh > 0 ? (puntaKwh / totalKwh * 100).toFixed(1) : 0;
-                    const llanoPct = totalKwh > 0 ? (llanoKwh / totalKwh * 100).toFixed(1) : 0;
-                    const vallePct = totalKwh > 0 ? (valleKwh / totalKwh * 100).toFixed(1) : 0;
-                    
-                    // Verificar espacio disponible (necesitamos ~85mm)
-                    if (yPos > 210) {
-                        doc.addPage();
-                        yPos = 20;
-                    }
-                    
-                    // Título de la sección con fondo VERDE y letras BLANCAS
-                    doc.setFillColor(...greenColor); // VERDE
-                    doc.roundedRect(margin, yPos, contentWidth, 10, 3, 3, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(11);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Análisis de Horarios y Consumo - Tarifa 2.0 TD'), margin + 5, yPos + 6.5);
-                    yPos += 12;
-                    
-                    // === TARJETAS DE HORARIOS ===
-                    const cardWidth = (contentWidth - 6) / 2;
-                    const cardHeight = 32;
-                    const cardX1 = margin;
-                    const cardX2 = margin + cardWidth + 6;
-                    
-                    // Tarjeta 1: Lunes a viernes laborables
-                    doc.setFillColor(255, 255, 255);
-                    doc.setDrawColor(200, 200, 200);
-                    doc.setLineWidth(0.3);
-                    doc.roundedRect(cardX1, yPos, cardWidth, cardHeight, 2, 2, 'FD');
-                    
-                    doc.setTextColor(60, 60, 60);
-                    doc.setFontSize(8.5);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Lunes a viernes laborables'), cardX1 + cardWidth / 2, yPos + 5, { align: 'center' });
-                    
-                    // Periodos
-                    let cardY = yPos + 10;
-                    doc.setFontSize(7);
-                    
-                    // Punta (rojo)
-                    doc.setFillColor(254, 242, 242);
-                    doc.roundedRect(cardX1 + 3, cardY, cardWidth - 6, 5, 1, 1, 'F');
-                    doc.setFillColor(220, 38, 38);
-                    doc.circle(cardX1 + 5, cardY + 2.5, 1, 'F');
-                    doc.setTextColor(153, 27, 27);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Punta') + ':', cardX1 + 8, cardY + 3.5);
-                    doc.setTextColor(71, 85, 105);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text('10-14h, 18-22h', cardX1 + 22, cardY + 3.5);
-                    cardY += 6;
-                    
-                    // Llano (amarillo)
-                    doc.setFillColor(254, 252, 232);
-                    doc.roundedRect(cardX1 + 3, cardY, cardWidth - 6, 5, 1, 1, 'F');
-                    doc.setFillColor(250, 204, 21);
-                    doc.circle(cardX1 + 5, cardY + 2.5, 1, 'F');
-                    doc.setTextColor(161, 98, 7);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Llano') + ':', cardX1 + 8, cardY + 3.5);
-                    doc.setTextColor(71, 85, 105);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text('8-10h, 14-18h, 22-24h', cardX1 + 22, cardY + 3.5);
-                    cardY += 6;
-                    
-                    // Valle (verde)
-                    doc.setFillColor(240, 253, 244);
-                    doc.roundedRect(cardX1 + 3, cardY, cardWidth - 6, 5, 1, 1, 'F');
-                    doc.setFillColor(22, 163, 74);
-                    doc.circle(cardX1 + 5, cardY + 2.5, 1, 'F');
-                    doc.setTextColor(22, 101, 52);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Valle') + ':', cardX1 + 8, cardY + 3.5);
-                    doc.setTextColor(71, 85, 105);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text('0-8h', cardX1 + 22, cardY + 3.5);
-                    
-                    // Tarjeta 2: Sábados, domingos y festivos
-                    doc.setFillColor(255, 255, 255);
-                    doc.setDrawColor(200, 200, 200);
-                    doc.setLineWidth(0.3);
-                    doc.roundedRect(cardX2, yPos, cardWidth, cardHeight, 2, 2, 'FD');
-                    
-                    doc.setTextColor(60, 60, 60);
-                    doc.setFontSize(8.5);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Sábados, domingos y festivos'), cardX2 + cardWidth / 2, yPos + 5, { align: 'center' });
-                    
-                    // Valle todo el día
-                    const valleBoxY = yPos + 12;
-                    doc.setFillColor(240, 253, 244);
-                    doc.roundedRect(cardX2 + 8, valleBoxY, cardWidth - 16, 16, 2, 2, 'F');
-                    doc.setFillColor(22, 163, 74);
-                    doc.circle(cardX2 + cardWidth / 2 - 8, valleBoxY + 5.5, 1.5, 'F');
-                    doc.setTextColor(22, 101, 52);
-                    doc.setFontSize(9);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Valle'), cardX2 + cardWidth / 2 + 2, valleBoxY + 6, { align: 'center' });
-                    doc.setTextColor(71, 85, 105);
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text('24 horas (todo el día)', cardX2 + cardWidth / 2, valleBoxY + 12, { align: 'center' });
-                    
-                    yPos += cardHeight + 8;
-                    
-                    // === DISTRIBUCIÓN DE CONSUMO ===
-                    // Título con fondo VERDE y letras BLANCAS
-                    doc.setFillColor(...greenColor); // VERDE
-                    doc.roundedRect(margin, yPos, contentWidth, 8, 2, 2, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(10);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Tu Distribución de Consumo'), margin + 5, yPos + 5.5);
-                    yPos += 10;
-                    
-                    // Caja blanca para las tarjetas
-                    doc.setFillColor(255, 255, 255);
-                    doc.setDrawColor(200, 200, 200);
-                    doc.setLineWidth(0.3);
-                    const consumoBoxHeight = 28;
-                    doc.roundedRect(margin, yPos, contentWidth, consumoBoxHeight, 2, 2, 'FD');
-                    
-                    // Tres tarjetas de periodos
-                    const periodoCardWidth = (contentWidth - 12) / 3;
-                    const periodoCardX1 = margin + 3;
-                    const periodoCardX2 = periodoCardX1 + periodoCardWidth + 3;
-                    const periodoCardX3 = periodoCardX2 + periodoCardWidth + 3;
-                    const periodoCardY = yPos + 3;
-                    const periodoCardHeight = 22;
-                    
-                    // Punta (rojo)
-                    doc.setFillColor(254, 242, 242);
-                    doc.setDrawColor(252, 165, 165);
-                    doc.setLineWidth(0.5);
-                    doc.roundedRect(periodoCardX1, periodoCardY, periodoCardWidth, periodoCardHeight, 2, 2, 'FD');
-                    
-                    doc.setFillColor(220, 38, 38);
-                    doc.circle(periodoCardX1 + periodoCardWidth / 2 - 8, periodoCardY + 3, 1.2, 'F');
-                    doc.setTextColor(153, 27, 27);
-                    doc.setFontSize(6.5);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Periodo Punta'), periodoCardX1 + periodoCardWidth / 2 + 2, periodoCardY + 3.5, { align: 'center' });
-                    
-                    doc.setTextColor(220, 38, 38);
-                    doc.setFontSize(13);
-                    doc.text(puntaPct + '%', periodoCardX1 + periodoCardWidth / 2, periodoCardY + 10, { align: 'center' });
-                    
-                    doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(6);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(puntaKwh.toFixed(0) + ' kWh', periodoCardX1 + periodoCardWidth / 2, periodoCardY + 14, { align: 'center' });
-                    
-                    doc.setFillColor(255, 255, 255);
-                    doc.roundedRect(periodoCardX1 + 2, periodoCardY + 16, periodoCardWidth - 4, 4.5, 1, 1, 'F');
-                    doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(4.5);
-                    doc.text(tr('Horario más caro'), periodoCardX1 + periodoCardWidth / 2, periodoCardY + 18.5, { align: 'center' });
-                    doc.text('10-14h, 18-22h (lab.)', periodoCardX1 + periodoCardWidth / 2, periodoCardY + 20, { align: 'center' });
-                    
-                    // Llano (amarillo)
-                    doc.setFillColor(254, 252, 232);
-                    doc.setDrawColor(253, 224, 71);
-                    doc.setLineWidth(0.5);
-                    doc.roundedRect(periodoCardX2, periodoCardY, periodoCardWidth, periodoCardHeight, 2, 2, 'FD');
-                    
-                    doc.setFillColor(250, 204, 21);
-                    doc.circle(periodoCardX2 + periodoCardWidth / 2 - 8, periodoCardY + 3, 1.2, 'F');
-                    doc.setTextColor(161, 98, 7);
-                    doc.setFontSize(6.5);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Periodo Llano'), periodoCardX2 + periodoCardWidth / 2 + 2, periodoCardY + 3.5, { align: 'center' });
-                    
-                    doc.setTextColor(202, 138, 4);
-                    doc.setFontSize(13);
-                    doc.text(llanoPct + '%', periodoCardX2 + periodoCardWidth / 2, periodoCardY + 10, { align: 'center' });
-                    
-                    doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(6);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(llanoKwh.toFixed(0) + ' kWh', periodoCardX2 + periodoCardWidth / 2, periodoCardY + 14, { align: 'center' });
-                    
-                    doc.setFillColor(255, 255, 255);
-                    doc.roundedRect(periodoCardX2 + 2, periodoCardY + 16, periodoCardWidth - 4, 4.5, 1, 1, 'F');
-                    doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(4.5);
-                    doc.text(tr('Precio medio'), periodoCardX2 + periodoCardWidth / 2, periodoCardY + 18.5, { align: 'center' });
-                    doc.text('8-10h, 14-18h, 22-24h', periodoCardX2 + periodoCardWidth / 2, periodoCardY + 20, { align: 'center' });
-                    
-                    // Valle (verde)
-                    doc.setFillColor(240, 253, 244);
-                    doc.setDrawColor(187, 247, 208);
-                    doc.setLineWidth(0.5);
-                    doc.roundedRect(periodoCardX3, periodoCardY, periodoCardWidth, periodoCardHeight, 2, 2, 'FD');
-                    
-                    doc.setFillColor(22, 163, 74);
-                    doc.circle(periodoCardX3 + periodoCardWidth / 2 - 8, periodoCardY + 3, 1.2, 'F');
-                    doc.setTextColor(22, 101, 52);
-                    doc.setFontSize(6.5);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Periodo Valle'), periodoCardX3 + periodoCardWidth / 2 + 2, periodoCardY + 3.5, { align: 'center' });
-                    
-                    doc.setTextColor(22, 163, 74);
-                    doc.setFontSize(13);
-                    doc.text(vallePct + '%', periodoCardX3 + periodoCardWidth / 2, periodoCardY + 10, { align: 'center' });
-                    
-                    doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(6);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(valleKwh.toFixed(0) + ' kWh', periodoCardX3 + periodoCardWidth / 2, periodoCardY + 14, { align: 'center' });
-                    
-                    doc.setFillColor(255, 255, 255);
-                    doc.roundedRect(periodoCardX3 + 2, periodoCardY + 16, periodoCardWidth - 4, 4.5, 1, 1, 'F');
-                    doc.setTextColor(100, 116, 139);
-                    doc.setFontSize(4.5);
-                    doc.text(tr('Horario más barato'), periodoCardX3 + periodoCardWidth / 2, periodoCardY + 18.5, { align: 'center' });
-                    doc.text('0-8h + fines semana', periodoCardX3 + periodoCardWidth / 2, periodoCardY + 20, { align: 'center' });
-                    
-                    yPos += consumoBoxHeight + 2;
-                    
-                    // Barra de progreso
-                    const barHeight = 5;
-                    const barY = yPos;
-                    
-                    // Calcular anchos proporcionales
-                    const puntaWidth = (puntaPct / 100) * contentWidth;
-                    const llanoWidth = (llanoPct / 100) * contentWidth;
-                    const valleWidth = (vallePct / 100) * contentWidth;
-                    
-                    // Punta (rojo)
-                    doc.setFillColor(220, 38, 38);
-                    doc.roundedRect(margin, barY, puntaWidth, barHeight, 1, 1, 'F');
-                    if (puntaPct > 8) {
-                        doc.setTextColor(255, 255, 255);
-                        doc.setFontSize(6.5);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text(puntaPct + '%', margin + puntaWidth / 2, barY + 3.8, { align: 'center' });
-                    }
-                    
-                    // Llano (amarillo)
-                    doc.setFillColor(250, 204, 21);
-                    doc.rect(margin + puntaWidth, barY, llanoWidth, barHeight, 'F');
-                    if (llanoPct > 8) {
-                        doc.setTextColor(30, 41, 59);
-                        doc.setFontSize(6.5);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text(llanoPct + '%', margin + puntaWidth + llanoWidth / 2, barY + 3.8, { align: 'center' });
-                    }
-                    
-                    // Valle (verde)
-                    doc.setFillColor(22, 163, 74);
-                    doc.roundedRect(margin + puntaWidth + llanoWidth, barY, valleWidth, barHeight, 1, 1, 'F');
-                    if (vallePct > 8) {
-                        doc.setTextColor(255, 255, 255);
-                        doc.setFontSize(6.5);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text(vallePct + '%', margin + puntaWidth + llanoWidth + valleWidth / 2, barY + 3.8, { align: 'center' });
-                    }
-                    
-                    yPos += barHeight + 3;
-                    
-                    // Recomendación
-                    let recomendacion = '';
-                    if (puntaPct > 30) {
-                        recomendacion = tr('Consumes más del 30% en horario Punta. Te recomendamos trasladar consumos al periodo Valle (madrugada y fines de semana) para maximizar tu ahorro.');
-                    } else if (vallePct > 50) {
-                        recomendacion = tr('¡Excelente! Más del 50% de tu consumo está en Valle, el periodo más económico. Sigue así para maximizar tu ahorro.');
-                    } else {
-                        recomendacion = tr('Tu consumo está bien distribuido. Considera trasladar más consumo al periodo Valle para aumentar tu ahorro.');
-                    }
-                    
-                    doc.setFillColor(239, 246, 255);
-                    doc.setDrawColor(2, 132, 199);
-                    doc.setLineWidth(1);
-                    const recoBoxHeight = 11;
-                    doc.rect(margin, yPos, 3, recoBoxHeight, 'F'); // Línea lateral izquierda
-                    doc.setDrawColor(200, 200, 200);
-                    doc.setLineWidth(0.3);
-                    doc.roundedRect(margin, yPos, contentWidth, recoBoxHeight, 2, 2, 'FD');
-                    
-                    doc.setTextColor(12, 74, 110);
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(tr('Recomendación Personalizada'), margin + 5, yPos + 4);
-                    
-                    doc.setTextColor(51, 65, 85);
-                    doc.setFontSize(6);
-                    doc.setFont('helvetica', 'normal');
-                    const recoLines = doc.splitTextToSize(recomendacion, contentWidth - 10);
-                    doc.text(recoLines, margin + 5, yPos + 8);
-                    
-                    yPos += recoBoxHeight + 5;
-                }
-                
-                // === NUEVA PÁGINA PARA PRECIOS Y DESGLOSE ===
-                // Crear nueva página ANTES de dibujar precios de la oferta
-                doc.addPage();
-                yPos = 20;
-                
-                // === PRECIOS DE LA OFERTA EN PÁGINA 2 ===
+                // === PRECIOS DE LA OFERTA EN PÁGINA 1 (sin check de espacio) ===
                 if (!res.isMulti) {
                     // Titulo con fondo VERDE
                     doc.setFillColor(...greenColor); // VERDE
@@ -8842,7 +8354,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         yPos += 5;
                     }
                     
-                    yPos += 5; // Espacio antes del desglose
+                    // === NUEVA PÁGINA PARA EL DESGLOSE ===
+                    doc.addPage();
+                    yPos = 20;
                 }
                 
                 // === DESGLOSE DETALLADO ===
@@ -8997,7 +8511,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.addPage();
                     yPos = 20;
                 } else {
-                    yPos += 2; // Espacio antes de la caja roja (reducido)
+                    yPos += 15; // Espacio antes de la caja verde (para que no se solape con tarifas consolidadas)
                 }
                 
                 doc.setFillColor(...redColor); // ROJO
@@ -9011,28 +8525,28 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setFontSize(22);
                 doc.text(`${savingsText} ${tr('/ AÑO')}`, margin + 5, yPos + 16);
                 
-                yPos += 24; // Espacio después de la caja roja (aumentado para evitar solapamiento)
+                yPos += 30; // Más espacio después de la caja verde (antes 25)
                 
                 // === CUADRO DE FORMALIZACION CON FONDO AZUL OSCURO ===
-                checkNewPage(48);
+                checkNewPage(60);
                 
                 // Cuadro principal con FONDO AZUL OSCURO y BORDE BLANCO
                 doc.setDrawColor(255, 255, 255);
-                doc.setLineWidth(2.5);
+                doc.setLineWidth(3);
                 doc.setFillColor(...darkColor);
-                doc.roundedRect(margin, yPos, contentWidth, 42, 3, 3, 'FD');
+                doc.roundedRect(margin, yPos, contentWidth, 55, 3, 3, 'FD');
                 
                 // Encabezado (texto blanco)
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(9);
+                doc.setFontSize(11);
                 doc.setFont('helvetica', 'bold');
-                doc.text('PARA FORMALIZAR ESTE CONTRATO:', margin + 5, yPos + 6);
+                doc.text('PARA FORMALIZAR ESTE CONTRATO:', margin + 5, yPos + 8);
                 
-                yPos += 10;
+                yPos += 13;
                 
                 // Instruccion principal (texto blanco)
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(7.5);
+                doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
                 if (res.isMulti) {
                     doc.text(tr('Responde a este email adjuntando la documentación de los') + ` ${res.individualResults.length} CUPS:`, margin + 5, yPos);
@@ -9040,10 +8554,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.text(tr('Responde a este email adjuntando la siguiente documentación:'), margin + 5, yPos);
                 }
                 
-                yPos += 4.5;
+                yPos += 6;
                 
                 // Lista de documentos (texto blanco)
-                doc.setFontSize(6.5);
+                doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(255, 255, 255);
                 
@@ -9057,30 +8571,30 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 docs.forEach((docItem, idx) => {
                     doc.text(docItem, margin + 8, yPos);
-                    yPos += 3.5;
+                    yPos += 4.5;
                 });
                 
-                yPos += 1.2;
+                yPos += 2;
                 
                 // Separador (blanco)
                 doc.setDrawColor(255, 255, 255);
-                doc.setLineWidth(0.4);
+                doc.setLineWidth(0.5);
                 doc.line(margin + 5, yPos, pageWidth - margin - 5, yPos);
-                yPos += 3.2;
+                yPos += 4;
                 
                 // Email de contacto destacado (texto blanco)
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(6.5);
+                doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
                 doc.text('Envia la documentacion al comercial:', margin + 5, yPos);
-                yPos += 3.2;
+                yPos += 4;
                 
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(10);
+                doc.setFontSize(13);
                 doc.setFont('helvetica', 'bold');
                 doc.text(commercialCode, margin + 5, yPos);
                 
-                yPos += 7;
+                yPos += 10;
                 
                 // === PIE DE PÁGINA ===
                 const footerY = 280;
@@ -10983,19 +10497,33 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         // --- NUEVO: Modal de Decisión (Mejor vs Elegir) ---
         
         function showOfferDecisionModal() {
-            console.log('🎯 MOSTRANDO MODAL DE DECISIÓN (VER MEJOR vs ELEGIR RESULTADOS)');
-            
-            // Ocultar loading
             document.getElementById('loading-status').classList.add('hidden');
+            document.getElementById('offer-decision-modal').classList.remove('hidden');
+            document.getElementById('offer-decision-modal').classList.add('flex');
             
-            // Obtener el modal
-            const modal = document.getElementById('offer-decision-modal');
+            // CRÍTICO: Traducir contenido del modal
+            if (window.translateAll) {
+                setTimeout(() => window.translateAll(), 50);
+            }
             
-            // MOSTRAR EL MODAL
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            // Ocultar el selector de tarifa al abrir el modal (se mostrará solo si es necesario)
+            document.getElementById('best-option-tariff-selector')?.classList.add('hidden');
             
-            console.log('✅ Modal de decisión mostrado correctamente');
+            // IMPORTANTE: El checkbox de comparación siempre visible (para DRK y POWER CUP)
+            const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
+            checkboxContainer?.classList.remove('hidden');
+            
+            // Resetear selector a FIJA por defecto
+            const fijaRadio = document.querySelector('input[name="best-option-tariff-type"][value="fija"]');
+            if (fijaRadio) {
+                fijaRadio.checked = true;
+                updateBestOptionTariffChoice('fija');
+            }
+            
+            // CRÍTICO: Traducir contenido del modal
+            if (window.translateAll) {
+                setTimeout(() => window.translateAll(), 50);
+            }
         }
         
         function closeOfferDecisionModal() {
@@ -11008,20 +10536,30 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const selectorDiv = document.getElementById('best-option-tariff-selector');
             const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
             
-            // Si es DRK Individual Y tiene tarifa indexada, mostrar selector
-            const isDrkIndividual = comparisonMode === 'drk_only' && currentTariffType !== 'MULTICUPS';
-            const hasIndexed = lastIndexedResult && lastIndexedResult.totalAnnual > 0;
+            // Detectar contexto
+            const isDrkMode = comparisonMode !== 'overall_best';
+            const isIndividual = currentTariffType !== 'MULTICUPS';
             
-            if (isDrkIndividual && hasIndexed) {
-                console.log('Mostrando selector de tipo de tarifa (FIJA vs INDEXADA)');
-                selectorDiv.classList.remove('hidden');
-                if (checkboxContainer) checkboxContainer.classList.add('hidden');
+            if (isDrkMode) {
+                // DRK (Individual o MULTICUPS)
+                
+                if (compareWithIndexed) {
+                    // CHECK MARCADO: Comparar automáticamente FIJO vs INDEXADO (NO mostrar selector)
+                    console.log('DRK con CHECK marcado: Comparando automáticamente FIJO vs INDEXADO');
+                    selectorDiv?.classList.add('hidden');
+                    if (checkboxContainer) checkboxContainer.classList.remove('hidden');
+                    selectBestOptionDirect(); // Ejecutar directamente
+                } else {
+                    // CHECK NO MARCADO: Mostrar selector para elegir FIJA o INDEXADA
+                    console.log('DRK sin CHECK: Mostrando selector de tipo de tarifa');
+                    selectorDiv?.classList.remove('hidden');
+                    // OCULTAR checkbox porque el usuario va a elegir un solo tipo
+                    if (checkboxContainer) checkboxContainer.classList.add('hidden');
+                }
             } else {
-                // POWER CUP o no hay indexada: ejecutar directamente con FIJA
-                console.log('Ejecutando directamente con TARIFA FIJA');
-                bestOptionTariffChoice = 'fija';
-                selectorDiv.classList.add('hidden');
-                if (checkboxContainer) checkboxContainer.classList.add('hidden');
+                // POWER CUP: Ejecutar directamente (respeta su propio checkbox)
+                selectorDiv?.classList.add('hidden');
+                if (checkboxContainer) checkboxContainer.classList.remove('hidden');
                 selectBestOptionDirect();
             }
         }
@@ -11569,12 +11107,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             } else {
                 // Contexto individual: Mostrar resultados CON comparación indexada
                 renderResultsUI(lastComparisonResult, lastIndexedResult);
-                document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
-                hideNavbar(); // Ocultar navbar al mostrar resultados
             }
         }
         
@@ -11722,12 +11258,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             } else {
                 // Contexto individual: Mostrar resultados (sin indexado)
                 renderResultsUI(lastComparisonResult, null);
-                document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
-                hideNavbar(); // Ocultar navbar al mostrar resultados
             }
         }
         
@@ -12019,12 +11553,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             } else {
                 // Contexto individual: Mostrar resultados
                 renderResultsUI(lastComparisonResult, lastIndexedResult);
-                document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
-                hideNavbar(); // Ocultar navbar al mostrar resultados
             }
         }
         
@@ -12858,12 +12390,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 console.log('Hiding initial-view and showing results-view');
                 document.getElementById('loading-status').classList.add('hidden');
-                document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
-                hideNavbar(); // Ocultar navbar al mostrar resultados
                 
                 console.log('Done showing results');
             }
@@ -13769,7 +13299,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             if (scannerRunning) return;
             
             // FEEDBACK INMEDIATO: Mostrar que está cargando
-            document.getElementById('screen-inicio').classList.remove('active'); // Ocultar pantalla inicio
             document.getElementById('initial-view').classList.add('hidden');
             document.getElementById('scanner-view').classList.remove('hidden');
             document.getElementById('scanner-view').classList.add('flex');
@@ -21592,45 +21121,6 @@ ${clientName}
                 "Llano": { en: "Flat", zh: "平段", de: "Flach", fr: "Plat" },
                 "Valle": { en: "Valley", zh: "谷段", de: "Tal", fr: "Vallée" },
                 "Los precios mostrados son de la oferta ganadora.": { en: "The prices shown are from the winning offer.", zh: "显示的价格来自中标报价。", de: "Die angezeigten Preise stammen aus dem gewinnenden Angebot.", fr: "Les prix affichés proviennent de l'offre gagnante." },
-                
-                // Análisis de Horarios y Consumo
-                "Análisis de Horarios y Consumo - Tarifa 2.0 TD": { en: "Schedule and Consumption Analysis - 2.0 TD Tariff", zh: "时间和消费分析 - 2.0 TD 关税", de: "Zeitplan- und Verbrauchsanalyse - Tarif 2.0 TD", fr: "Analyse des Horaires et de la Consommation - Tarif 2.0 TD" },
-                "Análisis de Horarios": { en: "Schedule Analysis", zh: "时间分析", de: "Zeitplananalyse", fr: "Analyse des Horaires" },
-                "Precios Ofertas": { en: "Offer Prices", zh: "报价价格", de: "Angebotspreise", fr: "Prix des Offres" },
-                "Lunes a viernes laborables": { en: "Monday to Friday (working days)", zh: "周一至周五 (工作日)", de: "Montag bis Freitag (Arbeitstage)", fr: "Lundi à vendredi (jours ouvrables)" },
-                "Lunes a": { en: "Monday to", zh: "周一至", de: "Montag bis", fr: "Lundi à" },
-                "viernes": { en: "Friday", zh: "周五", de: "Freitag", fr: "vendredi" },
-                "laborables": { en: "working days", zh: "工作日", de: "Arbeitstage", fr: "jours ouvrables" },
-                "Sábados, domingos y festivos": { en: "Saturdays, Sundays and holidays", zh: "周六、周日和节假日", de: "Samstage, Sonntage und Feiertage", fr: "Samedis, dimanches et jours fériés" },
-                "Sábados,": { en: "Saturdays,", zh: "周六,", de: "Samstage,", fr: "Samedis," },
-                "domingos": { en: "Sundays", zh: "周日", de: "Sonntage", fr: "dimanches" },
-                "i festivos": { en: "& holidays", zh: "和节假日", de: "und Feiertage", fr: "et jours fériés" },
-                "Tu Distribución de Consumo": { en: "Your Consumption Distribution", zh: "您的消费分布", de: "Ihre Verbrauchsverteilung", fr: "Votre Distribution de Consommation" },
-                "Periodo Punta": { en: "Peak Period", zh: "高峰时段", de: "Spitzenperiode", fr: "Période de Pointe" },
-                "Periodo Llano": { en: "Flat Period", zh: "平段时段", de: "Flachperiode", fr: "Période Plate" },
-                "Periodo Valle": { en: "Valley Period", zh: "低谷时段", de: "Talperiode", fr: "Période Vallée" },
-                "Horario más caro": { en: "Most expensive time", zh: "最贵时段", de: "Teuerste Zeit", fr: "Horaire le plus cher" },
-                "Precio medio": { en: "Medium price", zh: "中等价格", de: "Mittlerer Preis", fr: "Prix moyen" },
-                "Horario más barato": { en: "Cheapest time", zh: "最便宜时段", de: "Günstigste Zeit", fr: "Horaire le moins cher" },
-                "Recomendación Personalizada": { en: "Personalized Recommendation", zh: "个性化建议", de: "Personalisierte Empfehlung", fr: "Recommandation Personnalisée" },
-                "Consumes más del 30% en horario Punta. Te recomendamos trasladar consumos al periodo Valle (madrugada y fines de semana) para maximizar tu ahorro.": { 
-                    en: "You consume more than 30% during Peak hours. We recommend shifting consumption to Valley period (early morning and weekends) to maximize your savings.", 
-                    zh: "您在高峰时段消耗超过30%。我们建议将消费转移到低谷时段（凌晨和周末）以最大化节省。", 
-                    de: "Sie verbrauchen mehr als 30% während der Spitzenzeiten. Wir empfehlen, den Verbrauch in die Talperiode (früher Morgen und Wochenenden) zu verlagern, um Ihre Einsparungen zu maximieren.", 
-                    fr: "Vous consommez plus de 30% pendant les heures de pointe. Nous recommandons de déplacer la consommation vers la période Vallée (petit matin et week-ends) pour maximiser vos économies." 
-                },
-                "¡Excelente! Más del 50% de tu consumo está en Valle, el periodo más económico. Sigue así para maximizar tu ahorro.": { 
-                    en: "Excellent! More than 50% of your consumption is in Valley, the most economical period. Keep it up to maximize your savings.", 
-                    zh: "太好了！您超过50%的消费在低谷时段，这是最经济的时段。继续保持以最大化节省。", 
-                    de: "Ausgezeichnet! Mehr als 50% Ihres Verbrauchs liegt in der Talperiode, der wirtschaftlichsten Zeit. Machen Sie so weiter, um Ihre Einsparungen zu maximieren.", 
-                    fr: "Excellent ! Plus de 50% de votre consommation est en Vallée, la période la plus économique. Continuez ainsi pour maximiser vos économies." 
-                },
-                "Tu consumo está bien distribuido. Considera trasladar más consumo al periodo Valle para aumentar tu ahorro.": { 
-                    en: "Your consumption is well distributed. Consider shifting more consumption to Valley period to increase your savings.", 
-                    zh: "您的消费分布良好。考虑将更多消费转移到低谷时段以增加节省。", 
-                    de: "Ihr Verbrauch ist gut verteilt. Erwägen Sie, mehr Verbrauch in die Talperiode zu verlagern, um Ihre Einsparungen zu erhöhen.", 
-                    fr: "Votre consommation est bien répartie. Envisagez de déplacer plus de consommation vers la période Vallée pour augmenter vos économies." 
-                },
                 
                 // Botones estándar (para traducción automática)
                 "Aceptar": { en: "Accept", zh: "接受", de: "Akzeptieren", fr: "Accepter" },

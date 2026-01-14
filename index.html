@@ -8567,6 +8567,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     
                     yPos += cardHeight + 8;
                     
+                    // Verificar espacio disponible para la sección de distribución de consumo (necesitamos ~60mm)
+                    if (yPos > 230) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    
                     // === DISTRIBUCIÓN DE CONSUMO ===
                     // Título con fondo VERDE y letras BLANCAS
                     doc.setFillColor(...greenColor); // VERDE

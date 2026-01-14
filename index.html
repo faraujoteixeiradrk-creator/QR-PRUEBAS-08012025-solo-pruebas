@@ -78,7 +78,7 @@
             border: 1px solid #e2e8f0; /* slate-200 */
         }
         
-        /* DRK Active Hover Styles (Default) */
+        /* DRK Active Hover Styles */
         .drk-active .tariff-select-btn:hover {
             border-color: #0ea5e9; /* drk-500 */
             background-color: #f0f9ff; /* drk-50 */
@@ -87,17 +87,6 @@
         }
         .drk-active .tariff-select-btn:hover .arrow-icon {
             color: #0ea5e9; /* drk-500 */
-        }
-
-        /* POWER CUP Active Hover Styles */
-        .powercup-active .tariff-select-btn:hover {
-            border-color: #84cc16; /* powercup-500 */
-            background-color: #f7fee7; /* powercup-50 */
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(132, 204, 22, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-        }
-        .powercup-active .tariff-select-btn:hover .arrow-icon {
-            color: #84cc16; /* powercup-500 */
         }
 
         .icon-wrapper {
@@ -243,25 +232,19 @@
     <!-- Main Content Area -->
     <div id="app" class="w-full max-w-lg mx-auto p-4 md:p-6 flex-grow">
 
-        <!-- MODO DE COMPARACIÓN (Siempre visible al inicio) -->
+        <!-- MODO DE COMPARACIÓN - Solo DRK -->
         <div id="modo-comparacion-section" class="fade-in mb-6">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                 <p class="text-sm font-bold text-drk-800 mb-3 text-center uppercase tracking-wider">MODO DE COMPARACIÓN</p>
-                <div class="flex flex-wrap justify-center gap-2 text-sm">
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400">
-                        <input type="radio" name="comparison_mode" value="drk_only" class="hidden">
-                        <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
-                    </label>
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-500 text-white bg-drk-500 hover:bg-drk-600">
-                        <input type="radio" name="comparison_mode" value="drk_prioritized" class="hidden" checked>
-                        <span class="font-semibold flex items-center justify-between w-full">DRK Prioritario<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
-                    </label>
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400">
-                        <input type="radio" name="comparison_mode" value="overall_best" class="hidden">
-                        <span class="font-black flex flex-col items-center justify-center w-full leading-tight">
-                            <span class="text-base">POWER CUP</span><span class="text-xs font-semibold -mt-0.5">Global</span>
+                <div class="flex justify-center gap-2 text-sm">
+                    <label class="mode-selector flex-1 px-4 py-3 rounded-lg cursor-pointer transition border-2 border-drk-500 text-white bg-drk-500">
+                        <input type="radio" name="comparison_mode" value="drk_only" class="hidden" checked>
+                        <span class="font-semibold flex items-center justify-center w-full">
+                            DRK Únicamente
+                            <svg class="w-5 h-5 ml-2 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
                         </span>
-                        <svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     </label>
                 </div>
             </div>
@@ -1861,7 +1844,7 @@
         let currentTariffType = '2.0TD';
         let lastComparisonResult = null;
         let lastIndexedResult = null; // Para almacenar el resultado de tarifa indexada
-        let comparisonMode = 'drk_prioritized';
+        let comparisonMode = 'drk_only'; // Modo DRK únicamente
         let compareWithIndexed = false; // Control para comparación con tarifas indexadas
         let bestOptionTariffChoice = 'fija'; // NUEVO: Elección de tarifa para VER MEJOR OPCIÓN ('fija' o 'indexada')
         let isProcessingBestOption = false; // NUEVO: Bandera para prevenir llamadas concurrentes
@@ -2281,7 +2264,7 @@
             }
             
             // Restaurar la marca activa según el modo de comparación
-            const brandToApply = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
+            const brandToApply = false ? BRANDS.POWER_CUP : BRANDS.DRK;
             applyBrandStyles(brandToApply);  
             
             // Asegurarse de que el radio button correcto esté checked
@@ -2660,7 +2643,7 @@
                 let brand = activeBrand;
 
                 // --- LÓGICA DE SELECCIÓN Y BRANDING (Individual) ---
-                if (comparisonMode === 'overall_best') {
+                if (false) {
                     // Modo POWER CUP: Buscar la mejor oferta absoluta (con o sin DRK)
                     final = bestOverall;
                     
@@ -2705,7 +2688,7 @@
                         isDrk: false 
                     };
                     // Mantener el branding según el modo seleccionado
-                    brand = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
+                    brand = false ? BRANDS.POWER_CUP : BRANDS.DRK;
                 }
                 // Add originalTariffType for consistent logic in HTML generation
                 final.originalTariffType = tariffType;
@@ -2806,7 +2789,7 @@
                     };
                     
                     // NUEVO FLUJO DUAL: Añadir suministro directamente al array
-                    const currentCost = comparisonMode === 'overall_best' ? powercupCost : drkCost;
+                    const currentCost = false ? powercupCost : drkCost;
                     const originalBill = parseFloat(final.originalBillAnnual) || parseFloat(final.totalBillPeriod) * 12 || 0;
                     
                     // CORRECCIÓN: Usar final.totalAnnual si existe (ya tiene la lógica de "Tu Tarifa Actual")
@@ -3122,7 +3105,7 @@
             // --- LÓGICA DE BRANDING (MultiCups) ---
             let brandToApply = activeBrand;
             
-            if (comparisonMode === 'overall_best') {
+            if (false) {
                 // REQUERIMIENTO DEL USUARIO: Si es modo Power Cup Global, siempre usa Power Cup.
                 brandToApply = BRANDS.POWER_CUP;
             } else {
@@ -3646,14 +3629,14 @@
             let tariffPricesHTML = '';
             const consolidatedPrices = [];
             const brandPrimaryText = brand.PRIMARY_TEXT;
-            const isPowerCupMode = comparisonMode === 'overall_best';
+            const isPowerCupMode = false;
 
             // Determine the label for the price section
             let priceSectionLabel;
-            if (hasDrkWinner && comparisonMode !== 'overall_best') {
+            if (hasDrkWinner && true) {
                 // Modo DRK con ofertas DRK
                 priceSectionLabel = tr('Precios de las Ofertas Seleccionadas') + ' (DRK ENERGÍA)';
-            } else if (!hasDrkWinner && comparisonMode === 'overall_best') {
+            } else if (!hasDrkWinner && false) {
                 // Modo POWER CUP sin DRK
                 priceSectionLabel = tr('Precios de las Ofertas Seleccionadas') + ' (POWER CUP GLOBAL)';
             } else {
@@ -4765,171 +4748,6 @@
                                 </table>
                             </td>
                         </tr>
-                        
-                        ${(() => {
-                            // ANÁLISIS DE HORARIOS Y CONSUMO - SOLO PARA TARIFA 2.0TD
-                            if (res.tariffType === '2.0TD' && res.energyCosts && res.energyCosts.length >= 3) {
-                                const puntaKwh = res.energyCosts[0]?.kwh || 0;
-                                const llanoKwh = res.energyCosts[1]?.kwh || 0;
-                                const valleKwh = res.energyCosts[2]?.kwh || 0;
-                                const totalKwh = puntaKwh + llanoKwh + valleKwh;
-                                
-                                const puntaPct = totalKwh > 0 ? (puntaKwh / totalKwh * 100).toFixed(1) : 0;
-                                const llanoPct = totalKwh > 0 ? (llanoKwh / totalKwh * 100).toFixed(1) : 0;
-                                const vallePct = totalKwh > 0 ? (valleKwh / totalKwh * 100).toFixed(1) : 0;
-                                
-                                let recomendacion = '';
-                                if (puntaPct > 30) {
-                                    recomendacion = tr('Consumes más del 30% en horario Punta. Te recomendamos trasladar consumos al periodo Valle (madrugada y fines de semana) para maximizar tu ahorro.');
-                                } else if (vallePct > 50) {
-                                    recomendacion = tr('¡Excelente! Más del 50% de tu consumo está en Valle, el periodo más económico. Sigue así para maximizar tu ahorro.');
-                                } else {
-                                    recomendacion = tr('Tu consumo está bien distribuido. Considera trasladar más consumo al periodo Valle para aumentar tu ahorro.');
-                                }
-                                
-                                return `
-                                <!-- ANÁLISIS DE HORARIOS Y CONSUMO (Solo 2.0TD) -->
-                                <tr>
-                                    <td style="padding:20px;background:#f8fafc;">
-                                        <table width="100%" cellpadding="0" cellspacing="0">
-                                            <tr>
-                                                <td style="padding-bottom:15px;">
-                                                    <h3 style="margin:0;color:#1e293b;font-size:16px;font-weight:bold;">
-                                                        🕐 ${tr('Análisis de Horarios y Consumo - Tarifa 2.0 TD')}
-                                                    </h3>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                        
-                                        <!-- Tarjetas de Horarios -->
-                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:15px;">
-                                            <tr>
-                                                <td width="48%" valign="top" style="background:#ffffff;padding:15px;border-radius:8px;">
-                                                    <p style="margin:0 0 10px 0;text-align:center;font-weight:bold;color:#334155;font-size:13px;">${tr('Lunes a viernes laborables')}</p>
-                                                    <table width="100%" cellpadding="5" cellspacing="0">
-                                                        <tr>
-                                                            <td style="background:#fef2f2;padding:8px;border-radius:6px;margin-bottom:5px;">
-                                                                <span style="display:inline-block;width:10px;height:10px;background:#dc2626;border-radius:50%;margin-right:5px;"></span>
-                                                                <span style="font-weight:bold;color:#991b1b;font-size:11px;">${tr('Punta')}:</span>
-                                                                <span style="color:#475569;font-size:11px;">10-14h, 18-22h</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="background:#fefce8;padding:8px;border-radius:6px;margin-bottom:5px;">
-                                                                <span style="display:inline-block;width:10px;height:10px;background:#facc15;border-radius:50%;margin-right:5px;"></span>
-                                                                <span style="font-weight:bold;color:#a16207;font-size:11px;">${tr('Llano')}:</span>
-                                                                <span style="color:#475569;font-size:11px;">8-10h, 14-18h, 22-24h</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="background:#f0fdf4;padding:8px;border-radius:6px;">
-                                                                <span style="display:inline-block;width:10px;height:10px;background:#16a34a;border-radius:50%;margin-right:5px;"></span>
-                                                                <span style="font-weight:bold;color:#166534;font-size:11px;">${tr('Valle')}:</span>
-                                                                <span style="color:#475569;font-size:11px;">0-8h</span>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                                <td width="4%"></td>
-                                                <td width="48%" valign="top" style="background:#ffffff;padding:15px;border-radius:8px;">
-                                                    <p style="margin:0 0 10px 0;text-align:center;font-weight:bold;color:#334155;font-size:13px;">${tr('Sábados, domingos y festivos')}</p>
-                                                    <table width="100%" cellpadding="15" cellspacing="0">
-                                                        <tr>
-                                                            <td style="background:#f0fdf4;padding:20px;border-radius:8px;text-align:center;">
-                                                                <span style="display:inline-block;width:14px;height:14px;background:#16a34a;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>
-                                                                <span style="font-weight:bold;color:#166534;font-size:14px;vertical-align:middle;">${tr('Valle')}</span>
-                                                                <p style="margin:8px 0 0 0;color:#475569;font-size:11px;">24 horas (todo el día)</p>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                        
-                                        <!-- Distribución de Consumo -->
-                                        <table width="100%" cellpadding="0" cellspacing="0">
-                                            <tr>
-                                                <td style="padding-bottom:15px;">
-                                                    <h4 style="margin:0;color:#1e293b;font-size:14px;font-weight:bold;">
-                                                        📊 ${tr('Tu Distribución de Consumo')}
-                                                    </h4>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>
-                                                    <table width="100%" cellpadding="8" cellspacing="0">
-                                                        <tr>
-                                                            <!-- Punta -->
-                                                            <td width="32%" style="background:#fef2f2;padding:12px;border-radius:8px;border:2px solid #fecaca;text-align:center;">
-                                                                <span style="display:inline-block;width:12px;height:12px;background:#dc2626;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>
-                                                                <span style="font-weight:bold;color:#991b1b;font-size:12px;vertical-align:middle;">${tr('Periodo Punta')}</span>
-                                                                <p style="margin:8px 0 5px 0;color:#dc2626;font-size:24px;font-weight:bold;">${puntaPct}%</p>
-                                                                <p style="margin:0 0 5px 0;color:#64748b;font-size:11px;">${puntaKwh.toFixed(0)} kWh</p>
-                                                                <p style="margin:0;background:#ffffff;padding:6px;border-radius:4px;color:#64748b;font-size:9px;">
-                                                                    ${tr('Horario más caro')}<br>10-14h, 18-22h (lab.)
-                                                                </p>
-                                                            </td>
-                                                            <td width="2%"></td>
-                                                            <!-- Llano -->
-                                                            <td width="32%" style="background:#fefce8;padding:12px;border-radius:8px;border:2px solid #fde047;text-align:center;">
-                                                                <span style="display:inline-block;width:12px;height:12px;background:#facc15;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>
-                                                                <span style="font-weight:bold;color:#a16207;font-size:12px;vertical-align:middle;">${tr('Periodo Llano')}</span>
-                                                                <p style="margin:8px 0 5px 0;color:#ca8a04;font-size:24px;font-weight:bold;">${llanoPct}%</p>
-                                                                <p style="margin:0 0 5px 0;color:#64748b;font-size:11px;">${llanoKwh.toFixed(0)} kWh</p>
-                                                                <p style="margin:0;background:#ffffff;padding:6px;border-radius:4px;color:#64748b;font-size:9px;">
-                                                                    ${tr('Precio medio')}<br>8-10h, 14-18h, 22-24h
-                                                                </p>
-                                                            </td>
-                                                            <td width="2%"></td>
-                                                            <!-- Valle -->
-                                                            <td width="32%" style="background:#f0fdf4;padding:12px;border-radius:8px;border:2px solid #bbf7d0;text-align:center;">
-                                                                <span style="display:inline-block;width:12px;height:12px;background:#16a34a;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>
-                                                                <span style="font-weight:bold;color:#166534;font-size:12px;vertical-align:middle;">${tr('Periodo Valle')}</span>
-                                                                <p style="margin:8px 0 5px 0;color:#16a34a;font-size:24px;font-weight:bold;">${vallePct}%</p>
-                                                                <p style="margin:0 0 5px 0;color:#64748b;font-size:11px;">${valleKwh.toFixed(0)} kWh</p>
-                                                                <p style="margin:0;background:#ffffff;padding:6px;border-radius:4px;color:#64748b;font-size:9px;">
-                                                                    ${tr('Horario más barato')}<br>0-8h + fines semana
-                                                                </p>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                            <!-- Barra de progreso -->
-                                            <tr>
-                                                <td style="padding-top:12px;">
-                                                    <table width="100%" cellpadding="0" cellspacing="0" style="height:25px;border-radius:6px;overflow:hidden;">
-                                                        <tr>
-                                                            <td width="${puntaPct}%" style="background:#dc2626;color:#ffffff;text-align:center;font-size:10px;font-weight:bold;padding:5px;">
-                                                                ${puntaPct > 8 ? puntaPct + '%' : ''}
-                                                            </td>
-                                                            <td width="${llanoPct}%" style="background:#facc15;color:#1e293b;text-align:center;font-size:10px;font-weight:bold;padding:5px;">
-                                                                ${llanoPct > 8 ? llanoPct + '%' : ''}
-                                                            </td>
-                                                            <td width="${vallePct}%" style="background:#16a34a;color:#ffffff;text-align:center;font-size:10px;font-weight:bold;padding:5px;">
-                                                                ${vallePct > 8 ? vallePct + '%' : ''}
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                        
-                                        <!-- Recomendación -->
-                                        <table width="100%" cellpadding="0" cellspacing="0" style="background:#eff6ff;padding:12px;border-radius:8px;border-left:4px solid #0284c7;margin-top:15px;">
-                                            <tr>
-                                                <td>
-                                                    <p style="margin:0 0 5px 0;font-weight:bold;color:#0c4a6e;font-size:12px;">💡 ${tr('Recomendación Personalizada')}</p>
-                                                    <p style="margin:0;color:#334155;font-size:11px;line-height:1.5;">${recomendacion}</p>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                                `;
-                            }
-                            return '';
-                        })()}
                         
                         <!-- CÁLCULO TÍTULO -->
                         <tr>
@@ -6664,7 +6482,7 @@
                     console.log('✅ Usando datos DUAL');
                     tipoSuministro = 'DUAL (ELECTRICIDAD + GAS)';
                     const dualResults = window.dualGlobalResults;
-                    const isDrk = dualResults.comparisonMode !== 'overall_best';
+                    const isDrk = dualResults.true;
                     const brandColor = isDrk ? '#0ea5e9' : '#84cc16';
                     const brandName = isDrk ? 'DRK' : 'POWER CUP';
                     
@@ -10077,7 +9895,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const PC_DARK = '#3f6212'; const PC_MED = '#65a30d'; const PC_CTA = '#84cc16';
 
             // --- Dynamic Branding Setup ---
-            // If activeBrand is POWER_CUP (comparisonMode === 'overall_best')
+            // If activeBrand is POWER_CUP (false)
             const D_PRIMARY_DARK = brand.NAME.includes('DRK') ? DRK_DARK : PC_DARK;
             const D_PRIMARY_MED = brand.NAME.includes('DRK') ? DRK_MED : PC_MED;
             const D_ACCENT_CTA = brand.NAME.includes('DRK') ? DRK_CTA : PC_CTA;
@@ -10627,9 +10445,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             let preciosConsolidadosHTML = '';
             let priceSectionHeader;
-            if (hasDrkWinner && comparisonMode !== 'overall_best') {
+            if (hasDrkWinner && true) {
                 priceSectionHeader = 'PRECIOS DE LAS OFERTAS SELECCIONADAS (DRK ENERGÍA)';
-            } else if (!hasDrkWinner && comparisonMode === 'overall_best') {
+            } else if (!hasDrkWinner && false) {
                 priceSectionHeader = 'PRECIOS DE LAS OFERTAS SELECCIONADAS (POWER CUP GLOBAL)';
             } else {
                 priceSectionHeader = 'PRECIOS DE LAS OFERTAS SELECCIONADAS';
@@ -10914,31 +10732,21 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         }
 
         function updateComparisonMode(newMode) {
-            comparisonMode = newMode;
-            let currentBrandForInput = BRANDS.DRK;
-            if (newMode === 'overall_best') currentBrandForInput = BRANDS.POWER_CUP;
-            // Aplicar estilos y branding a toda la app
-            applyBrandStyles(currentBrandForInput);
+            // Forzar siempre modo DRK
+            comparisonMode = 'drk_only';
+            activeBrand = BRANDS.DRK;
             
-            // Actualizar estilos específicos de los selectores de modo
-            document.querySelectorAll('input[name="comparison_mode"]').forEach(r => {
-                const label = r.closest('label');
-                const isSelected = r.value === newMode;
-                const colorClass = r.value === 'overall_best' ? 'powercup' : 'drk';
-                
-                // Limpiar todas las clases de color
-                label.className = 'mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2';
-
-                if (isSelected) {
-                    // Botón SELECCIONADO: fondo de color, texto blanco
-                    label.classList.add(`border-${colorClass}-500`, `bg-${colorClass}-500`, 'text-white', `hover:bg-${colorClass}-600`);
-                    label.querySelector('.checkmark-icon').classList.remove('hidden');
-                } else {
-                    // Botón NO SELECCIONADO: fondo blanco, texto de color oscuro
-                    label.classList.add(`border-${colorClass}-300`, 'bg-white', `text-${colorClass}-700`, `hover:bg-${colorClass}-100`, `hover:border-${colorClass}-400`);
-                    label.querySelector('.checkmark-icon').classList.add('hidden');
+            // Aplicar estilos DRK
+            applyBrandStyles(BRANDS.DRK);
+            
+            // Actualizar estilos del selector (si existe)
+            const modeSelector = document.querySelector('input[name="comparison_mode"][value="drk_only"]');
+            if (modeSelector) {
+                const label = modeSelector.closest('label');
+                if (label) {
+                    label.className = 'mode-selector flex-1 px-4 py-3 rounded-lg cursor-pointer transition border-2 border-drk-500 bg-drk-500 text-white';
                 }
-            });
+            }
         }
         
         // --- NUEVA FUNCIONALIDAD: Tipo de Selección de Oferta ---
@@ -11001,31 +10809,19 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const selectorDiv = document.getElementById('best-option-tariff-selector');
             const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
             
-            // Detectar contexto
-            const isDrkMode = comparisonMode !== 'overall_best';
-            const isIndividual = currentTariffType !== 'MULTICUPS';
-            
-            if (isDrkMode) {
-                // DRK (Individual o MULTICUPS)
-                
-                if (compareWithIndexed) {
-                    // CHECK MARCADO: Comparar automáticamente FIJO vs INDEXADO (NO mostrar selector)
-                    console.log('DRK con CHECK marcado: Comparando automáticamente FIJO vs INDEXADO');
-                    selectorDiv?.classList.add('hidden');
-                    if (checkboxContainer) checkboxContainer.classList.remove('hidden');
-                    selectBestOptionDirect(); // Ejecutar directamente
-                } else {
-                    // CHECK NO MARCADO: Mostrar selector para elegir FIJA o INDEXADA
-                    console.log('DRK sin CHECK: Mostrando selector de tipo de tarifa');
-                    selectorDiv?.classList.remove('hidden');
-                    // OCULTAR checkbox porque el usuario va a elegir un solo tipo
-                    if (checkboxContainer) checkboxContainer.classList.add('hidden');
-                }
-            } else {
-                // POWER CUP: Ejecutar directamente (respeta su propio checkbox)
+            // Siempre en modo DRK
+            if (compareWithIndexed) {
+                // CHECK MARCADO: Comparar automáticamente FIJO vs INDEXADO (NO mostrar selector)
+                console.log('DRK con CHECK marcado: Comparando automáticamente FIJO vs INDEXADO');
                 selectorDiv?.classList.add('hidden');
                 if (checkboxContainer) checkboxContainer.classList.remove('hidden');
-                selectBestOptionDirect();
+                selectBestOptionDirect(); // Ejecutar directamente
+            } else {
+                // CHECK NO MARCADO: Mostrar selector para elegir FIJA o INDEXADA
+                console.log('DRK sin CHECK: Mostrando selector de tipo de tarifa');
+                selectorDiv?.classList.remove('hidden');
+                // OCULTAR checkbox porque el usuario va a elegir un solo tipo
+                if (checkboxContainer) checkboxContainer.classList.add('hidden');
             }
         }
         
@@ -11262,14 +11058,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             dias: lastComparisonResult.dias_facturados || 30
                         },
                         results: {
-                            drk: comparisonMode === 'overall_best' ? {
+                            drk: false ? {
                                 total: 0,
                                 total_anual: 0
                             } : {
                                 total: lastComparisonResult.totalAnnual / 12,
                                 total_anual: lastComparisonResult.totalAnnual
                             },
-                            powercup: comparisonMode === 'overall_best' ? {
+                            powercup: false ? {
                                 total: lastComparisonResult.totalAnnual / 12,
                                 total_anual: lastComparisonResult.totalAnnual
                             } : {
@@ -11530,14 +11326,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         dias: lastComparisonResult.dias_facturados || 30
                     },
                     results: {
-                        drk: comparisonMode === 'overall_best' ? {
+                        drk: false ? {
                             total: 0,
                             total_anual: 0
                         } : {
                             total: lastComparisonResult.totalAnnual / 12,
                             total_anual: lastComparisonResult.totalAnnual
                         },
-                        powercup: comparisonMode === 'overall_best' ? {
+                        powercup: false ? {
                             total: lastComparisonResult.totalAnnual / 12,
                             total_anual: lastComparisonResult.totalAnnual
                         } : {
@@ -11664,14 +11460,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             dias: lastComparisonResult.dias_facturados || 30
                         },
                         results: {
-                            drk: comparisonMode === 'overall_best' ? {
+                            drk: false ? {
                                 total: 0,
                                 total_anual: 0
                             } : {
                                 total: lastComparisonResult.totalAnnual / 12,
                                 total_anual: lastComparisonResult.totalAnnual
                             },
-                            powercup: comparisonMode === 'overall_best' ? {
+                            powercup: false ? {
                                 total: lastComparisonResult.totalAnnual / 12,
                                 total_anual: lastComparisonResult.totalAnnual
                             } : {
@@ -11859,14 +11655,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             dias: lastComparisonResult.dias_facturados || 30
                         },
                         results: {
-                            drk: comparisonMode === 'overall_best' ? {
+                            drk: false ? {
                                 total: 0,
                                 total_anual: 0
                             } : {
                                 total: lastComparisonResult.totalAnnual / 12,
                                 total_anual: lastComparisonResult.totalAnnual
                             },
-                            powercup: comparisonMode === 'overall_best' ? {
+                            powercup: false ? {
                                 total: lastComparisonResult.totalAnnual / 12,
                                 total_anual: lastComparisonResult.totalAnnual
                             } : {
@@ -12713,7 +12509,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 // Si el usuario eligió "POWER CUP Global", SIEMPRE usar POWER CUP
                 // Si eligió "DRK Prioritario", usar la marca de la tarifa ganadora
                 let brand;
-                if (comparisonMode === 'overall_best') {
+                if (false) {
                     // POWER CUP Global: SIEMPRE verde, independiente de quién gane
                     brand = BRANDS.POWER_CUP;
                     console.log('Modo POWER CUP Global: Forzando branding POWER CUP (verde)');
@@ -14332,7 +14128,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 }
             } else {
                 // Modo automático según el modo de comparación
-                if (comparisonMode === 'overall_best') {
+                if (false) {
                     // Modo POWER CUP: Buscar la mejor oferta absoluta (con o sin DRK)
                     finalIndividualResult = bestOverall;
                     
@@ -14378,7 +14174,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     isDrk: false 
                 };
                 // Mantener el branding según el modo seleccionado
-                brand = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
+                brand = false ? BRANDS.POWER_CUP : BRANDS.DRK;
             }
 
             // Apply branding here just for consistency before saving/showing modal
@@ -14904,7 +14700,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     totalOriginalBill += originalBill;
                     
                     // Determinar si este suministro tiene ahorro
-                    const isPowerCupMode = comparisonMode === 'overall_best';
+                    const isPowerCupMode = false;
                     const currentCost = isPowerCupMode ? powercupCost : drkCost;
                     const savings = originalBill - currentCost;
                     
@@ -14917,7 +14713,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             });
             
             // Calcular ahorro total
-            const isPowerCupMode = comparisonMode === 'overall_best';
+            const isPowerCupMode = false;
             const totalNew = isPowerCupMode ? totalPowerCup : totalDRK;
             const totalSavings = Math.max(0, totalOriginalBill - totalNew); // Siempre >= 0
             
@@ -14964,7 +14760,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     <div class="space-y-3">
                         ${dualSupplies.map((s, idx) => {
                             // CORREGIDO: Usar s.totalAnnual directamente (ya tiene la lógica correcta)
-                            const isPowerCupMode = results.comparisonMode === 'overall_best';
+                            const isPowerCupMode = results.false;
                             const currentCost = s.totalAnnual || 0; // Usar s.totalAnnual en lugar de results
                             const originalBill = s.originalBillAnnual || 0;
                             const savings = originalBill - currentCost;
@@ -15110,7 +14906,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         if (savings > 0) allWithoutSavings = false;
                     });
                     
-                    if (results.comparisonMode !== 'overall_best' && results.totalSavings > 0 && !allWithoutSavings) {
+                    if (results.true && results.totalSavings > 0 && !allWithoutSavings) {
                         return `
                 <div class="rounded-2xl shadow-2xl p-6 mb-6" style="background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); border: 2px solid #5BA3F5;">
                     <div class="flex items-center justify-between mb-4">
@@ -15134,7 +14930,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     </div>
                 </div>
                         `;
-                    } else if (results.comparisonMode !== 'overall_best' && allWithoutSavings) {
+                    } else if (results.true && allWithoutSavings) {
                         return `
                 <div class="rounded-2xl shadow-2xl p-6 mb-6" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border: 2px solid #0ea5e9;">
                     <div class="text-center text-white">
@@ -15165,7 +14961,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         if (savings > 0) allWithoutSavings = false;
                     });
                     
-                    if (results.comparisonMode === 'overall_best' && results.totalSavings > 0 && !allWithoutSavings) {
+                    if (results.false && results.totalSavings > 0 && !allWithoutSavings) {
                         return `
                 <div class="bg-gradient-to-br from-powercup-600 to-powercup-800 text-white rounded-2xl shadow-2xl p-6 border-2 border-powercup-500 mb-6">
                     <div class="flex items-center justify-between mb-4">
@@ -15189,7 +14985,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     </div>
                 </div>
                         `;
-                    } else if (results.comparisonMode === 'overall_best' && allWithoutSavings) {
+                    } else if (results.false && allWithoutSavings) {
                         return `
                 <div class="bg-gradient-to-br from-powercup-600 to-powercup-800 text-white rounded-2xl shadow-2xl p-6 border-2 border-powercup-500 mb-6">
                     <div class="text-center">
@@ -15215,7 +15011,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             let allSuppliesWithoutSavings = true;
             
             dualSupplies.forEach(s => {
-                const isPowerCupMode = results.comparisonMode === 'overall_best';
+                const isPowerCupMode = results.false;
                 const currentCost = s.totalAnnual || 0;
                 const originalBill = s.originalBillAnnual || 0;
                 const savings = originalBill - currentCost;
@@ -15273,7 +15069,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     
                     // Detectar si es Power Cup o DRK
                     const results = window.dualGlobalResults || {};
-                    const isPowerCup = results.comparisonMode === 'overall_best';
+                    const isPowerCup = results.false;
                     const bannerColor = isPowerCup ? '#84cc16' : '#0ea5e9'; // Verde Power Cup o Azul DRK
                     const savingsColor = isPowerCup ? '#4d7c0f' : '#16a34a'; // Verde oscuro Power Cup o Verde DRK
                     const brandName = isPowerCup ? 'POWER CUP' : 'DRK';
@@ -15717,7 +15513,7 @@ ${clientName}
                 return null;
             }
             
-            const isPowerCup = results.comparisonMode === 'overall_best';
+            const isPowerCup = results.false;
             const brandName = isPowerCup ? 'POWER CUP' : 'DRK';
             const primaryColor = isPowerCup ? '#4d7c0f' : '#546e7a';
             const accentColor = isPowerCup ? '#84cc16' : '#607d8b';
@@ -16062,154 +15858,6 @@ ${clientName}
                             </div>
                         </div>
                     `).join('') : `<div style="padding:8px 10px;background:white;font-size:10px;color:#64748b">${tr('No hay datos de energía')}</div>`}
-                    
-                    <!-- ANÁLISIS DE HORARIOS Y CONSUMO - SOLO PARA TARIFA 2.0TD -->
-                    ${s.tariff === '2.0TD' && eb?.energyCosts && eb.energyCosts.length >= 3 ? (() => {
-                        const puntaKwh = eb.energyCosts[0]?.kwh || 0;
-                        const llanoKwh = eb.energyCosts[1]?.kwh || 0;
-                        const valleKwh = eb.energyCosts[2]?.kwh || 0;
-                        const totalKwh = puntaKwh + llanoKwh + valleKwh;
-                        
-                        const puntaPct = totalKwh > 0 ? (puntaKwh / totalKwh * 100).toFixed(1) : 0;
-                        const llanoPct = totalKwh > 0 ? (llanoKwh / totalKwh * 100).toFixed(1) : 0;
-                        const vallePct = totalKwh > 0 ? (valleKwh / totalKwh * 100).toFixed(1) : 0;
-                        
-                        let recomendacion = '';
-                        if (puntaPct > 30) {
-                            recomendacion = tr('Consumes más del 30% en horario Punta. Te recomendamos trasladar consumos al periodo Valle (madrugada y fines de semana) para maximizar tu ahorro.');
-                        } else if (vallePct > 50) {
-                            recomendacion = tr('¡Excelente! Más del 50% de tu consumo está en Valle, el periodo más económico. Sigue así para maximizar tu ahorro.');
-                        } else {
-                            recomendacion = tr('Tu consumo está bien distribuido. Considera trasladar más consumo al periodo Valle para aumentar tu ahorro.');
-                        }
-                        
-                        return `
-                        <!-- ANÁLISIS DE HORARIOS (Solo 2.0TD) -->
-                        <div style="margin-top:20px;padding:20px;background:#f8fafc;border-radius:8px">
-                            <div style="padding-bottom:15px">
-                                <h3 style="margin:0;color:#1e293b;font-size:14px;font-weight:bold;">
-                                    🕐 ${tr('Análisis de Horarios y Consumo - Tarifa 2.0 TD')}
-                                </h3>
-                            </div>
-                            
-                            <!-- Tarjetas de Horarios -->
-                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:15px">
-                                <tr>
-                                    <td width="48%" valign="top" style="background:#ffffff;padding:15px;border-radius:8px">
-                                        <p style="margin:0 0 10px 0;text-align:center;font-weight:bold;color:#334155;font-size:12px">${tr('Lunes a viernes laborables')}</p>
-                                        <table width="100%" cellpadding="5" cellspacing="0">
-                                            <tr>
-                                                <td style="background:#fef2f2;padding:8px;border-radius:6px;margin-bottom:5px">
-                                                    <span style="display:inline-block;width:10px;height:10px;background:#dc2626;border-radius:50%;margin-right:5px"></span>
-                                                    <span style="font-weight:bold;color:#991b1b;font-size:10px">${tr('Punta')}:</span>
-                                                    <span style="color:#475569;font-size:10px">10-14h, 18-22h</span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="background:#fefce8;padding:8px;border-radius:6px;margin-bottom:5px">
-                                                    <span style="display:inline-block;width:10px;height:10px;background:#facc15;border-radius:50%;margin-right:5px"></span>
-                                                    <span style="font-weight:bold;color:#a16207;font-size:10px">${tr('Llano')}:</span>
-                                                    <span style="color:#475569;font-size:10px">8-10h, 14-18h, 22-24h</span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="background:#f0fdf4;padding:8px;border-radius:6px">
-                                                    <span style="display:inline-block;width:10px;height:10px;background:#16a34a;border-radius:50%;margin-right:5px"></span>
-                                                    <span style="font-weight:bold;color:#166534;font-size:10px">${tr('Valle')}:</span>
-                                                    <span style="color:#475569;font-size:10px">0-8h</span>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                    <td width="4%"></td>
-                                    <td width="48%" valign="top" style="background:#ffffff;padding:15px;border-radius:8px">
-                                        <p style="margin:0 0 10px 0;text-align:center;font-weight:bold;color:#334155;font-size:12px">${tr('Sábados, domingos y festivos')}</p>
-                                        <table width="100%" cellpadding="15" cellspacing="0">
-                                            <tr>
-                                                <td style="background:#f0fdf4;padding:20px;border-radius:8px;text-align:center">
-                                                    <span style="display:inline-block;width:14px;height:14px;background:#16a34a;border-radius:50%;margin-right:5px;vertical-align:middle"></span>
-                                                    <span style="font-weight:bold;color:#166534;font-size:13px;vertical-align:middle">${tr('Valle')}</span>
-                                                    <p style="margin:8px 0 0 0;color:#475569;font-size:10px">24 horas (todo el día)</p>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
-                            
-                            <!-- Distribución de Consumo -->
-                            <div style="padding-bottom:15px">
-                                <h4 style="margin:0;color:#1e293b;font-size:13px;font-weight:bold">
-                                    📊 ${tr('Tu Distribución de Consumo')}
-                                </h4>
-                            </div>
-                            
-                            <table width="100%" cellpadding="8" cellspacing="0">
-                                <tr>
-                                    <!-- Punta -->
-                                    <td width="32%" style="background:#fef2f2;padding:12px;border-radius:8px;border:2px solid #fecaca;text-align:center">
-                                        <span style="display:inline-block;width:12px;height:12px;background:#dc2626;border-radius:50%;margin-right:5px;vertical-align:middle"></span>
-                                        <span style="font-weight:bold;color:#991b1b;font-size:11px;vertical-align:middle">${tr('Periodo Punta')}</span>
-                                        <p style="margin:8px 0 5px 0;color:#dc2626;font-size:20px;font-weight:bold">${puntaPct}%</p>
-                                        <p style="margin:0 0 5px 0;color:#64748b;font-size:10px">${puntaKwh.toFixed(0)} kWh</p>
-                                        <p style="margin:0;background:#ffffff;padding:6px;border-radius:4px;color:#64748b;font-size:8px">
-                                            ${tr('Horario más caro')}<br>10-14h, 18-22h (lab.)
-                                        </p>
-                                    </td>
-                                    <td width="2%"></td>
-                                    <!-- Llano -->
-                                    <td width="32%" style="background:#fefce8;padding:12px;border-radius:8px;border:2px solid #fde047;text-align:center">
-                                        <span style="display:inline-block;width:12px;height:12px;background:#facc15;border-radius:50%;margin-right:5px;vertical-align:middle"></span>
-                                        <span style="font-weight:bold;color:#a16207;font-size:11px;vertical-align:middle">${tr('Periodo Llano')}</span>
-                                        <p style="margin:8px 0 5px 0;color:#ca8a04;font-size:20px;font-weight:bold">${llanoPct}%</p>
-                                        <p style="margin:0 0 5px 0;color:#64748b;font-size:10px">${llanoKwh.toFixed(0)} kWh</p>
-                                        <p style="margin:0;background:#ffffff;padding:6px;border-radius:4px;color:#64748b;font-size:8px">
-                                            ${tr('Precio medio')}<br>8-10h, 14-18h, 22-24h
-                                        </p>
-                                    </td>
-                                    <td width="2%"></td>
-                                    <!-- Valle -->
-                                    <td width="32%" style="background:#f0fdf4;padding:12px;border-radius:8px;border:2px solid #bbf7d0;text-align:center">
-                                        <span style="display:inline-block;width:12px;height:12px;background:#16a34a;border-radius:50%;margin-right:5px;vertical-align:middle"></span>
-                                        <span style="font-weight:bold;color:#166534;font-size:11px;vertical-align:middle">${tr('Periodo Valle')}</span>
-                                        <p style="margin:8px 0 5px 0;color:#16a34a;font-size:20px;font-weight:bold">${vallePct}%</p>
-                                        <p style="margin:0 0 5px 0;color:#64748b;font-size:10px">${valleKwh.toFixed(0)} kWh</p>
-                                        <p style="margin:0;background:#ffffff;padding:6px;border-radius:4px;color:#64748b;font-size:8px">
-                                            ${tr('Horario más barato')}<br>0-8h + fines semana
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                            
-                            <!-- Barra de progreso -->
-                            <div style="padding-top:12px">
-                                <table width="100%" cellpadding="0" cellspacing="0" style="height:25px;border-radius:6px;overflow:hidden">
-                                    <tr>
-                                        <td width="${puntaPct}%" style="background:#dc2626;color:#ffffff;text-align:center;font-size:9px;font-weight:bold;padding:5px">
-                                            ${puntaPct > 8 ? puntaPct + '%' : ''}
-                                        </td>
-                                        <td width="${llanoPct}%" style="background:#facc15;color:#1e293b;text-align:center;font-size:9px;font-weight:bold;padding:5px">
-                                            ${llanoPct > 8 ? llanoPct + '%' : ''}
-                                        </td>
-                                        <td width="${vallePct}%" style="background:#16a34a;color:#ffffff;text-align:center;font-size:9px;font-weight:bold;padding:5px">
-                                            ${vallePct > 8 ? vallePct + '%' : ''}
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                            
-                            <!-- Recomendación -->
-                            <table width="100%" cellpadding="0" cellspacing="0" style="background:#eff6ff;padding:12px;border-radius:8px;border-left:4px solid #0284c7;margin-top:15px">
-                                <tr>
-                                    <td>
-                                        <p style="margin:0 0 5px 0;font-weight:bold;color:#0c4a6e;font-size:11px">💡 ${tr('Recomendación Personalizada')}</p>
-                                        <p style="margin:0;color:#334155;font-size:10px;line-height:1.5">${recomendacion}</p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        `;
-                    })() : ''}
                     ` : `
                     <!-- GAS: DESGLOSE (sin sección POTENCIA) -->
                     <div style="margin-top:12px;padding:10px;background:${primaryColor};color:white;border-radius:5px">
@@ -17932,7 +17580,7 @@ ${clientName}
             
             try {
                 // Detectar si es POWER CUP o DRK basado en comparisonMode
-                const isPowerCup = comparisonMode === 'overall_best';
+                const isPowerCup = false;
                 
                 const isDual = results.length === 2 && 
                               results.some(r => r.name.toUpperCase().includes('INDEX')) &&
@@ -21070,168 +20718,6 @@ ${clientName}
         (function() {
             // Mapa COMPLETO de traducciones - TODOS los textos visibles
             const TR = {
-                // ============================================================
-                // TRADUCCIONES PARA TARIFA 2.0 TD - ANÁLISIS DE HORARIOS
-                // ============================================================
-                "Análisis de Horarios y Consumo - Tarifa 2.0 TD": { 
-                    en: "Schedule and Consumption Analysis - Tariff 2.0 TD", 
-                    zh: "时间表和消耗分析 - 资费 2.0 TD", 
-                    de: "Zeitplan- und Verbrauchsanalyse - Tarif 2.0 TD", 
-                    fr: "Analyse des Horaires et de la Consommation - Tarif 2.0 TD" 
-                },
-                "Análisis de Horarios": { 
-                    en: "Schedule Analysis", 
-                    zh: "时间表分析", 
-                    de: "Zeitplananalyse", 
-                    fr: "Analyse des Horaires" 
-                },
-                "Lunes a viernes laborables": { 
-                    en: "Monday to Friday (working days)", 
-                    zh: "周一至周五（工作日）", 
-                    de: "Montag bis Freitag (Werktage)", 
-                    fr: "Lundi au vendredi (jours ouvrables)" 
-                },
-                "Sábados, domingos y festivos": { 
-                    en: "Saturdays, Sundays and holidays", 
-                    zh: "周六、周日和节假日", 
-                    de: "Samstags, sonntags und an Feiertagen", 
-                    fr: "Samedis, dimanches et jours fériés" 
-                },
-                "Tu Distribución de Consumo": { 
-                    en: "Your Consumption Distribution", 
-                    zh: "您的消耗分布", 
-                    de: "Ihre Verbrauchsverteilung", 
-                    fr: "Votre Distribution de Consommation" 
-                },
-                "Periodo Punta": { 
-                    en: "Peak Period", 
-                    zh: "峰值时段", 
-                    de: "Spitzenlastperiode", 
-                    fr: "Période de Pointe" 
-                },
-                "Periodo Llano": { 
-                    en: "Flat Period", 
-                    zh: "平段时期", 
-                    de: "Mittellastperiode", 
-                    fr: "Période Pleine" 
-                },
-                "Periodo Valle": { 
-                    en: "Valley Period", 
-                    zh: "谷段时期", 
-                    de: "Schwachlastperiode", 
-                    fr: "Période Creuse" 
-                },
-                "Peak": { 
-                    en: "Peak", 
-                    zh: "峰值", 
-                    de: "Spitzenlast", 
-                    fr: "Pointe" 
-                },
-                "Flat": { 
-                    en: "Flat", 
-                    zh: "平段", 
-                    de: "Mittellast", 
-                    fr: "Plein" 
-                },
-                "Valleyy": { 
-                    en: "Valley", 
-                    zh: "谷段", 
-                    de: "Schwachlast", 
-                    fr: "Creuse" 
-                },
-                "Off-peak": { 
-                    en: "Off-peak", 
-                    zh: "非高峰", 
-                    de: "Nebenlast", 
-                    fr: "Heures creuses" 
-                },
-                "10-14h, 18-22h": { 
-                    en: "10-14h, 18-22h", 
-                    zh: "10-14时, 18-22时", 
-                    de: "10-14 Uhr, 18-22 Uhr", 
-                    fr: "10-14h, 18-22h" 
-                },
-                "8-10h, 14-18h, 22-24h": { 
-                    en: "8-10h, 14-18h, 22-24h", 
-                    zh: "8-10时, 14-18时, 22-24时", 
-                    de: "8-10 Uhr, 14-18 Uhr, 22-24 Uhr", 
-                    fr: "8-10h, 14-18h, 22-24h" 
-                },
-                "0-8h": { 
-                    en: "0-8h", 
-                    zh: "0-8时", 
-                    de: "0-8 Uhr", 
-                    fr: "0-8h" 
-                },
-                "24 horas (todo el día)": { 
-                    en: "24 hours (all day)", 
-                    zh: "24小时（全天）", 
-                    de: "24 Stunden (den ganzen Tag)", 
-                    fr: "24 heures (toute la journée)" 
-                },
-                "Horario más caro": { 
-                    en: "Most expensive schedule", 
-                    zh: "最贵的时段", 
-                    de: "Teuerste Zeit", 
-                    fr: "Horaire le plus cher" 
-                },
-                "Precio medio": { 
-                    en: "Average price", 
-                    zh: "平均价格", 
-                    de: "Durchschnittspreis", 
-                    fr: "Prix moyen" 
-                },
-                "Horario más barato": { 
-                    en: "Cheapest schedule", 
-                    zh: "最便宜的时段", 
-                    de: "Günstigste Zeit", 
-                    fr: "Horaire le moins cher" 
-                },
-                "Horario intermedio": { 
-                    en: "Intermediate schedule", 
-                    zh: "中间时段", 
-                    de: "Zwischenzeit", 
-                    fr: "Horaire intermédiaire" 
-                },
-                "Horario más barato 0-8h + fines semana": { 
-                    en: "Cheapest schedule 0-8h + weekends", 
-                    zh: "最便宜的时段 0-8时 + 周末", 
-                    de: "Günstigste Zeit 0-8 Uhr + Wochenenden", 
-                    fr: "Horaire le moins cher 0-8h + week-ends" 
-                },
-                "Recomendación Personalizada": { 
-                    en: "Personalized Recommendation", 
-                    zh: "个性化推荐", 
-                    de: "Personalisierte Empfehlung", 
-                    fr: "Recommandation Personnalisée" 
-                },
-                "Consumes más del 30% en horario Punta. Te recomendamos trasladar consumos al periodo Valle (madrugada y fines de semana) para maximizar tu ahorro.": {
-                    en: "You consume more than 30% during Peak hours. We recommend shifting consumption to Valley period (early morning and weekends) to maximize your savings.",
-                    zh: "您在峰值时段消耗超过30%。我们建议将消耗转移到谷段时期（凌晨和周末）以最大化您的节省。",
-                    de: "Sie verbrauchen mehr als 30% während der Spitzenzeiten. Wir empfehlen, den Verbrauch in die Schwachlastperiode (früher Morgen und Wochenenden) zu verlagern, um Ihre Einsparungen zu maximieren.",
-                    fr: "Vous consommez plus de 30% pendant les heures de pointe. Nous recommandons de déplacer la consommation vers la période creuse (tôt le matin et week-ends) pour maximiser vos économies."
-                },
-                "¡Excelente! Más del 50% de tu consumo está en Valle, el periodo más económico. Sigue así para maximizar tu ahorro.": {
-                    en: "Excellent! More than 50% of your consumption is in Valley period, the most economical. Keep it up to maximize your savings.",
-                    zh: "太好了！您超过50%的消耗在谷段时期，这是最经济的。继续保持以最大化您的节省。",
-                    de: "Ausgezeichnet! Mehr als 50% Ihres Verbrauchs liegt in der Schwachlastperiode, der wirtschaftlichsten. Machen Sie so weiter, um Ihre Einsparungen zu maximieren.",
-                    fr: "Excellent ! Plus de 50% de votre consommation est en période creuse, la plus économique. Continuez ainsi pour maximiser vos économies."
-                },
-                "Tu consumo está bien distribuido. Considera trasladar más consumo al periodo Valle para aumentar tu ahorro.": {
-                    en: "Your consumption is well distributed. Consider shifting more consumption to Valley period to increase your savings.",
-                    zh: "您的消耗分布良好。考虑将更多消耗转移到谷段时期以增加您的节省。",
-                    de: "Ihr Verbrauch ist gut verteilt. Erwägen Sie, mehr Verbrauch in die Schwachlastperiode zu verlagern, um Ihre Einsparungen zu erhöhen.",
-                    fr: "Votre consommation est bien répartie. Envisagez de déplacer plus de consommation vers la période creuse pour augmenter vos économies."
-                },
-                "峰": { en: "Peak", zh: "峰", de: "Spitze", fr: "Pointe" },
-                "值": { en: "Value", zh: "值", de: "Wert", fr: "Valeur" },
-                "平": { en: "Flat", zh: "平", de: "Mittel", fr: "Plat" },
-                "段": { en: "Period", zh: "段", de: "Periode", fr: "Période" },
-                "谷": { en: "Valley", zh: "谷", de: "Tal", fr: "Vallée" },
-                "峰值": { en: "Peak", zh: "峰值", de: "Spitzenwert", fr: "Pointe" },
-                "平段": { en: "Flat", zh: "平段", de: "Mittellast", fr: "Plat" },
-                "谷段": { en: "Valley", zh: "谷段", de: "Schwachlast", fr: "Vallée" },
-                // ============================================================
                 "Analizar Factura": { en: "Analyze Invoice", zh: "分析账单", de: "Rechnung analysieren", fr: "Analyser la Facture" },
                 "Escanea el código QR o introduce datos manualmente.": { en: "Scan the QR code or enter data manually.", zh: "扫描二维码或手动输入数据。", de: "Scannen Sie den QR-Code oder geben Sie Daten manuell ein.", fr: "Scannez le code QR ou saisissez les données manuellement." },
                 "ESCANEAR QR AHORA": { en: "SCAN QR NOW", zh: "立即扫描二维码", de: "QR JETZT SCANNEN", fr: "SCANNER QR MAINTENANT" },
@@ -21887,7 +21373,6 @@ ${clientName}
                 
                 // Interfaz de resultados
                 "Datos Extraídos": { en: "Extracted Data", zh: "提取数据", de: "Extrahierte Daten", fr: "Données Extraites" },
-                "Precios Ofertas": { en: "Offer Prices", zh: "报价价格", de: "Angebotspreise", fr: "Prix des Offres" },
                 "Cálculo Oficial": { en: "Official Calculation", zh: "官方计算", de: "Offizielle Berechnung", fr: "Calcul Officiel" },
                 "Simulación": { en: "Simulation", zh: "模拟", de: "Simulation", fr: "Simulation" },
                 "Subtotal Potencia": { en: "Power Subtotal", zh: "功率小计", de: "Leistung Zwischensumme", fr: "Sous-total Puissance" },

@@ -8292,13 +8292,13 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 // === CABECERA AZUL (MÁS PEQUEÑA) ===
                 doc.setFillColor(...primaryColor);
-                doc.roundedRect(margin, yPos, contentWidth, 32, 4, 4, 'F');
+                doc.roundedRect(margin, yPos, contentWidth, 24, 4, 4, 'F');
                 
                 // "LA MEJOR OPCIÓN PARA TI ES"
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(9);
+                doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
-                doc.text(tr('LA MEJOR OPCIÓN PARA TI ES'), pageWidth / 2, yPos + 8, { align: 'center' });
+                doc.text(tr('LA MEJOR OPCIÓN PARA TI ES'), pageWidth / 2, yPos + 6, { align: 'center' });
                 
                 // Comercializadora y Tarifa
                 const comercializadora = offer.name; // Nombre corto (ej: ELEIA)
@@ -8307,48 +8307,48 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 if (!isDrk) {
                     // POWER CUP Individual: Solo mostrar comercializadora (nombre corto)
-                    doc.setFontSize(32);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(comercializadora.toUpperCase(), pageWidth / 2, yPos + 18, { align: 'center' });
-                    
-                    // POWER CUP debajo
-                    doc.setFontSize(9);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text('POWER CUP', pageWidth / 2, yPos + 27, { align: 'center' });
-                } else {
-                    // DRK: Mostrar solo DRK y nombre de tarifa
                     doc.setFontSize(26);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('DRK', pageWidth / 2, yPos + 18, { align: 'center' });
+                    doc.text(comercializadora.toUpperCase(), pageWidth / 2, yPos + 14, { align: 'center' });
                     
-                    doc.setFontSize(9);
+                    // POWER CUP debajo
+                    doc.setFontSize(8);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(tarifaCompleta, pageWidth / 2, yPos + 27, { align: 'center' });
+                    doc.text('POWER CUP', pageWidth / 2, yPos + 21, { align: 'center' });
+                } else {
+                    // DRK: Mostrar solo DRK y nombre de tarifa
+                    doc.setFontSize(20);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('DRK', pageWidth / 2, yPos + 14, { align: 'center' });
+                    
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(tarifaCompleta, pageWidth / 2, yPos + 21, { align: 'center' });
                 }
                 
-                yPos += 37;
+                yPos += 28;
                 
                 // === CAJA BLANCA COMPACTA ===
                 doc.setFillColor(255, 255, 255);
                 doc.setDrawColor(220, 220, 220);
                 doc.setLineWidth(0.3);
-                const boxHeightIndiv = res.savings > 0 ? 75 : 65;
+                const boxHeightIndiv = res.savings > 0 ? 55 : 50;
                 doc.roundedRect(margin, yPos, contentWidth, boxHeightIndiv, 4, 4, 'FD');
                 
                 if (res.savings > 0) {
                     // Ahorro positivo - diseño normal
                     doc.setTextColor(120, 120, 140);
-                    doc.setFontSize(10);
+                    doc.setFontSize(9);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('TU AHORRO ANUAL ESTIMADO'), pageWidth / 2, yPos + 8, { align: 'center' });
+                    doc.text(tr('TU AHORRO ANUAL ESTIMADO'), pageWidth / 2, yPos + 6, { align: 'center' });
                     
                     // Cifra de ahorro en VERDE (grande pero ajustado)
                     doc.setTextColor(...greenColor);
-                    doc.setFontSize(32);
+                    doc.setFontSize(26);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(savingsText, pageWidth / 2, yPos + 25, { align: 'center' });
+                    doc.text(savingsText, pageWidth / 2, yPos + 19, { align: 'center' });
                     
-                    yPos += 32;
+                    yPos += 24;
                 } else {
                     // Sin ahorro - mensaje grande centrado
                     doc.setTextColor(...primaryColor);
@@ -8377,7 +8377,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 const leftXResumen = margin + 10;
                 
                 doc.setTextColor(140, 150, 160);
-                doc.setFontSize(8);
+                doc.setFontSize(7);
                 doc.setFont('helvetica', 'bold');
                 doc.text(tr('TU FACTURA ACTUAL'), leftXResumen + colWidthResumen / 2, yPos, { align: 'center' });
                 
@@ -8386,72 +8386,72 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 const precioMensualEstimado = (res.originalBillAnnual / 365) * 30;
                 const oldPrice = `${eur(precioMensualEstimado)}/mes`;
                 doc.setTextColor(...redColor);
-                doc.setFontSize(18);
+                doc.setFontSize(14);
                 doc.setFont('helvetica', 'bold');
                 const oldX = leftXResumen + colWidthResumen / 2;
-                const oldY = yPos + 12;
+                const oldY = yPos + 9;
                 doc.text(oldPrice, oldX, oldY, { align: 'center' });
                 
                 // Línea tachada
                 const oldWidth = doc.getTextWidth(oldPrice);
                 doc.setDrawColor(...redColor);
-                doc.setLineWidth(1.5);
-                doc.line(oldX - oldWidth/2 - 2, oldY - 3, oldX + oldWidth/2 + 2, oldY - 3);
+                doc.setLineWidth(1.2);
+                doc.line(oldX - oldWidth/2 - 2, oldY - 2.5, oldX + oldWidth/2 + 2, oldY - 2.5);
                 
                 // "Total Periodo"
                 doc.setTextColor(140, 150, 160);
-                doc.setFontSize(7);
+                doc.setFontSize(6);
                 doc.setFont('helvetica', 'normal');
-                doc.text(`Total Periodo (${diasPeriodo} días)`, leftXResumen + colWidthResumen / 2, yPos + 19, { align: 'center' });
+                doc.text(`Total Periodo (${diasPeriodo} días)`, leftXResumen + colWidthResumen / 2, yPos + 14, { align: 'center' });
                 
                 // Precio anual tachado
                 const oldAnnual = eur(res.originalBillAnnual);
                 doc.setTextColor(...redColor);
-                doc.setFontSize(16);
+                doc.setFontSize(13);
                 doc.setFont('helvetica', 'bold');
                 const oldAnnualX = leftXResumen + colWidthResumen / 2;
-                const oldAnnualY = yPos + 32;
+                const oldAnnualY = yPos + 24;
                 doc.text(`${oldAnnual}/año`, oldAnnualX, oldAnnualY, { align: 'center' });
                 
                 // Línea tachada
                 const oldAnnualWidth = doc.getTextWidth(`${oldAnnual}/año`);
                 doc.setDrawColor(...redColor);
-                doc.setLineWidth(1.5);
-                doc.line(oldAnnualX - oldAnnualWidth/2 - 2, oldAnnualY - 3, oldAnnualX + oldAnnualWidth/2 + 2, oldAnnualY - 3);
+                doc.setLineWidth(1.2);
+                doc.line(oldAnnualX - oldAnnualWidth/2 - 2, oldAnnualY - 2.5, oldAnnualX + oldAnnualWidth/2 + 2, oldAnnualY - 2.5);
                 
                 // SEPARADOR VERTICAL
                 doc.setDrawColor(220, 220, 220);
                 doc.setLineWidth(0.3);
-                doc.line(pageWidth / 2, yPos - 5, pageWidth / 2, yPos + 38);
+                doc.line(pageWidth / 2, yPos - 3, pageWidth / 2, yPos + 28);
                 
                 // COLUMNA DERECHA - TU NUEVO COSTE
                 const rightXResumen = margin + 10 + colWidthResumen + 10;
                 
                 doc.setTextColor(...primaryColor);
-                doc.setFontSize(8);
+                doc.setFontSize(7);
                 doc.setFont('helvetica', 'bold');
                 const newLabel = `TU NUEVO COSTE ${brandName}`;
                 doc.text(newLabel, rightXResumen + colWidthResumen / 2, yPos, { align: 'center' });
                 
                 // Precio mensual en azul
                 doc.setTextColor(...primaryColor);
-                doc.setFontSize(20);
+                doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`${eur(res.totalAnnual / 12)}/mes`, rightXResumen + colWidthResumen / 2, yPos + 13, { align: 'center' });
+                doc.text(`${eur(res.totalAnnual / 12)}/mes`, rightXResumen + colWidthResumen / 2, yPos + 10, { align: 'center' });
                 
                 // "Estimado Mensual"
                 doc.setTextColor(140, 150, 160);
-                doc.setFontSize(7);
+                doc.setFontSize(6);
                 doc.setFont('helvetica', 'normal');
-                doc.text(tr('Estimado Mensual'), rightXResumen + colWidthResumen / 2, yPos + 19, { align: 'center' });
+                doc.text(tr('Estimado Mensual'), rightXResumen + colWidthResumen / 2, yPos + 14, { align: 'center' });
                 
                 // Precio anual en azul
                 doc.setTextColor(...primaryColor);
-                doc.setFontSize(16);
+                doc.setFontSize(13);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`${eur(res.totalAnnual)}/año`, rightXResumen + colWidthResumen / 2, yPos + 32, { align: 'center' });
+                doc.text(`${eur(res.totalAnnual)}/año`, rightXResumen + colWidthResumen / 2, yPos + 24, { align: 'center' });
                 
-                yPos += 50;
+                yPos += 36;
                 } // Fin del condicional de columnas de precios en Individual
                 
                 // === ANÁLISIS DE HORARIOS Y CONSUMO (Solo 2.0TD) ===

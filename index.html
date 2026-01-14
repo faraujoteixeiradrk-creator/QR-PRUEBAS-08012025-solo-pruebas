@@ -8577,11 +8577,11 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.text(tr('Tu Distribución de Consumo'), margin + 5, yPos + 5.5);
                     yPos += 10;
                     
-                    // Caja blanca para las tarjetas - ALTURA MUY AUMENTADA
+                    // Caja blanca para las tarjetas - ALTURA FINAL AUMENTADA
                     doc.setFillColor(255, 255, 255);
                     doc.setDrawColor(200, 200, 200);
                     doc.setLineWidth(0.3);
-                    const consumoBoxHeight = 60;
+                    const consumoBoxHeight = 56;
                     doc.roundedRect(margin, yPos, contentWidth, consumoBoxHeight, 2, 2, 'FD');
                     
                     // Tres tarjetas de periodos
@@ -8589,7 +8589,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     const periodoCardX1 = margin + 3;
                     const periodoCardX2 = periodoCardX1 + periodoCardWidth + 3;
                     const periodoCardX3 = periodoCardX2 + periodoCardWidth + 3;
-                    const periodoCardY = yPos + 3;
+                    const periodoCardY = yPos + 4;
                     const periodoCardHeight = 48;
                     
                     // Punta (rojo)

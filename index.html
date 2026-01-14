@@ -8842,7 +8842,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         yPos += 5;
                     }
                     
-                    yPos += 5; // Espacio antes del desglose
+                    yPos += 2; // Espacio antes del desglose (reducido)
                 }
                 
                 // === DESGLOSE DETALLADO ===
@@ -8861,14 +8861,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         : comercializadora;
                     doc.text(`${tr('DESGLOSE DETALLADO DE LA SIMULACIÓN')} (${fullDesgloseTitle})`, margin + 3, yPos + 6.5);
                     
-                    yPos += 14;
+                    yPos += 10;
                     
                     // === TÉRMINO POTENCIA ===
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
                     doc.text('TÉRMINO POTENCIA (Precio en €/kW Día)', margin, yPos);
-                    yPos += 6;
+                    yPos += 4;
                     
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'normal');
@@ -8878,7 +8878,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             const formula = `P${p.period} (${num(p.kw, 2)} kW x ${res.dias_facturados}d x ${numPriceFormula(p.priceDay)})`;
                             doc.text(formula, margin + 2, yPos);
                             doc.text(`${num(p.cost, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
-                            yPos += 5;
+                            yPos += 4;
                         }
                     });
                     
@@ -8887,14 +8887,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(...primaryColor);
                     doc.text(tr('SUBTOTAL POTENCIA'), margin + 2, yPos);
                     doc.text(`${num(res.subPower, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
-                    yPos += 8;
+                    yPos += 6;
                     
                     // === TÉRMINO ENERGÍA ===
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
                     doc.text('TÉRMINO ENERGÍA (Precios en €/kWh)', margin, yPos);
-                    yPos += 6;
+                    yPos += 4;
                     
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'normal');
@@ -8910,7 +8910,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             const formula = `${label} (${num(e.kwh, 0)} kWh x ${numPriceFormula(e.price)})`;
                             doc.text(formula, margin + 2, yPos);
                             doc.text(`${num(e.cost, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
-                            yPos += 5;
+                            yPos += 4;
                         }
                     });
                     
@@ -8919,29 +8919,29 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(80, 80, 80);
                     doc.text('Subtotal Energía (Bruto)', margin + 2, yPos);
                     doc.text(`${num(res.subEnergy, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
-                    yPos += 5;
+                    yPos += 4;
                     
                     // Descuento si existe
                     if (res.discountAmount > 0) {
                         doc.setTextColor(...redColor);
                         doc.text(`Descuento Aplicado (${num(res.discountRate * 100, 0)}%)`, margin + 2, yPos);
                         doc.text(`-${num(res.discountAmount, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
-                        yPos += 5;
+                        yPos += 4;
                         
                         doc.setTextColor(0, 0, 0);
                         doc.text('Subtotal Energía (Neto)', margin + 2, yPos);
                         doc.text(`${num(res.subEnergyNet, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
-                        yPos += 5;
+                        yPos += 4;
                     }
                     
-                    yPos += 3;
+                    yPos += 2;
                     
                     // === TOTALES ===
                     // Línea separadora
                     doc.setDrawColor(150, 150, 150);
                     doc.setLineWidth(0.3);
                     doc.line(margin, yPos, pageWidth - margin, yPos);
-                    yPos += 5;
+                    yPos += 4;
                     
                     doc.setTextColor(0, 0, 0);
                     doc.setFont('helvetica', 'bold');
@@ -8950,27 +8950,27 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     // Subtotal base
                     doc.text('SUBTOTAL BASE (P+E)', margin + 2, yPos);
                     doc.text(`${num(res.subBase, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
-                    yPos += 5;
+                    yPos += 4;
                     
                     // Impuesto eléctrico
                     doc.setFont('helvetica', 'normal');
                     doc.text(`${tr('Imp. Eléc.')} (${num(res.ieRate * 100, 3)}%)`, margin + 2, yPos);
                     doc.text(`${num(res.costIE, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
-                    yPos += 5;
+                    yPos += 4;
                     
                     // Base imponible
                     doc.setFont('helvetica', 'bold');
                     doc.setFontSize(10);
                     doc.text(tr('BASE IMPONIBLE'), margin + 2, yPos);
                     doc.text(`${num(res.baseImp, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
-                    yPos += 5;
+                    yPos += 4;
                     
                     // IVA
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(9);
                     doc.text(tr('IVA (21%)'), margin + 2, yPos);
                     doc.text(`${num(res.costIVA, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
-                    yPos += 7;
+                    yPos += 6;
                     
                     // TOTAL FACTURA
                     doc.setFillColor(...darkColor);
@@ -8980,14 +8980,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFont('helvetica', 'bold');
                     doc.text(`TOTAL FACTURA (${res.dias_facturados} DÍAS)`, margin + 3, yPos + 6.5);
                     doc.text(eur(res.totalPeriod), pageWidth - margin - 3, yPos + 6.5, { align: 'right' });
-                    yPos += 14;
+                    yPos += 12;
                     
                     // Total año
                     doc.setTextColor(...primaryColor);
                     doc.setFontSize(10);
                     doc.text(tr('TOTAL AÑO (PROYECTADO)'), margin + 2, yPos);
                     doc.text(eur(res.totalAnnual), pageWidth - margin - 2, yPos, { align: 'right' });
-                    yPos += 8;
+                    yPos += 5;
                 }
                 
                 } // FIN del else - cierre de seccion individual
@@ -8997,7 +8997,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.addPage();
                     yPos = 20;
                 } else {
-                    yPos += 15; // Espacio antes de la caja verde (para que no se solape con tarifas consolidadas)
+                    yPos += 8; // Espacio antes de la caja roja (reducido de 15)
                 }
                 
                 doc.setFillColor(...redColor); // ROJO
@@ -9011,28 +9011,28 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setFontSize(22);
                 doc.text(`${savingsText} ${tr('/ AÑO')}`, margin + 5, yPos + 16);
                 
-                yPos += 30; // Más espacio después de la caja verde (antes 25)
+                yPos += 22; // Espacio después de la caja roja (reducido de 30)
                 
                 // === CUADRO DE FORMALIZACION CON FONDO AZUL OSCURO ===
-                checkNewPage(60);
+                checkNewPage(50);
                 
                 // Cuadro principal con FONDO AZUL OSCURO y BORDE BLANCO
                 doc.setDrawColor(255, 255, 255);
                 doc.setLineWidth(3);
                 doc.setFillColor(...darkColor);
-                doc.roundedRect(margin, yPos, contentWidth, 55, 3, 3, 'FD');
+                doc.roundedRect(margin, yPos, contentWidth, 48, 3, 3, 'FD');
                 
                 // Encabezado (texto blanco)
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(11);
+                doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
-                doc.text('PARA FORMALIZAR ESTE CONTRATO:', margin + 5, yPos + 8);
+                doc.text('PARA FORMALIZAR ESTE CONTRATO:', margin + 5, yPos + 7);
                 
-                yPos += 13;
+                yPos += 11;
                 
                 // Instruccion principal (texto blanco)
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(9);
+                doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
                 if (res.isMulti) {
                     doc.text(tr('Responde a este email adjuntando la documentación de los') + ` ${res.individualResults.length} CUPS:`, margin + 5, yPos);
@@ -9040,10 +9040,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.text(tr('Responde a este email adjuntando la siguiente documentación:'), margin + 5, yPos);
                 }
                 
-                yPos += 6;
+                yPos += 5;
                 
                 // Lista de documentos (texto blanco)
-                doc.setFontSize(8);
+                doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(255, 255, 255);
                 
@@ -9057,30 +9057,30 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 docs.forEach((docItem, idx) => {
                     doc.text(docItem, margin + 8, yPos);
-                    yPos += 4.5;
+                    yPos += 3.5;
                 });
                 
-                yPos += 2;
+                yPos += 1.5;
                 
                 // Separador (blanco)
                 doc.setDrawColor(255, 255, 255);
                 doc.setLineWidth(0.5);
                 doc.line(margin + 5, yPos, pageWidth - margin - 5, yPos);
-                yPos += 4;
+                yPos += 3.5;
                 
                 // Email de contacto destacado (texto blanco)
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(8);
+                doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
                 doc.text('Envia la documentacion al comercial:', margin + 5, yPos);
-                yPos += 4;
+                yPos += 3.5;
                 
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(13);
+                doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
                 doc.text(commercialCode, margin + 5, yPos);
                 
-                yPos += 10;
+                yPos += 8;
                 
                 // === PIE DE PÁGINA ===
                 const footerY = 280;

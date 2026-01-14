@@ -8755,7 +8755,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     yPos += recoBoxHeight + 5;
                 }
                 
-                // === PRECIOS DE LA OFERTA EN PÁGINA 1 (sin check de espacio) ===
+                // === NUEVA PÁGINA PARA PRECIOS Y DESGLOSE ===
+                // Crear nueva página ANTES de dibujar precios de la oferta
+                doc.addPage();
+                yPos = 20;
+                
+                // === PRECIOS DE LA OFERTA EN PÁGINA 2 ===
                 if (!res.isMulti) {
                     // Titulo con fondo VERDE
                     doc.setFillColor(...greenColor); // VERDE
@@ -8837,9 +8842,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         yPos += 5;
                     }
                     
-                    // === NUEVA PÁGINA PARA EL DESGLOSE ===
-                    doc.addPage();
-                    yPos = 20;
+                    yPos += 5; // Espacio antes del desglose
                 }
                 
                 // === DESGLOSE DETALLADO ===

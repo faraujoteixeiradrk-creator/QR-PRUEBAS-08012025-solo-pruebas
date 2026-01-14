@@ -182,14 +182,50 @@
             display: none;
         }
         
+        /* Estilos para pestañas de sección */
+        .section-tab {
+            transition: all 0.2s ease;
+        }
+        
+        .border-b-3 {
+            border-bottom-width: 3px;
+        }
+        
+        .section-tab.active {
+            color: #0ea5e9 !important;
+            background-color: #f0f9ff !important;
+            border-bottom-color: #0ea5e9 !important;
+        }
+        
+        /* Animación suave para cambio de secciones */
+        .section-content {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Contenido de secciones */
+        .section-content {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
         /* Efecto scroll suave */
         html {
             scroll-behavior: smooth;
-        }
-        
-        /* Asegurar que los elementos con scroll-mt tengan el offset correcto */
-        .scroll-mt-20 {
-            scroll-margin-top: 5rem;
         }
     </style>
 </head>
@@ -4323,8 +4359,10 @@
             // Calcular porcentajes de consumo para tarifa 2.0TD
             let scheduleAnalysisHTML = '';
             let navigationMenuHTML = '';
+            let defaultSection = 'datos-extraidos'; // Por defecto mostrar datos extraídos
             
             if (tariffType === '2.0TD') {
+                defaultSection = 'analisis'; // Para 2.0TD mostrar análisis primero
                 const puntaKwh = res.energyCosts[0].kwh;
                 const llanoKwh = res.energyCosts[1].kwh;
                 const valleKwh = res.energyCosts[2].kwh;
@@ -4334,27 +4372,27 @@
                 const llanoPct = totalKwh > 0 ? (llanoKwh / totalKwh * 100).toFixed(1) : 0;
                 const vallePct = totalKwh > 0 ? (valleKwh / totalKwh * 100).toFixed(1) : 0;
                 
-                // Menú de navegación
+                // Menú de navegación con análisis de horarios
                 navigationMenuHTML = `
                     <div id="sections-nav" class="sticky top-0 z-50 bg-white border-b-2 border-slate-200 shadow-md mb-6">
                         <div class="flex overflow-x-auto scrollbar-hide">
-                            <button onclick="document.getElementById('section-analisis').scrollIntoView({behavior: 'smooth', block: 'start'})" 
-                                    class="flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-2 border-transparent hover:border-drk-600 transition-all whitespace-nowrap">
+                            <button onclick="showSection('analisis')" id="btn-analisis"
+                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
                                 <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 ${tr('Análisis de Horarios')}
                             </button>
-                            <button onclick="document.getElementById('section-datos-extraidos').scrollIntoView({behavior: 'smooth', block: 'start'})" 
-                                    class="flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-2 border-transparent hover:border-drk-600 transition-all whitespace-nowrap">
+                            <button onclick="showSection('datos-extraidos')" id="btn-datos-extraidos"
+                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
                                 <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 ${tr('Datos Extraídos')}
                             </button>
-                            <button onclick="document.getElementById('section-precios').scrollIntoView({behavior: 'smooth', block: 'start'})" 
-                                    class="flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-2 border-transparent hover:border-drk-600 transition-all whitespace-nowrap">
+                            <button onclick="showSection('precios')" id="btn-precios"
+                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
                                 <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 ${tr('Precios Ofertas')}
                             </button>
-                            <button onclick="document.getElementById('section-calculo').scrollIntoView({behavior: 'smooth', block: 'start'})" 
-                                    class="flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-2 border-transparent hover:border-drk-600 transition-all whitespace-nowrap">
+                            <button onclick="showSection('calculo')" id="btn-calculo"
+                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
                                 <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                                 ${tr('Cálculo Oficial')}
                             </button>
@@ -4363,7 +4401,7 @@
                 `;
                 
                 scheduleAnalysisHTML = `
-                    <div id="section-analisis" class="mb-8 bg-gradient-to-br from-slate-50 to-slate-100 p-6 rounded-2xl border-2 border-slate-200 shadow-lg scroll-mt-20">
+                    <div id="section-analisis" class="section-content mb-8 bg-gradient-to-br from-slate-50 to-slate-100 p-6 rounded-2xl border-2 border-slate-200 shadow-lg" style="display: block;">
                         <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-3">
                             <svg class="w-6 h-6 text-drk-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             ${tr('Análisis de Horarios y Consumo - Tarifa 2.0 TD')}
@@ -4467,19 +4505,82 @@
                         </div>
                     </div>
                 `;
+            } else {
+                // Menú de navegación SIN análisis de horarios (para tarifas 3.0TD, etc.)
+                navigationMenuHTML = `
+                    <div id="sections-nav" class="sticky top-0 z-50 bg-white border-b-2 border-slate-200 shadow-md mb-6">
+                        <div class="flex overflow-x-auto scrollbar-hide">
+                            <button onclick="showSection('datos-extraidos')" id="btn-datos-extraidos"
+                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                ${tr('Datos Extraídos')}
+                            </button>
+                            <button onclick="showSection('precios')" id="btn-precios"
+                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                ${tr('Precios Ofertas')}
+                            </button>
+                            <button onclick="showSection('calculo')" id="btn-calculo"
+                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                ${tr('Cálculo Oficial')}
+                            </button>
+                        </div>
+                    </div>
+                `;
             }
 
             detailsContainer.innerHTML = `
                 ${navigationMenuHTML}
                 ${scheduleAnalysisHTML}
-                <h3 id="section-datos-extraidos" class="text-lg font-bold text-slate-800 border-l-4 ${brand.BORDER.replace('border-', 'border-')} pl-3 scroll-mt-20">${tr('Datos Extraídos')}</h3>
-                <div id="user-consumption-details" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-sm">${consumptionHTML}</div>
-                <div id="section-precios" class="scroll-mt-20">${preciosHTML}</div>
-                <h3 id="section-calculo" class="text-lg font-bold text-slate-800 border-l-4 border-green-500 pl-3 scroll-mt-20" style="border-left-color: ${brand.QR_CENTER_BG};">${tr('Cálculo Oficial')}</h3>
-                <div id="cost-breakdown" class="bg-white p-0 rounded-xl border border-slate-200 shadow-sm overflow-hidden text-sm">
-                    ${breakdownHTML}
+                <div id="section-datos-extraidos" class="section-content" style="display: none;">
+                    <h3 class="text-lg font-bold text-slate-800 border-l-4 ${brand.BORDER.replace('border-', 'border-')} pl-3 mb-4">${tr('Datos Extraídos')}</h3>
+                    <div id="user-consumption-details" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-sm">${consumptionHTML}</div>
+                </div>
+                <div id="section-precios" class="section-content" style="display: none;">${preciosHTML}</div>
+                <div id="section-calculo" class="section-content" style="display: none;">
+                    <h3 class="text-lg font-bold text-slate-800 border-l-4 border-green-500 pl-3 mb-4" style="border-left-color: ${brand.QR_CENTER_BG};">${tr('Cálculo Oficial')}</h3>
+                    <div id="cost-breakdown" class="bg-white p-0 rounded-xl border border-slate-200 shadow-sm overflow-hidden text-sm">
+                        ${breakdownHTML}
+                    </div>
                 </div>
             `;
+            
+            // Función para mostrar/ocultar secciones
+            window.showSection = function(sectionName) {
+                // Ocultar todas las secciones
+                const sections = document.querySelectorAll('.section-content');
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                });
+                
+                // Quitar estado activo de todos los botones
+                const tabs = document.querySelectorAll('.section-tab');
+                tabs.forEach(tab => {
+                    tab.classList.remove('text-drk-600', 'bg-drk-50', 'border-drk-600');
+                    tab.classList.add('text-slate-600', 'border-transparent');
+                });
+                
+                // Mostrar sección seleccionada
+                const targetSection = document.getElementById('section-' + sectionName);
+                if (targetSection) {
+                    targetSection.style.display = 'block';
+                    // Scroll suave a la sección
+                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+                
+                // Activar botón correspondiente
+                const targetButton = document.getElementById('btn-' + sectionName);
+                if (targetButton) {
+                    targetButton.classList.remove('text-slate-600', 'border-transparent');
+                    targetButton.classList.add('text-drk-600', 'bg-drk-50', 'border-drk-600');
+                }
+            };
+            
+            // Mostrar la sección por defecto según el tipo de tarifa
+            setTimeout(() => {
+                window.showSection(defaultSection);
+            }, 100);
             
             console.log('renderResultsUI completed successfully');
             } catch (error) {

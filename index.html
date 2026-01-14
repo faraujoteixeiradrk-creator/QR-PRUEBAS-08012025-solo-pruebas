@@ -8775,7 +8775,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         ? `${comercializadora} - ${tarifaCompleta}` 
                         : comercializadora;
                     doc.text(`PRECIOS DE LA OFERTA: ${fullOfferTitle}`, margin + 5, yPos + 6.5);
-                    yPos += 12;
+                    yPos += 10;
                     
                     // Caja con FONDO AZUL OSCURO y BORDE BLANCO
                     doc.setFillColor(...darkColor);
@@ -8842,7 +8842,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         yPos += 5;
                     }
                     
-                    yPos += 5; // Espacio antes del desglose
+                    yPos += 3; // Espacio antes del desglose
                 }
                 
                 // === DESGLOSE DETALLADO ===
@@ -8861,14 +8861,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         : comercializadora;
                     doc.text(`${tr('DESGLOSE DETALLADO DE LA SIMULACIÓN')} (${fullDesgloseTitle})`, margin + 3, yPos + 6.5);
                     
-                    yPos += 14;
+                    yPos += 11;
                     
                     // === TÉRMINO POTENCIA ===
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
                     doc.text('TÉRMINO POTENCIA (Precio en €/kW Día)', margin, yPos);
-                    yPos += 6;
+                    yPos += 5;
                     
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'normal');
@@ -8887,14 +8887,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(...primaryColor);
                     doc.text(tr('SUBTOTAL POTENCIA'), margin + 2, yPos);
                     doc.text(`${num(res.subPower, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
-                    yPos += 8;
+                    yPos += 6;
                     
                     // === TÉRMINO ENERGÍA ===
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
                     doc.text('TÉRMINO ENERGÍA (Precios en €/kWh)', margin, yPos);
-                    yPos += 6;
+                    yPos += 5;
                     
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'normal');
@@ -8997,7 +8997,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.addPage();
                     yPos = 20;
                 } else {
-                    yPos += 5; // Espacio antes de la caja roja (reducido para que quepa en 2 páginas)
+                    yPos += 8; // Espacio antes de la caja roja
                 }
                 
                 doc.setFillColor(...redColor); // ROJO
@@ -9011,7 +9011,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setFontSize(22);
                 doc.text(`${savingsText} ${tr('/ AÑO')}`, margin + 5, yPos + 16);
                 
-                yPos += 18; // Espacio después de la caja roja (reducido para optimizar)
+                yPos += 20; // Espacio después de la caja roja
                 
                 // === CUADRO DE FORMALIZACION CON FONDO AZUL OSCURO ===
                 checkNewPage(60);

@@ -172,41 +172,6 @@
             border: 4px dashed var(--qr-border-color, #0ea5e9);
             background-color: white;
         }
-        
-        /* === ESTILOS PARA SISTEMA DE PESTAÑAS === */
-        /* Ocultar scrollbar en menú de navegación */
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        
-        /* Estilos para pestañas de sección */
-        .section-tab {
-            transition: all 0.2s ease;
-        }
-        
-        .border-b-3 {
-            border-bottom-width: 3px;
-        }
-        
-        .section-tab.active {
-            color: #0ea5e9 !important;
-            background-color: #f0f9ff !important;
-            border-bottom-color: #0ea5e9 !important;
-        }
-        
-        /* Animación suave para cambio de secciones */
-        .section-content {
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen text-slate-800 drk-active">
@@ -4337,194 +4302,15 @@
                 }
             }
             
-            // Calcular distribución de consumo para 2.0 TD (para análisis de horarios)
-            let scheduleAnalysisHTML = '';
-            let navigationMenuHTML = '';
-            
-            if (tariffType === '2.0TD') {
-                // Calcular kWh por período
-                const puntaKwh = res.energyCosts[0]?.kwh || 0;
-                const llanoKwh = res.energyCosts[1]?.kwh || 0;
-                const valleKwh = res.energyCosts[2]?.kwh || 0;
-                const totalKwh = puntaKwh + llanoKwh + valleKwh;
-                
-                const puntaPct = totalKwh > 0 ? (puntaKwh / totalKwh * 100).toFixed(1) : 0;
-                const llanoPct = totalKwh > 0 ? (llanoKwh / totalKwh * 100).toFixed(1) : 0;
-                const vallePct = totalKwh > 0 ? (valleKwh / totalKwh * 100).toFixed(1) : 0;
-                
-                // Menú de navegación con análisis de horarios
-                navigationMenuHTML = `
-                    <div id="sections-nav" class="sticky top-0 z-50 bg-white border-b-2 border-slate-200 shadow-md mb-6">
-                        <div class="flex overflow-x-auto scrollbar-hide">
-                            <button onclick="showSection('analisis')" id="btn-analisis"
-                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                ${tr('Análisis de Horarios')}
-                            </button>
-                            <button onclick="showSection('datos-extraidos')" id="btn-datos-extraidos"
-                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                ${tr('Datos Extraídos')}
-                            </button>
-                            <button onclick="showSection('precios')" id="btn-precios"
-                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                ${tr('Precios Ofertas')}
-                            </button>
-                            <button onclick="showSection('calculo')" id="btn-calculo"
-                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                ${tr('Cálculo Oficial')}
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                scheduleAnalysisHTML = `
-                    <div id="section-analisis" class="section-content mb-8 bg-gradient-to-br from-slate-50 to-slate-100 p-6 rounded-2xl border-2 border-slate-200 shadow-lg" style="display: block;">
-                        <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-3">
-                            <svg class="w-6 h-6 text-drk-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            ${tr('Análisis de Horarios y Consumo - Tarifa 2.0 TD')}
-                        </h3>
-                        
-                        <!-- Información de Horarios en formato compacto -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div class="bg-white p-4 rounded-xl shadow-md border border-slate-200">
-                                <h4 class="text-center font-bold text-slate-700 mb-3">${tr('Lunes a viernes laborables')}</h4>
-                                <div class="space-y-2 text-sm">
-                                    <div class="flex items-center gap-2 p-2 bg-red-50 rounded"><span class="w-3 h-3 rounded-full bg-red-600 flex-shrink-0"></span><span class="font-semibold text-red-700">${tr('Punta')}:</span><span class="text-slate-600">10-14h, 18-22h</span></div>
-                                    <div class="flex items-center gap-2 p-2 bg-yellow-50 rounded"><span class="w-3 h-3 rounded-full bg-yellow-400 flex-shrink-0"></span><span class="font-semibold text-yellow-700">${tr('Llano')}:</span><span class="text-slate-600">8-10h, 14-18h, 22-24h</span></div>
-                                    <div class="flex items-center gap-2 p-2 bg-green-50 rounded"><span class="w-3 h-3 rounded-full bg-green-600 flex-shrink-0"></span><span class="font-semibold text-green-700">${tr('Valle')}:</span><span class="text-slate-600">0-8h</span></div>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-white p-4 rounded-xl shadow-md border border-slate-200">
-                                <h4 class="text-center font-bold text-slate-700 mb-3">${tr('Sábados, domingos y festivos')}</h4>
-                                <div class="flex items-center justify-center h-full">
-                                    <div class="text-center p-4 bg-green-50 rounded-lg w-full">
-                                        <div class="flex items-center justify-center gap-2 mb-2">
-                                            <span class="w-4 h-4 rounded-full bg-green-600"></span>
-                                            <span class="font-bold text-green-700 text-lg">${tr('Valle')}</span>
-                                        </div>
-                                        <p class="text-sm text-slate-600">24 horas (todo el día)</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Análisis de Consumo -->
-                        <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
-                            <h4 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                <svg class="w-5 h-5 text-drk-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                                ${tr('Tu Distribución de Consumo')}
-                            </h4>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                                <!-- Punta -->
-                                <div class="text-center p-4 bg-red-50 rounded-lg border-2 border-red-200">
-                                    <div class="flex items-center justify-center gap-2 mb-2">
-                                        <div class="w-4 h-4 rounded-full bg-red-600"></div>
-                                        <h5 class="font-bold text-red-700">${tr('Periodo Punta')}</h5>
-                                    </div>
-                                    <div class="text-3xl font-black text-red-600 mb-1">${puntaPct}%</div>
-                                    <div class="text-sm text-slate-600 mb-2">${num(puntaKwh, 0)} kWh</div>
-                                    <div class="text-xs text-slate-500 bg-white p-2 rounded">${tr('Horario más caro')}<br>10-14h, 18-22h (lab.)</div>
-                                </div>
-                                
-                                <!-- Llano -->
-                                <div class="text-center p-4 bg-yellow-50 rounded-lg border-2 border-yellow-300">
-                                    <div class="flex items-center justify-center gap-2 mb-2">
-                                        <div class="w-4 h-4 rounded-full bg-yellow-400"></div>
-                                        <h5 class="font-bold text-yellow-700">${tr('Periodo Llano')}</h5>
-                                    </div>
-                                    <div class="text-3xl font-black text-yellow-600 mb-1">${llanoPct}%</div>
-                                    <div class="text-sm text-slate-600 mb-2">${num(llanoKwh, 0)} kWh</div>
-                                    <div class="text-xs text-slate-500 bg-white p-2 rounded">${tr('Horario intermedio')}<br>8-10h, 14-18h, 22-24h</div>
-                                </div>
-                                
-                                <!-- Valle -->
-                                <div class="text-center p-4 bg-green-50 rounded-lg border-2 border-green-200">
-                                    <div class="flex items-center justify-center gap-2 mb-2">
-                                        <div class="w-4 h-4 rounded-full bg-green-600"></div>
-                                        <h5 class="font-bold text-green-700">${tr('Periodo Valle')}</h5>
-                                    </div>
-                                    <div class="text-3xl font-black text-green-600 mb-1">${vallePct}%</div>
-                                    <div class="text-sm text-slate-600 mb-2">${num(valleKwh, 0)} kWh</div>
-                                    <div class="text-xs text-slate-500 bg-white p-2 rounded">${tr('Horario más barato')}<br>0-8h + fines semana</div>
-                                </div>
-                            </div>
-                            
-                            <!-- Barra de progreso visual -->
-                            <div class="mb-4">
-                                <div class="flex h-8 rounded-lg overflow-hidden shadow-inner">
-                                    <div class="bg-red-600 flex items-center justify-center text-white text-xs font-bold" 
-                                         style="width: ${puntaPct}%">${puntaPct > 8 ? puntaPct + '%' : ''}</div>
-                                    <div class="bg-yellow-400 flex items-center justify-center text-slate-800 text-xs font-bold" 
-                                         style="width: ${llanoPct}%">${llanoPct > 8 ? llanoPct + '%' : ''}</div>
-                                    <div class="bg-green-600 flex items-center justify-center text-white text-xs font-bold" 
-                                         style="width: ${vallePct}%">${vallePct > 8 ? vallePct + '%' : ''}</div>
-                                </div>
-                            </div>
-                            
-                            <!-- Consejo personalizado -->
-                            <div class="bg-blue-50 border-l-4 border-drk-600 p-4 rounded-r-lg">
-                                <div class="flex items-start gap-3">
-                                    <svg class="w-6 h-6 text-drk-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
-                                    <div>
-                                        <h5 class="font-bold text-drk-800 mb-1">${tr('Recomendación Personalizada')}</h5>
-                                        <p class="text-sm text-slate-700">
-                                            ${puntaPct > 30 
-                                                ? tr('Consumes más del 30% en horario Punta. Te recomendamos trasladar consumos al periodo Valle (madrugada y fines de semana) para maximizar tu ahorro.')
-                                                : vallePct > 50
-                                                    ? tr('¡Excelente! Más del 50% de tu consumo está en Valle, el periodo más económico. Sigue así para maximizar tu ahorro.')
-                                                    : tr('Tu consumo está bien distribuido. Considera trasladar más consumo al periodo Valle para aumentar tu ahorro.')}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                // Menú de navegación SIN análisis de horarios (para tarifas 3.0TD, etc.)
-                navigationMenuHTML = `
-                    <div id="sections-nav" class="sticky top-0 z-50 bg-white border-b-2 border-slate-200 shadow-md mb-6">
-                        <div class="flex overflow-x-auto scrollbar-hide">
-                            <button onclick="showSection('datos-extraidos')" id="btn-datos-extraidos"
-                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                ${tr('Datos Extraídos')}
-                            </button>
-                            <button onclick="showSection('precios')" id="btn-precios"
-                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                ${tr('Precios Ofertas')}
-                            </button>
-                            <button onclick="showSection('calculo')" id="btn-calculo"
-                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                ${tr('Cálculo Oficial')}
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
-
             const detailsContainer = document.getElementById('details-container');
 
             detailsContainer.innerHTML = `
-                ${navigationMenuHTML}
-                ${scheduleAnalysisHTML}
-                <div id="section-datos-extraidos" class="section-content" style="display: ${tariffType === '2.0TD' ? 'none' : 'block'};">
-                    <h3 class="text-lg font-bold text-slate-800 border-l-4 ${brand.BORDER.replace('border-', 'border-')} pl-3 mb-4">${tr('Datos Extraídos')}</h3>
-                    <div id="user-consumption-details" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-sm">${consumptionHTML}</div>
-                </div>
-                <div id="section-precios" class="section-content" style="display: none;">${preciosHTML}</div>
-                <div id="section-calculo" class="section-content" style="display: none;">
-                    <h3 class="text-lg font-bold text-slate-800 border-l-4 border-green-500 pl-3 mb-4" style="border-left-color: ${brand.QR_CENTER_BG};">${tr('Cálculo Oficial')}</h3>
-                    <div id="cost-breakdown" class="bg-white p-0 rounded-xl border border-slate-200 shadow-sm overflow-hidden text-sm">
-                        ${breakdownHTML}
-                    </div>
+                <h3 id="extracted-data-header" class="text-lg font-bold text-slate-800 border-l-4 ${brand.BORDER.replace('border-', 'border-')} pl-3">${tr('Datos Extraídos')}</h3>
+                <div id="user-consumption-details" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-sm">${consumptionHTML}</div>
+                ${preciosHTML}
+                <h3 class="text-lg font-bold text-slate-800 border-l-4 border-green-500 pl-3" style="border-left-color: ${brand.QR_CENTER_BG};">${tr('Cálculo Oficial')}</h3>
+                <div id="cost-breakdown" class="bg-white p-0 rounded-xl border border-slate-200 shadow-sm overflow-hidden text-sm">
+                    ${breakdownHTML}
                 </div>
             `;
             
@@ -4534,46 +4320,6 @@
                 window.showErrorModal(`Error al mostrar resultados: ${error.message}`);
             }
         }
-        
-        // === FUNCIÓN PARA NAVEGACIÓN POR PESTAÑAS ===
-        window.showSection = function(sectionName) {
-            // Ocultar todas las secciones
-            const sections = document.querySelectorAll('.section-content');
-            sections.forEach(section => {
-                section.style.display = 'none';
-            });
-            
-            // Remover clase active de todos los botones
-            const tabs = document.querySelectorAll('.section-tab');
-            tabs.forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Mostrar la sección seleccionada
-            const targetSection = document.getElementById(`section-${sectionName}`);
-            if (targetSection) {
-                targetSection.style.display = 'block';
-            }
-            
-            // Activar el botón correspondiente
-            const activeButton = document.getElementById(`btn-${sectionName}`);
-            if (activeButton) {
-                activeButton.classList.add('active');
-            }
-            
-            // Scroll suave al inicio de la sección
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-        
-        // === INICIALIZAR PRIMERA PESTAÑA ===
-        // Se ejecuta automáticamente después de cargar los resultados
-        setTimeout(() => {
-            const firstTab = document.querySelector('.section-tab');
-            if (firstTab && firstTab.onclick) {
-                // Hacer clic en la primera pestaña para activarla
-                firstTab.click();
-            }
-        }, 100);
         
         // --- COPIA HTML MEJORADA ---
 

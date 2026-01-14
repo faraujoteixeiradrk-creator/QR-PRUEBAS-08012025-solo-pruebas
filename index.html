@@ -8997,7 +8997,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.addPage();
                     yPos = 20;
                 } else {
-                    yPos += 15; // Espacio antes de la caja verde (para que no se solape con tarifas consolidadas)
+                    yPos += 5; // Espacio antes de la caja roja (reducido para que entre el bloque de formalización)
                 }
                 
                 doc.setFillColor(...redColor); // ROJO
@@ -9011,7 +9011,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setFontSize(22);
                 doc.text(`${savingsText} ${tr('/ AÑO')}`, margin + 5, yPos + 16);
                 
-                yPos += 30; // Más espacio después de la caja verde (antes 25)
+                yPos += 18; // Espacio después de la caja roja (reducido)
                 
                 // === CUADRO DE FORMALIZACION CON FONDO AZUL OSCURO ===
                 checkNewPage(50);

@@ -8490,8 +8490,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     const llanoPct = llanoPctNum.toFixed(1);
                     const vallePct = vallePctNum.toFixed(1);
                     
-                    // Check espacio para nueva página
-                    checkNewPage(120);
+                    // NO hacer checkNewPage aquí - queremos mantenerlo en página 1
                     
                     // Título sección
                     doc.setFillColor(...primaryColor);
@@ -8766,6 +8765,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     
                     yPos += 20;
                 }
+                
+                // Check para nueva página ANTES de mostrar precios (que puede ir en página 2)
+                checkNewPage(60);
                 
                 // === PRECIOS DE LA OFERTA EN PÁGINA 1 (sin check de espacio) ===
                 if (!res.isMulti) {

@@ -15897,6 +15897,154 @@ ${clientName}
                             </div>
                         </div>
                     `).join('') : `<div style="padding:8px 10px;background:white;font-size:10px;color:#64748b">${tr('No hay datos de energía')}</div>`}
+                    
+                    <!-- ANÁLISIS DE HORARIOS Y CONSUMO - SOLO PARA TARIFA 2.0TD -->
+                    ${s.tariff === '2.0TD' && eb?.energyCosts && eb.energyCosts.length >= 3 ? (() => {
+                        const puntaKwh = eb.energyCosts[0]?.kwh || 0;
+                        const llanoKwh = eb.energyCosts[1]?.kwh || 0;
+                        const valleKwh = eb.energyCosts[2]?.kwh || 0;
+                        const totalKwh = puntaKwh + llanoKwh + valleKwh;
+                        
+                        const puntaPct = totalKwh > 0 ? (puntaKwh / totalKwh * 100).toFixed(1) : 0;
+                        const llanoPct = totalKwh > 0 ? (llanoKwh / totalKwh * 100).toFixed(1) : 0;
+                        const vallePct = totalKwh > 0 ? (valleKwh / totalKwh * 100).toFixed(1) : 0;
+                        
+                        let recomendacion = '';
+                        if (puntaPct > 30) {
+                            recomendacion = tr('Consumes más del 30% en horario Punta. Te recomendamos trasladar consumos al periodo Valle (madrugada y fines de semana) para maximizar tu ahorro.');
+                        } else if (vallePct > 50) {
+                            recomendacion = tr('¡Excelente! Más del 50% de tu consumo está en Valle, el periodo más económico. Sigue así para maximizar tu ahorro.');
+                        } else {
+                            recomendacion = tr('Tu consumo está bien distribuido. Considera trasladar más consumo al periodo Valle para aumentar tu ahorro.');
+                        }
+                        
+                        return `
+                        <!-- ANÁLISIS DE HORARIOS (Solo 2.0TD) -->
+                        <div style="margin-top:20px;padding:20px;background:#f8fafc;border-radius:8px">
+                            <div style="padding-bottom:15px">
+                                <h3 style="margin:0;color:#1e293b;font-size:14px;font-weight:bold;">
+                                    🕐 ${tr('Análisis de Horarios y Consumo - Tarifa 2.0 TD')}
+                                </h3>
+                            </div>
+                            
+                            <!-- Tarjetas de Horarios -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:15px">
+                                <tr>
+                                    <td width="48%" valign="top" style="background:#ffffff;padding:15px;border-radius:8px">
+                                        <p style="margin:0 0 10px 0;text-align:center;font-weight:bold;color:#334155;font-size:12px">${tr('Lunes a viernes laborables')}</p>
+                                        <table width="100%" cellpadding="5" cellspacing="0">
+                                            <tr>
+                                                <td style="background:#fef2f2;padding:8px;border-radius:6px;margin-bottom:5px">
+                                                    <span style="display:inline-block;width:10px;height:10px;background:#dc2626;border-radius:50%;margin-right:5px"></span>
+                                                    <span style="font-weight:bold;color:#991b1b;font-size:10px">${tr('Punta')}:</span>
+                                                    <span style="color:#475569;font-size:10px">10-14h, 18-22h</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="background:#fefce8;padding:8px;border-radius:6px;margin-bottom:5px">
+                                                    <span style="display:inline-block;width:10px;height:10px;background:#facc15;border-radius:50%;margin-right:5px"></span>
+                                                    <span style="font-weight:bold;color:#a16207;font-size:10px">${tr('Llano')}:</span>
+                                                    <span style="color:#475569;font-size:10px">8-10h, 14-18h, 22-24h</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="background:#f0fdf4;padding:8px;border-radius:6px">
+                                                    <span style="display:inline-block;width:10px;height:10px;background:#16a34a;border-radius:50%;margin-right:5px"></span>
+                                                    <span style="font-weight:bold;color:#166534;font-size:10px">${tr('Valle')}:</span>
+                                                    <span style="color:#475569;font-size:10px">0-8h</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td width="4%"></td>
+                                    <td width="48%" valign="top" style="background:#ffffff;padding:15px;border-radius:8px">
+                                        <p style="margin:0 0 10px 0;text-align:center;font-weight:bold;color:#334155;font-size:12px">${tr('Sábados, domingos y festivos')}</p>
+                                        <table width="100%" cellpadding="15" cellspacing="0">
+                                            <tr>
+                                                <td style="background:#f0fdf4;padding:20px;border-radius:8px;text-align:center">
+                                                    <span style="display:inline-block;width:14px;height:14px;background:#16a34a;border-radius:50%;margin-right:5px;vertical-align:middle"></span>
+                                                    <span style="font-weight:bold;color:#166534;font-size:13px;vertical-align:middle">${tr('Valle')}</span>
+                                                    <p style="margin:8px 0 0 0;color:#475569;font-size:10px">24 horas (todo el día)</p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Distribución de Consumo -->
+                            <div style="padding-bottom:15px">
+                                <h4 style="margin:0;color:#1e293b;font-size:13px;font-weight:bold">
+                                    📊 ${tr('Tu Distribución de Consumo')}
+                                </h4>
+                            </div>
+                            
+                            <table width="100%" cellpadding="8" cellspacing="0">
+                                <tr>
+                                    <!-- Punta -->
+                                    <td width="32%" style="background:#fef2f2;padding:12px;border-radius:8px;border:2px solid #fecaca;text-align:center">
+                                        <span style="display:inline-block;width:12px;height:12px;background:#dc2626;border-radius:50%;margin-right:5px;vertical-align:middle"></span>
+                                        <span style="font-weight:bold;color:#991b1b;font-size:11px;vertical-align:middle">${tr('Periodo Punta')}</span>
+                                        <p style="margin:8px 0 5px 0;color:#dc2626;font-size:20px;font-weight:bold">${puntaPct}%</p>
+                                        <p style="margin:0 0 5px 0;color:#64748b;font-size:10px">${puntaKwh.toFixed(0)} kWh</p>
+                                        <p style="margin:0;background:#ffffff;padding:6px;border-radius:4px;color:#64748b;font-size:8px">
+                                            ${tr('Horario más caro')}<br>10-14h, 18-22h (lab.)
+                                        </p>
+                                    </td>
+                                    <td width="2%"></td>
+                                    <!-- Llano -->
+                                    <td width="32%" style="background:#fefce8;padding:12px;border-radius:8px;border:2px solid #fde047;text-align:center">
+                                        <span style="display:inline-block;width:12px;height:12px;background:#facc15;border-radius:50%;margin-right:5px;vertical-align:middle"></span>
+                                        <span style="font-weight:bold;color:#a16207;font-size:11px;vertical-align:middle">${tr('Periodo Llano')}</span>
+                                        <p style="margin:8px 0 5px 0;color:#ca8a04;font-size:20px;font-weight:bold">${llanoPct}%</p>
+                                        <p style="margin:0 0 5px 0;color:#64748b;font-size:10px">${llanoKwh.toFixed(0)} kWh</p>
+                                        <p style="margin:0;background:#ffffff;padding:6px;border-radius:4px;color:#64748b;font-size:8px">
+                                            ${tr('Precio medio')}<br>8-10h, 14-18h, 22-24h
+                                        </p>
+                                    </td>
+                                    <td width="2%"></td>
+                                    <!-- Valle -->
+                                    <td width="32%" style="background:#f0fdf4;padding:12px;border-radius:8px;border:2px solid #bbf7d0;text-align:center">
+                                        <span style="display:inline-block;width:12px;height:12px;background:#16a34a;border-radius:50%;margin-right:5px;vertical-align:middle"></span>
+                                        <span style="font-weight:bold;color:#166534;font-size:11px;vertical-align:middle">${tr('Periodo Valle')}</span>
+                                        <p style="margin:8px 0 5px 0;color:#16a34a;font-size:20px;font-weight:bold">${vallePct}%</p>
+                                        <p style="margin:0 0 5px 0;color:#64748b;font-size:10px">${valleKwh.toFixed(0)} kWh</p>
+                                        <p style="margin:0;background:#ffffff;padding:6px;border-radius:4px;color:#64748b;font-size:8px">
+                                            ${tr('Horario más barato')}<br>0-8h + fines semana
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Barra de progreso -->
+                            <div style="padding-top:12px">
+                                <table width="100%" cellpadding="0" cellspacing="0" style="height:25px;border-radius:6px;overflow:hidden">
+                                    <tr>
+                                        <td width="${puntaPct}%" style="background:#dc2626;color:#ffffff;text-align:center;font-size:9px;font-weight:bold;padding:5px">
+                                            ${puntaPct > 8 ? puntaPct + '%' : ''}
+                                        </td>
+                                        <td width="${llanoPct}%" style="background:#facc15;color:#1e293b;text-align:center;font-size:9px;font-weight:bold;padding:5px">
+                                            ${llanoPct > 8 ? llanoPct + '%' : ''}
+                                        </td>
+                                        <td width="${vallePct}%" style="background:#16a34a;color:#ffffff;text-align:center;font-size:9px;font-weight:bold;padding:5px">
+                                            ${vallePct > 8 ? vallePct + '%' : ''}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            <!-- Recomendación -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background:#eff6ff;padding:12px;border-radius:8px;border-left:4px solid #0284c7;margin-top:15px">
+                                <tr>
+                                    <td>
+                                        <p style="margin:0 0 5px 0;font-weight:bold;color:#0c4a6e;font-size:11px">💡 ${tr('Recomendación Personalizada')}</p>
+                                        <p style="margin:0;color:#334155;font-size:10px;line-height:1.5">${recomendacion}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        `;
+                    })() : ''}
                     ` : `
                     <!-- GAS: DESGLOSE (sin sección POTENCIA) -->
                     <div style="margin-top:12px;padding:10px;background:${primaryColor};color:white;border-radius:5px">
@@ -20892,11 +21040,23 @@ ${clientName}
                     de: "Personalisierte Empfehlung", 
                     fr: "Recommandation Personnalisée" 
                 },
+                "Consumes más del 30% en horario Punta. Te recomendamos trasladar consumos al periodo Valle (madrugada y fines de semana) para maximizar tu ahorro.": {
+                    en: "You consume more than 30% during Peak hours. We recommend shifting consumption to Valley period (early morning and weekends) to maximize your savings.",
+                    zh: "您在峰值时段消耗超过30%。我们建议将消耗转移到谷段时期（凌晨和周末）以最大化您的节省。",
+                    de: "Sie verbrauchen mehr als 30% während der Spitzenzeiten. Wir empfehlen, den Verbrauch in die Schwachlastperiode (früher Morgen und Wochenenden) zu verlagern, um Ihre Einsparungen zu maximieren.",
+                    fr: "Vous consommez plus de 30% pendant les heures de pointe. Nous recommandons de déplacer la consommation vers la période creuse (tôt le matin et week-ends) pour maximiser vos économies."
+                },
                 "¡Excelente! Más del 50% de tu consumo está en Valle, el periodo más económico. Sigue así para maximizar tu ahorro.": {
                     en: "Excellent! More than 50% of your consumption is in Valley period, the most economical. Keep it up to maximize your savings.",
                     zh: "太好了！您超过50%的消耗在谷段时期，这是最经济的。继续保持以最大化您的节省。",
                     de: "Ausgezeichnet! Mehr als 50% Ihres Verbrauchs liegt in der Schwachlastperiode, der wirtschaftlichsten. Machen Sie so weiter, um Ihre Einsparungen zu maximieren.",
                     fr: "Excellent ! Plus de 50% de votre consommation est en période creuse, la plus économique. Continuez ainsi pour maximiser vos économies."
+                },
+                "Tu consumo está bien distribuido. Considera trasladar más consumo al periodo Valle para aumentar tu ahorro.": {
+                    en: "Your consumption is well distributed. Consider shifting more consumption to Valley period to increase your savings.",
+                    zh: "您的消耗分布良好。考虑将更多消耗转移到谷段时期以增加您的节省。",
+                    de: "Ihr Verbrauch ist gut verteilt. Erwägen Sie, mehr Verbrauch in die Schwachlastperiode zu verlagern, um Ihre Einsparungen zu erhöhen.",
+                    fr: "Votre consommation est bien répartie. Envisagez de déplacer plus de consommation vers la période creuse pour augmenter vos économies."
                 },
                 "峰": { en: "Peak", zh: "峰", de: "Spitze", fr: "Pointe" },
                 "值": { en: "Value", zh: "值", de: "Wert", fr: "Valeur" },

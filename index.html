@@ -8759,10 +8759,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     yPos += 15;
                 }
                 
-                // Check para nueva página ANTES de mostrar precios (que puede ir en página 2)
-                checkNewPage(60);
-                
-                // === PRECIOS DE LA OFERTA EN PÁGINA 1 (sin check de espacio) ===
+                // === PRECIOS DE LA OFERTA ===
                 if (!res.isMulti) {
                     // Titulo con fondo VERDE
                     doc.setFillColor(...greenColor); // VERDE
@@ -8844,12 +8841,11 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         yPos += 5;
                     }
                     
-                    // === NUEVA PÁGINA PARA EL DESGLOSE ===
-                    doc.addPage();
-                    yPos = 20;
+                    yPos += 5; // Espacio antes del desglose
                 }
                 
                 // === DESGLOSE DETALLADO ===
+                // Fluir naturalmente después de los precios sin forzar salto de página
                 if (!res.isMulti) {
                     // Título del desglose (ahora en página 2) - VERDE
                     doc.setFillColor(...greenColor); // VERDE
@@ -9018,7 +9014,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 yPos += 30; // Más espacio después de la caja verde (antes 25)
                 
                 // === CUADRO DE FORMALIZACION CON FONDO AZUL OSCURO ===
-                checkNewPage(60);
                 
                 // Cuadro principal con FONDO AZUL OSCURO y BORDE BLANCO
                 doc.setDrawColor(255, 255, 255);

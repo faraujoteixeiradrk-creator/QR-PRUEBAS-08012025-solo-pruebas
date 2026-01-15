@@ -16574,16 +16574,16 @@ ${clientName}
                         doc.setFont('helvetica', 'bold');
                         doc.text('ENERGIA:', margin + 8, yPos + 22);
                         doc.setFont('helvetica', 'normal');
-                        const e1 = (offerData && offerData.p_energia_1) ? offerData.p_energia_1 : 0;
-                        const e2 = (offerData && offerData.p_energia_2) ? offerData.p_energia_2 : 0;
-                        const e3 = (offerData && offerData.p_energia_3) ? offerData.p_energia_3 : 0;
+                        const e1 = (offerData && offerData.p1_price) ? offerData.p1_price : 0;
+                        const e2 = (offerData && offerData.p2_price) ? offerData.p2_price : 0;
+                        const e3 = (offerData && offerData.p3_price) ? offerData.p3_price : 0;
                         doc.text(`E1: ${e1.toFixed(6)} EUR/kWh`, margin + 30, yPos + 22);
                         doc.text(`E2: ${e2.toFixed(6)} EUR/kWh`, margin + 90, yPos + 22);
                         doc.text(`E3: ${e3.toFixed(6)} EUR/kWh`, margin + 30, yPos + 27);
                         
                     } else {
-                        const termFijo = (offerData && offerData.term_fijo) ? offerData.term_fijo : 0;
-                        const energia = (offerData && offerData.energy_price) ? offerData.energy_price : 0;
+                        const termFijo = (offerData && offerData.p_fijo_diario) ? offerData.p_fijo_diario : 0;
+                        const energia = (offerData && offerData.p1_price) ? offerData.p1_price : 0;
                         doc.text(`Termino fijo:: ${termFijo.toFixed(6)} EUR/dia`, margin + 10, yPos + 17);
                         doc.text(`Energia:: ${energia.toFixed(6)} EUR/kWh`, margin + 90, yPos + 17);
                     }
@@ -16680,7 +16680,7 @@ ${clientName}
                         doc.setTextColor(0, 0, 0);
                         doc.setFont('helvetica', 'normal');
                         
-                        const termFijo = (offerData && offerData.term_fijo) ? offerData.term_fijo : 0;
+                        const termFijo = (offerData && offerData.p_fijo_diario) ? offerData.p_fijo_diario : 0;
                         const dias = (supply.gasBreakdown && supply.gasBreakdown.dias) || supply.dias || supply.days || 30;
                         const costoTermFijo = termFijo * dias;
                         doc.text(`Termino fijo (${dias} dias x ${termFijo.toFixed(6)} EUR/dia)`, margin + 5, yPos + 4);
@@ -16690,7 +16690,7 @@ ${clientName}
                         
                         doc.setFont('helvetica', 'normal');
                         const kwh = (supply.gasBreakdown && supply.gasBreakdown.kwh) || supply.kwh || 0;
-                        const precioEnergia = (offerData && offerData.energy_price) ? offerData.energy_price : 0;
+                        const precioEnergia = (offerData && offerData.p1_price) ? offerData.p1_price : 0;
                         const costoEnergia = kwh * precioEnergia;
                         doc.text(`Energia (${kwh} kWh x ${precioEnergia.toFixed(6)} EUR/kWh)`, margin + 5, yPos + 4);
                         doc.setFont('helvetica', 'bold');

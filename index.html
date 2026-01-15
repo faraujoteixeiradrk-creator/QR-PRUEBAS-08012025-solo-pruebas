@@ -16331,26 +16331,44 @@ ${clientName}
             const brandName = isDrk ? 'DRK' : 'POWER CUP';
             console.log('Modo detectado:', brandName);
             
-            const currentLang = localStorage.getItem('appLanguage') || 'es';
+            // Detectar idioma actual o usar español por defecto
+            let currentLang = localStorage.getItem('appLanguage');
+            
+            // Si no hay idioma guardado, detectar del navegador o usar español
+            if (!currentLang) {
+                const browserLang = navigator.language || navigator.userLanguage;
+                if (browserLang.startsWith('zh')) {
+                    currentLang = 'zh';
+                } else if (browserLang.startsWith('en')) {
+                    currentLang = 'en';
+                } else {
+                    currentLang = 'es'; // Español por defecto
+                }
+                console.log('No hay idioma guardado. Detectado del navegador:', browserLang, '→', currentLang);
+            } else {
+                console.log('Idioma guardado encontrado:', currentLang);
+            }
+            
             const wasChineseMode = currentLang === 'zh';
             
-            console.log('Idioma actual para PDF:', currentLang);
+            console.log('=== DETECCIÓN DE IDIOMA PARA PDF ===');
+            console.log('Idioma que se usará:', currentLang);
             console.log('¿Es modo chino?:', wasChineseMode);
             
             if (wasChineseMode) {
                 alert('Generando PDF...\nGenerating PDF...');
                 window.LANG.change('en', true);
-                console.log('Cambiado a inglés temporalmente');
+                console.log('Cambiado a inglés temporalmente para modo chino');
             } else {
                 // Asegurar que el idioma actual esté activo
-                console.log('Manteniendo idioma:', currentLang);
+                console.log('Aplicando idioma:', currentLang);
                 if (window.LANG && window.LANG.change) {
                     window.LANG.change(currentLang, true);
                 }
             }
             
             // Esperar un momento para que el idioma se aplique
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 200));
             
             try {
                 window.showMessageModal("Generando PDF DUAL profesional (3-4 paginas)... Por favor espere.");
@@ -22320,6 +22338,29 @@ ${clientName}
                 "CUPS Procesadas": { en: "CUPS Processed", zh: "已处理的CUPS", de: "Verarbeitete CUPS", fr: "CUPS Traitées" },
                 
                 // Más traducciones del PDF
+                "Termino fijo": { en: "Fixed term", zh: "固定费用", de: "Festpreis", fr: "Terme fixe" },
+                "Energia": { en: "Energy", zh: "能源", de: "Energie", fr: "Énergie" },
+                "POTENCIA:": { en: "POWER:", zh: "功率：", de: "LEISTUNG:", fr: "PUISSANCE :" },
+                "ENERGIA:": { en: "ENERGY:", zh: "能源：", de: "ENERGIE:", fr: "ÉNERGIE :" },
+                "Dias:": { en: "Days:", zh: "天数：", de: "Tage:", fr: "Jours :" },
+                "dias": { en: "days", zh: "天", de: "Tage", fr: "jours" },
+                "Tipo": { en: "Type", zh: "类型", de: "Typ", fr: "Type" },
+                "Tarifa": { en: "Rate", zh: "费率", de: "Tarif", fr: "Tarif" },
+                "TARIFA:": { en: "RATE:", zh: "费率：", de: "TARIF:", fr: "TARIF :" },
+                "Ahorro Anual": { en: "Annual Savings", zh: "年度节省", de: "Jährliche Einsparungen", fr: "Économies annuelles" },
+                "TOTAL": { en: "TOTAL", zh: "总计", de: "GESAMT", fr: "TOTAL" },
+                "DIAS": { en: "DAYS", zh: "天", de: "TAGE", fr: "JOURS" },
+                "AHORRA ": { en: "SAVE ", zh: "节省 ", de: "SPAREN SIE ", fr: "ÉCONOMISEZ " },
+                " EUR CADA MES": { en: " EUR EACH MONTH", zh: " 欧元每月", de: " EUR JEDEN MONAT", fr: " EUR CHAQUE MOIS" },
+                "Responde a este email adjuntando la documentacion de los ": { en: "Reply to this email attaching the documentation of the ", zh: "回复此电子邮件并附上 ", de: "Antworten Sie auf diese E-Mail mit der Dokumentation der ", fr: "Répondez à cet e-mail en joignant la documentation des " },
+                " CUPS:": { en: " CUPS:", zh: " 个CUPS：", de: " CUPS:", fr: " CUPS :" },
+                "1. Foto del DNI/CIF (anverso y reverso)": { en: "1. Photo of ID/Tax ID (front and back)", zh: "1. 身份证/税号照片（正反面）", de: "1. Foto des Ausweises/Steuer-ID (Vorder- und Rückseite)", fr: "1. Photo de la carte d'identité/numéro fiscal (recto et verso)" },
+                "2. Ultima factura (menos de 3 meses de antiguedad)": { en: "2. Last bill (less than 3 months old)", zh: "2. 最近的账单（不超过3个月）", de: "2. Letzte Rechnung (weniger als 3 Monate alt)", fr: "2. Dernière facture (de moins de 3 mois)" },
+                "3. Autorizacion de cambio de titular (si aplica)": { en: "3. Authorization for change of holder (if applicable)", zh: "3. 持有人变更授权书（如适用）", de: "3. Genehmigung zur Änderung des Inhabers (falls zutreffend)", fr: "3. Autorisation de changement de titulaire (le cas échéant)" },
+                "4. Telefono de contacto": { en: "4. Contact phone", zh: "4. 联系电话", de: "4. Kontakttelefon", fr: "4. Téléphone de contact" },
+                "5. Numero de cuenta bancaria (IBAN)": { en: "5. Bank account number (IBAN)", zh: "5. 银行账号（IBAN）", de: "5. Bankkontonummer (IBAN)", fr: "5. Numéro de compte bancaire (IBAN)" },
+                "Envia la documentacion al comercial:": { en: "Send the documentation to the commercial:", zh: "将文件发送给商务人员：", de: "Senden Sie die Dokumentation an den Vertriebsmitarbeiter:", fr: "Envoyez la documentation au commercial :" },
+                "Documento generado el ": { en: "Document generated on ", zh: "文件生成于 ", de: "Dokument erstellt am ", fr: "Document généré le " },
                 "POWER SUBTOTAL": { en: "POWER SUBTOTAL", zh: "功率小计", de: "LEISTUNG ZWISCHENSUMME", fr: "SOUS-TOTAL PUISSANCE" },
                 "TAXABLE BASE": { en: "TAXABLE BASE", zh: "应税基数", de: "STEUERBEMESSUNGSGRUNDLAGE", fr: "BASE IMPOSABLE" },
                 "TOTAL FACTURA (60 DÍAS)": { en: "TOTAL BILL (60 DAYS)", zh: "总账单（60天）", de: "GESAMTRECHNUNG (60 TAGE)", fr: "FACTURE TOTALE (60 JOURS)" },

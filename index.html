@@ -16582,7 +16582,7 @@ ${clientName}
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(...verdeFuerte);
                 doc.setFontSize(11);
-                doc.text('TOTAL AHORRO:', margin + 10, yPos + 7);
+                doc.text(tr('TOTAL AHORRO:'), margin + 10, yPos + 7);
                 doc.setFontSize(13);
                 doc.text(eur(results.totalSavings || 0), pageWidth - margin - 12, yPos + 7, { align: 'right' });
                 
@@ -16766,7 +16766,7 @@ ${clientName}
                     
                     if (supply.type === 'electricidad') {
                         doc.setFont('helvetica', 'bold');
-                        doc.text('POTENCIA:', margin + 8, yPos + 17);
+                        doc.text(tr('POTENCIA:'), margin + 8, yPos + 17);
                         doc.setFont('helvetica', 'normal');
                         const p1 = (offerData && offerData.p_potencia_1) ? offerData.p_potencia_1 / 365 : 0;
                         const p2 = (offerData && offerData.p_potencia_2) ? offerData.p_potencia_2 / 365 : 0;
@@ -16774,7 +16774,7 @@ ${clientName}
                         doc.text(`P2: ${p2.toFixed(6)} EUR/kW/dia`, margin + 90, yPos + 17);
                         
                         doc.setFont('helvetica', 'bold');
-                        doc.text('ENERGIA:', margin + 8, yPos + 22);
+                        doc.text(tr('ENERGIA:'), margin + 8, yPos + 22);
                         doc.setFont('helvetica', 'normal');
                         const e1 = (offerData && offerData.p1_price) ? offerData.p1_price : 0;
                         const e2 = (offerData && offerData.p2_price) ? offerData.p2_price : 0;

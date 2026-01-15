@@ -1282,7 +1282,7 @@
                                 <div><p class="text-lg font-bold text-cta-red-500 line-through decoration-cta-red-500/50 decoration-2" id="old-annual-cost-display">0,00 €/año</p></div>
                             </div>
                             <div class="pl-2">
-                                <p class="text-drk-800 text-xs font-semibold mb-2 uppercase" id="new-cost-label"${tr(tr('TU NUEVO COSTE ') + 'DRK')}</p>
+                                <p class="text-drk-800 text-xs font-semibold mb-2 uppercase" id="new-cost-label"${tr("TU NUEVO COSTE DRK")}</p>
                                 <div class="mb-3">
                                     <p class="text-2xl font-black text-drk-900" id="new-monthly-cost-display">0,00 €/mes</p>
                                     <p class="text-xs text-drk-800 font-medium" id="monthly-label"${tr("Estimado Mensual")}</p>
@@ -3683,7 +3683,7 @@
                             <div class="grid grid-cols-2 gap-x-4 text-xs">
                                 <p class="text-slate-500">P1 (€/kW/día):</p><p class="font-mono font-bold text-right">${numPriceFormula(p1)}</p>
                                 <p class="text-slate-500">P2 (€/kW/día):</p><p class="font-mono font-bold text-right">${numPriceFormula(p2)}</p>
-                                <p class="text-slate-500 mt-2 col-span-2 font-bold text-cta-green-600">${tr(tr('ENERGÍA'))} (€/kWh)</p>
+                                <p class="text-slate-500 mt-2 col-span-2 font-bold text-cta-green-600">${tr('ENERGÍA')} (€/kWh)</p>
                                 <p class="text-slate-500">E1 (${tr('Punta')}):</p><p class="font-mono font-bold text-right">${numPriceFormula(e1)}</p>
                                 <p class="text-slate-500">E2 (${tr('Llano')}):</p><p class="font-mono font-bold text-right">${numPriceFormula(e2)}</p>
                                 <p class="text-slate-500">E3 (${tr('Valle')}):</p><p class="font-mono font-bold text-right">${numPriceFormula(e3)}</p>
@@ -3712,9 +3712,9 @@
                         <div class="mb-4 p-3 bg-white rounded-lg border border-${basePrefix}-100">
                             <h5 class="font-black text-sm text-${color800} border-b pb-1 mb-2">Tarifa 3.0 TD #${index + 1} - ${fullTariffName30}</h5>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 text-xs">
-                                <div class="col-span-2 md:col-span-4 font-bold text-cta-red-500 mb-1">${tr(tr('POTENCIA'))} (€/kW/día)</div>
+                                <div class="col-span-2 md:col-span-4 font-bold text-cta-red-500 mb-1">${tr('POTENCIA')} (€/kW/día)</div>
                                 ${pRows}
-                                <div class="col-span-2 md:col-span-4 font-bold text-cta-green-600 mt-2 mb-1 border-t pt-2">${tr(tr('ENERGÍA'))} (€/kWh)</div>
+                                <div class="col-span-2 md:col-span-4 font-bold text-cta-green-600 mt-2 mb-1 border-t pt-2">${tr('ENERGÍA')} (€/kWh)</div>
                                 ${eRows}
                             </div>
                         </div>
@@ -3793,11 +3793,11 @@
                                <p class="font-bold text-slate-800 mb-2">${tr('Desglose')} (${appliedOfferName}):</p>
                                
                                <div class="pl-2 space-y-2 font-mono text-xs">
-                                   <p class="font-bold text-slate-700">${tr(tr('POTENCIA'))}</p>
+                                   <p class="font-bold text-slate-700">${tr('POTENCIA')}</p>
                                    ${powerBreakdown}
                                    <div class="flex justify-between font-bold text-slate-800 border-t pt-1"><span>${tr('Subtotal Potencia')}</span><span>${num(resItem.subPower, 2)} €</span></div>
                                    
-                                   <p class="font-bold text-slate-700 pt-2">${tr(tr('ENERGÍA'))}</p>
+                                   <p class="font-bold text-slate-700 pt-2">${tr('ENERGÍA')}</p>
                                    ${energyBreakdown}
                                    <div class="flex justify-between font-bold text-slate-800 border-t pt-1"><span>${tr('Subtotal Energía (Neto)')}</span><span>${num(resItem.subEnergyNet, 2)} €</span></div>
                                    
@@ -4255,13 +4255,13 @@
                     </div>
                     
                     <div class="mb-4">
-                        <p class="font-bold text-slate-800 mb-1">${tr(tr('POTENCIA'))} (€/kW ${tr('Día')})</p>
+                        <p class="font-bold text-slate-800 mb-1">${tr('POTENCIA')} (€/kW ${tr('Día')})</p>
                         ${powerBreakdown}
                         <div class="flex justify-between font-bold ${brand.SECONDARY_TEXT} border-t mt-1 pt-1"><span>${tr('Subtotal Potencia')}</span><span>${num(res.subPower, 2)} €</span></div>
                     </div>
 
                     <div class="mb-4">
-                        <p class="font-bold text-slate-800 mb-1">${tr(tr('ENERGÍA'))} (€/kWh)</p>
+                        <p class="font-bold text-slate-800 mb-1">${tr('ENERGÍA')} (€/kWh)</p>
                         ${energyBreakdown}
                         <div class="flex justify-between font-bold ${brand.SECONDARY_TEXT} border-t mt-1 pt-1"><span${tr("Subtotal Energía (Bruto)")}</span><span>${num(res.subEnergy, 2)} €</span></div>
                         ${discountRowsHtml}
@@ -4297,7 +4297,7 @@
                                     <p class="font-mono font-bold text-right">${numPriceFormula(res.powerCosts[0].priceDay)}</p>
                                     <p class="text-slate-500">P2 (€/kW/${tr('día')}):</p>
                                     <p class="font-mono font-bold text-right">${numPriceFormula(res.powerCosts[1].priceDay)}</p>
-                                    <p class="text-slate-500 mt-2 col-span-2 font-bold text-green-600">${tr(tr('ENERGÍA'))} (€/kWh)</p>
+                                    <p class="text-slate-500 mt-2 col-span-2 font-bold text-green-600">${tr('ENERGÍA')} (€/kWh)</p>
                                     <p class="text-slate-500">E1 (${tr('Punta')}):</p>
                                     <p class="font-mono font-bold text-right">${numPriceFormula(res.energyCosts[0].price)}</p>
                                     <p class="text-slate-500">E2 (${tr('Llano')}):</p>
@@ -4325,9 +4325,9 @@
                             <div class="p-3 bg-white rounded-lg border border-slate-200">
                                 <h5 class="font-black text-sm text-slate-700 border-b pb-1 mb-2">Tarifa 3.0 TD - ${nombreCompleto}</h5>
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 text-xs">
-                                    <div class="col-span-2 md:col-span-4 font-bold text-red-500 mb-1">${tr(tr('POTENCIA'))} (€/kW/día)</div>
+                                    <div class="col-span-2 md:col-span-4 font-bold text-red-500 mb-1">${tr('POTENCIA')} (€/kW/día)</div>
                                     ${filasPotencia}
-                                    <div class="col-span-2 md:col-span-4 font-bold text-green-600 mt-2 mb-1 border-t pt-2">${tr(tr('ENERGÍA'))} (€/kWh)</div>
+                                    <div class="col-span-2 md:col-span-4 font-bold text-green-600 mt-2 mb-1 border-t pt-2">${tr('ENERGÍA')} (€/kWh)</div>
                                     ${filasEnergia}
                                 </div>
                             </div>
@@ -5253,8 +5253,8 @@
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
                 if (isDrk) {
-                    doc.text(tr(tr('Liderando el ahorro y la')), logoX + 12, 20);
-                    doc.text(tr(tr('eficiencia energética.')), logoX + 12, 24);
+                    doc.text(tr('Liderando el ahorro y la'), logoX + 12, 20);
+                    doc.text(tr('eficiencia energética.'), logoX + 12, 24);
                 } else {
                     doc.text(tr('Asesoría Energética'), logoX + 12, 20);
                 }
@@ -5263,15 +5263,15 @@
                 doc.setTextColor(40, 60, 80);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
-                doc.text(tr(tr('ESTUDIO DE AHORRO')), pageWidth - margin, 12, { align: 'right' });
+                doc.text(tr('ESTUDIO DE AHORRO'), pageWidth - margin, 12, { align: 'right' });
                 
                 doc.setFontSize(11);
                 doc.setTextColor(255, 255, 255);
-                doc.text(tr('COMPARATIVA'), pageWidth - margin, 18, { align: 'right' });
+                doc.text('COMPARATIVA', pageWidth - margin, 18, { align: 'right' });
                 
                 doc.setFontSize(9);
                 doc.setTextColor(100, 120, 140);
-                doc.text(tr('PROFESIONAL'), pageWidth - margin, 24, { align: 'right' });
+                doc.text('PROFESIONAL', pageWidth - margin, 24, { align: 'right' });
                 
                 yPos = headerHeight + 8;
                 
@@ -5281,7 +5281,7 @@
                 doc.setTextColor(55, 65, 81);  // Gris oscuro
                 doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                doc.text(tr('COMPARATIVA PROFESIONAL - ') + brand.NAME.toUpperCase(), margin, yPos);
+                doc.text('COMPARATIVA PROFESIONAL - ' + brand.NAME.toUpperCase(), margin, yPos);
                 yPos += 8;
                 
                 // Info del cliente
@@ -5310,7 +5310,7 @@
                 doc.setTextColor(255, 255, 255);
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(10);
-                doc.text(tr(tr('LA MEJOR OPCIÓN PARA TI ES')), pageWidth / 2, bigBoxY + 12, { align: 'center' });
+                doc.text(tr('LA MEJOR OPCIÓN PARA TI ES'), pageWidth / 2, bigBoxY + 12, { align: 'center' });
                 
                 // Nombre de la marca en grande
                 doc.setFont('helvetica', 'bold');
@@ -5502,7 +5502,7 @@
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
-                doc.text(tr('DESGLOSE DETALLADO POR SUMINISTRO'), pageWidth / 2, yPos + 10, { align: 'center' });
+                doc.text('DESGLOSE DETALLADO POR SUMINISTRO', pageWidth / 2, yPos + 10, { align: 'center' });
                 yPos += 22;
                 
                 const col2Width = (contentWidth - 6) / 2;
@@ -5589,7 +5589,7 @@
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('POTENCIA'), x + 3, y + 5);
+                    doc.text('POTENCIA', x + 3, y + 5);
                     y += 9;
                     
                     // Desglose potencia
@@ -5612,7 +5612,7 @@
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('ENERGÍA'), x + 3, y + 5);
+                    doc.text('ENERGÍA', x + 3, y + 5);
                     y += 9;
                     
                     // Desglose energía
@@ -5679,7 +5679,7 @@
                 doc.setFont('helvetica', 'bold');
                 doc.text('CUAL ES LA DIFERENCIA?', pageWidth / 2, yPos + 8, { align: 'center' });
                 
-                yPos += 35;
+                yPos += 15;
                 
                 // Columna izquierda - Tarifa Fija
                 let leftColY = yPos;
@@ -5895,8 +5895,8 @@
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
                 if (isDrk) {
-                    doc.text(tr(tr('Liderando el ahorro y la')), logoX + 12, 20);
-                    doc.text(tr(tr('eficiencia energética.')), logoX + 12, 24);
+                    doc.text(tr('Liderando el ahorro y la'), logoX + 12, 20);
+                    doc.text(tr('eficiencia energética.'), logoX + 12, 24);
                 } else {
                     doc.text(tr('Asesoría Energética'), logoX + 12, 20);
                 }
@@ -5926,7 +5926,7 @@
                 doc.setTextColor(55, 65, 81);
                 doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                doc.text(tr('COMPARATIVA PROFESIONAL - ') + brand.NAME.toUpperCase(), margin, yPos);
+                doc.text('COMPARATIVA PROFESIONAL - ' + brand.NAME.toUpperCase(), margin, yPos);
                 yPos += 8;
                 
                 // Info del cliente
@@ -5955,7 +5955,7 @@
                 doc.setTextColor(255, 255, 255);
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(10);
-                doc.text(tr(tr('LA MEJOR OPCIÓN PARA TI ES')), pageWidth / 2, bigBoxY + 12, { align: 'center' });
+                doc.text(tr('LA MEJOR OPCIÓN PARA TI ES'), pageWidth / 2, bigBoxY + 12, { align: 'center' });
                 
                 // Nombre de la marca en grande
                 doc.setFont('helvetica', 'bold');
@@ -6323,7 +6323,7 @@
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('POTENCIA'), x + 3, y + 5);
+                    doc.text('POTENCIA', x + 3, y + 5);
                     y += 9;
                     
                     // Desglose potencia
@@ -6346,7 +6346,7 @@
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('ENERGÍA'), x + 3, y + 5);
+                    doc.text('ENERGÍA', x + 3, y + 5);
                     y += 9;
                     
                     // Desglose energía
@@ -6538,7 +6538,7 @@
                 doc.setFont('helvetica', 'bold');
                 doc.text('CUAL ES LA DIFERENCIA?', pageWidth / 2, yPos + 8, { align: 'center' });
                 
-                yPos += 35;
+                yPos += 15;
                 
                 // Columna izquierda
                 let leftColY = yPos;
@@ -7061,7 +7061,7 @@ Desglose mensual estimado:
                 // CASO 2: Datos de ELECTRICIDAD (prioridad sobre GAS - más común)
                 } else if (hasElectricityData && !hasDualData) {
                     console.log('✅ Usando datos ELECTRICIDAD individual');
-                    tipoSuministro = tr('ELECTRICIDAD');
+                    tipoSuministro = 'ELECTRICIDAD';
                     
                     // VALIDACIÓN: Verificar que lastComparisonResult existe y tiene las propiedades necesarias
                     if (!lastComparisonResult || !lastComparisonResult.dias_facturados || !lastComparisonResult.energyCosts) {
@@ -7496,30 +7496,30 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 // "ENERGÍA" debajo
                 doc.setFontSize(24);
                 doc.setFont('helvetica', 'bold');
-                doc.text(tr('ENERGÍA'), logoX + 12, yPos + 11);
+                doc.text('ENERGÍA', logoX + 12, yPos + 11);
                 
                 // Tagline
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(200, 220, 240);
-                doc.text(tr(tr('Liderando el ahorro y la')), logoX + 12, yPos + 19);
-                doc.text(tr(tr('eficiencia energética.')), logoX + 12, yPos + 24);
+                doc.text(tr('Liderando el ahorro y la'), logoX + 12, yPos + 19);
+                doc.text(tr('eficiencia energética.'), logoX + 12, yPos + 24);
                 
                 // Texto derecha "ESTUDIO DE AHORRO COMPARATIVA PROFESIONAL"
                 doc.setTextColor(40, 60, 80);
                 doc.setFontSize(11);
                 doc.setFont('helvetica', 'bold');
-                doc.text(tr(tr('ESTUDIO DE AHORRO')), pageWidth - margin - 3, yPos + 5, { align: 'right' });
+                doc.text(tr('ESTUDIO DE AHORRO'), pageWidth - margin - 3, yPos + 5, { align: 'right' });
                 
                 doc.setFontSize(14);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(255, 255, 255);
-                doc.text(tr('COMPARATIVA'), pageWidth - margin - 3, yPos + 13, { align: 'right' });
+                doc.text('COMPARATIVA', pageWidth - margin - 3, yPos + 13, { align: 'right' });
                 
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(100, 120, 140);
-                doc.text(tr('PROFESIONAL'), pageWidth - margin - 3, yPos + 21, { align: 'right' });
+                doc.text('PROFESIONAL', pageWidth - margin - 3, yPos + 21, { align: 'right' });
                 
                 yPos = 50;
                 
@@ -7530,7 +7530,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
-                doc.text(tr(tr('ESTUDIO DE AHORRO')), margin + 5, yPos + 5.5);
+                doc.text(tr('ESTUDIO DE AHORRO'), margin + 5, yPos + 5.5);
                 
                 // Caja blanca con borde azul
                 doc.setFillColor(255, 255, 255);
@@ -7591,7 +7591,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(9);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr(tr('LA MEJOR OPCIÓN PARA TI ES')), pageWidth / 2, yPos + 8, { align: 'center' });
+                    doc.text(tr('LA MEJOR OPCIÓN PARA TI ES'), pageWidth / 2, yPos + 8, { align: 'center' });
                     
                     // Marca o Tarifa
                     const brandNameMulti = isDrk ? 'DRK' : 'POWER CUP';
@@ -7811,7 +7811,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(11);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('DESGLOSE DETALLADO POR SUMINISTRO'), margin + 3, yPos + 6.5);
+                    doc.text('DESGLOSE DETALLADO POR SUMINISTRO', margin + 3, yPos + 6.5);
                     yPos += 14;
                     
                     // Función auxiliar para generar desglose en MULTICUPS (estilo dual)
@@ -7895,7 +7895,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setTextColor(255, 255, 255);
                         doc.setFontSize(7);
                         doc.setFont('helvetica', 'bold');
-                        doc.text(tr('POTENCIA'), x + 3, y + 5);
+                        doc.text('POTENCIA', x + 3, y + 5);
                         y += 9;
                         
                         // Desglose potencia
@@ -7918,7 +7918,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setTextColor(255, 255, 255);
                         doc.setFontSize(7);
                         doc.setFont('helvetica', 'bold');
-                        doc.text(tr('ENERGÍA'), x + 3, y + 5);
+                        doc.text('ENERGÍA', x + 3, y + 5);
                         y += 9;
                         
                         // Desglose energía
@@ -8087,7 +8087,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             doc.setTextColor(255, 255, 255);
                             doc.setFontSize(7);
                             doc.setFont('helvetica', 'bold');
-                            doc.text(tr('POTENCIA'), margin + 2, yPos + 4);
+                            doc.text('POTENCIA', margin + 2, yPos + 4);
                             yPos += 10;
                             
                             doc.setTextColor(0, 0, 0);
@@ -8110,7 +8110,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             doc.setTextColor(255, 255, 255);
                             doc.setFontSize(7);
                             doc.setFont('helvetica', 'bold');
-                            doc.text(tr('ENERGÍA'), margin + 2, yPos + 4);
+                            doc.text('ENERGÍA', margin + 2, yPos + 4);
                             yPos += 10;
                             
                             doc.setTextColor(0, 0, 0);
@@ -8281,7 +8281,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
-                doc.text(tr(tr('LA MEJOR OPCIÓN PARA TI ES')), pageWidth / 2, yPos + 8, { align: 'center' });
+                doc.text(tr('LA MEJOR OPCIÓN PARA TI ES'), pageWidth / 2, yPos + 8, { align: 'center' });
                 
                 // Comercializadora y Tarifa
                 const comercializadora = offer.name; // Nombre corto (ej: ELEIA)
@@ -9005,7 +9005,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(11);
                 doc.setFont('helvetica', 'bold');
-                doc.text(tr('PARA FORMALIZAR ESTE CONTRATO:'), margin + 5, yPos + 7);
+                doc.text('PARA FORMALIZAR ESTE CONTRATO:', margin + 5, yPos + 7);
                 
                 yPos += 11;
                 
@@ -9027,11 +9027,11 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(255, 255, 255);
                 
                 const docs = [
-                    tr('1. Foto del DNI/CIF (anverso y reverso)'),
+                    '1. Foto del DNI/CIF (anverso y reverso)',
                     '2. Ultima factura (minimo 3 meses de antiguedad)',
                     '3. Email de contacto para validacion',
-                    tr('4. Telefono de contacto'),
-                    tr('5. Numero de cuenta bancaria (IBAN)')
+                    '4. Telefono de contacto',
+                    '5. Numero de cuenta bancaria (IBAN)'
                 ];
                 
                 docs.forEach((docItem, idx) => {
@@ -9051,7 +9051,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
-                doc.text(tr('Envia la documentacion al comercial:'), margin + 5, yPos);
+                doc.text('Envia la documentacion al comercial:', margin + 5, yPos);
                 yPos += 4;
                 
                 doc.setTextColor(255, 255, 255);
@@ -9914,7 +9914,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                     <div style="padding: 15px 10px;">
                                         <p style="margin: 0; font-size: 32px; font-weight: bold; color: ${GREEN_SAVE};">${eur(ahorroFijo)}</p>
                                         <div style="margin: 15px 0 0 0;">
-                                            <p style="margin: 0 0 3px 0; font-size: 10px; color: #6b7280; font-weight: 600;"${tr(tr('TU NUEVO COSTE ') + 'DRK')}</p>
+                                            <p style="margin: 0 0 3px 0; font-size: 10px; color: #6b7280; font-weight: 600;"${tr("TU NUEVO COSTE DRK")}</p>
                                             <p style="margin: 0; font-size: 22px; font-weight: bold; color: ${DRK_BLUE};">${eur(nuevoCosteAnualFijo / 12)}${tr("/mes")}</p>
                                             <p style="margin: 3px 0 0 0; font-size: 8px; color: #9ca3af;"${tr("Estimado Mensual")}</p>
                                             <p style="margin: 10px 0 0 0; font-size: 20px; font-weight: bold; color: ${DRK_BLUE};">${eur(nuevoCosteAnualFijo)}${tr("/año")}</p>
@@ -9929,7 +9929,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                     <div style="padding: 15px 10px;">
                                         <p style="margin: 0; font-size: 32px; font-weight: bold; color: ${GREEN_SAVE};">${eur(ahorroIndexado)}</p>
                                         <div style="margin: 15px 0 0 0;">
-                                            <p style="margin: 0 0 3px 0; font-size: 10px; color: #6b7280; font-weight: 600;"${tr(tr('TU NUEVO COSTE ') + 'DRK')}</p>
+                                            <p style="margin: 0 0 3px 0; font-size: 10px; color: #6b7280; font-weight: 600;"${tr("TU NUEVO COSTE DRK")}</p>
                                             <p style="margin: 0; font-size: 22px; font-weight: bold; color: ${GREEN_SAVE};">${eur(nuevoCosteAnualIndexado / 12)}${tr("/mes")}</p>
                                             <p style="margin: 3px 0 0 0; font-size: 8px; color: #9ca3af;"${tr("Estimado Mensual")}</p>
                                             <p style="margin: 10px 0 0 0; font-size: 20px; font-weight: bold; color: ${GREEN_SAVE};">${eur(nuevoCosteAnualIndexado)}${tr("/año")}</p>
@@ -14122,7 +14122,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             summaryEl.innerHTML = `
                 <p class="font-bold text-slate-800 mb-2">${tr('Datos Extraídos del QR')}</p>
                 <div class="grid grid-cols-2 gap-1 text-xs">
-                    <span>${tr(tr('CUPS:'))}</span><span class="font-mono text-right">${data.cups}</span>
+                    <span>${tr('CUPS:')}</span><span class="font-mono text-right">${data.cups}</span>
                     <span>${tr('Días Fact:')}</span><span class="font-mono text-right">${data.dias_facturados}</span>
                     <span>${tr('Total')} ${tr('Factura:')}</span><span class="font-mono text-right">${data.importe_total.toFixed(2)} €</span>
                     <span class="col-span-2 border-t pt-1 mt-1 font-bold">${tr('Potencias (kW)')}:</span>
@@ -14852,7 +14852,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 console.log('⚠️ Solo 1 suministro detectado');
                 const supply = dualSupplies[0];
                 const tipoActual = supply.type;
-                const tipoFaltante = tipoActual === 'electricidad' ? tr('GAS') : tr('ELECTRICIDAD');
+                const tipoFaltante = tipoActual === 'electricidad' ? 'GAS' : 'ELECTRICIDAD';
                 
                 window.showErrorModal(
                     `Para hacer una comparativa DUAL necesitas añadir tanto ELECTRICIDAD como GAS.\n\n` +
@@ -14869,7 +14869,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const hasGas = dualSupplies.some(s => s.type === 'gas');
             
             if (!hasElectricidad || !hasGas) {
-                const tipoFaltante = !hasElectricidad ? tr('ELECTRICIDAD') : tr('GAS');
+                const tipoFaltante = !hasElectricidad ? 'ELECTRICIDAD' : 'GAS';
                 window.showErrorModal(
                     `Para hacer una comparativa DUAL necesitas añadir tanto ELECTRICIDAD como GAS.\n\n` +
                     `Falta añadir: ${tipoFaltante}\n\n` +
@@ -15649,7 +15649,7 @@ Confirmo mi aceptación de la oferta energética DUAL que detallo a continuació
             supplies.forEach((supply, index) => {
                 const isElec = supply.type === 'electricidad';
                 const emoji = isElec ? '⚡' : '🔥';
-                const tipo = isElec ? tr('ELECTRICIDAD') : tr('GAS');
+                const tipo = isElec ? 'ELECTRICIDAD' : 'GAS';
                 const currentCost = isPowerCup ? (supply.results.powercup?.total_anual || 0) : (supply.results.drk?.total_anual || 0);
                 const ahorro = Math.max(0, (supply.originalBillAnnual || 0) - currentCost); // Mostrar 0 si negativo
                 
@@ -15758,7 +15758,7 @@ ${clientName}
                                 [${i+1}] ${(s.cups||'N/A').substring(0,30)}...
                                 <div style="font-size:11px;opacity:0.9;margin-top:3px">${tr('Tipo:')}: ${s.tariff} | ${tr('Días:')}: ${eb.dias} ${tr('días')} | CUPS: [${i+1}]</div>
                                 <div style="font-size:11px;opacity:0.95;margin-top:5px;background:rgba(0,0,0,0.15);padding:6px 10px;border-radius:4px">
-                                    <strong>${tr(tr('TARIFA:'))}</strong> ${tarifaCompleta}
+                                    <strong>${tr('TARIFA:')}</strong> ${tarifaCompleta}
                                 </div>
                             </div>
                             <div style="background:#f8fafc;padding:15px 20px;border:1px solid #e2e8f0;border-top:none">
@@ -15784,7 +15784,7 @@ ${clientName}
                                     </div>
                                 </div>
                                 
-                                <div style="background:${accentColor};color:white;padding:8px 12px;margin:10px 0;border-radius:4px;font-size:12px;font-weight:bold">${tr(tr('POTENCIA'))}</div>
+                                <div style="background:${accentColor};color:white;padding:8px 12px;margin:10px 0;border-radius:4px;font-size:12px;font-weight:bold">${tr('POTENCIA')}</div>
                                 ${(eb.powerCosts||[]).map((pc, idx) => {
                                     const priceKey = idx === 0 ? 'p1_power_price' : 'p2_power_price';
                                     const precio = s.offer?.[priceKey] || pc.priceDay || pc.price_euro_kw_day || 0;
@@ -15795,7 +15795,7 @@ ${clientName}
                                     </div>
                                 `;}).join('')}
                                 
-                                <div style="background:${accentColor};color:white;padding:8px 12px;margin:10px 0;border-radius:4px;font-size:12px;font-weight:bold">${tr(tr('ENERGÍA'))}</div>
+                                <div style="background:${accentColor};color:white;padding:8px 12px;margin:10px 0;border-radius:4px;font-size:12px;font-weight:bold">${tr('ENERGÍA')}</div>
                                 ${(eb.energyCosts||[]).map((ec, idx) => {
                                     const priceKey = `p${idx+1}_price`;
                                     const precio = s.offer?.[priceKey] || ec.price || ec.price_euro_kwh || 0;
@@ -15825,7 +15825,7 @@ ${clientName}
                                 [${i+1}] ${(s.cups||'N/A').substring(0,30)}...
                                 <div style="font-size:11px;opacity:0.9;margin-top:3px">${tr('Tipo:')}: ${s.tariff} | ${tr('Días:')}: ${gb.dias} ${tr('días')} | CUPS: [${i+1}]</div>
                                 <div style="font-size:11px;opacity:0.95;margin-top:5px;background:rgba(0,0,0,0.15);padding:6px 10px;border-radius:4px">
-                                    <strong>${tr(tr('TARIFA:'))}</strong> ${tarifaCompleta}
+                                    <strong>${tr('TARIFA:')}</strong> ${tarifaCompleta}
                                 </div>
                             </div>
                             <div style="background:#f8fafc;padding:15px 20px;border:1px solid #e2e8f0;border-top:none">
@@ -15888,11 +15888,11 @@ ${clientName}
         <table width="100%" cellpadding="0" cellspacing="0" style="background:${bannerColor}">
             <tr>
                 <td style="padding:25px 30px;vertical-align:middle;width:60%">
-                    <h1 style="margin:0 0 8px 0;font-size:32px;font-weight:900;color:white;letter-spacing:1px">${brandName} ${tr(tr('ENERGÍA'))}</h1>
+                    <h1 style="margin:0 0 8px 0;font-size:32px;font-weight:900;color:white;letter-spacing:1px">${brandName} ${tr('ENERGÍA')}</h1>
                     <p style="margin:0;font-size:13px;color:white;opacity:0.95;line-height:1.4">${tr('Liderando el ahorro y la eficiencia energética.')}</p>
                 </td>
                 <td style="padding:25px 30px;text-align:right;vertical-align:middle;width:40%">
-                    <p style="margin:0 0 5px 0;font-size:12px;color:white;font-weight:600;letter-spacing:0.5px">${tr(tr('ESTUDIO DE AHORRO'))}</p>
+                    <p style="margin:0 0 5px 0;font-size:12px;color:white;font-weight:600;letter-spacing:0.5px">${tr('ESTUDIO DE AHORRO')}</p>
                     <p style="margin:0;font-size:15px;font-weight:bold;color:white;letter-spacing:1px">${tr('COMPARATIVA PROFESIONAL')}</p>
                 </td>
             </tr>
@@ -15900,7 +15900,7 @@ ${clientName}
         
         <!-- TÍTULO ESTUDIO DE AHORRO -->
         <div style="background:${bannerColor};padding:20px 30px;text-align:center;border-top:2px solid rgba(255,255,255,0.2)">
-            <h2 style="margin:0 0 5px 0;font-size:24px;font-weight:bold;color:white;letter-spacing:1.5px">${tr(tr('ESTUDIO DE AHORRO'))}</h2>
+            <h2 style="margin:0 0 5px 0;font-size:24px;font-weight:bold;color:white;letter-spacing:1.5px">${tr('ESTUDIO DE AHORRO')}</h2>
             <p style="margin:0;font-size:13px;color:white;font-weight:600;letter-spacing:0.5px">${tr('COMPARATIVA PROFESIONAL')} - ${brandName}</p>
         </div>
         
@@ -15992,7 +15992,7 @@ ${clientName}
         
         <!-- BANDA VERDE DESGLOSE -->
         <div style="background:#22c55e;padding:10px 30px">
-            <p style="margin:0;font-size:12px;color:white;font-weight:bold;text-transform:uppercase">${tr(tr('DESGLOSE DETALLADO POR SUMINISTRO'))}</p>
+            <p style="margin:0;font-size:12px;color:white;font-weight:bold;text-transform:uppercase">${tr('DESGLOSE DETALLADO POR SUMINISTRO')}</p>
         </div>
         
         <!-- DESGLOSES -->
@@ -16016,7 +16016,7 @@ ${clientName}
                 <div style="margin:15px 30px;background:${primaryColor};padding:12px;border-radius:5px">
                     <p style="margin:0 0 5px 0;font-size:11px;color:white;font-weight:bold">[${i+1}] ${s.cups.substring(0,25)}...</p>
                     <p style="margin:0;font-size:10px;color:white">${tr('Tipo:')}: ${s.tariff} | ${tr('Días:')}: ${dias} ${tr('días')} | CUPS: [${i+1}]</p>
-                    <p style="margin:5px 0 0 0;font-size:10px;color:white"><strong>${tr(tr('TARIFA:'))}</strong> ${tarifaCompleta}</p>
+                    <p style="margin:5px 0 0 0;font-size:10px;color:white"><strong>${tr('TARIFA:')}</strong> ${tarifaCompleta}</p>
                 </div>
                 
                 <div style="margin:0 30px 15px 30px;padding:15px;background:#f8f9fa;border:1px solid #e2e8f0">
@@ -16039,7 +16039,7 @@ ${clientName}
                     ${isElec ? `
                     <!-- ELECTRICIDAD: POTENCIA -->
                     <div style="margin-top:12px;padding:10px;background:${primaryColor};color:white;border-radius:5px">
-                        <p style="margin:0;font-size:11px;font-weight:bold">${tr(tr('POTENCIA'))}</p>
+                        <p style="margin:0;font-size:11px;font-weight:bold">${tr('POTENCIA')}</p>
                     </div>
                     ${eb?.powerCosts ? eb.powerCosts.map(pc => `
                         <div style="padding:8px 10px;background:white;border-bottom:1px solid #e2e8f0">
@@ -16052,7 +16052,7 @@ ${clientName}
                     
                     <!-- ELECTRICIDAD: ENERGÍA -->
                     <div style="margin-top:12px;padding:10px;background:${primaryColor};color:white;border-radius:5px">
-                        <p style="margin:0;font-size:11px;font-weight:bold">${tr(tr('ENERGÍA'))}</p>
+                        <p style="margin:0;font-size:11px;font-weight:bold">${tr('ENERGÍA')}</p>
                     </div>
                     ${eb?.energyCosts ? eb.energyCosts.map(ec => `
                         <div style="padding:8px 10px;background:white;border-bottom:1px solid #e2e8f0">
@@ -16213,7 +16213,7 @@ ${clientName}
                     ` : `
                     <!-- GAS: DESGLOSE (sin sección POTENCIA) -->
                     <div style="margin-top:12px;padding:10px;background:${primaryColor};color:white;border-radius:5px">
-                        <p style="margin:0;font-size:11px;font-weight:bold">${tr(tr('DESGLOSE DE COSTES'))}</p>
+                        <p style="margin:0;font-size:11px;font-weight:bold">${tr('DESGLOSE DE COSTES')}</p>
                     </div>
                     ${gb ? `
                         <div style="padding:8px 10px;background:white;border-bottom:1px solid #e2e8f0">
@@ -16248,14 +16248,14 @@ ${clientName}
         
         <!-- AHORRO FINAL EN ROJO -->
         <div style="margin:25px 30px 30px 30px;padding:30px;background:${primaryColor};border-radius:10px;text-align:center">
-            <p style="margin:0 0 15px 0;font-size:15px;color:white;font-weight:bold;text-transform:uppercase;letter-spacing:1px">🎉 ${tr(tr('TU AHORRO ANUAL TOTAL'))} 🎉</p>
+            <p style="margin:0 0 15px 0;font-size:15px;color:white;font-weight:bold;text-transform:uppercase;letter-spacing:1px">🎉 ${tr('TU AHORRO ANUAL TOTAL')} 🎉</p>
             <p style="margin:0 0 15px 0;font-size:48px;color:white;font-weight:bold">${eur(totalSavings)}</p>
             <p style="margin:0;font-size:15px;color:white;font-weight:bold;text-transform:uppercase">${tr('¡AHORRA')} ${(totalSavings/12).toFixed(2).replace('.', ',')} € ${tr('CADA MES!')} </p>
         </div>
         
         <!-- FOOTER INSTRUCCIONES -->
         <div style="background:${primaryColor};padding:20px 30px;margin-top:20px">
-            <p style="margin:0 0 10px 0;font-size:11px;color:white;font-weight:bold">${tr(tr('PARA FORMALIZAR ESTE CONTRATO:'))}</p>
+            <p style="margin:0 0 10px 0;font-size:11px;color:white;font-weight:bold">${tr('PARA FORMALIZAR ESTE CONTRATO:')}</p>
             <p style="margin:0 0 8px 0;font-size:10px;color:white">${tr('Responde a este email adjuntando la documentación de los')} ${dualSupplies.length} CUPS:</p>
             <ol style="margin:0;padding-left:20px;font-size:10px;color:white;line-height:1.6">
                 <li>${tr('Foto del DNI/CIF (anverso y reverso)')}</li>
@@ -16310,7 +16310,7 @@ ${clientName}
             dualGeneratePDF(comercialCode, clientName, clientPhone, clientEmail);
         }
         
-        // Función: Generar PDF DUAL - VERSIÓN COMPLETA PROFESIONAL (3-4 PÁGINAS)
+        // Función: Generar PDF DUAL
         async function dualGeneratePDF(comercialCode = 'D=00', clientName = '', clientPhone = '', clientEmail = '') {
             if (!clientName) {
                 clientName = tr('[NOMBRE COMPLETO CLIENTE]');
@@ -17126,7 +17126,6 @@ ${clientName}
                 }, 500);
             }
         }
-
         
         function showDualConfirm(type, tariff, data, results) {
             // DEPRECATED: Esta función ya no debería usarse en modo DUAL
@@ -18965,7 +18964,7 @@ ${clientName}
                             <p style="margin: 8px 0 0 0; font-size: 14px;">${tr('Liderando el ahorro y la eficiencia energética.')}</p>
                         </td>
                         <td style="padding: 30px 40px; text-align: right;">
-                            <p style="margin: 0; font-size: 14px; font-weight: bold;">${tr(tr('ESTUDIO DE AHORRO'))}</p>
+                            <p style="margin: 0; font-size: 14px; font-weight: bold;">${tr('ESTUDIO DE AHORRO')}</p>
                             <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: bold;">${tr('COMPARATIVA PROFESIONAL')}</p>
                         </td>
                     </tr>
@@ -18975,7 +18974,7 @@ ${clientName}
                 <table width="100%" cellpadding="0" cellspacing="0" style="background-color: ${accentColor}; color: white;">
                     <tr>
                         <td style="padding: 15px 40px; text-align: center;">
-                            <h2 style="margin: 0; font-size: 20px; font-weight: bold;">${tr(tr('ESTUDIO DE AHORRO'))} - GAS</h2>
+                            <h2 style="margin: 0; font-size: 20px; font-weight: bold;">${tr('ESTUDIO DE AHORRO')} - GAS</h2>
                             <p style="margin: 4px 0 0 0; font-size: 14px;">${tr('COMPARATIVA PROFESIONAL')} - ${brandName}</p>
                         </td>
                     </tr>
@@ -19225,7 +19224,7 @@ ${clientName}
                             <p style="margin: 8px 0 0 0; font-size: 14px;">${tr('Liderando el ahorro y la eficiencia energética.')}</p>
                         </td>
                         <td style="padding: 30px 40px; text-align: right;">
-                            <p style="margin: 0; font-size: 14px; font-weight: bold;">${tr(tr('ESTUDIO DE AHORRO'))}</p>
+                            <p style="margin: 0; font-size: 14px; font-weight: bold;">${tr('ESTUDIO DE AHORRO')}</p>
                             <p style="margin: 4px 0 0 0; font-size: 16px; font-weight: bold;">${tr('COMPARATIVA PROFESIONAL')}</p>
                         </td>
                     </tr>
@@ -19998,24 +19997,24 @@ ${clientName}
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(24);
             doc.text('DRK', logoX + logoRadius + 6, logoY - 4);
-            doc.text(tr('ENERGÍA'), logoX + logoRadius + 6, logoY + 5);
+            doc.text('ENERGÍA', logoX + logoRadius + 6, logoY + 5);
             
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
-            doc.text(tr(tr('Liderando el ahorro y la')), logoX + logoRadius + 6, logoY + 13);
-            doc.text(tr(tr('eficiencia energética.')), logoX + logoRadius + 6, logoY + 18);
+            doc.text(tr('Liderando el ahorro y la'), logoX + logoRadius + 6, logoY + 13);
+            doc.text(tr('eficiencia energética.'), logoX + logoRadius + 6, logoY + 18);
             
             // Texto derecha
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(12);
             doc.setTextColor(40, 60, 80);
-            doc.text(tr(tr('ESTUDIO DE AHORRO')), pageWidth - margin, 15, { align: 'right' });
+            doc.text(tr('ESTUDIO DE AHORRO'), pageWidth - margin, 15, { align: 'right' });
             doc.setFontSize(16);
             doc.setTextColor(255, 255, 255);
-            doc.text(tr('COMPARATIVA'), pageWidth - margin, 25, { align: 'right' });
+            doc.text('COMPARATIVA', pageWidth - margin, 25, { align: 'right' });
             doc.setFontSize(12);
             doc.setTextColor(100, 120, 140);
-            doc.text(tr('PROFESIONAL'), pageWidth - margin, 35, { align: 'right' });
+            doc.text('PROFESIONAL', pageWidth - margin, 35, { align: 'right' });
             
             yPos = headerHeight + 8;
             
@@ -20026,7 +20025,7 @@ ${clientName}
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
-            doc.text(tr(tr('ESTUDIO DE AHORRO')), margin + 5, yPos + 7);
+            doc.text(tr('ESTUDIO DE AHORRO'), margin + 5, yPos + 7);
             
             yPos += 12;
             
@@ -20057,7 +20056,7 @@ ${clientName}
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(11);
-            doc.text(tr(tr('LA MEJOR OPCIÓN PARA TI ES')), pageWidth / 2, yPos + 10, { align: 'center' });
+            doc.text(tr('LA MEJOR OPCIÓN PARA TI ES'), pageWidth / 2, yPos + 10, { align: 'center' });
             
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(20);
@@ -20132,7 +20131,7 @@ ${clientName}
             doc.setTextColor(100, 120, 140);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
-            doc.text(tr(tr('TU NUEVO COSTE ') + 'DRK'), margin + colWidth + 10 + colWidth / 2, yPos, { align: 'center' });
+            doc.text(tr('TU NUEVO COSTE DRK'), margin + colWidth + 10 + colWidth / 2, yPos, { align: 'center' });
             
             doc.setTextColor(59, 130, 246);
             doc.setFont('helvetica', 'bold');
@@ -20229,7 +20228,7 @@ ${clientName}
             
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
-            doc.text('Energía (' + kwh + tr(' kWh x ') + num(bestResult.p1_price, 6) + ')', margin + 5, yPos);
+            doc.text('Energía (' + kwh + ' kWh x ' + num(bestResult.p1_price, 6) + ')', margin + 5, yPos);
             doc.text(eur(bestResult.total_energia), pageWidth - margin - 5, yPos, { align: 'right' });
             yPos += 6;
             
@@ -20303,14 +20302,14 @@ ${clientName}
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
-            doc.text(tr(tr('PARA FORMALIZAR ESTE CONTRATO:')), margin + 5, yPos + 8);
+            doc.text(tr('PARA FORMALIZAR ESTE CONTRATO:'), margin + 5, yPos + 8);
             
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
             doc.text(tr('Responde a este email adjuntando la siguiente documentación:'), margin + 5, yPos + 15);
             
             const docList = [
-                tr(tr('1. Foto del DNI/CIF (anverso y reverso)')),
+                tr('1. Foto del DNI/CIF (anverso y reverso)'),
                 tr('2. Última factura (mínimo 3 meses de antigüedad)'),
                 tr('3. Email de contacto para validación'),
                 tr('4. Teléfono de contacto'),
@@ -20393,26 +20392,26 @@ ${clientName}
             doc.setFontSize(24);
             doc.text('DRK', logoX + 15, 16);
             doc.setFontSize(22);
-            doc.text(tr('ENERGÍA'), logoX + 15, 25);
+            doc.text('ENERGÍA', logoX + 15, 25);
             
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7);
-            doc.text(tr(tr('Liderando el ahorro y la')), logoX + 15, 30);
-            doc.text(tr(tr('eficiencia energética.')), logoX + 15, 34);
+            doc.text(tr('Liderando el ahorro y la'), logoX + 15, 30);
+            doc.text(tr('eficiencia energética.'), logoX + 15, 34);
             
             // Texto derecha del header
             doc.setTextColor(40, 60, 80);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(9);
-            doc.text(tr(tr('ESTUDIO DE AHORRO')), pageWidth - 12, 12, { align: 'right' });
+            doc.text(tr('ESTUDIO DE AHORRO'), pageWidth - 12, 12, { align: 'right' });
             
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(11);
-            doc.text(tr('COMPARATIVA'), pageWidth - 12, 20, { align: 'right' });
+            doc.text('COMPARATIVA', pageWidth - 12, 20, { align: 'right' });
             
             doc.setTextColor(100, 120, 140);
             doc.setFontSize(9);
-            doc.text(tr('PROFESIONAL'), pageWidth - 12, 28, { align: 'right' });
+            doc.text('PROFESIONAL', pageWidth - 12, 28, { align: 'right' });
             
             // === INFORMACIÓN DEL CLIENTE (DISEÑO PROFESIONAL) ===
             y = 50;
@@ -20423,7 +20422,7 @@ ${clientName}
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(9);
             doc.setFont('helvetica', 'bold');
-            doc.text(tr(tr('ESTUDIO DE AHORRO')), 17, y + 5.5);
+            doc.text(tr('ESTUDIO DE AHORRO'), 17, y + 5.5);
             
             // Caja blanca con borde
             doc.setFillColor(255, 255, 255);
@@ -20461,7 +20460,7 @@ ${clientName}
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
-            doc.text(tr(tr('LA MEJOR OPCIÓN PARA TI ES')), pageWidth / 2, y + 10, { align: 'center' });
+            doc.text(tr('LA MEJOR OPCIÓN PARA TI ES'), pageWidth / 2, y + 10, { align: 'center' });
             
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(28);
@@ -20548,7 +20547,7 @@ ${clientName}
             doc.setTextColor(100, 110, 120);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7.5);
-            doc.text(tr(tr('TU NUEVO COSTE ') + 'DRK'), col2X + 30, y, { align: 'center' });
+            doc.text(tr('TU NUEVO COSTE DRK'), col2X + 30, y, { align: 'center' });
             
             y += 8;
             doc.setTextColor(59, 130, 246);
@@ -20588,7 +20587,7 @@ ${clientName}
             doc.setTextColor(100, 110, 120);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7.5);
-            doc.text(tr(tr('TU NUEVO COSTE ') + 'DRK'), col3X + 30, y, { align: 'center' });
+            doc.text(tr('TU NUEVO COSTE DRK'), col3X + 30, y, { align: 'center' });
             
             y += 8;
             doc.setTextColor(76, 175, 80);
@@ -20618,7 +20617,7 @@ ${clientName}
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
-            doc.text(tr('DESGLOSE DETALLADO POR SUMINISTRO'), 105, y + 8, { align: 'center' });
+            doc.text('DESGLOSE DETALLADO POR SUMINISTRO', 105, y + 8, { align: 'center' });
             
             y += 18;
             const colW = 90;
@@ -20665,7 +20664,7 @@ ${clientName}
             
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7.5);
-            doc.text('Energía (' + kwh + tr(' kWh x ') + num(resFijo.p1_price, 6) + ')', leftX + 3, leftY);
+            doc.text('Energía (' + kwh + ' kWh x ' + num(resFijo.p1_price, 6) + ')', leftX + 3, leftY);
             doc.text(eur(resFijo.total_energia), leftX + colW - 2, leftY, { align: 'right' });
             leftY += 5;
             
@@ -20763,7 +20762,7 @@ ${clientName}
             
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7.5);
-            doc.text('Energía (' + kwh + tr(' kWh x ') + num(resIndexed.p1_price, 6) + ')', rightX + 3, rightY);
+            doc.text('Energía (' + kwh + ' kWh x ' + num(resIndexed.p1_price, 6) + ')', rightX + 3, rightY);
             doc.text(eur(resIndexed.total_energia), rightX + colW - 2, rightY, { align: 'right' });
             rightY += 5;
             
@@ -20973,28 +20972,28 @@ ${clientName}
             doc.text('POWER CUP', logoX + 30, 20);
             
             doc.setFontSize(22);
-            doc.text(tr('ENERGÍA'), logoX + 30, 32);
+            doc.text('ENERGÍA', logoX + 30, 32);
             
             // Subtítulo descriptivo
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7.5);
             doc.setTextColor(230, 240, 230);
-            doc.text(tr(tr('Liderando el ahorro y la')), logoX + 30, 40);
-            doc.text(tr(tr('eficiencia energética.')), logoX + 30, 44.5);
+            doc.text(tr('Liderando el ahorro y la'), logoX + 30, 40);
+            doc.text(tr('eficiencia energética.'), logoX + 30, 44.5);
             
             // TEXTO DERECHA DEL HEADER
             doc.setTextColor(40, 60, 80);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
-            doc.text(tr(tr('ESTUDIO DE AHORRO')), pageWidth - 12, 16, { align: 'right' });
+            doc.text(tr('ESTUDIO DE AHORRO'), pageWidth - 12, 16, { align: 'right' });
             
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(13);
-            doc.text(tr('COMPARATIVA'), pageWidth - 12, 27, { align: 'right' });
+            doc.text('COMPARATIVA', pageWidth - 12, 27, { align: 'right' });
             
             doc.setTextColor(100, 120, 140);
             doc.setFontSize(11);
-            doc.text(tr('PROFESIONAL'), pageWidth - 12, 37, { align: 'right' });
+            doc.text('PROFESIONAL', pageWidth - 12, 37, { align: 'right' });
             
             // Banner verde "ESTUDIO DE AHORRO"
             y = 63;
@@ -21003,7 +21002,7 @@ ${clientName}
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
-            doc.text(tr(tr('ESTUDIO DE AHORRO')), 105, y + 8, { align: 'center' });
+            doc.text(tr('ESTUDIO DE AHORRO'), 105, y + 8, { align: 'center' });
             
             // Recuadro con borde verde oliva para info del cliente
             y += 18;
@@ -21043,7 +21042,7 @@ ${clientName}
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(10);
-            doc.text(tr(tr('LA MEJOR OPCIÓN PARA TI ES')), pageWidth / 2, y + 13, { align: 'center' });
+            doc.text(tr('LA MEJOR OPCIÓN PARA TI ES'), pageWidth / 2, y + 13, { align: 'center' });
             
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(32);
@@ -21123,7 +21122,7 @@ ${clientName}
             doc.setTextColor(110, 120, 110);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(9);
-            doc.text(tr(tr('TU NUEVO COSTE ') + 'POWER CUP'), 153, y, { align: 'center' });
+            doc.text(tr('TU NUEVO COSTE POWER CUP'), 153, y, { align: 'center' });
             
             y += 10;
             const nuevoMes = bestResult.total * 30 / dias;
@@ -21183,7 +21182,7 @@ ${clientName}
             
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8);
-            doc.text('Energía (' + kwh + tr(' kWh x ') + num(bestResult.p1_price, 6) + ')', 15, y);
+            doc.text('Energía (' + kwh + ' kWh x ' + num(bestResult.p1_price, 6) + ')', 15, y);
             doc.text(eur(bestResult.total_energia), 195, y, { align: 'right' });
             y += 5;
             
@@ -21310,28 +21309,28 @@ ${clientName}
             doc.text('POWER CUP', logoX + 30, 20);
             
             doc.setFontSize(22);
-            doc.text(tr('ENERGÍA'), logoX + 30, 32);
+            doc.text('ENERGÍA', logoX + 30, 32);
             
             // Subtítulo descriptivo
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7.5);
             doc.setTextColor(230, 240, 230);
-            doc.text(tr(tr('Liderando el ahorro y la')), logoX + 30, 40);
-            doc.text(tr(tr('eficiencia energética.')), logoX + 30, 44.5);
+            doc.text(tr('Liderando el ahorro y la'), logoX + 30, 40);
+            doc.text(tr('eficiencia energética.'), logoX + 30, 44.5);
             
             // TEXTO DERECHA DEL HEADER
             doc.setTextColor(40, 60, 80);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
-            doc.text(tr(tr('ESTUDIO DE AHORRO')), pageWidth - 12, 16, { align: 'right' });
+            doc.text(tr('ESTUDIO DE AHORRO'), pageWidth - 12, 16, { align: 'right' });
             
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(13);
-            doc.text(tr('COMPARATIVA'), pageWidth - 12, 27, { align: 'right' });
+            doc.text('COMPARATIVA', pageWidth - 12, 27, { align: 'right' });
             
             doc.setTextColor(100, 120, 140);
             doc.setFontSize(11);
-            doc.text(tr('PROFESIONAL'), pageWidth - 12, 37, { align: 'right' });
+            doc.text('PROFESIONAL', pageWidth - 12, 37, { align: 'right' });
             
             // Banner verde "ESTUDIO DE AHORRO"
             y = 63;
@@ -21340,7 +21339,7 @@ ${clientName}
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(9);
-            doc.text(tr(tr('ESTUDIO DE AHORRO')), 25, y + 5.5);
+            doc.text(tr('ESTUDIO DE AHORRO'), 25, y + 5.5);
             
             y += 8;
             
@@ -21381,7 +21380,7 @@ ${clientName}
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(10);
-            doc.text(tr(tr('LA MEJOR OPCIÓN PARA TI ES')), pageWidth / 2, y + 13, { align: 'center' });
+            doc.text(tr('LA MEJOR OPCIÓN PARA TI ES'), pageWidth / 2, y + 13, { align: 'center' });
             
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(32);
@@ -21463,7 +21462,7 @@ ${clientName}
             doc.setTextColor(100, 110, 100);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7);
-            doc.text(tr(tr('TU NUEVO COSTE ') + 'POWER CUP'), col2X + 30, y, { align: 'center' });
+            doc.text(tr('TU NUEVO COSTE POWER CUP'), col2X + 30, y, { align: 'center' });
             
             y += 7;
             doc.setTextColor(119, 132, 109);
@@ -21502,7 +21501,7 @@ ${clientName}
             doc.setTextColor(100, 110, 100);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7);
-            doc.text(tr(tr('TU NUEVO COSTE ') + 'POWER CUP'), col3X + 30, y, { align: 'center' });
+            doc.text(tr('TU NUEVO COSTE POWER CUP'), col3X + 30, y, { align: 'center' });
             
             y += 7;
             doc.setTextColor(76, 175, 80);
@@ -21532,7 +21531,7 @@ ${clientName}
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
-            doc.text(tr('DESGLOSE DETALLADO POR SUMINISTRO'), 105, y + 8, { align: 'center' });
+            doc.text('DESGLOSE DETALLADO POR SUMINISTRO', 105, y + 8, { align: 'center' });
             
             y += 18;
             const colW = 90;
@@ -21579,7 +21578,7 @@ ${clientName}
             
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7.5);
-            doc.text('Energía (' + kwh + tr(' kWh x ') + num(resFijo.p1_price, 6) + ')', leftX + 3, leftY);
+            doc.text('Energía (' + kwh + ' kWh x ' + num(resFijo.p1_price, 6) + ')', leftX + 3, leftY);
             doc.text(eur(resFijo.total_energia), leftX + colW - 2, leftY, { align: 'right' });
             leftY += 5;
             
@@ -21677,7 +21676,7 @@ ${clientName}
             
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7.5);
-            doc.text('Energía (' + kwh + tr(' kWh x ') + num(resIndexed.p1_price, 6) + ')', rightX + 3, rightY);
+            doc.text('Energía (' + kwh + ' kWh x ' + num(resIndexed.p1_price, 6) + ')', rightX + 3, rightY);
             doc.text(eur(resIndexed.total_energia), rightX + colW - 2, rightY, { align: 'right' });
             rightY += 5;
             
@@ -22028,7 +22027,7 @@ ${clientName}
                 "TU AHORRO ANUAL ESTIMADO": { en: "YOUR ESTIMATED ANNUAL SAVINGS", zh: "您的预计年度节省", de: "IHRE GESCHÄTZTE JÄHRLICHE ERSPARNIS", fr: "VOS ÉCONOMIES ANNUELLES ESTIMÉES" },
                 "TU FACTURA ACTUAL": { en: "YOUR CURRENT BILL", zh: "您当前的账单", de: "IHRE AKTUELLE RECHNUNG", fr: "VOTRE FACTURE ACTUELLE" },
                 "Total Periodo": { en: "Period Total", zh: "期间总额", de: "Periodensumme", fr: "Total de la Période" },
-                tr('TU NUEVO COSTE ') + 'DRK': { en: "YOUR NEW DRK COST", zh: "您的新DRK成本", de: "IHRE NEUEN DRK-KOSTEN", fr: "VOTRE NOUVEAU COÛT DRK" },
+                "TU NUEVO COSTE DRK": { en: "YOUR NEW DRK COST", zh: "您的新DRK成本", de: "IHRE NEUEN DRK-KOSTEN", fr: "VOTRE NOUVEAU COÛT DRK" },
                 "Estimado Mensual": { en: "Monthly Estimate", zh: "每月估算", de: "Monatliche Schätzung", fr: "Estimation Mensuelle" },
                 "Datos del Comercial y Cliente": { en: "Sales Representative and Client Data", zh: "销售代表和客户数据", de: "Vertriebs- und Kundendaten", fr: "Données du Commercial et du Client" },
                 "Rellene sus datos. El resumen profesional de la oferta se copiará a su portapapeles (Ctrl+V).": { en: "Fill in your details. The professional offer summary will be copied to your clipboard (Ctrl+V).", zh: "填写您的详细信息。专业优惠摘要将复制到剪贴板（Ctrl+V）。", de: "Füllen Sie Ihre Daten aus. Die professionelle Angebotsübersicht wird in Ihre Zwischenablage kopiert (Strg+V).", fr: "Remplissez vos données. Le résumé professionnel de l'offre sera copié dans votre presse-papiers (Ctrl+V)." },
@@ -22745,12 +22744,12 @@ ${clientName}
                         const patterns = [
                             // TÍTULOS PRINCIPALES
                             'DESGLOSE DETALLADO DE LA SIMULACIÓN',
-                            tr('ESTUDIO DE AHORRO'),
+                            'ESTUDIO DE AHORRO',
                             'COMPARATIVA PROFESIONAL',
                             'TU AHORRO ANUAL ESTIMADO ES:',
                             'TU FACTURA ACTUAL',
-                            tr('TU NUEVO COSTE ') + 'DRK',
-                            tr('TU NUEVO COSTE ') + 'POWER CUP',
+                            'TU NUEVO COSTE DRK',
+                            'TU NUEVO COSTE POWER CUP',
                             
                             // MULTICUPS
                             'Datos Generales',
@@ -22811,16 +22810,16 @@ ${clientName}
                             // CLIENTE
                             'CLIENTE:',
                             'COMERCIAL:',
-                            tr('CUPS:'),
+                            'CUPS:',
                             'CUPS TOTALES:',
-                            tr('TARIFA:'),
+                            'TARIFA:',
                             
                             // OTROS
-                            tr('Liderando el ahorro y la'),
-                            tr('eficiencia energética.'),
+                            'Liderando el ahorro y la',
+                            'eficiencia energética.',
                             'Asesoría Energética',
                             'PRECIOS DE LA OFERTA:',
-                            tr('PARA FORMALIZAR ESTE CONTRATO:'),
+                            'PARA FORMALIZAR ESTE CONTRATO:',
                             
                             // GAS
                             'TÉRMINO FIJO:',
@@ -22841,13 +22840,13 @@ ${clientName}
                             '/Año',
                             
                             // Secciones del PDF (sin dos puntos)
-                            tr('POTENCIA'),
-                            tr('ENERGÍA'),
+                            'POTENCIA',
+                            'ENERGÍA',
                             'RESUMEN DE',
                             'SUMINISTROS',
                             'RESUMEN DE TODOS LOS SUMINISTROS',
-                            tr('RESUMEN DE SUMINISTROS INCLUIDOS'),
-                            tr('LA MEJOR OPCIÓN PARA TI ES')
+                            'RESUMEN DE SUMINISTROS INCLUIDOS',
+                            'LA MEJOR OPCIÓN PARA TI ES'
                         ];
                         
                         let translated = text;
@@ -22945,8 +22944,8 @@ ${clientName}
                     ['Total Consumo', tr('Total Consumo')],
                     
                     // Secciones del PDF (sin dos puntos para evitar conflictos)
-                    [tr('POTENCIA'), tr(tr('POTENCIA'))],
-                    [tr('ENERGÍA'), tr(tr('ENERGÍA'))],
+                    ['POTENCIA', tr('POTENCIA')],
+                    ['ENERGÍA', tr('ENERGÍA')],
                     ['Punta', tr('Punta')],
                     ['Llano', tr('Llano')],
                     ['Valle', tr('Valle')],
@@ -22970,7 +22969,7 @@ ${clientName}
                     ['TÉRMINO POTENCIA (Precio en €/kW Día)', tr('TÉRMINO POTENCIA (Precio en €/kW Día)')],
                     ['TÉRMINO ENERGÍA (Precios en €/kWh)', tr('TÉRMINO ENERGÍA (Precios en €/kWh)')],
                     ['TOTAL FACTURA (60 DÍAS)', tr('TOTAL FACTURA (60 DÍAS)')],
-                    [tr('Liderando el ahorro y la'), tr(tr('Liderando el ahorro y la'))],
+                    ['Liderando el ahorro y la', tr('Liderando el ahorro y la')],
                     
                     // GAS - Resultados
                     ['Fixed term (30 days)', tr('Fixed term (30 days)')],
@@ -22984,7 +22983,7 @@ ${clientName}
                     // GAS - PDF
                     ['SAVINGS STUDY', tr('SAVINGS STUDY')],
                     ['COMPARATIVA PROFESIONAL GAS - DRK', tr('COMPARATIVA PROFESIONAL GAS - DRK')],
-                    [tr('TARIFA:'), tr(tr('TARIFA:'))],
+                    ['TARIFA:', tr('TARIFA:')],
                     ['TÉRMINO FIJO:', tr('TÉRMINO FIJO:')],
                     ['ENERGÍA:', tr('ENERGÍA:')],
                     ['Precio fijo diario (€/día):', tr('Precio fijo diario (€/día):')],
@@ -22999,27 +22998,27 @@ ${clientName}
                     // Encabezados - TODAS las variantes
                     ['DESGLOSE DETALLADO DE LA SIMULACIÓN', tr('DESGLOSE DETALLADO DE LA SIMULACIÓN')],
                     ['TU AHORRO ANUAL ESTIMADO ES:', tr('TU AHORRO ANUAL ESTIMADO ES:')],
-                    [tr('LA MEJOR OPCIÓN PARA TI ES'), tr(tr('LA MEJOR OPCIÓN PARA TI ES'))],
+                    ['LA MEJOR OPCIÓN PARA TI ES', tr('LA MEJOR OPCIÓN PARA TI ES')],
                     ['TU FACTURA ACTUAL', tr('TU FACTURA ACTUAL')],
-                    [tr('TU NUEVO COSTE ') + 'DRK', tr(tr('TU NUEVO COSTE ') + 'DRK')],
-                    [tr('TU NUEVO COSTE ') + 'POWER CUP', tr(tr('TU NUEVO COSTE ') + 'POWER CUP')],
+                    ['TU NUEVO COSTE DRK', tr('TU NUEVO COSTE DRK')],
+                    ['TU NUEVO COSTE POWER CUP', tr('TU NUEVO COSTE POWER CUP')],
                     ['TU AHORRO ANUAL ESTIMADO', tr('TU AHORRO ANUAL ESTIMADO')],
                     ['TU AHORRO ANUAL FIJO', tr('TU AHORRO ANUAL FIJO')],
                     ['TU AHORRO ANUAL INDEXADO', tr('TU AHORRO ANUAL INDEXADO')],
                     
                     // Headers
-                    [tr('ESTUDIO DE AHORRO'), tr(tr('ESTUDIO DE AHORRO'))],
+                    ['ESTUDIO DE AHORRO', tr('ESTUDIO DE AHORRO')],
                     ['COMPARATIVA PROFESIONAL', tr('COMPARATIVA PROFESIONAL')],
-                    [tr('COMPARATIVA'), tr(tr('COMPARATIVA'))],
-                    [tr('PROFESIONAL'), tr(tr('PROFESIONAL'))],
+                    ['COMPARATIVA', tr('COMPARATIVA')],
+                    ['PROFESIONAL', tr('PROFESIONAL')],
                     ['Liderando el ahorro y la eficiencia energética.', tr('Liderando el ahorro y la eficiencia energética.')],
-                    [tr('eficiencia energética.'), tr(tr('eficiencia energética.'))],
+                    ['eficiencia energética.', tr('eficiencia energética.')],
                     ['Asesoría Energética', tr('Asesoría Energética')],
                     ['Ofrece el mayor ahorro consolidado con', tr('Ofrece el mayor ahorro consolidado con')],
                     
                     // Cliente
                     ['CLIENTE:', tr('CLIENTE:')],
-                    [tr('CUPS:'), tr(tr('CUPS:'))],
+                    ['CUPS:', tr('CUPS:')],
                     ['COMERCIAL:', tr('COMERCIAL:')],
                     ['CUPS TOTALES:', tr('CUPS TOTALES:')],
                     ['[NOMBRE COMPLETO CLIENTE]', tr('[NOMBRE COMPLETO CLIENTE]')],
@@ -23072,7 +23071,7 @@ ${clientName}
                     ['Impuesto hidrocarburos', tr('Impuesto hidrocarburos')],
                     
                     // Documentación
-                    [tr('PARA FORMALIZAR ESTE CONTRATO:'), tr(tr('PARA FORMALIZAR ESTE CONTRATO:'))],
+                    ['PARA FORMALIZAR ESTE CONTRATO:', tr('PARA FORMALIZAR ESTE CONTRATO:')],
                     ['Responde a este email adjuntando la siguiente documentacion:', tr('Responde a este email adjuntando la siguiente documentacion:')],
                     ['Responde a este email adjuntando la documentacion de los', tr('Responde a este email adjuntando la documentacion de los')],
                     ['Este resumen es una simulacion', tr('Este resumen es una simulacion')],

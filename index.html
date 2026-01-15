@@ -16622,7 +16622,7 @@ ${clientName}
                                 powerCosts.push({
                                     kw: supply.data.p1,
                                     priceDay: p1_diario,
-                                    total: supply.data.p1 * dias * p1_diario
+                                    cost: supply.data.p1 * dias * p1_diario
                                 });
                             }
                             
@@ -16632,7 +16632,7 @@ ${clientName}
                                 powerCosts.push({
                                     kw: supply.data.p2,
                                     priceDay: p2_diario,
-                                    total: supply.data.p2 * dias * p2_diario
+                                    cost: supply.data.p2 * dias * p2_diario
                                 });
                             }
                         }
@@ -16647,7 +16647,7 @@ ${clientName}
                                     const label = `P${pidx + 1} (${pc.kw} kW x ${dias}d x ${(pc.priceDay || pc.precio || 0).toFixed(6)} EUR/kW/dia)`;
                                     doc.text(label, margin + 5, yPos + 4);
                                     doc.setFont('helvetica', 'bold');
-                                    doc.text(eur(pc.total || 0), pageWidth - margin - 5, yPos + 4, { align: 'right' });
+                                    doc.text(eur(pc.cost || pc.total || 0), pageWidth - margin - 5, yPos + 4, { align: 'right' });
                                         yPos += 6;
                                 }
                             });
@@ -16688,7 +16688,7 @@ ${clientName}
                                 energyCosts.push({
                                     kwh: supply.data.e1,
                                     price: offerData.p1_price,
-                                    total: supply.data.e1 * offerData.p1_price
+                                    cost: supply.data.e1 * offerData.p1_price
                                 });
                             }
                             
@@ -16697,7 +16697,7 @@ ${clientName}
                                 energyCosts.push({
                                     kwh: supply.data.e2,
                                     price: offerData.p2_price,
-                                    total: supply.data.e2 * offerData.p2_price
+                                    cost: supply.data.e2 * offerData.p2_price
                                 });
                             }
                             
@@ -16706,7 +16706,7 @@ ${clientName}
                                 energyCosts.push({
                                     kwh: supply.data.e3,
                                     price: offerData.p3_price,
-                                    total: supply.data.e3 * offerData.p3_price
+                                    cost: supply.data.e3 * offerData.p3_price
                                 });
                             }
                         }
@@ -16720,7 +16720,7 @@ ${clientName}
                                     const label = `E${eidx + 1} (${ec.kwh} kWh x ${(ec.price || ec.precio || 0).toFixed(6)} EUR/kWh)`;
                                     doc.text(label, margin + 5, yPos + 4);
                                     doc.setFont('helvetica', 'bold');
-                                    doc.text(eur(ec.total || 0), pageWidth - margin - 5, yPos + 4, { align: 'right' });
+                                    doc.text(eur(ec.cost || ec.total || 0), pageWidth - margin - 5, yPos + 4, { align: 'right' });
                                     yPos += 6;
                                 }
                             });

@@ -3793,17 +3793,48 @@
 
             const detailsContainer = document.getElementById('details-container');
 
+            // Crear menú de navegación para MULTICUPS (solo 3 pestañas)
+            const multiCupsNavMenu = `
+                <div id="sections-nav" class="sticky top-0 z-50 bg-white border-b-2 border-slate-200 shadow-md mb-6">
+                    <div class="flex overflow-x-auto scrollbar-hide">
+                        <button onclick="showSection('datos-extraidos')" id="btn-datos-extraidos"
+                                class="section-tab active flex-1 min-w-fit px-4 py-3 text-sm font-semibold border-b-3 border-drk-600 text-drk-600 bg-drk-50 transition-all whitespace-nowrap">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            ${tr('Datos Extraídos')}
+                        </button>
+                        <button onclick="showSection('precios')" id="btn-precios"
+                                class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            ${tr('Precios Ofertas')}
+                        </button>
+                        <button onclick="showSection('calculo')" id="btn-calculo"
+                                class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                            ${tr('Cálculo Oficial')}
+                        </button>
+                    </div>
+                </div>
+            `;
+
             detailsContainer.innerHTML = `
-                ${supplySummarySection}
-                <h3 id="extracted-data-header" class="text-lg font-bold text-slate-800 border-l-4 ${brand.BORDER.replace('border-', 'border-')} pl-3">Datos Acumulados</h3>
-                <div id="user-consumption-details" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-sm">${correctedConsumptionHTML}</div>
+                ${multiCupsNavMenu}
                 
-                ${tariffPricesHTML}
+                <div id="section-datos-extraidos" class="section-content" style="display: block;">
+                    ${supplySummarySection}
+                    <h3 id="extracted-data-header" class="text-lg font-bold text-slate-800 border-l-4 ${brand.BORDER.replace('border-', 'border-')} pl-3 mb-4">Datos Acumulados</h3>
+                    <div id="user-consumption-details" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-sm mb-6">${correctedConsumptionHTML}</div>
+                </div>
                 
-                <h3 class="text-lg font-bold text-slate-800 border-l-4 border-green-500 pl-3" style="border-left-color: ${brand.QR_CENTER_BG};">${tr('Desglose Individual por Suministro')}</h3>
-                <p class="text-sm text-slate-500 mb-4 pl-3">${tr('A continuación, se muestra el cálculo detallado de la mejor oferta para cada CUPS, por orden de introducción:')}</p>
-                <div id="cost-breakdown-multi" class="space-y-4">
-                    ${allBreakdownsHTML}
+                <div id="section-precios" class="section-content" style="display: none;">
+                    ${tariffPricesHTML}
+                </div>
+                
+                <div id="section-calculo" class="section-content" style="display: none;">
+                    <h3 class="text-lg font-bold text-slate-800 border-l-4 border-green-500 pl-3 mb-4" style="border-left-color: ${brand.QR_CENTER_BG};">${tr('Desglose Individual por Suministro')}</h3>
+                    <p class="text-sm text-slate-500 mb-4 pl-3">${tr('A continuación, se muestra el cálculo detallado de la mejor oferta para cada CUPS, por orden de introducción:')}</p>
+                    <div id="cost-breakdown-multi" class="space-y-4">
+                        ${allBreakdownsHTML}
+                    </div>
                 </div>
             `;
         }

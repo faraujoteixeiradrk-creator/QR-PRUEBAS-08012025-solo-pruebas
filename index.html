@@ -16395,101 +16395,114 @@ ${clientName}
                     doc.rect(i, 0, 1, 45, 'F');
                 }
                 
-                // Logo DRK (multicolor)
+                // Logo y texto izquierda
                 const logoX = margin + 10;
-                const logoY = 17;
-                const logoRadius = 6;
+                yPos = 10;
                 
-                doc.setFillColor(219, 68, 55);
-                doc.circle(logoX - 1.5, logoY + 1.5, logoRadius * 0.8, 'F');
-                doc.setFillColor(66, 133, 244);
-                doc.circle(logoX + 1.5, logoY - 1.5, logoRadius * 0.8, 'F');
-                doc.setFillColor(244, 180, 0);
-                doc.circle(logoX - 1.5, logoY - 1.5, logoRadius * 0.7, 'F');
-                doc.setFillColor(15, 157, 88);
-                doc.circle(logoX + 1.5, logoY + 1.5, logoRadius * 0.7, 'F');
-                doc.setFillColor(255, 255, 255);
-                doc.circle(logoX, logoY, logoRadius * 0.4, 'F');
-                
-                // Texto DRK ENERGIA
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(24);
+                doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                doc.text('DRK ENERGIA', logoX + 18, 16);
+                doc.text(brandName, logoX + 8, yPos + 5);
                 
-                doc.setFontSize(10);
+                doc.setFontSize(11);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Liderando el ahorro y la eficiencia energetica.', logoX + 18, 23);
+                doc.text('ENERGÍA', logoX + 8, yPos + 11);
+                
+                // Tagline
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(200, 220, 240);
+                doc.text('Liderando el ahorro y la', logoX + 8, yPos + 19);
+                doc.text('eficiencia energética.', logoX + 8, yPos + 24);
                 
                 // Texto derecha del header
+                doc.setTextColor(40, 60, 80);
                 doc.setFontSize(11);
                 doc.setFont('helvetica', 'bold');
                 doc.text('ESTUDIO DE AHORRO', pageWidth - margin, 14, { align: 'right' });
+                doc.setTextColor(255, 255, 255);
                 doc.setFontSize(14);
                 doc.text('COMPARATIVA', pageWidth - margin, 22, { align: 'right' });
+                doc.setTextColor(100, 120, 140);
                 doc.setFontSize(11);
                 doc.text('PROFESIONAL', pageWidth - margin, 30, { align: 'right' });
                 
                 yPos = 52;
                 
-                // BANNER AZUL CON TITULO
-                doc.setFillColor(...azulClaro);
-                doc.rect(0, yPos, pageWidth, 20, 'F');
-                
+                // === INFORMACIÓN DEL CLIENTE (REDISEÑADA) ===
+                // Barra superior verde/azul
+                doc.setFillColor(...colorPrincipal);
+                doc.roundedRect(margin, yPos, contentWidth, 8, 3, 3, 'F');
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(16);
+                doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
-                doc.text('ESTUDIO DE AHORRO', pageWidth / 2, yPos + 8, { align: 'center' });
+                doc.text('ESTUDIO DE AHORRO', margin + 5, yPos + 5.5);
+                
+                // Caja blanca con borde
+                doc.setFillColor(255, 255, 255);
+                doc.setDrawColor(...colorPrincipal);
+                doc.setLineWidth(1);
+                doc.roundedRect(margin, yPos + 8, contentWidth, 20, 3, 3, 'FD');
+                
+                doc.setTextColor(...colorPrincipal);
                 doc.setFontSize(12);
-                doc.text('COMPARATIVA PROFESIONAL - DRK', pageWidth / 2, yPos + 15, { align: 'center' });
-                
-                yPos += 26;
-                
-                // DATOS DEL CLIENTE
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
                 doc.setFont('helvetica', 'bold');
-                doc.text('CLIENTE:', margin, yPos);
+                doc.text('COMPARATIVA PROFESIONAL - ' + brandName, margin + 5, yPos + 14);
+                
+                doc.setTextColor(80, 80, 80);
+                doc.setFontSize(9);
                 doc.setFont('helvetica', 'normal');
-                doc.text(clientName.toUpperCase(), margin + 20, yPos);
+                doc.text('CLIENTE: ' + clientName, margin + 5, yPos + 20);
                 
-                yPos += 6;
-                
-                // CUPS
-                if (dualSupplies.length <= 2) {
-                    dualSupplies.forEach(supply => {
-                        doc.setFont('helvetica', 'bold');
-                        doc.text('CUPS:', margin, yPos);
-                        doc.setFont('helvetica', 'normal');
-                        doc.text(supply.cups || 'N/A', margin + 20, yPos);
-                        yPos += 5;
-                    });
-                } else {
-                    doc.setFont('helvetica', 'bold');
-                    doc.text('CUPS TOTALES:', margin, yPos);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(String(dualSupplies.length), margin + 35, yPos);
-                    yPos += 5;
+                // CUPS del primer suministro
+                if (dualSupplies && dualSupplies.length > 0) {
+                    doc.text('CUPS: ' + (dualSupplies[0].cups || 'N/A'), margin + 5, yPos + 25);
                 }
                 
+                // Comercial en caja destacada
+                doc.setFillColor(...grisClaro);
+                doc.roundedRect(pageWidth - margin - 45, yPos + 17, 45, 8, 2, 2, 'F');
+                doc.setTextColor(...colorPrincipal);
                 doc.setFont('helvetica', 'bold');
-                doc.text('COMERCIAL:', margin, yPos);
-                doc.setFont('helvetica', 'normal');
-                doc.text(comercialCode, margin + 30, yPos);
+                doc.setFontSize(8);
+                doc.text('COMERCIAL: ' + comercialCode, pageWidth - margin - 43, yPos + 22.5);
                 
-                yPos += 12;
+                yPos += 35;
                 
-                // CAJA "LA MEJOR OPCION"
+                // === CABECERA CON MARCA ===
+                doc.setFillColor(...colorPrincipal);
+                doc.roundedRect(margin, yPos, contentWidth, 32, 4, 4, 'F');
+                
+                // "LA MEJOR OPCIÓN PARA TI ES"
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('LA MEJOR OPCIÓN PARA TI ES', pageWidth / 2, yPos + 8, { align: 'center' });
+                
+                // Marca más grande si no es DRK
+                if (!isDrk) {
+                    doc.setFontSize(32);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(brandName, pageWidth / 2, yPos + 20, { align: 'center' });
+                } else {
+                    doc.setFontSize(26);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(brandName, pageWidth / 2, yPos + 20, { align: 'center' });
+                }
+                
+                yPos += 37;
+                
+                // CAJA "RESUMEN DE SUMINISTROS"
                 doc.setFillColor(240, 249, 255);
-                doc.roundedRect(margin, yPos, contentWidth, 22, 3, 3, 'F');
-                doc.setDrawColor(...azulClaro);
-                doc.setLineWidth(1.5);
-                doc.roundedRect(margin, yPos, contentWidth, 22, 3, 3, 'S');
+                doc.roundedRect(margin, yPos, contentWidth, 10, 3, 3, 'F');
+                doc.setDrawColor(...colorPrincipal);
+                doc.setLineWidth(1);
+                doc.roundedRect(margin, yPos, contentWidth, 10, 3, 3, 'S');
                 
-                doc.setTextColor(...azulClaro);
+                doc.setTextColor(...grisOscuro);
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
-                doc.text('LA MEJOR OPCION PARA TI ES', pageWidth / 2, yPos + 9, { align: 'center' });
+                doc.text('RESUMEN DE SUMINISTROS INCLUIDOS', pageWidth / 2, yPos + 7, { align: 'center' });
                 doc.setFontSize(20);
                 doc.text('DRK', pageWidth / 2, yPos + 17, { align: 'center' });
                 

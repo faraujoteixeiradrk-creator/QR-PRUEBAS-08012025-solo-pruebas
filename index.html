@@ -16605,6 +16605,11 @@ ${clientName}
                         
                         // Obtener costes de potencia (solo electricidad)
                         let powerCosts = (supply.electricityBreakdown && supply.electricityBreakdown.powerCosts) || [];
+                        console.log('powerCosts original:', powerCosts);
+                        console.log('powerCosts length:', powerCosts.length);
+                        if (powerCosts.length > 0) {
+                            console.log('powerCosts[0]:', powerCosts[0]);
+                        }
                         
                         // Si powerCosts está vacío pero tenemos el offer, calcularlo
                         if ((!powerCosts || powerCosts.length === 0) && offerData) {
@@ -16668,6 +16673,11 @@ ${clientName}
                         
                         // Obtener costes de energía (solo electricidad)
                         let energyCosts = (supply.electricityBreakdown && supply.electricityBreakdown.energyCosts) || [];
+                        console.log('energyCosts original:', energyCosts);
+                        console.log('energyCosts length:', energyCosts.length);
+                        if (energyCosts.length > 0) {
+                            console.log('energyCosts[0]:', energyCosts[0]);
+                        }
                         
                         // Si energyCosts está vacío pero tenemos el offer, calcularlo
                         if ((!energyCosts || energyCosts.length === 0) && offerData) {

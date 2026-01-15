@@ -16309,17 +16309,6 @@ ${clientName}
             // Generar PDF
             dualGeneratePDF(comercialCode, clientName, clientPhone, clientEmail);
         }
-            
-            const clientName = document.getElementById('client-name').value.trim() || tr('[NOMBRE COMPLETO CLIENTE]');
-            const clientPhone = document.getElementById('client-phone').value.trim() || '';
-            const clientEmail = document.getElementById('client-email').value.trim() || '';
-            
-            // Cerrar el modal
-            closeClientDataModal();
-            
-            // Generar PDF
-            dualGeneratePDF(comercialCode, clientName, clientPhone, clientEmail);
-        }
         
         // Función: Generar PDF DUAL - VERSIÓN COMPLETA PROFESIONAL (3-4 PÁGINAS)
         async function dualGeneratePDF(comercialCode = 'D=00', clientName = '', clientPhone = '', clientEmail = '') {
@@ -17011,6 +17000,82 @@ ${clientName}
                 
                 yPos += 58;
                 
+                // INSTRUCCIONES DE CONTRATACION
+                doc.setFillColor(...grisOscuro);
+                doc.rect(margin, yPos, contentWidth, 12, 'F');
+                
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('PARA FORMALIZAR ESTE CONTRATO:', margin + 5, yPos + 8);
+                
+                yPos += 14;
+                
+                const docsHeight = 75;
+                doc.setFillColor(...grisClaro);
+                doc.rect(margin, yPos, contentWidth, docsHeight, 'F');
+                doc.setDrawColor(200, 200, 200);
+                doc.setLineWidth(0.5);
+                doc.rect(margin, yPos, contentWidth, docsHeight, 'S');
+                
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`Responde a este email adjuntando la documentacion de los ${dualSupplies.length} CUPS:`, margin + 5, yPos + 7);
+                
+                yPos += 12;
+                
+                const docs = [
+                    '1. Foto del DNI/CIF (anverso y reverso)',
+                    '2. Ultima factura (menos de 3 meses de antiguedad)',
+                    '3. Autorizacion de cambio de titular (si aplica)',
+                    '4. Telefono de contacto',
+                    '5. Numero de cuenta bancaria (IBAN)'
+                ];
+                
+                docs.forEach(docItem => {
+                    doc.setFontSize(9);
+                    doc.text(docItem, margin + 10, yPos);
+                    yPos += 7;
+                });
+                
+                yPos += 6;
+                
+                doc.setFillColor(...grisOscuro);
+                doc.rect(margin + 10, yPos, contentWidth - 20, 12, 'F');
+                
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`Envia la documentacion al comercial:${comercialCode}`, pageWidth / 2, yPos + 8, { align: 'center' });
+                
+                // PIE DE PAGINA
+                doc.setFontSize(7);
+                doc.setTextColor(100, 116, 139);
+                doc.setFont('helvetica', 'italic');
+                doc.text('Documento generado el ' + new Date().toLocaleDateString('es-ES'), margin, 285);
+                doc.text('DRK Energia - Comparativa Profesional', pageWidth - margin, 285, { align: 'right' });
+                
+                // GUARDAR
+                const filename = `Comparativa_DUAL_${comercialCode}_${new Date().toISOString().slice(0,10)}.pdf`;
+                doc.save(filename);
+                
+                console.log('PDF DUAL generado correctamente');
+                window.showMessageModal("PDF generado correctamente - Revisa tu carpeta de descargas");
+                
+            } catch (error) {
+                console.error('Error al generar PDF DUAL:', error);
+                alert('Error al generar el PDF: ' + error.message);
+            }
+            
+            if (wasChineseMode) {
+                setTimeout(() => {
+                    console.log('Restaurando idioma chino');
+                    window.LANG.change('zh', true);
+                }, 500);
+            }
+        }
+
         
         function showDualConfirm(type, tariff, data, results) {
             // DEPRECATED: Esta función ya no debería usarse en modo DUAL

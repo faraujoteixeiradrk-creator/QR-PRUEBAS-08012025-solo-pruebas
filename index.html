@@ -16356,8 +16356,9 @@ ${clientName}
                     
                     doc.text(supply.tariff || supply.originalTariffType || 'N/A', margin + 130, yPos + 3.5);
                     
-                    // Obtener ahorro correcto de electricityBreakdown
-                    const ahorro = (supply.electricityBreakdown && supply.electricityBreakdown.ahorro_anual) || 0;
+                    // Obtener ahorro según el tipo
+                    const breakdown = supply.type === 'electricidad' ? supply.electricityBreakdown : supply.gasBreakdown;
+                    const ahorro = (breakdown && breakdown.ahorro_anual) || 0;
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(...verdeFuerte);
                     doc.setFontSize(9);
@@ -16489,6 +16490,12 @@ ${clientName}
                 // DESGLOSE DE CADA SUMINISTRO
                 dualSupplies.forEach((supply, idx) => {
                     console.log('Procesando suministro', idx, 'para desglose:', supply);
+                    console.log('  - offer:', supply.offer);
+                    console.log('  - electricityBreakdown:', supply.electricityBreakdown);
+                    console.log('  - gasBreakdown:', supply.gasBreakdown);
+                    
+                    // Obtener breakdown según el tipo (una sola vez para todo el forEach)
+                    const breakdown = supply.type === 'electricidad' ? supply.electricityBreakdown : supply.gasBreakdown;
                     
                     if (yPos > 240) {
                         doc.addPage();
@@ -16508,7 +16515,7 @@ ${clientName}
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'normal');
                     const tariffDisplay = supply.tariff || supply.originalTariffType || 'N/A';
-                    const diasDisplay = (supply.electricityBreakdown && supply.electricityBreakdown.dias) || supply.dias || supply.days || 30;
+                    const diasDisplay = (breakdown && breakdown.dias) || supply.dias || supply.days || 30;
                     doc.text(`Tipo:: ${tariffDisplay} | Dias:: ${diasDisplay} dias | CUPS: [${idx + 1}]`, margin + 3, yPos + 11);
                     
                     yPos += 16;
@@ -16596,7 +16603,7 @@ ${clientName}
                         
                         doc.setFillColor(255, 255, 255);
                         
-                        // Obtener costes de potencia de electricityBreakdown
+                        // Obtener costes de potencia (solo electricidad)
                         let powerCosts = (supply.electricityBreakdown && supply.electricityBreakdown.powerCosts) || [];
                         
                         if (powerCosts && powerCosts.length > 0) {
@@ -16605,7 +16612,7 @@ ${clientName}
                                     doc.setFontSize(8);
                                     doc.setTextColor(0, 0, 0);
                                     doc.setFont('helvetica', 'normal');
-                                    const dias = (supply.electricityBreakdown && supply.electricityBreakdown.dias) || supply.dias || supply.days || 30;
+                                    const dias = (supply.electricityBreakdown && supply.electricityBreakdown.dias) || supply.dias || 30;
                                     const label = `P${pidx + 1} (${pc.kw} kW x ${dias}d x ${(pc.priceDay || pc.precio || 0).toFixed(6)} EUR/kW/dia)`;
                                     doc.text(label, margin + 5, yPos + 4);
                                     doc.setFont('helvetica', 'bold');
@@ -16633,7 +16640,7 @@ ${clientName}
                         
                         doc.setFillColor(255, 255, 255);
                         
-                        // Obtener costes de energía de electricityBreakdown
+                        // Obtener costes de energía (solo electricidad)
                         let energyCosts = (supply.electricityBreakdown && supply.electricityBreakdown.energyCosts) || [];
                         
                         if (energyCosts && energyCosts.length > 0) {
@@ -16674,7 +16681,7 @@ ${clientName}
                         doc.setFont('helvetica', 'normal');
                         
                         const termFijo = (offerData && offerData.term_fijo) ? offerData.term_fijo : 0;
-                        const dias = (supply.electricityBreakdown && supply.electricityBreakdown.dias) || supply.dias || supply.days || 30;
+                        const dias = (supply.gasBreakdown && supply.gasBreakdown.dias) || supply.dias || supply.days || 30;
                         const costoTermFijo = termFijo * dias;
                         doc.text(`Termino fijo (${dias} dias x ${termFijo.toFixed(6)} EUR/dia)`, margin + 5, yPos + 4);
                         doc.setFont('helvetica', 'bold');
@@ -16682,7 +16689,7 @@ ${clientName}
                         yPos += 6;
                         
                         doc.setFont('helvetica', 'normal');
-                        const kwh = supply.kwh || 0;
+                        const kwh = (supply.gasBreakdown && supply.gasBreakdown.kwh) || supply.kwh || 0;
                         const precioEnergia = (offerData && offerData.energy_price) ? offerData.energy_price : 0;
                         const costoEnergia = kwh * precioEnergia;
                         doc.text(`Energia (${kwh} kWh x ${precioEnergia.toFixed(6)} EUR/kWh)`, margin + 5, yPos + 4);
@@ -16698,11 +16705,13 @@ ${clientName}
                     doc.setFontSize(10);
                     doc.setTextColor(0, 0, 0);
                     doc.setFont('helvetica', 'bold');
-                    const dias = (supply.electricityBreakdown && supply.electricityBreakdown.dias) || supply.dias || supply.days || 30;
+                    
+                    // Usar breakdown ya declarado al inicio del forEach
+                    const dias = (breakdown && breakdown.dias) || supply.dias || supply.days || 30;
                     doc.text(`TOTAL (${dias} DIAS):`, margin + 5, yPos + 6.5);
                     
-                    // Obtener total del período de electricityBreakdown
-                    let total = (supply.electricityBreakdown && supply.electricityBreakdown.totalPeriod) || supply.totalPeriod || supply.total || 0;
+                    // Obtener total
+                    let total = (breakdown && breakdown.totalPeriod) || supply.totalPeriod || supply.total || 0;
                     
                     doc.text(eur(total), pageWidth - margin - 5, yPos + 6.5, { align: 'right' });
                     
@@ -16715,7 +16724,7 @@ ${clientName}
                     doc.setTextColor(...rojoFuerte);
                     doc.setFontSize(12);
                     doc.setFont('helvetica', 'bold');
-                    const ahorro = (supply.electricityBreakdown && supply.electricityBreakdown.ahorro_anual) || 0;
+                    const ahorro = (breakdown && breakdown.ahorro_anual) || 0;
                     doc.text(`AHORRO:: ${eur(ahorro)}`, pageWidth / 2, yPos + 7, { align: 'center' });
                     
                     yPos += 16;

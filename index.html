@@ -16334,10 +16334,23 @@ ${clientName}
             const currentLang = localStorage.getItem('appLanguage') || 'es';
             const wasChineseMode = currentLang === 'zh';
             
+            console.log('Idioma actual para PDF:', currentLang);
+            console.log('¿Es modo chino?:', wasChineseMode);
+            
             if (wasChineseMode) {
                 alert('Generando PDF...\nGenerating PDF...');
                 window.LANG.change('en', true);
+                console.log('Cambiado a inglés temporalmente');
+            } else {
+                // Asegurar que el idioma actual esté activo
+                console.log('Manteniendo idioma:', currentLang);
+                if (window.LANG && window.LANG.change) {
+                    window.LANG.change(currentLang, true);
+                }
             }
+            
+            // Esperar un momento para que el idioma se aplique
+            await new Promise(resolve => setTimeout(resolve, 100));
             
             try {
                 window.showMessageModal("Generando PDF DUAL profesional (3-4 paginas)... Por favor espere.");

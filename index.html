@@ -5502,7 +5502,7 @@
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
-                doc.text('DESGLOSE DETALLADO POR SUMINISTRO', pageWidth / 2, yPos + 10, { align: 'center' });
+                doc.text(tr('DESGLOSE DETALLADO POR SUMINISTRO'), pageWidth / 2, yPos + 10, { align: 'center' });
                 yPos += 22;
                 
                 const col2Width = (contentWidth - 6) / 2;
@@ -7811,7 +7811,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(11);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('DESGLOSE DETALLADO POR SUMINISTRO', margin + 3, yPos + 6.5);
+                    doc.text(tr('DESGLOSE DETALLADO POR SUMINISTRO'), margin + 3, yPos + 6.5);
                     yPos += 14;
                     
                     // Función auxiliar para generar desglose en MULTICUPS (estilo dual)
@@ -15992,7 +15992,7 @@ ${clientName}
         
         <!-- BANDA VERDE DESGLOSE -->
         <div style="background:#22c55e;padding:10px 30px">
-            <p style="margin:0;font-size:12px;color:white;font-weight:bold;text-transform:uppercase">${tr('DESGLOSE DETALLADO POR SUMINISTRO')}</p>
+            <p style="margin:0;font-size:12px;color:white;font-weight:bold;text-transform:uppercase">${tr(tr('DESGLOSE DETALLADO POR SUMINISTRO'))}</p>
         </div>
         
         <!-- DESGLOSES -->
@@ -16658,7 +16658,7 @@ ${clientName}
                 doc.setTextColor(20, 83, 45);
                 doc.setFontSize(11);
                 doc.setFont('helvetica', 'bold');
-                doc.text('TU NUEVO COSTE ' + brandName, margin + boxWidth + 10 + (boxWidth / 2), yPos + 10, { align: 'center' });
+                doc.text(tr('TU NUEVO COSTE ') + brandName, margin + boxWidth + 10 + (boxWidth / 2), yPos + 10, { align: 'center' });
                 
                 const totalNuevo = results.totalDRK || 0;
                 const costoMensualNuevo = totalNuevo / 12;
@@ -16685,7 +16685,7 @@ ${clientName}
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(13);
                 doc.setFont('helvetica', 'bold');
-                doc.text('DESGLOSE DETALLADO POR SUMINISTRO', margin + 5, yPos + 8);
+                doc.text(tr('DESGLOSE DETALLADO POR SUMINISTRO'), margin + 5, yPos + 8);
                 
                 yPos += 17;
                 
@@ -16756,7 +16756,7 @@ ${clientName}
                     doc.text(`TARIFA: ${tarifaCompleta}`, margin + 5, yPos + 6);
                     
                     doc.setFont('helvetica', 'bold');
-                    doc.text('PRECIOS APLICADOS:', margin + 5, yPos + 12);
+                    doc.text(tr('PRECIOS APLICADOS:'), margin + 5, yPos + 12);
                     
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'normal');
@@ -17029,7 +17029,7 @@ ${clientName}
                 
                 const ahorroMensual = (results.totalSavings || 0) / 12;
                 doc.setFontSize(13);
-                doc.text(`AHORRA ${num(ahorroMensual, 2)} EUR CADA MES`, pageWidth / 2, yPos + 44, { align: 'center' });
+                doc.text(tr('AHORRA ') + num(ahorroMensual, 2) + tr(' EUR CADA MES'), pageWidth / 2, yPos + 44, { align: 'center' });
                 
                 yPos += 58;
                 
@@ -17054,7 +17054,7 @@ ${clientName}
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'normal');
-                doc.text(`Responde a este email adjuntando la documentacion de los ${dualSupplies.length} CUPS:`, margin + 5, yPos + 7);
+                doc.text(tr('Responde a este email adjuntando la documentacion de los ') + dualSupplies.length + tr(' CUPS:'), margin + 5, yPos + 7);
                 
                 yPos += 12;
                 
@@ -17080,7 +17080,7 @@ ${clientName}
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`Envia la documentacion al comercial:${comercialCode}`, pageWidth / 2, yPos + 8, { align: 'center' });
+                doc.text(tr('Envia la documentacion al comercial:') + comercialCode, pageWidth / 2, yPos + 8, { align: 'center' });
                 
                 // PIE DE PAGINA
                 doc.setFontSize(7);
@@ -20600,7 +20600,7 @@ ${clientName}
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
-            doc.text('DESGLOSE DETALLADO POR SUMINISTRO', 105, y + 8, { align: 'center' });
+            doc.text(tr('DESGLOSE DETALLADO POR SUMINISTRO'), 105, y + 8, { align: 'center' });
             
             y += 18;
             const colW = 90;
@@ -21514,7 +21514,7 @@ ${clientName}
             doc.setTextColor(255, 255, 255);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(11);
-            doc.text('DESGLOSE DETALLADO POR SUMINISTRO', 105, y + 8, { align: 'center' });
+            doc.text(tr('DESGLOSE DETALLADO POR SUMINISTRO'), 105, y + 8, { align: 'center' });
             
             y += 18;
             const colW = 90;

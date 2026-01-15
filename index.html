@@ -4355,26 +4355,47 @@
                 // Menú de navegación con análisis de horarios
                 navigationMenuHTML = `
                     <div id="sections-nav" class="sticky top-0 z-50 bg-white border-b-2 border-slate-200 shadow-md mb-6">
-                        <div class="flex overflow-x-auto scrollbar-hide">
-                            <button onclick="showSection('analisis')" id="btn-analisis"
-                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                ${tr('Análisis de Horarios')}
+                        <div class="relative">
+                            <!-- Botón Flecha Izquierda -->
+                            <button onclick="scrollTabs('left')" 
+                                    class="absolute left-0 top-0 bottom-0 z-10 bg-gradient-to-r from-white to-transparent hover:from-slate-100 px-2 text-slate-600 hover:text-drk-600 transition-colors"
+                                    style="box-shadow: 2px 0 8px rgba(0,0,0,0.1);">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
                             </button>
-                            <button onclick="showSection('datos-extraidos')" id="btn-datos-extraidos"
-                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                ${tr('Datos Extraídos')}
-                            </button>
-                            <button onclick="showSection('precios')" id="btn-precios"
-                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                ${tr('Precios Ofertas')}
-                            </button>
-                            <button onclick="showSection('calculo')" id="btn-calculo"
-                                    class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
-                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                ${tr('Cálculo Oficial')}
+                            
+                            <!-- Contenedor de tabs con scroll -->
+                            <div id="tabs-container" class="flex overflow-x-auto scrollbar-hide scroll-smooth" style="scroll-behavior: smooth;">
+                                <button onclick="showSection('analisis')" id="btn-analisis"
+                                        class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    ${tr('Análisis de Horarios')}
+                                </button>
+                                <button onclick="showSection('datos-extraidos')" id="btn-datos-extraidos"
+                                        class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    ${tr('Datos Extraídos')}
+                                </button>
+                                <button onclick="showSection('precios')" id="btn-precios"
+                                        class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    ${tr('Precios Ofertas')}
+                                </button>
+                                <button onclick="showSection('calculo')" id="btn-calculo"
+                                        class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                    ${tr('Cálculo Oficial')}
+                                </button>
+                            </div>
+                            
+                            <!-- Botón Flecha Derecha -->
+                            <button onclick="scrollTabs('right')" 
+                                    class="absolute right-0 top-0 bottom-0 z-10 bg-gradient-to-l from-white to-transparent hover:from-slate-100 px-2 text-slate-600 hover:text-drk-600 transition-colors"
+                                    style="box-shadow: -2px 0 8px rgba(0,0,0,0.1);">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
                             </button>
                         </div>
                     </div>
@@ -23361,5 +23382,25 @@ ${clientName}
                 setTimeout(() => window.LANG.retranslate(), 200);
             });
         })();
+        
+        // Función para hacer scroll en los tabs con las flechas
+        function scrollTabs(direction) {
+            const container = document.getElementById('tabs-container');
+            if (!container) return;
+            
+            const scrollAmount = 200; // Pixeles a desplazar
+            
+            if (direction === 'left') {
+                container.scrollBy({
+                    left: -scrollAmount,
+                    behavior: 'smooth'
+                });
+            } else if (direction === 'right') {
+                container.scrollBy({
+                    left: scrollAmount,
+                    behavior: 'smooth'
+                });
+            }
+        }
     </script>
 </body>

@@ -16326,6 +16326,11 @@ ${clientName}
                 return;
             }
             
+            // Detectar si es DRK o POWER CUP
+            const isDrk = window.dualGlobalResults.comparisonMode === 'drk_only';
+            const brandName = isDrk ? 'DRK' : 'POWER CUP';
+            console.log('Modo detectado:', brandName);
+            
             const currentLang = localStorage.getItem('appLanguage') || 'es';
             const wasChineseMode = currentLang === 'zh';
             
@@ -16351,27 +16356,42 @@ ${clientName}
                 const margin = 10;
                 const contentWidth = pageWidth - (2 * margin);
                 
-                // Colores profesionales
+                // Colores profesionales según el modo
                 const azulDrk = [41, 128, 185];
                 const azulClaro = [59, 130, 246];
+                const verdeDrk = [22, 163, 74];
+                const verdeClaro = [132, 204, 22];  // Power Cup verde
                 const verdeFuerte = [22, 163, 74];
-                const verdeClaro = [240, 253, 244];
+                const verdeAguaClaro = [240, 253, 244];
                 const rojoFuerte = [220, 38, 38];
                 const rojoClaro = [254, 242, 242];
                 const grisOscuro = [71, 85, 105];
                 const grisClaro = [248, 250, 252];
                 
+                // Colores principales según marca
+                const colorPrincipal = isDrk ? azulDrk : verdeDrk;
+                const colorSecundario = isDrk ? azulClaro : verdeClaro;
+                
                 console.log('Iniciando generacion de PDF...');
                 
                 // PAGINA 1: PORTADA Y RESUMEN
                 
-                // HEADER AZUL CON DEGRADADO
+                // HEADER CON DEGRADADO (azul para DRK, verde para POWER CUP)
                 for (let i = 0; i < pageWidth; i++) {
                     const ratio = i / pageWidth;
-                    const r = Math.round(41 + (59 - 41) * ratio);
-                    const g = Math.round(128 + (130 - 128) * ratio);
-                    const b = Math.round(185 + (246 - 185) * ratio);
-                    doc.setFillColor(r, g, b);
+                    if (isDrk) {
+                        // Degradado azul DRK
+                        const r = Math.round(41 + (59 - 41) * ratio);
+                        const g = Math.round(128 + (130 - 128) * ratio);
+                        const b = Math.round(185 + (246 - 185) * ratio);
+                        doc.setFillColor(r, g, b);
+                    } else {
+                        // Degradado verde POWER CUP
+                        const r = Math.round(22 + (132 - 22) * ratio);
+                        const g = Math.round(163 + (204 - 163) * ratio);
+                        const b = Math.round(74 + (22 - 74) * ratio);
+                        doc.setFillColor(r, g, b);
+                    }
                     doc.rect(i, 0, 1, 45, 'F');
                 }
                 
@@ -16625,7 +16645,7 @@ ${clientName}
                 doc.setTextColor(20, 83, 45);
                 doc.setFontSize(11);
                 doc.setFont('helvetica', 'bold');
-                doc.text('TU NUEVO COSTE DRK', margin + boxWidth + 10 + (boxWidth / 2), yPos + 10, { align: 'center' });
+                doc.text('TU NUEVO COSTE ' + brandName, margin + boxWidth + 10 + (boxWidth / 2), yPos + 10, { align: 'center' });
                 
                 const totalNuevo = results.totalDRK || 0;
                 const costoMensualNuevo = totalNuevo / 12;
@@ -17054,7 +17074,7 @@ ${clientName}
                 doc.setTextColor(100, 116, 139);
                 doc.setFont('helvetica', 'italic');
                 doc.text('Documento generado el ' + new Date().toLocaleDateString('es-ES'), margin, 285);
-                doc.text('DRK Energia - Comparativa Profesional', pageWidth - margin, 285, { align: 'right' });
+                doc.text(brandName + ' Energia - Comparativa Profesional', pageWidth - margin, 285, { align: 'right' });
                 
                 // GUARDAR
                 const filename = `Comparativa_DUAL_${comercialCode}_${new Date().toISOString().slice(0,10)}.pdf`;

@@ -16602,15 +16602,15 @@ ${clientName}
                         if (powerCosts && powerCosts.length > 0) {
                             powerCosts.forEach((pc, pidx) => {
                                 if (pc && pc.kw > 0) {
-                                doc.setFontSize(8);
-                                doc.setTextColor(0, 0, 0);
-                                doc.setFont('helvetica', 'normal');
-                                const dias = (supply.electricityBreakdown && supply.electricityBreakdown.dias) || supply.dias || supply.days || 30;
-                                const label = `P${pidx + 1} (${pc.kw} kW x ${dias}d x ${(pc.priceDay || pc.precio || 0).toFixed(6)} EUR/kW/dia)`;
-                                doc.text(label, margin + 5, yPos + 4);
-                                doc.setFont('helvetica', 'bold');
-                                doc.text(eur(pc.total || 0), pageWidth - margin - 5, yPos + 4, { align: 'right' });
-                                    yPos += 6;
+                                    doc.setFontSize(8);
+                                    doc.setTextColor(0, 0, 0);
+                                    doc.setFont('helvetica', 'normal');
+                                    const dias = (supply.electricityBreakdown && supply.electricityBreakdown.dias) || supply.dias || supply.days || 30;
+                                    const label = `P${pidx + 1} (${pc.kw} kW x ${dias}d x ${(pc.priceDay || pc.precio || 0).toFixed(6)} EUR/kW/dia)`;
+                                    doc.text(label, margin + 5, yPos + 4);
+                                    doc.setFont('helvetica', 'bold');
+                                    doc.text(eur(pc.total || 0), pageWidth - margin - 5, yPos + 4, { align: 'right' });
+                                        yPos += 6;
                                 }
                             });
                         } else {
@@ -16639,16 +16639,22 @@ ${clientName}
                         if (energyCosts && energyCosts.length > 0) {
                             energyCosts.forEach((ec, eidx) => {
                                 if (ec && ec.kwh > 0) {
-                                doc.setFontSize(8);
-                                doc.setTextColor(0, 0, 0);
-                                doc.setFont('helvetica', 'normal');
-                                const label = `E${eidx + 1} (${ec.kwh} kWh x ${(ec.price || ec.precio || 0).toFixed(6)} EUR/kWh)`;
-                                doc.text(label, margin + 5, yPos + 4);
-                                doc.setFont('helvetica', 'bold');
-                                doc.text(eur(ec.total || 0), pageWidth - margin - 5, yPos + 4, { align: 'right' });
-                                yPos += 6;
-                            }
-                        });
+                                    doc.setFontSize(8);
+                                    doc.setTextColor(0, 0, 0);
+                                    doc.setFont('helvetica', 'normal');
+                                    const label = `E${eidx + 1} (${ec.kwh} kWh x ${(ec.price || ec.precio || 0).toFixed(6)} EUR/kWh)`;
+                                    doc.text(label, margin + 5, yPos + 4);
+                                    doc.setFont('helvetica', 'bold');
+                                    doc.text(eur(ec.total || 0), pageWidth - margin - 5, yPos + 4, { align: 'right' });
+                                    yPos += 6;
+                                }
+                            });
+                        } else {
+                            doc.setFontSize(8);
+                            doc.setTextColor(150, 150, 150);
+                            doc.text('No hay datos de energia disponibles', margin + 5, yPos + 4);
+                            yPos += 6;
+                        }
                         
                         yPos += 2;
                         

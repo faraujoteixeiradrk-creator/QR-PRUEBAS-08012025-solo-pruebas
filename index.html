@@ -16141,7 +16141,7 @@ ${clientName}
         }
         
         // Función: Generar PDF DUAL
-        function dualGeneratePDF(comercialCode = 'D=00', clientName = '', clientPhone = '', clientEmail = '') {
+        async function dualGeneratePDF(comercialCode = 'D=00', clientName = '', clientPhone = '', clientEmail = '') {
             // Si clientName está vacío, usar el placeholder traducido
             if (!clientName) {
                 clientName = tr('[NOMBRE COMPLETO CLIENTE]');
@@ -16150,6 +16150,17 @@ ${clientName}
             console.log('  - comercialCode:', comercialCode);
             console.log('  - clientName:', clientName);
             
+            // Verificar que hay resultados guardados
+            if (!lastComparisonResult || !lastIndexedResult) {
+                console.error('ERROR: No hay resultados guardados para generar PDF DUAL');
+                alert('Error: No se encontraron los datos de comparación. Por favor, calcula de nuevo.');
+                return;
+            }
+            
+            // Guardar temporalmente los datos del cliente en los inputs para que generatePDF_Dual los use
+            document.getElementById('comercial-code-input').value = comercialCode;
+            document.getElementById('client-name-input').value = clientName;
+            
             // Detectar si está en modo chino
             const currentLang = localStorage.getItem('appLanguage') || 'es';
             const wasChineseMode = currentLang === 'zh';
@@ -16157,62 +16168,18 @@ ${clientName}
             // Si está en chino, mostrar mensaje y cambiar temporalmente a inglés
             if (wasChineseMode) {
                 console.log('🇨🇳 Idioma chino detectado en DUAL - cambiando a inglés para PDF');
-                // Informar al usuario en chino e inglés
                 alert('🇨🇳 生成PDF文件中...\n为了确保字符正确显示，PDF将使用英语生成。\n\n🇬🇧 Generating PDF...\nTo ensure correct character display, the PDF will be generated in English.');
-                // Cambiar temporalmente a inglés
                 window.LANG.change('en', true); // skipReload = true
-                
-                // Re-traducir clientName si es el placeholder
-                if (!document.getElementById('client-name').value.trim()) {
-                    clientName = tr('[NOMBRE COMPLETO CLIENTE]');
-                }
             }
             
-            // Generar HTML usando la función auxiliar
-            let html = generateDualHTMLContent(comercialCode, clientName, clientPhone, clientEmail);
-            
-            if (!html) {
-                // Restaurar idioma chino si es necesario
-                if (wasChineseMode) {
-                    window.LANG.change('zh', true);
-                }
-                return; // Ya se mostró el error en generateDualHTMLContent
+            try {
+                // Usar la función generatePDF_Dual que usa jsPDF
+                await generatePDF_Dual(lastComparisonResult, lastIndexedResult);
+                console.log('✅ PDF DUAL generado correctamente con jsPDF');
+            } catch (error) {
+                console.error('Error al generar PDF DUAL:', error);
+                alert('Error al generar el PDF: ' + error.message);
             }
-            
-            // NOTA: NO es necesario llamar a window.translateHTML() porque generateDualHTMLContent()
-            // ya usa tr() que devuelve textos en el idioma correcto según lang
-            console.log('✅ HTML generado en idioma:', localStorage.getItem('appLanguage') || 'es');
-            
-            // Mostrar mensaje de instrucciones
-            const instrucciones = wasChineseMode 
-                ? '📄 PDF将在新窗口中打开\n\n将自动显示打印对话框。\n选择 "另存为PDF" 以保存文件。'
-                : '📄 El PDF se abrirá en una nueva ventana\n\nSe mostrará automáticamente el diálogo de impresión.\nSelecciona "Guardar como PDF" para descargar el archivo.';
-            
-            alert(instrucciones);
-            
-            // Abrir en ventana nueva
-            const w = window.open('','_blank');
-            if(!w){
-                // Restaurar idioma chino si es necesario
-                if (wasChineseMode) {
-                    window.LANG.change('zh', true);
-                }
-                alert('⚠️ Ventana bloqueada. Permite ventanas emergentes.');
-                return;
-            }
-            w.document.write(html);
-            w.document.close();
-            
-            // Esperar a que se cargue el contenido y abrir el diálogo de impresión automáticamente
-            w.onload = function() {
-                console.log('✅ PDF DUAL listo - Abriendo diálogo de impresión...');
-                // Pequeño delay para asegurar que todo esté renderizado
-                setTimeout(() => {
-                    w.print(); // Abrir diálogo de impresión automáticamente
-                }, 500);
-            };
-            
-            console.log('✅ PDF completo generado - Se abrirá el diálogo de impresión');
             
             // Restaurar el idioma chino después de generar el PDF
             if (wasChineseMode) {

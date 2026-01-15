@@ -1282,7 +1282,7 @@
                                 <div><p class="text-lg font-bold text-cta-red-500 line-through decoration-cta-red-500/50 decoration-2" id="old-annual-cost-display">0,00 €/año</p></div>
                             </div>
                             <div class="pl-2">
-                                <p class="text-drk-800 text-xs font-semibold mb-2 uppercase" id="new-cost-label"${tr("TU NUEVO COSTE DRK")}</p>
+                                <p class="text-drk-800 text-xs font-semibold mb-2 uppercase" id="new-cost-label"${tr(tr('TU NUEVO COSTE ') + 'DRK')}</p>
                                 <div class="mb-3">
                                     <p class="text-2xl font-black text-drk-900" id="new-monthly-cost-display">0,00 €/mes</p>
                                     <p class="text-xs text-drk-800 font-medium" id="monthly-label"${tr("Estimado Mensual")}</p>
@@ -9914,7 +9914,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                     <div style="padding: 15px 10px;">
                                         <p style="margin: 0; font-size: 32px; font-weight: bold; color: ${GREEN_SAVE};">${eur(ahorroFijo)}</p>
                                         <div style="margin: 15px 0 0 0;">
-                                            <p style="margin: 0 0 3px 0; font-size: 10px; color: #6b7280; font-weight: 600;"${tr("TU NUEVO COSTE DRK")}</p>
+                                            <p style="margin: 0 0 3px 0; font-size: 10px; color: #6b7280; font-weight: 600;"${tr(tr('TU NUEVO COSTE ') + 'DRK')}</p>
                                             <p style="margin: 0; font-size: 22px; font-weight: bold; color: ${DRK_BLUE};">${eur(nuevoCosteAnualFijo / 12)}${tr("/mes")}</p>
                                             <p style="margin: 3px 0 0 0; font-size: 8px; color: #9ca3af;"${tr("Estimado Mensual")}</p>
                                             <p style="margin: 10px 0 0 0; font-size: 20px; font-weight: bold; color: ${DRK_BLUE};">${eur(nuevoCosteAnualFijo)}${tr("/año")}</p>
@@ -9929,7 +9929,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                     <div style="padding: 15px 10px;">
                                         <p style="margin: 0; font-size: 32px; font-weight: bold; color: ${GREEN_SAVE};">${eur(ahorroIndexado)}</p>
                                         <div style="margin: 15px 0 0 0;">
-                                            <p style="margin: 0 0 3px 0; font-size: 10px; color: #6b7280; font-weight: 600;"${tr("TU NUEVO COSTE DRK")}</p>
+                                            <p style="margin: 0 0 3px 0; font-size: 10px; color: #6b7280; font-weight: 600;"${tr(tr('TU NUEVO COSTE ') + 'DRK')}</p>
                                             <p style="margin: 0; font-size: 22px; font-weight: bold; color: ${GREEN_SAVE};">${eur(nuevoCosteAnualIndexado / 12)}${tr("/mes")}</p>
                                             <p style="margin: 3px 0 0 0; font-size: 8px; color: #9ca3af;"${tr("Estimado Mensual")}</p>
                                             <p style="margin: 10px 0 0 0; font-size: 20px; font-weight: bold; color: ${GREEN_SAVE};">${eur(nuevoCosteAnualIndexado)}${tr("/año")}</p>
@@ -16757,8 +16757,13 @@ ${clientName}
                     let offerObj = supply.offer || (supply.data && supply.data.offer) || (supply.data && supply.data.bestOffer);
                     
                     if (offerObj) {
-                        comercializadora = offerObj.comercializadora || 'DRK';
-                        tarifaName = offerObj.name || '';
+                        comercializadora = offerObj.comercializadora || offerObj.name || 'DRK';
+                        tarifaName = offerObj.name || offerObj.description || '';
+                        
+                        // Si name y comercializadora son iguales, buscar description
+                        if (tarifaName === comercializadora && offerObj.description) {
+                            tarifaName = offerObj.description;
+                        }
                     } else if (supply.type === 'electricidad') {
                         tarifaName = 'DRK FIJO 4';
                     } else {
@@ -16766,7 +16771,7 @@ ${clientName}
                     }
                     
                     const tarifaCompleta = tarifaName ? `${comercializadora} - ${tarifaName}` : comercializadora;
-                    doc.text(`TARIFA: ${tarifaCompleta}`, margin + 5, yPos + 6);
+                    doc.text(tr('TARIFA:') + ` ${tarifaCompleta}`, margin + 5, yPos + 6);
                     
                     doc.setFont('helvetica', 'bold');
                     doc.text(tr('PRECIOS APLICADOS:'), margin + 5, yPos + 12);
@@ -16799,8 +16804,8 @@ ${clientName}
                     } else {
                         const termFijo = (offerData && offerData.p_fijo_diario) ? offerData.p_fijo_diario : 0;
                         const energia = (offerData && offerData.p1_price) ? offerData.p1_price : 0;
-                        doc.text(`Termino fijo:: ${termFijo.toFixed(6)} EUR/dia`, margin + 10, yPos + 17);
-                        doc.text(`Energia:: ${energia.toFixed(6)} EUR/kWh`, margin + 90, yPos + 17);
+                        doc.text(tr('Termino fijo') + `:: ${termFijo.toFixed(6)} EUR/dia`, margin + 10, yPos + 17);
+                        doc.text(tr('Energia') + `:: ${energia.toFixed(6)} EUR/kWh`, margin + 90, yPos + 17);
                     }
                     
                     yPos += preciosHeight + 2;
@@ -16975,7 +16980,7 @@ ${clientName}
                         const kwh = (supply.gasBreakdown && supply.gasBreakdown.kwh) || supply.kwh || 0;
                         const precioEnergia = (offerData && offerData.p1_price) ? offerData.p1_price : 0;
                         const costoEnergia = kwh * precioEnergia;
-                        doc.text(`Energia (${kwh} kWh x ${precioEnergia.toFixed(6)} EUR/kWh)`, margin + 5, yPos + 4);
+                        doc.text(tr('Energia') + ` (${kwh} kWh x ${precioEnergia.toFixed(6)} EUR/kWh)`, margin + 5, yPos + 4);
                         doc.setFont('helvetica', 'bold');
                         doc.text(eur(costoEnergia), pageWidth - margin - 5, yPos + 4, { align: 'right' });
                         yPos += 8;
@@ -20127,7 +20132,7 @@ ${clientName}
             doc.setTextColor(100, 120, 140);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
-            doc.text(tr('TU NUEVO COSTE DRK'), margin + colWidth + 10 + colWidth / 2, yPos, { align: 'center' });
+            doc.text(tr(tr('TU NUEVO COSTE ') + 'DRK'), margin + colWidth + 10 + colWidth / 2, yPos, { align: 'center' });
             
             doc.setTextColor(59, 130, 246);
             doc.setFont('helvetica', 'bold');
@@ -20543,7 +20548,7 @@ ${clientName}
             doc.setTextColor(100, 110, 120);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7.5);
-            doc.text(tr('TU NUEVO COSTE DRK'), col2X + 30, y, { align: 'center' });
+            doc.text(tr(tr('TU NUEVO COSTE ') + 'DRK'), col2X + 30, y, { align: 'center' });
             
             y += 8;
             doc.setTextColor(59, 130, 246);
@@ -20583,7 +20588,7 @@ ${clientName}
             doc.setTextColor(100, 110, 120);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7.5);
-            doc.text(tr('TU NUEVO COSTE DRK'), col3X + 30, y, { align: 'center' });
+            doc.text(tr(tr('TU NUEVO COSTE ') + 'DRK'), col3X + 30, y, { align: 'center' });
             
             y += 8;
             doc.setTextColor(76, 175, 80);
@@ -21118,7 +21123,7 @@ ${clientName}
             doc.setTextColor(110, 120, 110);
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(9);
-            doc.text(tr('TU NUEVO COSTE POWER CUP'), 153, y, { align: 'center' });
+            doc.text(tr(tr('TU NUEVO COSTE ') + 'POWER CUP'), 153, y, { align: 'center' });
             
             y += 10;
             const nuevoMes = bestResult.total * 30 / dias;
@@ -21458,7 +21463,7 @@ ${clientName}
             doc.setTextColor(100, 110, 100);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7);
-            doc.text(tr('TU NUEVO COSTE POWER CUP'), col2X + 30, y, { align: 'center' });
+            doc.text(tr(tr('TU NUEVO COSTE ') + 'POWER CUP'), col2X + 30, y, { align: 'center' });
             
             y += 7;
             doc.setTextColor(119, 132, 109);
@@ -21497,7 +21502,7 @@ ${clientName}
             doc.setTextColor(100, 110, 100);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(7);
-            doc.text(tr('TU NUEVO COSTE POWER CUP'), col3X + 30, y, { align: 'center' });
+            doc.text(tr(tr('TU NUEVO COSTE ') + 'POWER CUP'), col3X + 30, y, { align: 'center' });
             
             y += 7;
             doc.setTextColor(76, 175, 80);
@@ -22023,7 +22028,7 @@ ${clientName}
                 "TU AHORRO ANUAL ESTIMADO": { en: "YOUR ESTIMATED ANNUAL SAVINGS", zh: "您的预计年度节省", de: "IHRE GESCHÄTZTE JÄHRLICHE ERSPARNIS", fr: "VOS ÉCONOMIES ANNUELLES ESTIMÉES" },
                 "TU FACTURA ACTUAL": { en: "YOUR CURRENT BILL", zh: "您当前的账单", de: "IHRE AKTUELLE RECHNUNG", fr: "VOTRE FACTURE ACTUELLE" },
                 "Total Periodo": { en: "Period Total", zh: "期间总额", de: "Periodensumme", fr: "Total de la Période" },
-                "TU NUEVO COSTE DRK": { en: "YOUR NEW DRK COST", zh: "您的新DRK成本", de: "IHRE NEUEN DRK-KOSTEN", fr: "VOTRE NOUVEAU COÛT DRK" },
+                tr('TU NUEVO COSTE ') + 'DRK': { en: "YOUR NEW DRK COST", zh: "您的新DRK成本", de: "IHRE NEUEN DRK-KOSTEN", fr: "VOTRE NOUVEAU COÛT DRK" },
                 "Estimado Mensual": { en: "Monthly Estimate", zh: "每月估算", de: "Monatliche Schätzung", fr: "Estimation Mensuelle" },
                 "Datos del Comercial y Cliente": { en: "Sales Representative and Client Data", zh: "销售代表和客户数据", de: "Vertriebs- und Kundendaten", fr: "Données du Commercial et du Client" },
                 "Rellene sus datos. El resumen profesional de la oferta se copiará a su portapapeles (Ctrl+V).": { en: "Fill in your details. The professional offer summary will be copied to your clipboard (Ctrl+V).", zh: "填写您的详细信息。专业优惠摘要将复制到剪贴板（Ctrl+V）。", de: "Füllen Sie Ihre Daten aus. Die professionelle Angebotsübersicht wird in Ihre Zwischenablage kopiert (Strg+V).", fr: "Remplissez vos données. Le résumé professionnel de l'offre sera copié dans votre presse-papiers (Ctrl+V)." },
@@ -22744,8 +22749,8 @@ ${clientName}
                             'COMPARATIVA PROFESIONAL',
                             'TU AHORRO ANUAL ESTIMADO ES:',
                             'TU FACTURA ACTUAL',
-                            'TU NUEVO COSTE DRK',
-                            'TU NUEVO COSTE POWER CUP',
+                            tr('TU NUEVO COSTE ') + 'DRK',
+                            tr('TU NUEVO COSTE ') + 'POWER CUP',
                             
                             // MULTICUPS
                             'Datos Generales',
@@ -22996,8 +23001,8 @@ ${clientName}
                     ['TU AHORRO ANUAL ESTIMADO ES:', tr('TU AHORRO ANUAL ESTIMADO ES:')],
                     [tr('LA MEJOR OPCIÓN PARA TI ES'), tr(tr('LA MEJOR OPCIÓN PARA TI ES'))],
                     ['TU FACTURA ACTUAL', tr('TU FACTURA ACTUAL')],
-                    ['TU NUEVO COSTE DRK', tr('TU NUEVO COSTE DRK')],
-                    ['TU NUEVO COSTE POWER CUP', tr('TU NUEVO COSTE POWER CUP')],
+                    [tr('TU NUEVO COSTE ') + 'DRK', tr(tr('TU NUEVO COSTE ') + 'DRK')],
+                    [tr('TU NUEVO COSTE ') + 'POWER CUP', tr(tr('TU NUEVO COSTE ') + 'POWER CUP')],
                     ['TU AHORRO ANUAL ESTIMADO', tr('TU AHORRO ANUAL ESTIMADO')],
                     ['TU AHORRO ANUAL FIJO', tr('TU AHORRO ANUAL FIJO')],
                     ['TU AHORRO ANUAL INDEXADO', tr('TU AHORRO ANUAL INDEXADO')],

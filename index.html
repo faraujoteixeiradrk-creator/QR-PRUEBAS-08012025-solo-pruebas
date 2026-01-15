@@ -4324,7 +4324,10 @@
             let scheduleAnalysisHTML = '';
             let navigationMenuHTML = '';
             
-            if (tariffType === '2.0TD') {
+            // MULTICUPS siempre usa menú simplificado (sin horarios)
+            const isMultiCups = res.isMulti || false;
+            
+            if (tariffType === '2.0TD' && !isMultiCups) {
                 // Calcular kWh por período
                 const puntaKwh = res.energyCosts[0]?.kwh || 0;
                 const llanoKwh = res.energyCosts[1]?.kwh || 0;
@@ -4469,7 +4472,7 @@
                     </div>
                 `;
             } else {
-                // Menú de navegación SIN análisis de horarios (para tarifas 3.0TD, etc.)
+                // Menú de navegación SIN análisis de horarios (para 3.0TD, MULTICUPS, etc.)
                 navigationMenuHTML = `
                     <div id="sections-nav" class="sticky top-0 z-50 bg-white border-b-2 border-slate-200 shadow-md mb-6">
                         <div class="flex overflow-x-auto scrollbar-hide">

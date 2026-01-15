@@ -16183,6 +16183,13 @@ ${clientName}
             // ya usa tr() que devuelve textos en el idioma correcto según lang
             console.log('✅ HTML generado en idioma:', localStorage.getItem('appLanguage') || 'es');
             
+            // Mostrar mensaje de instrucciones
+            const instrucciones = wasChineseMode 
+                ? '📄 PDF将在新窗口中打开\n\n将自动显示打印对话框。\n选择 "另存为PDF" 以保存文件。'
+                : '📄 El PDF se abrirá en una nueva ventana\n\nSe mostrará automáticamente el diálogo de impresión.\nSelecciona "Guardar como PDF" para descargar el archivo.';
+            
+            alert(instrucciones);
+            
             // Abrir en ventana nueva
             const w = window.open('','_blank');
             if(!w){
@@ -16195,7 +16202,17 @@ ${clientName}
             }
             w.document.write(html);
             w.document.close();
-            console.log('✅ PDF completo generado');
+            
+            // Esperar a que se cargue el contenido y abrir el diálogo de impresión automáticamente
+            w.onload = function() {
+                console.log('✅ PDF DUAL listo - Abriendo diálogo de impresión...');
+                // Pequeño delay para asegurar que todo esté renderizado
+                setTimeout(() => {
+                    w.print(); // Abrir diálogo de impresión automáticamente
+                }, 500);
+            };
+            
+            console.log('✅ PDF completo generado - Se abrirá el diálogo de impresión');
             
             // Restaurar el idioma chino después de generar el PDF
             if (wasChineseMode) {

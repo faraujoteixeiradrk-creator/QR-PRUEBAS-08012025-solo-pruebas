@@ -16559,24 +16559,24 @@ ${clientName}
                         doc.setFont('helvetica', 'bold');
                         doc.text('POTENCIA:', margin + 8, yPos + 17);
                         doc.setFont('helvetica', 'normal');
-                        const p1 = offerData ? (offerData.p_potencia_1 || 0) / 365 : 0;
-                        const p2 = offerData ? (offerData.p_potencia_2 || 0) / 365 : 0;
+                        const p1 = (offerData && offerData.p_potencia_1) ? offerData.p_potencia_1 / 365 : 0;
+                        const p2 = (offerData && offerData.p_potencia_2) ? offerData.p_potencia_2 / 365 : 0;
                         doc.text(`P1: ${p1.toFixed(6)} EUR/kW/dia`, margin + 30, yPos + 17);
                         doc.text(`P2: ${p2.toFixed(6)} EUR/kW/dia`, margin + 90, yPos + 17);
                         
                         doc.setFont('helvetica', 'bold');
                         doc.text('ENERGIA:', margin + 8, yPos + 22);
                         doc.setFont('helvetica', 'normal');
-                        const e1 = offerData ? (offerData.p_energia_1 || 0) : 0;
-                        const e2 = offerData ? (offerData.p_energia_2 || 0) : 0;
-                        const e3 = offerData ? (offerData.p_energia_3 || 0) : 0;
+                        const e1 = (offerData && offerData.p_energia_1) ? offerData.p_energia_1 : 0;
+                        const e2 = (offerData && offerData.p_energia_2) ? offerData.p_energia_2 : 0;
+                        const e3 = (offerData && offerData.p_energia_3) ? offerData.p_energia_3 : 0;
                         doc.text(`E1: ${e1.toFixed(6)} EUR/kWh`, margin + 30, yPos + 22);
                         doc.text(`E2: ${e2.toFixed(6)} EUR/kWh`, margin + 90, yPos + 22);
                         doc.text(`E3: ${e3.toFixed(6)} EUR/kWh`, margin + 30, yPos + 27);
                         
                     } else {
-                        const termFijo = offerData ? (offerData.term_fijo || 0) : 0;
-                        const energia = offerData ? (offerData.energy_price || 0) : 0;
+                        const termFijo = (offerData && offerData.term_fijo) ? offerData.term_fijo : 0;
+                        const energia = (offerData && offerData.energy_price) ? offerData.energy_price : 0;
                         doc.text(`Termino fijo:: ${termFijo.toFixed(6)} EUR/dia`, margin + 10, yPos + 17);
                         doc.text(`Energia:: ${energia.toFixed(6)} EUR/kWh`, margin + 90, yPos + 17);
                     }
@@ -16599,19 +16599,26 @@ ${clientName}
                         // Obtener costes de potencia de electricityBreakdown
                         let powerCosts = (supply.electricityBreakdown && supply.electricityBreakdown.powerCosts) || [];
                         
-                        powerCosts.forEach((pc, pidx) => {
-                            if (pc.kw > 0) {
+                        if (powerCosts && powerCosts.length > 0) {
+                            powerCosts.forEach((pc, pidx) => {
+                                if (pc && pc.kw > 0) {
                                 doc.setFontSize(8);
                                 doc.setTextColor(0, 0, 0);
                                 doc.setFont('helvetica', 'normal');
                                 const dias = (supply.electricityBreakdown && supply.electricityBreakdown.dias) || supply.dias || supply.days || 30;
-                                const label = `P${pidx + 1} (${pc.kw} kW x ${dias}d x ${pc.precio.toFixed(6)} EUR/kW/dia)`;
+                                const label = `P${pidx + 1} (${pc.kw} kW x ${dias}d x ${(pc.priceDay || pc.precio || 0).toFixed(6)} EUR/kW/dia)`;
                                 doc.text(label, margin + 5, yPos + 4);
                                 doc.setFont('helvetica', 'bold');
                                 doc.text(eur(pc.total || 0), pageWidth - margin - 5, yPos + 4, { align: 'right' });
-                                yPos += 6;
-                            }
-                        });
+                                    yPos += 6;
+                                }
+                            });
+                        } else {
+                            doc.setFontSize(8);
+                            doc.setTextColor(150, 150, 150);
+                            doc.text('No hay datos de potencia disponibles', margin + 5, yPos + 4);
+                            yPos += 6;
+                        }
                         
                         yPos += 2;
                         
@@ -16629,12 +16636,13 @@ ${clientName}
                         // Obtener costes de energía de electricityBreakdown
                         let energyCosts = (supply.electricityBreakdown && supply.electricityBreakdown.energyCosts) || [];
                         
-                        energyCosts.forEach((ec, eidx) => {
-                            if (ec.kwh > 0) {
+                        if (energyCosts && energyCosts.length > 0) {
+                            energyCosts.forEach((ec, eidx) => {
+                                if (ec && ec.kwh > 0) {
                                 doc.setFontSize(8);
                                 doc.setTextColor(0, 0, 0);
                                 doc.setFont('helvetica', 'normal');
-                                const label = `E${eidx + 1} (${ec.kwh} kWh x ${ec.precio.toFixed(6)} EUR/kWh)`;
+                                const label = `E${eidx + 1} (${ec.kwh} kWh x ${(ec.price || ec.precio || 0).toFixed(6)} EUR/kWh)`;
                                 doc.text(label, margin + 5, yPos + 4);
                                 doc.setFont('helvetica', 'bold');
                                 doc.text(eur(ec.total || 0), pageWidth - margin - 5, yPos + 4, { align: 'right' });
@@ -16659,7 +16667,7 @@ ${clientName}
                         doc.setTextColor(0, 0, 0);
                         doc.setFont('helvetica', 'normal');
                         
-                        const termFijo = offerData ? (offerData.term_fijo || 0) : 0;
+                        const termFijo = (offerData && offerData.term_fijo) ? offerData.term_fijo : 0;
                         const dias = (supply.electricityBreakdown && supply.electricityBreakdown.dias) || supply.dias || supply.days || 30;
                         const costoTermFijo = termFijo * dias;
                         doc.text(`Termino fijo (${dias} dias x ${termFijo.toFixed(6)} EUR/dia)`, margin + 5, yPos + 4);
@@ -16669,7 +16677,7 @@ ${clientName}
                         
                         doc.setFont('helvetica', 'normal');
                         const kwh = supply.kwh || 0;
-                        const precioEnergia = offerData ? (offerData.energy_price || 0) : 0;
+                        const precioEnergia = (offerData && offerData.energy_price) ? offerData.energy_price : 0;
                         const costoEnergia = kwh * precioEnergia;
                         doc.text(`Energia (${kwh} kWh x ${precioEnergia.toFixed(6)} EUR/kWh)`, margin + 5, yPos + 4);
                         doc.setFont('helvetica', 'bold');

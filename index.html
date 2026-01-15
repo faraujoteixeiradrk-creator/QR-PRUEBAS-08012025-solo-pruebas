@@ -16606,6 +16606,32 @@ ${clientName}
                         // Obtener costes de potencia (solo electricidad)
                         let powerCosts = (supply.electricityBreakdown && supply.electricityBreakdown.powerCosts) || [];
                         
+                        // Si powerCosts está vacío pero tenemos el offer, calcularlo
+                        if ((!powerCosts || powerCosts.length === 0) && offerData) {
+                            const dias = (breakdown && breakdown.dias) || supply.dias || 60;
+                            powerCosts = [];
+                            
+                            // P1
+                            if (offerData.p_potencia_1 && supply.data && supply.data.p1) {
+                                const p1_diario = offerData.p_potencia_1 / 365;
+                                powerCosts.push({
+                                    kw: supply.data.p1,
+                                    priceDay: p1_diario,
+                                    total: supply.data.p1 * dias * p1_diario
+                                });
+                            }
+                            
+                            // P2
+                            if (offerData.p_potencia_2 && supply.data && supply.data.p2) {
+                                const p2_diario = offerData.p_potencia_2 / 365;
+                                powerCosts.push({
+                                    kw: supply.data.p2,
+                                    priceDay: p2_diario,
+                                    total: supply.data.p2 * dias * p2_diario
+                                });
+                            }
+                        }
+                        
                         if (powerCosts && powerCosts.length > 0) {
                             powerCosts.forEach((pc, pidx) => {
                                 if (pc && pc.kw > 0) {
@@ -16642,6 +16668,38 @@ ${clientName}
                         
                         // Obtener costes de energía (solo electricidad)
                         let energyCosts = (supply.electricityBreakdown && supply.electricityBreakdown.energyCosts) || [];
+                        
+                        // Si energyCosts está vacío pero tenemos el offer, calcularlo
+                        if ((!energyCosts || energyCosts.length === 0) && offerData) {
+                            energyCosts = [];
+                            
+                            // E1
+                            if (offerData.p1_price && supply.data && supply.data.e1) {
+                                energyCosts.push({
+                                    kwh: supply.data.e1,
+                                    price: offerData.p1_price,
+                                    total: supply.data.e1 * offerData.p1_price
+                                });
+                            }
+                            
+                            // E2
+                            if (offerData.p2_price && supply.data && supply.data.e2) {
+                                energyCosts.push({
+                                    kwh: supply.data.e2,
+                                    price: offerData.p2_price,
+                                    total: supply.data.e2 * offerData.p2_price
+                                });
+                            }
+                            
+                            // E3
+                            if (offerData.p3_price && supply.data && supply.data.e3) {
+                                energyCosts.push({
+                                    kwh: supply.data.e3,
+                                    price: offerData.p3_price,
+                                    total: supply.data.e3 * offerData.p3_price
+                                });
+                            }
+                        }
                         
                         if (energyCosts && energyCosts.length > 0) {
                             energyCosts.forEach((ec, eidx) => {
@@ -16710,8 +16768,14 @@ ${clientName}
                     const dias = (breakdown && breakdown.dias) || supply.dias || supply.days || 30;
                     doc.text(`TOTAL (${dias} DIAS):`, margin + 5, yPos + 6.5);
                     
-                    // Obtener total
-                    let total = (breakdown && breakdown.totalPeriod) || supply.totalPeriod || supply.total || 0;
+                    // Obtener total según tipo
+                    let total = 0;
+                    if (supply.type === 'electricidad') {
+                        total = (breakdown && breakdown.totalPeriod) || supply.totalPeriod || supply.total || 0;
+                    } else {
+                        // Para gas, el campo se llama 'total', no 'totalPeriod'
+                        total = (breakdown && breakdown.total) || supply.total || supply.totalPeriod || 0;
+                    }
                     
                     doc.text(eur(total), pageWidth - margin - 5, yPos + 6.5, { align: 'right' });
                     

@@ -16147,7 +16147,9 @@ ${clientName}
                 clientName = tr('[NOMBRE COMPLETO CLIENTE]');
             }
             
-            console.log('📄 Generando PDF DUAL PROFESIONAL COMPLETO (3-4 páginas)');
+            console.log('Generando PDF DUAL PROFESIONAL COMPLETO');
+            console.log('dualSupplies:', dualSupplies);
+            console.log('dualGlobalResults:', window.dualGlobalResults);
             
             // Verificar datos
             if (!window.dualGlobalResults || !dualSupplies || dualSupplies.length === 0) {
@@ -16159,12 +16161,12 @@ ${clientName}
             const wasChineseMode = currentLang === 'zh';
             
             if (wasChineseMode) {
-                alert('🇨🇳 生成PDF文件中...\n为了确保字符正确显示，PDF将使用英语生成。\n\n🇬🇧 Generating PDF...\nTo ensure correct character display, the PDF will be generated in English.');
+                alert('Generando PDF...\nGenerating PDF...');
                 window.LANG.change('en', true);
             }
             
             try {
-                window.showMessageModal("⏳ Generando PDF DUAL profesional (3-4 páginas)... Por favor espere.");
+                window.showMessageModal("Generando PDF DUAL profesional (3-4 paginas)... Por favor espere.");
                 
                 const { jsPDF } = window.jspdf;
                 let doc = new jsPDF('p', 'mm', 'a4');
@@ -16190,9 +16192,9 @@ ${clientName}
                 const grisOscuro = [71, 85, 105];
                 const grisClaro = [248, 250, 252];
                 
-                // ═══════════════════════════════════════════════════════════
-                // PÁGINA 1: PORTADA Y RESUMEN
-                // ═══════════════════════════════════════════════════════════
+                console.log('Iniciando generacion de PDF...');
+                
+                // PAGINA 1: PORTADA Y RESUMEN
                 
                 // HEADER AZUL CON DEGRADADO
                 for (let i = 0; i < pageWidth; i++) {
@@ -16220,15 +16222,15 @@ ${clientName}
                 doc.setFillColor(255, 255, 255);
                 doc.circle(logoX, logoY, logoRadius * 0.4, 'F');
                 
-                // Texto DRK ENERGÍA
+                // Texto DRK ENERGIA
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(24);
                 doc.setFont('helvetica', 'bold');
-                doc.text('DRK ENERGÍA', logoX + 18, 16);
+                doc.text('DRK ENERGIA', logoX + 18, 16);
                 
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Liderando el ahorro y la eficiencia energética.', logoX + 18, 23);
+                doc.text('Liderando el ahorro y la eficiencia energetica.', logoX + 18, 23);
                 
                 // Texto derecha del header
                 doc.setFontSize(11);
@@ -16241,7 +16243,7 @@ ${clientName}
                 
                 yPos = 52;
                 
-                // BANNER AZUL CON TÍTULO
+                // BANNER AZUL CON TITULO
                 doc.setFillColor(...azulClaro);
                 doc.rect(0, yPos, pageWidth, 20, 'F');
                 
@@ -16264,13 +16266,13 @@ ${clientName}
                 
                 yPos += 6;
                 
-                // CUPS (mostrar todos si son 2 o menos)
+                // CUPS
                 if (dualSupplies.length <= 2) {
                     dualSupplies.forEach(supply => {
                         doc.setFont('helvetica', 'bold');
                         doc.text('CUPS:', margin, yPos);
                         doc.setFont('helvetica', 'normal');
-                        doc.text(supply.cups, margin + 20, yPos);
+                        doc.text(supply.cups || 'N/A', margin + 20, yPos);
                         yPos += 5;
                     });
                 } else {
@@ -16288,7 +16290,7 @@ ${clientName}
                 
                 yPos += 12;
                 
-                // CAJA "LA MEJOR OPCIÓN"
+                // CAJA "LA MEJOR OPCION"
                 doc.setFillColor(240, 249, 255);
                 doc.roundedRect(margin, yPos, contentWidth, 22, 3, 3, 'F');
                 doc.setDrawColor(...azulClaro);
@@ -16298,13 +16300,13 @@ ${clientName}
                 doc.setTextColor(...azulClaro);
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
-                doc.text('LA MEJOR OPCIÓN PARA TI ES', pageWidth / 2, yPos + 9, { align: 'center' });
+                doc.text('LA MEJOR OPCION PARA TI ES', pageWidth / 2, yPos + 9, { align: 'center' });
                 doc.setFontSize(20);
                 doc.text('DRK', pageWidth / 2, yPos + 17, { align: 'center' });
                 
                 yPos += 28;
                 
-                // TABLA DE SUMINISTROS CON BORDE
+                // TABLA DE SUMINISTROS
                 const tablaHeight = 10 + (dualSupplies.length * 9) + 12;
                 doc.setFillColor(255, 255, 255);
                 doc.roundedRect(margin, yPos, contentWidth, tablaHeight, 2, 2, 'F');
@@ -16312,7 +16314,7 @@ ${clientName}
                 doc.setLineWidth(0.5);
                 doc.roundedRect(margin, yPos, contentWidth, tablaHeight, 2, 2, 'S');
                 
-                // Título tabla
+                // Titulo tabla
                 doc.setFontSize(11);
                 doc.setTextColor(...grisOscuro);
                 doc.setFont('helvetica', 'bold');
@@ -16337,22 +16339,25 @@ ${clientName}
                 
                 // Filas de suministros
                 dualSupplies.forEach((supply, idx) => {
+                    console.log('Supply', idx, ':', supply);
+                    
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(71, 85, 105);
                     doc.setFontSize(8);
                     
                     doc.text(String(idx + 1), margin + 5, yPos + 3.5);
                     
-                    const cupsShort = supply.cups.length > 22 ? supply.cups.substring(0, 20) + '...' : supply.cups;
+                    const cupsShort = supply.cups && supply.cups.length > 22 ? supply.cups.substring(0, 20) + '...' : (supply.cups || 'N/A');
                     doc.text(cupsShort, margin + 15, yPos + 3.5);
                     
-                    const tipoIcon = supply.type === 'electricidad' ? '⚡' : '🔥';
+                    // Tipo SIN emojis
                     const tipoText = supply.type === 'electricidad' ? 'Electricidad' : 'Gas';
-                    doc.text(tipoIcon + ' ' + tipoText, margin + 100, yPos + 3.5);
+                    doc.text(tipoText, margin + 100, yPos + 3.5);
                     
-                    doc.text(supply.tariff || 'N/A', margin + 130, yPos + 3.5);
+                    doc.text(supply.tariff || supply.originalTariffType || 'N/A', margin + 130, yPos + 3.5);
                     
-                    const ahorro = supply.savings || 0;
+                    // CORREGIR: Obtener ahorro correcto
+                    const ahorro = supply.ahorro || supply.savings || 0;
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(...verdeFuerte);
                     doc.setFontSize(9);
@@ -16367,7 +16372,7 @@ ${clientName}
                     yPos += 2;
                 });
                 
-                // Total ahorro en la tabla
+                // Total ahorro
                 doc.setFillColor(...verdeClaro);
                 doc.rect(margin + 2, yPos, contentWidth - 4, 10, 'F');
                 
@@ -16376,11 +16381,11 @@ ${clientName}
                 doc.setFontSize(11);
                 doc.text('TOTAL AHORRO:', margin + 10, yPos + 7);
                 doc.setFontSize(13);
-                doc.text(eur(results.totalSavings), pageWidth - margin - 12, yPos + 7, { align: 'right' });
+                doc.text(eur(results.totalSavings || 0), pageWidth - margin - 12, yPos + 7, { align: 'right' });
                 
                 yPos += 18;
                 
-                // AHORRO ANUAL DESTACADO GRANDE
+                // AHORRO ANUAL DESTACADO
                 doc.setFillColor(255, 255, 255);
                 doc.rect(margin, yPos, contentWidth, 32, 'F');
                 
@@ -16392,20 +16397,18 @@ ${clientName}
                 doc.setTextColor(...verdeFuerte);
                 doc.setFontSize(32);
                 doc.setFont('helvetica', 'bold');
-                doc.text(num(results.totalSavings, 2) + ' €', pageWidth / 2, yPos + 25, { align: 'center' });
+                doc.text(num(results.totalSavings || 0, 2) + ' EUR', pageWidth / 2, yPos + 25, { align: 'center' });
                 
-                // ═══════════════════════════════════════════════════════════
-                // PÁGINA 2: COMPARATIVA DE COSTES Y PRIMER SUMINISTRO
-                // ═══════════════════════════════════════════════════════════
+                // PAGINA 2: COMPARATIVA Y DESGLOSE
                 
                 doc.addPage();
                 yPos = 20;
                 
-                // COMPARATIVA VISUAL GRANDE
+                // COMPARATIVA VISUAL
                 const boxWidth = (contentWidth / 2) - 5;
                 const boxHeight = 60;
                 
-                // CAJA IZQUIERDA - FACTURA ACTUAL (ROJA CON TACHADO)
+                // CAJA IZQUIERDA - FACTURA ACTUAL (ROJA TACHADA)
                 doc.setFillColor(...rojoClaro);
                 doc.roundedRect(margin, yPos, boxWidth, boxHeight, 3, 3, 'F');
                 doc.setDrawColor(...rojoFuerte);
@@ -16417,14 +16420,13 @@ ${clientName}
                 doc.setFont('helvetica', 'bold');
                 doc.text('TU FACTURA ACTUAL', margin + (boxWidth / 2), yPos + 10, { align: 'center' });
                 
-                const costoMensualActual = results.totalOriginalBill / 12;
+                const costoMensualActual = (results.totalOriginalBill || 0) / 12;
                 doc.setTextColor(...rojoFuerte);
                 doc.setFontSize(20);
                 const text1 = eur(costoMensualActual) + '/mes';
                 const textWidth1 = doc.getTextWidth(text1);
                 const textX1 = margin + (boxWidth / 2) - (textWidth1 / 2);
                 doc.text(text1, margin + (boxWidth / 2), yPos + 24, { align: 'center' });
-                // Línea de tachado
                 doc.setLineWidth(1);
                 doc.line(textX1, yPos + 22.5, textX1 + textWidth1, yPos + 22.5);
                 
@@ -16432,12 +16434,12 @@ ${clientName}
                 doc.setTextColor(100, 116, 139);
                 doc.setFont('helvetica', 'normal');
                 const avgDays = results.avgDays || 31;
-                doc.text(`Total Periodo (${avgDays} días)`, margin + (boxWidth / 2), yPos + 33, { align: 'center' });
+                doc.text(`Total Periodo (${avgDays} dias)`, margin + (boxWidth / 2), yPos + 33, { align: 'center' });
                 
                 doc.setFontSize(18);
                 doc.setTextColor(...rojoFuerte);
                 doc.setFont('helvetica', 'bold');
-                const text2 = eur(results.totalOriginalBill) + '/año';
+                const text2 = eur(results.totalOriginalBill || 0) + '/ano';
                 const textWidth2 = doc.getTextWidth(text2);
                 const textX2 = margin + (boxWidth / 2) - (textWidth2 / 2);
                 doc.text(text2, margin + (boxWidth / 2), yPos + 48, { align: 'center' });
@@ -16455,7 +16457,7 @@ ${clientName}
                 doc.setFont('helvetica', 'bold');
                 doc.text('TU NUEVO COSTE DRK', margin + boxWidth + 10 + (boxWidth / 2), yPos + 10, { align: 'center' });
                 
-                const totalNuevo = results.comparisonMode === 'drk' ? results.totalDRK : results.totalPowerCup;
+                const totalNuevo = results.totalDRK || 0;
                 const costoMensualNuevo = totalNuevo / 12;
                 doc.setTextColor(...verdeFuerte);
                 doc.setFontSize(20);
@@ -16469,11 +16471,11 @@ ${clientName}
                 doc.setFontSize(18);
                 doc.setTextColor(...verdeFuerte);
                 doc.setFont('helvetica', 'bold');
-                doc.text(eur(totalNuevo) + '/año', margin + boxWidth + 10 + (boxWidth / 2), yPos + 48, { align: 'center' });
+                doc.text(eur(totalNuevo) + '/ano', margin + boxWidth + 10 + (boxWidth / 2), yPos + 48, { align: 'center' });
                 
                 yPos += boxHeight + 15;
                 
-                // BANNER VERDE "DESGLOSE DETALLADO"
+                // BANNER VERDE
                 doc.setFillColor(...verdeFuerte);
                 doc.rect(margin, yPos, contentWidth, 12, 'F');
                 
@@ -16484,9 +16486,10 @@ ${clientName}
                 
                 yPos += 17;
                 
-                // DESGLOSE DETALLADO DE CADA SUMINISTRO
+                // DESGLOSE DE CADA SUMINISTRO
                 dualSupplies.forEach((supply, idx) => {
-                    // Verificar si necesitamos nueva página
+                    console.log('Procesando suministro', idx, 'para desglose:', supply);
+                    
                     if (yPos > 240) {
                         doc.addPage();
                         yPos = 20;
@@ -16499,16 +16502,18 @@ ${clientName}
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
-                    const cupsDisplay = supply.cups.length > 30 ? supply.cups.substring(0, 28) + '...' : supply.cups;
+                    const cupsDisplay = supply.cups && supply.cups.length > 30 ? supply.cups.substring(0, 28) + '...' : (supply.cups || 'N/A');
                     doc.text(`[${idx + 1}] ${cupsDisplay}`, margin + 3, yPos + 6);
                     
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(`Tipo:: ${supply.tariff} | Días:: ${supply.dias || 30} días | CUPS: [${idx + 1}]`, margin + 3, yPos + 11);
+                    const tariffDisplay = supply.tariff || supply.originalTariffType || 'N/A';
+                    const diasDisplay = supply.dias || supply.days || 30;
+                    doc.text(`Tipo:: ${tariffDisplay} | Dias:: ${diasDisplay} dias | CUPS: [${idx + 1}]`, margin + 3, yPos + 11);
                     
                     yPos += 16;
                     
-                    // CAJA BLANCA CON TARIFA Y PRECIOS
+                    // CAJA CON TARIFA Y PRECIOS
                     const preciosHeight = supply.type === 'electricidad' ? 32 : 25;
                     doc.setFillColor(255, 255, 255);
                     doc.rect(margin, yPos, contentWidth, preciosHeight, 'F');
@@ -16521,7 +16526,18 @@ ${clientName}
                     doc.setFont('helvetica', 'bold');
                     doc.text('TARIFA:', margin + 5, yPos + 6);
                     doc.setFont('helvetica', 'normal');
-                    const tarifaName = supply.offer?.name || (supply.type === 'electricidad' ? 'DRK FIJO 4' : 'DRK 1');
+                    
+                    // CORREGIR: Obtener nombre de oferta correcto
+                    let tarifaName = 'DRK';
+                    if (supply.results && supply.results.drk && supply.results.drk.offer) {
+                        tarifaName = supply.results.drk.offer.name || 'DRK';
+                    } else if (supply.offer && supply.offer.name) {
+                        tarifaName = supply.offer.name;
+                    } else if (supply.type === 'electricidad') {
+                        tarifaName = 'DRK FIJO 4';
+                    } else {
+                        tarifaName = 'DRK 1';
+                    }
                     doc.text(`DRK - ${tarifaName}`, margin + 22, yPos + 6);
                     
                     doc.setFont('helvetica', 'bold');
@@ -16530,39 +16546,45 @@ ${clientName}
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'normal');
                     
+                    // CORREGIR: Obtener precios correctos
+                    let offerData = null;
+                    if (supply.results && supply.results.drk && supply.results.drk.offer) {
+                        offerData = supply.results.drk.offer;
+                    } else if (supply.offer) {
+                        offerData = supply.offer;
+                    }
+                    
                     if (supply.type === 'electricidad') {
-                        // ELECTRICIDAD
                         doc.setFont('helvetica', 'bold');
                         doc.text('POTENCIA:', margin + 8, yPos + 17);
                         doc.setFont('helvetica', 'normal');
-                        const p1 = (supply.offer?.p_potencia_1 || 0) / 365;
-                        const p2 = (supply.offer?.p_potencia_2 || 0) / 365;
-                        doc.text(`P1: ${p1.toFixed(6)} €/kW/día`, margin + 30, yPos + 17);
-                        doc.text(`P2: ${p2.toFixed(6)} €/kW/día`, margin + 90, yPos + 17);
+                        const p1 = offerData ? (offerData.p_potencia_1 || 0) / 365 : 0;
+                        const p2 = offerData ? (offerData.p_potencia_2 || 0) / 365 : 0;
+                        doc.text(`P1: ${p1.toFixed(6)} EUR/kW/dia`, margin + 30, yPos + 17);
+                        doc.text(`P2: ${p2.toFixed(6)} EUR/kW/dia`, margin + 90, yPos + 17);
                         
                         doc.setFont('helvetica', 'bold');
-                        doc.text('ENERGÍA:', margin + 8, yPos + 22);
+                        doc.text('ENERGIA:', margin + 8, yPos + 22);
                         doc.setFont('helvetica', 'normal');
-                        const e1 = supply.offer?.p_energia_1 || 0;
-                        const e2 = supply.offer?.p_energia_2 || 0;
-                        const e3 = supply.offer?.p_energia_3 || 0;
-                        doc.text(`E1: ${e1.toFixed(6)} €/kWh`, margin + 30, yPos + 22);
-                        doc.text(`E2: ${e2.toFixed(6)} €/kWh`, margin + 90, yPos + 22);
-                        doc.text(`E3: ${e3.toFixed(6)} €/kWh`, margin + 30, yPos + 27);
+                        const e1 = offerData ? (offerData.p_energia_1 || 0) : 0;
+                        const e2 = offerData ? (offerData.p_energia_2 || 0) : 0;
+                        const e3 = offerData ? (offerData.p_energia_3 || 0) : 0;
+                        doc.text(`E1: ${e1.toFixed(6)} EUR/kWh`, margin + 30, yPos + 22);
+                        doc.text(`E2: ${e2.toFixed(6)} EUR/kWh`, margin + 90, yPos + 22);
+                        doc.text(`E3: ${e3.toFixed(6)} EUR/kWh`, margin + 30, yPos + 27);
                         
                     } else {
-                        // GAS
-                        const termFijo = supply.offer?.term_fijo || 0;
-                        const energia = supply.offer?.energy_price || 0;
-                        doc.text(`Término fijo:: ${termFijo.toFixed(6)} €/día`, margin + 10, yPos + 17);
-                        doc.text(`Energía:: ${energia.toFixed(6)} €/kWh`, margin + 90, yPos + 17);
+                        const termFijo = offerData ? (offerData.term_fijo || 0) : 0;
+                        const energia = offerData ? (offerData.energy_price || 0) : 0;
+                        doc.text(`Termino fijo:: ${termFijo.toFixed(6)} EUR/dia`, margin + 10, yPos + 17);
+                        doc.text(`Energia:: ${energia.toFixed(6)} EUR/kWh`, margin + 90, yPos + 17);
                     }
                     
                     yPos += preciosHeight + 2;
                     
-                    // SECCIÓN DE COSTES (si es electricidad, mostrar desglose)
-                    if (supply.type === 'electricidad' && supply.powerCosts && supply.energyCosts) {
-                        // Cabecera "POTENCIA"
+                    // DESGLOSE DE COSTES
+                    if (supply.type === 'electricidad') {
+                        // POTENCIA
                         doc.setFillColor(71, 85, 105);
                         doc.rect(margin, yPos, contentWidth, 8, 'F');
                         doc.setTextColor(255, 255, 255);
@@ -16571,51 +16593,68 @@ ${clientName}
                         doc.text('POTENCIA', margin + 5, yPos + 5.5);
                         yPos += 10;
                         
-                        // Filas de potencia
                         doc.setFillColor(255, 255, 255);
-                        supply.powerCosts.forEach((pc, pidx) => {
+                        
+                        // CORREGIR: Obtener costes de potencia correctos
+                        let powerCosts = [];
+                        if (supply.results && supply.results.drk && supply.results.drk.powerCosts) {
+                            powerCosts = supply.results.drk.powerCosts;
+                        } else if (supply.powerCosts) {
+                            powerCosts = supply.powerCosts;
+                        }
+                        
+                        powerCosts.forEach((pc, pidx) => {
                             if (pc.kw > 0) {
                                 doc.setFontSize(8);
                                 doc.setTextColor(0, 0, 0);
                                 doc.setFont('helvetica', 'normal');
-                                const label = `P${pidx + 1} (${pc.kw} kW x ${supply.dias || 30}d x ${pc.precio.toFixed(6)} €/kW/día)`;
+                                const dias = supply.dias || supply.days || 30;
+                                const label = `P${pidx + 1} (${pc.kw} kW x ${dias}d x ${pc.precio.toFixed(6)} EUR/kW/dia)`;
                                 doc.text(label, margin + 5, yPos + 4);
                                 doc.setFont('helvetica', 'bold');
-                                doc.text(eur(pc.total), pageWidth - margin - 5, yPos + 4, { align: 'right' });
+                                doc.text(eur(pc.total || 0), pageWidth - margin - 5, yPos + 4, { align: 'right' });
                                 yPos += 6;
                             }
                         });
                         
                         yPos += 2;
                         
-                        // Cabecera "ENERGÍA"
+                        // ENERGIA
                         doc.setFillColor(71, 85, 105);
                         doc.rect(margin, yPos, contentWidth, 8, 'F');
                         doc.setTextColor(255, 255, 255);
                         doc.setFontSize(10);
                         doc.setFont('helvetica', 'bold');
-                        doc.text('ENERGÍA', margin + 5, yPos + 5.5);
+                        doc.text('ENERGIA', margin + 5, yPos + 5.5);
                         yPos += 10;
                         
-                        // Filas de energía
                         doc.setFillColor(255, 255, 255);
-                        supply.energyCosts.forEach((ec, eidx) => {
+                        
+                        // CORREGIR: Obtener costes de energía correctos
+                        let energyCosts = [];
+                        if (supply.results && supply.results.drk && supply.results.drk.energyCosts) {
+                            energyCosts = supply.results.drk.energyCosts;
+                        } else if (supply.energyCosts) {
+                            energyCosts = supply.energyCosts;
+                        }
+                        
+                        energyCosts.forEach((ec, eidx) => {
                             if (ec.kwh > 0) {
                                 doc.setFontSize(8);
                                 doc.setTextColor(0, 0, 0);
                                 doc.setFont('helvetica', 'normal');
-                                const label = `E${eidx + 1} (${ec.kwh} kWh x ${ec.precio.toFixed(6)} €/kWh)`;
+                                const label = `E${eidx + 1} (${ec.kwh} kWh x ${ec.precio.toFixed(6)} EUR/kWh)`;
                                 doc.text(label, margin + 5, yPos + 4);
                                 doc.setFont('helvetica', 'bold');
-                                doc.text(eur(ec.total), pageWidth - margin - 5, yPos + 4, { align: 'right' });
+                                doc.text(eur(ec.total || 0), pageWidth - margin - 5, yPos + 4, { align: 'right' });
                                 yPos += 6;
                             }
                         });
                         
                         yPos += 2;
                         
-                    } else if (supply.type === 'gas') {
-                        // GAS - Desglose simple
+                    } else {
+                        // GAS
                         doc.setFillColor(71, 85, 105);
                         doc.rect(margin, yPos, contentWidth, 8, 'F');
                         doc.setTextColor(255, 255, 255);
@@ -16629,54 +16668,63 @@ ${clientName}
                         doc.setTextColor(0, 0, 0);
                         doc.setFont('helvetica', 'normal');
                         
-                        const termFijo = supply.offer?.term_fijo || 0;
-                        const dias = supply.dias || 30;
+                        const termFijo = offerData ? (offerData.term_fijo || 0) : 0;
+                        const dias = supply.dias || supply.days || 30;
                         const costoTermFijo = termFijo * dias;
-                        doc.text(`Término fijo (${dias} días x ${termFijo.toFixed(6)} €/día)`, margin + 5, yPos + 4);
+                        doc.text(`Termino fijo (${dias} dias x ${termFijo.toFixed(6)} EUR/dia)`, margin + 5, yPos + 4);
                         doc.setFont('helvetica', 'bold');
                         doc.text(eur(costoTermFijo), pageWidth - margin - 5, yPos + 4, { align: 'right' });
                         yPos += 6;
                         
                         doc.setFont('helvetica', 'normal');
                         const kwh = supply.kwh || 0;
-                        const precioEnergia = supply.offer?.energy_price || 0;
+                        const precioEnergia = offerData ? (offerData.energy_price || 0) : 0;
                         const costoEnergia = kwh * precioEnergia;
-                        doc.text(`Energía (${kwh} kWh x ${precioEnergia.toFixed(6)} €/kWh)`, margin + 5, yPos + 4);
+                        doc.text(`Energia (${kwh} kWh x ${precioEnergia.toFixed(6)} EUR/kWh)`, margin + 5, yPos + 4);
                         doc.setFont('helvetica', 'bold');
                         doc.text(eur(costoEnergia), pageWidth - margin - 5, yPos + 4, { align: 'right' });
                         yPos += 8;
                     }
                     
-                    // TOTAL DEL PERÍODO
+                    // TOTAL DEL PERIODO
                     doc.setFillColor(...grisClaro);
                     doc.rect(margin, yPos, contentWidth, 10, 'F');
                     
                     doc.setFontSize(10);
                     doc.setTextColor(0, 0, 0);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(`TOTAL (${supply.dias || 30} DÍAS):`, margin + 5, yPos + 6.5);
-                    const total = supply.totalPeriod || supply.total || 0;
+                    const dias = supply.dias || supply.days || 30;
+                    doc.text(`TOTAL (${dias} DIAS):`, margin + 5, yPos + 6.5);
+                    
+                    // CORREGIR: Obtener total correcto
+                    let total = 0;
+                    if (supply.results && supply.results.drk && supply.results.drk.total_periodo) {
+                        total = supply.results.drk.total_periodo;
+                    } else if (supply.totalPeriod) {
+                        total = supply.totalPeriod;
+                    } else if (supply.total) {
+                        total = supply.total;
+                    }
+                    
                     doc.text(eur(total), pageWidth - margin - 5, yPos + 6.5, { align: 'right' });
                     
                     yPos += 12;
                     
-                    // AHORRO EN ROJO
+                    // AHORRO
                     doc.setFillColor(254, 226, 226);
                     doc.rect(margin, yPos, contentWidth, 10, 'F');
                     
                     doc.setTextColor(...rojoFuerte);
                     doc.setFontSize(12);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(`AHORRO:: ${eur(supply.savings || 0)}`, pageWidth / 2, yPos + 7, { align: 'center' });
+                    const ahorro = supply.ahorro || supply.savings || 0;
+                    doc.text(`AHORRO:: ${eur(ahorro)}`, pageWidth / 2, yPos + 7, { align: 'center' });
                     
                     yPos += 16;
                 });
                 
-                // ═══════════════════════════════════════════════════════════
-                // ÚLTIMA PÁGINA: AHORRO TOTAL Y CONTRATACIÓN
-                // ═══════════════════════════════════════════════════════════
+                // ULTIMA PAGINA: AHORRO Y CONTRATACION
                 
-                // Si estamos muy abajo, nueva página
                 if (yPos > 200) {
                     doc.addPage();
                     yPos = 20;
@@ -16684,25 +16732,25 @@ ${clientName}
                 
                 yPos += 10;
                 
-                // CAJA FINAL DE AHORRO TOTAL
+                // CAJA DE AHORRO TOTAL
                 doc.setFillColor(...grisOscuro);
                 doc.roundedRect(margin, yPos, contentWidth, 50, 3, 3, 'F');
                 
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(14);
                 doc.setFont('helvetica', 'bold');
-                doc.text('🎉 TU AHORRO ANUAL TOTAL 🎉', pageWidth / 2, yPos + 14, { align: 'center' });
+                doc.text('TU AHORRO ANUAL TOTAL', pageWidth / 2, yPos + 14, { align: 'center' });
                 
                 doc.setFontSize(36);
-                doc.text(num(results.totalSavings, 2) + ' €', pageWidth / 2, yPos + 32, { align: 'center' });
+                doc.text(num(results.totalSavings || 0, 2) + ' EUR', pageWidth / 2, yPos + 32, { align: 'center' });
                 
-                const ahorroMensual = results.totalSavings / 12;
+                const ahorroMensual = (results.totalSavings || 0) / 12;
                 doc.setFontSize(13);
-                doc.text(`¡AHORRA ${num(ahorroMensual, 2)} € CADA MES!`, pageWidth / 2, yPos + 44, { align: 'center' });
+                doc.text(`AHORRA ${num(ahorroMensual, 2)} EUR CADA MES`, pageWidth / 2, yPos + 44, { align: 'center' });
                 
                 yPos += 58;
                 
-                // INSTRUCCIONES DE CONTRATACIÓN
+                // INSTRUCCIONES DE CONTRATACION
                 doc.setFillColor(...grisOscuro);
                 doc.rect(margin, yPos, contentWidth, 12, 'F');
                 
@@ -16713,7 +16761,6 @@ ${clientName}
                 
                 yPos += 14;
                 
-                // Caja con la lista de documentos
                 const docsHeight = 75;
                 doc.setFillColor(...grisClaro);
                 doc.rect(margin, yPos, contentWidth, docsHeight, 'F');
@@ -16724,16 +16771,16 @@ ${clientName}
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'normal');
-                doc.text(`Responde a este email adjuntando la documentación de los ${dualSupplies.length} CUPS:`, margin + 5, yPos + 7);
+                doc.text(`Responde a este email adjuntando la documentacion de los ${dualSupplies.length} CUPS:`, margin + 5, yPos + 7);
                 
                 yPos += 12;
                 
                 const docs = [
                     '1. Foto del DNI/CIF (anverso y reverso)',
-                    '2. Última factura (menos de 3 meses de antigüedad)',
-                    '3. Autorización de cambio de titular (si aplica)',
-                    '4. Teléfono de contacto',
-                    '5. Número de cuenta bancaria (IBAN)'
+                    '2. Ultima factura (menos de 3 meses de antiguedad)',
+                    '3. Autorizacion de cambio de titular (si aplica)',
+                    '4. Telefono de contacto',
+                    '5. Numero de cuenta bancaria (IBAN)'
                 ];
                 
                 docs.forEach(docItem => {
@@ -16744,28 +16791,27 @@ ${clientName}
                 
                 yPos += 6;
                 
-                // Caja azul con el comercial
                 doc.setFillColor(...grisOscuro);
                 doc.rect(margin + 10, yPos, contentWidth - 20, 12, 'F');
                 
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`Envía la documentación al comercial:${comercialCode}`, pageWidth / 2, yPos + 8, { align: 'center' });
+                doc.text(`Envia la documentacion al comercial:${comercialCode}`, pageWidth / 2, yPos + 8, { align: 'center' });
                 
-                // PIE DE PÁGINA
+                // PIE DE PAGINA
                 doc.setFontSize(7);
                 doc.setTextColor(100, 116, 139);
                 doc.setFont('helvetica', 'italic');
                 doc.text('Documento generado el ' + new Date().toLocaleDateString('es-ES'), margin, 285);
-                doc.text('DRK Energía - Comparativa Profesional', pageWidth - margin, 285, { align: 'right' });
+                doc.text('DRK Energia - Comparativa Profesional', pageWidth - margin, 285, { align: 'right' });
                 
-                // GUARDAR PDF
+                // GUARDAR
                 const filename = `Comparativa_DUAL_${comercialCode}_${new Date().toISOString().slice(0,10)}.pdf`;
                 doc.save(filename);
                 
-                console.log('✅ PDF DUAL profesional completo generado');
-                window.showMessageModal("✅ PDF generado correctamente - Revisa tu carpeta de descargas");
+                console.log('PDF DUAL generado correctamente');
+                window.showMessageModal("PDF generado correctamente - Revisa tu carpeta de descargas");
                 
             } catch (error) {
                 console.error('Error al generar PDF DUAL:', error);
@@ -16774,9 +16820,11 @@ ${clientName}
             
             if (wasChineseMode) {
                 setTimeout(() => {
-                    console.log('🔄 Restaurando idioma chino');
+                    console.log('Restaurando idioma chino');
                     window.LANG.change('zh', true);
                 }, 500);
+            }
+        }, 500);
             }
         }
 

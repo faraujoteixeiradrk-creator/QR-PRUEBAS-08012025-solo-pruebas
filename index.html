@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <!-- Librerías para generar PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         // --- TAILWIND CONFIGURATION ---
@@ -16150,16 +16151,12 @@ ${clientName}
             console.log('  - comercialCode:', comercialCode);
             console.log('  - clientName:', clientName);
             
-            // Verificar que hay resultados guardados
-            if (!lastComparisonResult || !lastIndexedResult) {
+            // Verificar que hay resultados guardados en DUAL
+            if (!window.dualGlobalResults || !dualSupplies || dualSupplies.length === 0) {
                 console.error('ERROR: No hay resultados guardados para generar PDF DUAL');
                 alert('Error: No se encontraron los datos de comparación. Por favor, calcula de nuevo.');
                 return;
             }
-            
-            // Guardar temporalmente los datos del cliente en los inputs para que generatePDF_Dual los use
-            document.getElementById('comercial-code-input').value = comercialCode;
-            document.getElementById('client-name-input').value = clientName;
             
             // Detectar si está en modo chino
             const currentLang = localStorage.getItem('appLanguage') || 'es';
@@ -16173,9 +16170,49 @@ ${clientName}
             }
             
             try {
-                // Usar la función generatePDF_Dual que usa jsPDF
-                await generatePDF_Dual(lastComparisonResult, lastIndexedResult);
-                console.log('✅ PDF DUAL generado correctamente con jsPDF');
+                // Generar HTML usando la función auxiliar
+                let html = generateDualHTMLContent(comercialCode, clientName, clientPhone, clientEmail);
+                
+                if (!html) {
+                    // Restaurar idioma chino si es necesario
+                    if (wasChineseMode) {
+                        window.LANG.change('zh', true);
+                    }
+                    return; // Ya se mostró el error en generateDualHTMLContent
+                }
+                
+                console.log('✅ HTML generado correctamente');
+                
+                // Mostrar mensaje
+                window.showMessageModal("⏳ Generando PDF DUAL... Por favor espere.");
+                
+                // Usar html2pdf para convertir el HTML a PDF y descargarlo
+                const opt = {
+                    margin: 5,
+                    filename: `Comparativa_DUAL_${comercialCode}_${new Date().toISOString().slice(0,10)}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                
+                // Crear un elemento temporal para renderizar el HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                tempDiv.style.position = 'fixed';
+                tempDiv.style.left = '-9999px';
+                tempDiv.style.top = '0';
+                tempDiv.style.width = '210mm'; // A4 width
+                document.body.appendChild(tempDiv);
+                
+                // Generar PDF
+                await html2pdf().set(opt).from(tempDiv).save();
+                
+                // Limpiar
+                document.body.removeChild(tempDiv);
+                
+                console.log('✅ PDF DUAL generado y descargado correctamente');
+                window.showMessageModal("✅ PDF generado correctamente");
+                
             } catch (error) {
                 console.error('Error al generar PDF DUAL:', error);
                 alert('Error al generar el PDF: ' + error.message);

@@ -16521,7 +16521,7 @@ ${clientName}
                 
                 yPos += 35;
                 
-                // === CABECERA CON MARCA ===
+                // === CABECERA CON MARCA (estilo individual) ===
                 doc.setFillColor(...colorPrincipal);
                 doc.roundedRect(margin, yPos, contentWidth, 32, 4, 4, 'F');
                 
@@ -16531,15 +16531,22 @@ ${clientName}
                 doc.setFont('helvetica', 'bold');
                 doc.text(tr('LA MEJOR OPCIÓN PARA TI ES'), pageWidth / 2, yPos + 8, { align: 'center' });
                 
-                // Marca más grande si no es DRK
+                // Marca - Tamaño ajustado según marca
                 if (!isDrk) {
+                    // POWER CUP: más grande
                     doc.setFontSize(32);
                     doc.setFont('helvetica', 'bold');
                     doc.text(brandName, pageWidth / 2, yPos + 20, { align: 'center' });
                 } else {
+                    // DRK: tamaño intermedio con nombre de tarifa abajo
                     doc.setFontSize(26);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(brandName, pageWidth / 2, yPos + 20, { align: 'center' });
+                    doc.text('DRK', pageWidth / 2, yPos + 18, { align: 'center' });
+                    
+                    // Nombre de tarifa más pequeño debajo
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text('DRK 1', pageWidth / 2, yPos + 27, { align: 'center' });
                 }
                 
                 yPos += 37;
@@ -16555,10 +16562,8 @@ ${clientName}
                 doc.setFontSize(12);
                 doc.setFont('helvetica', 'bold');
                 doc.text(tr('RESUMEN DE SUMINISTROS INCLUIDOS'), pageWidth / 2, yPos + 7, { align: 'center' });
-                doc.setFontSize(20);
-                doc.text('DRK', pageWidth / 2, yPos + 17, { align: 'center' });
                 
-                yPos += 28;
+                yPos += 15;
                 
                 // TABLA DE SUMINISTROS
                 const tablaHeight = 10 + (dualSupplies.length * 9) + 12;

@@ -16727,8 +16727,7 @@ ${clientName}
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(11);
                 doc.setFont('helvetica', 'normal');
-                const ahorroMensual = (results.totalSavings || 0) / 12;
-                doc.text(tr('AHORRA ') + num(ahorroMensual, 2) + tr(' EUR CADA MES'), pageWidth / 2, yPos + 30, { align: 'center' });
+                doc.text(tr('AHORRA ') + num((results.totalSavings || 0) / 12, 2) + tr(' EUR CADA MES'), pageWidth / 2, yPos + 30, { align: 'center' });
                 
                 // PAGINA 2: COMPARATIVA Y DESGLOSE
                 

@@ -16586,7 +16586,12 @@ ${clientName}
                 yPos += 35;
                 
                 // === CABECERA CON MARCA (estilo individual) ===
-                doc.setFillColor(...colorPrincipal);
+                // Verde oliva para POWER CUP, Azul para DRK
+                if (!isDrk) {
+                    doc.setFillColor(133, 146, 104); // Verde oliva RGB(133, 146, 104)
+                } else {
+                    doc.setFillColor(...colorPrincipal); // Azul DRK
+                }
                 doc.roundedRect(margin, yPos, contentWidth, 32, 4, 4, 'F');
                 
                 // "LA MEJOR OPCIÓN PARA TI ES"
@@ -17161,8 +17166,8 @@ ${clientName}
                 
                 yPos += 10;
                 
-                // CAJA DE AHORRO TOTAL
-                doc.setFillColor(...grisOscuro);
+                // CAJA DE AHORRO TOTAL - Verde oliva
+                doc.setFillColor(133, 146, 104); // Verde oliva RGB(133, 146, 104)
                 doc.roundedRect(margin, yPos, contentWidth, 50, 3, 3, 'F');
                 
                 doc.setTextColor(255, 255, 255);

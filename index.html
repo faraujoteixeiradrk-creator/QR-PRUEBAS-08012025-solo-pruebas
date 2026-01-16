@@ -16769,33 +16769,47 @@ ${clientName}
                 doc.text(text2, margin + (boxWidth / 2), yPos + 48, { align: 'center' });
                 doc.line(textX2, yPos + 46.5, textX2 + textWidth2, yPos + 46.5);
                 
-                // CAJA DERECHA - NUEVO COSTE (VERDE)
-                doc.setFillColor(...verdeClaro);
-                doc.roundedRect(margin + boxWidth + 10, yPos, boxWidth, boxHeight, 3, 3, 'F');
-                doc.setDrawColor(...verdeFuerte);
-                doc.setLineWidth(2);
-                doc.roundedRect(margin + boxWidth + 10, yPos, boxWidth, boxHeight, 3, 3, 'S');
+                // CAJA DERECHA - NUEVO COSTE (DEGRADADO VERDE OLIVA)
+                // Degradado vertical verde oliva (más oscuro arriba, más claro abajo)
+                const boxX = margin + boxWidth + 10;
+                const gradientSteps = 60;
+                for (let i = 0; i < gradientSteps; i++) {
+                    const ratio = i / gradientSteps;
+                    // De verde oliva oscuro (arriba) a verde lima claro (abajo)
+                    const r = Math.round(60 + (180 - 60) * ratio);    // 60 → 180
+                    const g = Math.round(120 + (220 - 120) * ratio);  // 120 → 220
+                    const b = Math.round(70 + (120 - 70) * ratio);    // 70 → 120
+                    doc.setFillColor(r, g, b);
+                    const sliceHeight = boxHeight / gradientSteps;
+                    doc.rect(boxX, yPos + (i * sliceHeight), boxWidth, sliceHeight + 0.5, 'F');
+                }
                 
-                doc.setTextColor(20, 83, 45);
+                // Borde redondeado verde oscuro encima del degradado
+                doc.setDrawColor(60, 120, 70); // Verde oscuro
+                doc.setLineWidth(3);
+                doc.roundedRect(boxX, yPos, boxWidth, boxHeight, 3, 3, 'S');
+                
+                // Texto en BLANCO
+                doc.setTextColor(255, 255, 255);
                 doc.setFontSize(11);
                 doc.setFont('helvetica', 'bold');
-                doc.text(tr('TU NUEVO COSTE ') + brandName, margin + boxWidth + 10 + (boxWidth / 2), yPos + 10, { align: 'center' });
+                doc.text(tr('TU NUEVO COSTE ') + brandName, boxX + (boxWidth / 2), yPos + 10, { align: 'center' });
                 
                 const totalNuevo = results.totalDRK || 0;
                 const costoMensualNuevo = totalNuevo / 12;
-                doc.setTextColor(...verdeFuerte);
+                doc.setTextColor(255, 255, 255);  // Blanco
                 doc.setFontSize(20);
-                doc.text(eur(costoMensualNuevo) + '/mes', margin + boxWidth + 10 + (boxWidth / 2), yPos + 24, { align: 'center' });
+                doc.text(eur(costoMensualNuevo) + '/mes', boxX + (boxWidth / 2), yPos + 24, { align: 'center' });
                 
                 doc.setFontSize(8);
-                doc.setTextColor(100, 116, 139);
+                doc.setTextColor(100, 140, 100);  // Verde grisáceo para contraste
                 doc.setFont('helvetica', 'normal');
-                doc.text(tr('Estimado Mensual'), margin + boxWidth + 10 + (boxWidth / 2), yPos + 33, { align: 'center' });
+                doc.text(tr('Estimado Mensual'), boxX + (boxWidth / 2), yPos + 33, { align: 'center' });
                 
                 doc.setFontSize(18);
-                doc.setTextColor(...verdeFuerte);
+                doc.setTextColor(255, 255, 255);  // Blanco
                 doc.setFont('helvetica', 'bold');
-                doc.text(eur(totalNuevo) + '/ano', margin + boxWidth + 10 + (boxWidth / 2), yPos + 48, { align: 'center' });
+                doc.text(eur(totalNuevo) + '/ano', boxX + (boxWidth / 2), yPos + 48, { align: 'center' });
                 
                 yPos += boxHeight + 15;
                 

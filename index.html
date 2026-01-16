@@ -16709,19 +16709,26 @@ ${clientName}
                 
                 yPos += 18;
                 
-                // AHORRO ANUAL DESTACADO
-                doc.setFillColor(255, 255, 255);
-                doc.rect(margin, yPos, contentWidth, 32, 'F');
+                // AHORRO ANUAL DESTACADO - Fondo verde oliva sólido
+                doc.setFillColor(100, 130, 90); // Verde oliva sólido
+                doc.roundedRect(margin, yPos, contentWidth, 32, 3, 3, 'F');
                 
-                doc.setTextColor(100, 116, 139);
+                doc.setTextColor(255, 255, 255); // Texto blanco
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
-                doc.text(tr('TU AHORRO ANUAL ESTIMADO'), pageWidth / 2, yPos + 8, { align: 'center' });
+                doc.text(tr('TU AHORRO ANUAL TOTAL'), pageWidth / 2, yPos + 8, { align: 'center' });
                 
-                doc.setTextColor(...verdeFuerte);
+                doc.setTextColor(255, 255, 255); // Texto blanco
                 doc.setFontSize(32);
                 doc.setFont('helvetica', 'bold');
                 doc.text(num(results.totalSavings || 0, 2) + ' EUR', pageWidth / 2, yPos + 25, { align: 'center' });
+                
+                // "AHORRA X EUR CADA MES" en blanco también
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'normal');
+                const ahorroMensual = (results.totalSavings || 0) / 12;
+                doc.text(tr('AHORRA ') + num(ahorroMensual, 2) + tr(' EUR CADA MES'), pageWidth / 2, yPos + 30, { align: 'center' });
                 
                 // PAGINA 2: COMPARATIVA Y DESGLOSE
                 

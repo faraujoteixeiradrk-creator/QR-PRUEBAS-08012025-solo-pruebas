@@ -17255,6 +17255,10 @@ ${clientName}
             if (wasChineseMode) {
                 setTimeout(() => {
                     console.log(tr('Restaurando idioma chino'));
+                    window.LANG.change('zh', true);
+                }, 500);
+            }
+        }
         
         function showDualConfirm(type, tariff, data, results) {
             // DEPRECATED: Esta función ya no debería usarse en modo DUAL

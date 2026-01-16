@@ -16714,8 +16714,12 @@ ${clientName}
                 
                 yPos += 18;
                 
-                // AHORRO ANUAL DESTACADO - Fondo verde oliva sólido
-                doc.setFillColor(133, 146, 104); // Verde oliva RGB(133, 146, 104)
+                // AHORRO ANUAL DESTACADO - Color según marca
+                if (isDrk) {
+                    doc.setFillColor(41, 128, 185); // Azul DRK
+                } else {
+                    doc.setFillColor(133, 146, 104); // Verde oliva POWER CUP
+                }
                 doc.roundedRect(margin, yPos, contentWidth, 32, 3, 3, 'F');
                 
                 doc.setTextColor(255, 255, 255); // Texto blanco
@@ -17166,8 +17170,12 @@ ${clientName}
                 
                 yPos += 10;
                 
-                // CAJA DE AHORRO TOTAL - Verde oliva
-                doc.setFillColor(133, 146, 104); // Verde oliva RGB(133, 146, 104)
+                // CAJA DE AHORRO TOTAL - Color según marca
+                if (isDrk) {
+                    doc.setFillColor(41, 128, 185); // Azul DRK
+                } else {
+                    doc.setFillColor(133, 146, 104); // Verde oliva POWER CUP
+                }
                 doc.roundedRect(margin, yPos, contentWidth, 50, 3, 3, 'F');
                 
                 doc.setTextColor(255, 255, 255);

@@ -16428,58 +16428,122 @@ ${clientName}
                 
                 // PAGINA 1: PORTADA Y RESUMEN
                 
-                // HEADER CON DEGRADADO (azul para DRK, verde para POWER CUP)
+                // HEADER CON RAYAS VERTICALES (estilo individual)
+                const headerHeight = 45;
+                
+                // Fondo con rayas verticales
                 for (let i = 0; i < pageWidth; i++) {
-                    const ratio = i / pageWidth;
                     if (isDrk) {
                         // Degradado azul DRK
+                        const ratio = i / pageWidth;
                         const r = Math.round(41 + (59 - 41) * ratio);
                         const g = Math.round(128 + (130 - 128) * ratio);
                         const b = Math.round(185 + (246 - 185) * ratio);
                         doc.setFillColor(r, g, b);
                     } else {
-                        // Degradado verde POWER CUP
-                        const r = Math.round(22 + (132 - 22) * ratio);
-                        const g = Math.round(163 + (204 - 163) * ratio);
-                        const b = Math.round(74 + (22 - 74) * ratio);
-                        doc.setFillColor(r, g, b);
+                        // Rayas verticales verde POWER CUP
+                        const stripeWidth = 2;
+                        if (Math.floor(i / stripeWidth) % 2 === 0) {
+                            doc.setFillColor(100, 130, 90); // Verde oscuro
+                        } else {
+                            doc.setFillColor(130, 160, 110); // Verde más claro
+                        }
                     }
-                    doc.rect(i, 0, 1, 45, 'F');
+                    doc.rect(i, 0, 1, headerHeight, 'F');
                 }
                 
-                // Logo y texto izquierda
-                const logoX = margin + 10;
-                yPos = 10;
+                // Logo según marca
+                const logoX = margin + 8;
+                const logoY = 15;
+                const logoRadius = 6;
                 
+                if (isDrk) {
+                    // Logo circular DRK (anillo multicolor)
+                    doc.setFillColor(219, 68, 55); // Rojo
+                    doc.circle(logoX - 1, logoY + 1, logoRadius * 0.8, 'F');
+                    doc.setFillColor(66, 133, 244); // Azul
+                    doc.circle(logoX + 1, logoY - 1, logoRadius * 0.8, 'F');
+                    doc.setFillColor(244, 180, 0); // Amarillo
+                    doc.circle(logoX - 1, logoY - 1, logoRadius * 0.7, 'F');
+                    doc.setFillColor(15, 157, 88); // Verde
+                    doc.circle(logoX + 1, logoY + 1, logoRadius * 0.7, 'F');
+                    
+                    // Círculo central blanco
+                    doc.setFillColor(255, 255, 255);
+                    doc.circle(logoX, logoY, logoRadius * 0.4, 'F');
+                } else {
+                    // Logo POWER CUP (taza con niveles de energía y rayo)
+                    
+                    // Plato/base (verde oscuro)
+                    doc.setFillColor(60, 90, 50);
+                    doc.rect(logoX - 5, logoY + 4, 10, 1, 'F');
+                    
+                    // Borde de la taza (verde oscuro)
+                    doc.setDrawColor(60, 90, 50);
+                    doc.setLineWidth(1.2);
+                    doc.roundedRect(logoX - 3.5, logoY - 2, 7, 6, 0.5, 0.5, 'S');
+                    
+                    // Asa de la taza (usando línea curva)
+                    doc.setLineWidth(1);
+                    doc.line(logoX + 3.5, logoY, logoX + 5, logoY - 0.5);
+                    doc.line(logoX + 5, logoY - 0.5, logoX + 5.5, logoY + 1);
+                    doc.line(logoX + 5.5, logoY + 1, logoX + 5, logoY + 2.5);
+                    doc.line(logoX + 5, logoY + 2.5, logoX + 3.5, logoY + 2);
+                    
+                    // Niveles de energía dentro de la taza (líneas verdes horizontales)
+                    doc.setFillColor(100, 150, 70);
+                    doc.rect(logoX - 3, logoY + 2.5, 6, 0.8, 'F');  // Nivel 1
+                    doc.rect(logoX - 3, logoY + 0.8, 6, 0.8, 'F');  // Nivel 2
+                    doc.rect(logoX - 3, logoY - 0.9, 6, 0.8, 'F');  // Nivel 3
+                    
+                    // Rayo amarillo encima de la taza
+                    doc.setFillColor(255, 200, 0);
+                    const rayX = logoX;
+                    const rayY = logoY - 7;
+                    // Parte superior del rayo
+                    doc.triangle(rayX - 1, rayY, rayX - 2, rayY + 2.5, rayX, rayY + 2, 'F');
+                    // Parte inferior del rayo
+                    doc.triangle(rayX, rayY + 2, rayX - 1, rayY + 4.5, rayX + 1.5, rayY + 4.5, 'F');
+                }
+                
+                yPos = 12;
+                
+                // Texto "DRK/POWER CUP ENERGÍA" a la derecha del logo
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(16);
+                doc.setFontSize(24);
                 doc.setFont('helvetica', 'bold');
-                doc.text(brandName, logoX + 8, yPos + 5);
+                const brandText = isDrk ? 'DRK' : 'POWER CUP';
+                doc.text(brandText, logoX + 12, yPos + 3);
                 
-                doc.setFontSize(11);
-                doc.setFont('helvetica', 'normal');
-                doc.text(tr('ENERGÍA'), logoX + 8, yPos + 11);
+                // "ENERGÍA" debajo
+                doc.setFontSize(24);
+                doc.setFont('helvetica', 'bold');
+                doc.text('ENERGÍA', logoX + 12, yPos + 11);
                 
                 // Tagline
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(200, 220, 240);
-                doc.text(tr('Liderando el ahorro y la'), logoX + 8, yPos + 19);
-                doc.text(tr('eficiencia energética.'), logoX + 8, yPos + 24);
+                doc.text(tr('Liderando el ahorro y la'), logoX + 12, yPos + 19);
+                doc.text(tr('eficiencia energética.'), logoX + 12, yPos + 24);
                 
-                // Texto derecha del header
+                // Texto derecha "ESTUDIO DE AHORRO COMPARATIVA PROFESIONAL"
                 doc.setTextColor(40, 60, 80);
                 doc.setFontSize(11);
                 doc.setFont('helvetica', 'bold');
-                doc.text(tr('ESTUDIO DE AHORRO'), pageWidth - margin, 14, { align: 'right' });
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(14);
-                doc.text(tr('COMPARATIVA'), pageWidth - margin, 22, { align: 'right' });
-                doc.setTextColor(100, 120, 140);
-                doc.setFontSize(11);
-                doc.text(tr('PROFESIONAL'), pageWidth - margin, 30, { align: 'right' });
+                doc.text(tr('ESTUDIO DE AHORRO'), pageWidth - margin - 3, yPos + 5, { align: 'right' });
                 
-                yPos = 52;
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(255, 255, 255);
+                doc.text('COMPARATIVA', pageWidth - margin - 3, yPos + 13, { align: 'right' });
+                
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(100, 120, 140);
+                doc.text('PROFESIONAL', pageWidth - margin - 3, yPos + 21, { align: 'right' });
+                
+                yPos = 50;
                 
                 // === INFORMACIÓN DEL CLIENTE (REDISEÑADA) ===
                 // Barra superior verde/azul

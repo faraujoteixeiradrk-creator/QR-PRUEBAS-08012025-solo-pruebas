@@ -13091,6 +13091,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             }, filteredOffersChosen[0]);
             
             console.log('✅ Mejor tarifa del tipo elegido:', bestChosen.offer.name, 'Ahorro:', bestChosen.savings);
+            console.log('   - Nombre completo:', bestChosen.offer.name);
+            console.log('   - Es INDEXADA?:', (bestChosen.offer.name || '').toUpperCase().includes('INDEX'));
+            console.log('   - bestOptionTariffChoice era:', bestOptionTariffChoice);
             
             // NUEVO: Si hay optimización de potencias activa, necesitamos calcular también con potencias ACTUALES
             if (window.lastDualPowerComparison) {

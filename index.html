@@ -1338,6 +1338,17 @@
                     </select>
                 </div>
 
+                <!-- NUEVO: Checkbox para activar comparativo con Potencia Optimizada (solo 3.0TD) -->
+                <div id="optimized-power-toggle-wrapper" class="hidden mb-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 p-4 rounded-xl">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" id="enable-optimized-power" onchange="toggleOptimizedPowerFields()" class="w-5 h-5 text-amber-600 bg-white border-amber-300 rounded focus:ring-amber-500 focus:ring-2 mr-3">
+                        <div>
+                            <span class="text-sm font-bold text-amber-900">🔄 Activar Comparativo con Potencia Optimizada</span>
+                            <p class="text-xs text-amber-700 mt-1">Permite comparar las potencias actuales vs. potencias optimizadas</p>
+                        </div>
+                    </label>
+                </div>
+
                 <div class="border-b border-slate-200 pb-3 mb-4 bg-slate-50 p-3 rounded-lg">
                     <h4 id="multicups-datos-generales" class="font-bold text-slate-800 mb-2">Datos Generales</h4>
                     <input type="text" id="input-cups" placeholder="Número CUPS" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-2 focus:focus:border-drk-500">
@@ -1354,6 +1365,23 @@
                         <input type="number" step="0.01" id="input-p5-kw" placeholder="P5" class="p-2 border rounded text-sm hidden-period focus:outline-none focus:border-2 focus:focus:border-drk-500">
                         <input type="number" step="0.01" id="input-p6-kw" placeholder="P6" class="p-2 border rounded text-sm hidden-period focus:outline-none focus:border-2 focus:focus:border-drk-500">
                     </div>
+                </div>
+                
+                <!-- NUEVO: Campos de Potencias Optimizadas (solo visible cuando checkbox activado) -->
+                <div id="optimized-power-fields" class="border-b border-slate-200 pb-3 mb-3 hidden bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-bold text-emerald-800">⚡ Potencias Optimizadas (kW)</h4>
+                        <span class="text-xs bg-emerald-600 text-white px-2 py-1 rounded-full font-bold">PROPUESTA</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" step="0.01" id="input-p1-opt-kw" placeholder="P1 Opt" class="p-2 border-2 border-emerald-300 rounded text-sm focus:outline-none focus:border-2 focus:border-emerald-600 bg-white">
+                        <input type="number" step="0.01" id="input-p2-opt-kw" placeholder="P2 Opt" class="p-2 border-2 border-emerald-300 rounded text-sm focus:outline-none focus:border-2 focus:border-emerald-600 bg-white">
+                        <input type="number" step="0.01" id="input-p3-opt-kw" placeholder="P3 Opt" class="p-2 border-2 border-emerald-300 rounded text-sm hidden-period-opt focus:outline-none focus:border-2 focus:border-emerald-600 bg-white">
+                        <input type="number" step="0.01" id="input-p4-opt-kw" placeholder="P4 Opt" class="p-2 border-2 border-emerald-300 rounded text-sm hidden-period-opt focus:outline-none focus:border-2 focus:border-emerald-600 bg-white">
+                        <input type="number" step="0.01" id="input-p5-opt-kw" placeholder="P5 Opt" class="p-2 border-2 border-emerald-300 rounded text-sm hidden-period-opt focus:outline-none focus:border-2 focus:border-emerald-600 bg-white">
+                        <input type="number" step="0.01" id="input-p6-opt-kw" placeholder="P6 Opt" class="p-2 border-2 border-emerald-300 rounded text-sm hidden-period-opt focus:outline-none focus:border-2 focus:border-emerald-600 bg-white">
+                    </div>
+                    <p class="text-xs text-emerald-700 mt-2 italic">💡 Introduce las potencias optimizadas que propones al cliente</p>
                 </div>
                 
                 <div class="border-b border-slate-200 pb-3 mb-3">
@@ -1460,6 +1488,27 @@
                 <input type="text" id="client-name-input" placeholder="Nombre Cliente" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
                 <input type="tel" id="client-phone-input" placeholder="Teléfono" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
                 <input type="email" id="client-email-input" placeholder="Email" class="w-full mb-4 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
+                
+                <!-- NUEVO: Selector de modo de presentación para potencias optimizadas (solo visible cuando está activado) -->
+                <div id="optimized-presentation-mode-selector" class="hidden mb-4 bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-300 p-4 rounded-xl">
+                    <label class="block text-sm font-bold text-purple-900 mb-3">📊 Modo de Presentación de Potencias Optimizadas</label>
+                    <div class="space-y-2">
+                        <label class="flex items-start cursor-pointer bg-white p-3 rounded-lg border-2 border-transparent hover:border-purple-400 transition">
+                            <input type="radio" name="presentation-mode" value="two-columns" checked class="mt-1 w-4 h-4 text-purple-600 focus:ring-purple-500 mr-3">
+                            <div>
+                                <span class="text-sm font-bold text-slate-800">Modo A - Dos Columnas</span>
+                                <p class="text-xs text-slate-600 mt-1">Muestra potencias actuales y optimizadas lado a lado. El cliente VE las potencias propuestas.</p>
+                            </div>
+                        </label>
+                        <label class="flex items-start cursor-pointer bg-white p-3 rounded-lg border-2 border-transparent hover:border-purple-400 transition">
+                            <input type="radio" name="presentation-mode" value="one-column" class="mt-1 w-4 h-4 text-purple-600 focus:ring-purple-500 mr-3">
+                            <div>
+                                <span class="text-sm font-bold text-slate-800">Modo B - Una Columna (Ocultar optimización)</span>
+                                <p class="text-xs text-slate-600 mt-1">Solo muestra potencias actuales. Al final incluye resumen de ahorros. El cliente NO ve qué potencias bajar.</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
                 
                 <!-- Nota informativa para iPhone -->
                 <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
@@ -2356,6 +2405,217 @@
             document.getElementById('input-e1-kwh').placeholder = isHighVoltage ? 'E1' : `E1 (${tr('Punta')})`;
             document.getElementById('input-e2-kwh').placeholder = isHighVoltage ? 'E2' : `E2 (${tr('Llano')})`;
             document.getElementById('input-e3-kwh').placeholder = isHighVoltage ? 'E3' : `E3 (${tr('Valle')})`;
+            
+            // NUEVO: Mostrar/Ocultar el toggle de potencias optimizadas solo para 3.0TD
+            const optimizedToggleWrapper = document.getElementById('optimized-power-toggle-wrapper');
+            if (optimizedToggleWrapper) {
+                optimizedToggleWrapper.classList.toggle('hidden', !isHighVoltage);
+            }
+            
+            // NUEVO: Mostrar/Ocultar periodos optimizados según tipo de tarifa
+            if (isHighVoltage) {
+                const periodsOpt = document.querySelectorAll('.hidden-period-opt');
+                periodsOpt.forEach(el => {
+                    el.style.display = 'block';
+                });
+            }
+        }
+
+        // NUEVA FUNCIÓN: Toggle de campos de potencias optimizadas
+        function toggleOptimizedPowerFields() {
+            const checkbox = document.getElementById('enable-optimized-power');
+            const fieldsContainer = document.getElementById('optimized-power-fields');
+            const presentationSelector = document.getElementById('optimized-presentation-mode-selector');
+            
+            if (checkbox.checked) {
+                fieldsContainer.classList.remove('hidden');
+                // Guardar el estado para usarlo en la generación del comparativo
+                window.optimizedPowerEnabled = true;
+                
+                // Mostrar el selector de modo de presentación en el modal de datos del comercial
+                if (presentationSelector) {
+                    presentationSelector.classList.remove('hidden');
+                }
+            } else {
+                fieldsContainer.classList.add('hidden');
+                window.optimizedPowerEnabled = false;
+                
+                // Ocultar el selector de modo de presentación
+                if (presentationSelector) {
+                    presentationSelector.classList.add('hidden');
+                }
+            }
+        }
+
+        // NUEVA FUNCIÓN: Obtener datos de potencias optimizadas
+        function getOptimizedPowerData() {
+            if (!window.optimizedPowerEnabled) {
+                return null;
+            }
+            
+            return {
+                p1: parseFloat(document.getElementById('input-p1-opt-kw').value) || 0,
+                p2: parseFloat(document.getElementById('input-p2-opt-kw').value) || 0,
+                p3: parseFloat(document.getElementById('input-p3-opt-kw').value) || 0,
+                p4: parseFloat(document.getElementById('input-p4-opt-kw').value) || 0,
+                p5: parseFloat(document.getElementById('input-p5-opt-kw').value) || 0,
+                p6: parseFloat(document.getElementById('input-p6-opt-kw').value) || 0
+            };
+        }
+
+        // NUEVA FUNCIÓN: Obtener modo de presentación seleccionado
+        function getPresentationMode() {
+            const modeRadio = document.querySelector('input[name="presentation-mode"]:checked');
+            return modeRadio ? modeRadio.value : 'two-columns';
+        }
+
+        // NUEVA FUNCIÓN: Comparar ofertas con potencias actuales vs optimizadas
+        function compareOffersDualPower(dataActual, dataOptimized) {
+            try {
+                console.log('=== COMPARACIÓN DUAL DE POTENCIAS INICIADA ===');
+                console.log('Escenario 1 - Potencias actuales:', dataActual);
+                console.log('Escenario 2 - Potencias optimizadas:', dataOptimized);
+                
+                const tariffType = currentTariffType;
+                const tariffsToCompare = currentTariffs[tariffType] || [];
+                
+                if (tariffsToCompare.length === 0) {
+                    return window.showErrorModal(`Las tarifas ${tariffType} no están cargadas.`);
+                }
+                
+                // Calcular costes para ambos escenarios
+                const resultsActual = tariffsToCompare.map(t => calculateTariffCost(t, dataActual, tariffType));
+                const resultsOptimized = tariffsToCompare.map(t => calculateTariffCost(t, dataOptimized, tariffType));
+                
+                console.log('Resultados potencias actuales:', resultsActual.length);
+                console.log('Resultados potencias optimizadas:', resultsOptimized.length);
+                
+                // Encontrar mejores ofertas para cada escenario
+                let bestActual = null;
+                let bestOptimized = null;
+                let bestDrkActual = null;
+                let bestDrkOptimized = null;
+                
+                resultsActual.forEach(r => {
+                    const annualCost = r.totalAnnual;
+                    if (!bestActual || annualCost < bestActual.totalAnnual) {
+                        bestActual = r;
+                    }
+                    if (r.offer.isDrk && r.offer.name !== 'Tu Tarifa Actual') {
+                        if (!bestDrkActual || annualCost < bestDrkActual.totalAnnual) {
+                            bestDrkActual = r;
+                        }
+                    }
+                });
+                
+                resultsOptimized.forEach(r => {
+                    const annualCost = r.totalAnnual;
+                    if (!bestOptimized || annualCost < bestOptimized.totalAnnual) {
+                        bestOptimized = r;
+                    }
+                    if (r.offer.isDrk && r.offer.name !== 'Tu Tarifa Actual') {
+                        if (!bestDrkOptimized || annualCost < bestDrkOptimized.totalAnnual) {
+                            bestDrkOptimized = r;
+                        }
+                    }
+                });
+                
+                // Aplicar lógica de selección según modo de comparación
+                let finalActual = bestActual;
+                let finalOptimized = bestOptimized;
+                let brand = activeBrand;
+                
+                if (comparisonMode === 'overall_best') {
+                    finalActual = bestActual;
+                    finalOptimized = bestOptimized;
+                    brand = finalOptimized.offer.isDrk ? BRANDS.DRK : BRANDS.POWER_CUP;
+                } else if (comparisonMode === 'drk_only') {
+                    finalActual = bestDrkActual || bestActual;
+                    finalOptimized = bestDrkOptimized || bestOptimized;
+                    brand = BRANDS.DRK;
+                } else if (comparisonMode === 'drk_prioritized') {
+                    finalActual = (bestDrkActual && bestDrkActual.totalAnnual < bestDrkActual.originalBillAnnual) ? bestDrkActual : bestActual;
+                    finalOptimized = (bestDrkOptimized && bestDrkOptimized.totalAnnual < bestDrkOptimized.originalBillAnnual) ? bestDrkOptimized : bestOptimized;
+                    brand = finalOptimized.offer.isDrk ? BRANDS.DRK : BRANDS.POWER_CUP;
+                }
+                
+                // Calcular ahorros
+                finalActual.savings = finalActual.originalBillAnnual - finalActual.totalAnnual;
+                finalOptimized.savings = finalOptimized.originalBillAnnual - finalOptimized.totalAnnual;
+                
+                // Añadir tipo de tarifa original
+                finalActual.originalTariffType = tariffType;
+                finalOptimized.originalTariffType = tariffType;
+                
+                // Guardar resultados en variables globales
+                window.dualPowerResultActual = finalActual;
+                window.dualPowerResultOptimized = finalOptimized;
+                window.dualPowerBrand = brand;
+                
+                console.log('Mejor oferta con potencias actuales:', finalActual.offer.name, finalActual.totalAnnual, '€/año');
+                console.log('Mejor oferta con potencias optimizadas:', finalOptimized.offer.name, finalOptimized.totalAnnual, '€/año');
+                console.log('Ahorro adicional por optimización:', (finalActual.totalAnnual - finalOptimized.totalAnnual).toFixed(2), '€/año');
+                
+                // Aplicar branding
+                applyBrandStyles(brand);
+                
+                // Renderizar UI con ambos resultados
+                renderDualPowerResultsUI(finalActual, finalOptimized, brand);
+                
+                // Mostrar vista de resultados
+                document.getElementById('initial-view').classList.add('hidden');
+                document.getElementById('scanner-view').classList.add('hidden');
+                document.getElementById('results-view').classList.remove('hidden');
+                
+                console.log('=== COMPARACIÓN DUAL COMPLETADA ===');
+                
+            } catch (error) {
+                console.error('Error en compareOffersDualPower:', error);
+                window.showErrorModal(`Error al comparar potencias: ${error.message}`);
+            }
+        }
+
+        // NUEVA FUNCIÓN: Renderizar UI con comparación dual de potencias
+        function renderDualPowerResultsUI(resActual, resOptimized, brand) {
+            try {
+                console.log('Renderizando UI de comparación dual de potencias');
+                
+                // Por ahora, mostrar el resultado optimizado (que tiene mejor ahorro)
+                // y guardar ambos resultados para la generación del comparativo
+                renderResultsUI(resOptimized);
+                
+                // Guardar en variables globales para acceso posterior
+                window.lastDualPowerComparison = {
+                    actual: resActual,
+                    optimized: resOptimized,
+                    brand: brand,
+                    mode: getPresentationMode()
+                };
+                
+                // Modificar el texto del ahorro para indicar que es con potencias optimizadas
+                const savingsLabel = document.getElementById('savings-label');
+                if (savingsLabel && !resOptimized.isNegativeSavings) {
+                    savingsLabel.textContent = "TU AHORRO ANUAL CON OPTIMIZACIÓN";
+                }
+                
+                // Añadir badge indicando que se muestra el escenario optimizado
+                const companyBanner = document.getElementById('company-banner');
+                if (companyBanner) {
+                    const badge = document.createElement('div');
+                    badge.className = 'mt-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-4 py-2 rounded-lg text-sm font-bold text-center shadow-lg';
+                    badge.innerHTML = '⚡ Comparativo con Potencias Optimizadas Activado';
+                    companyBanner.appendChild(badge);
+                }
+                
+                console.log('Ahorro con potencias actuales:', resActual.savings.toFixed(2), '€/año');
+                console.log('Ahorro con potencias optimizadas:', resOptimized.savings.toFixed(2), '€/año');
+                console.log('Ahorro adicional por optimización:', (resActual.totalAnnual - resOptimized.totalAnnual).toFixed(2), '€/año');
+                
+            } catch (error) {
+                console.error('Error en renderDualPowerResultsUI:', error);
+                // Si falla, mostrar al menos el resultado optimizado
+                renderResultsUI(resOptimized);
+            }
         }
 
         function selectTariffType(type) {
@@ -10841,6 +11101,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 console.log('handleManualInput called');
                 console.log('currentTariffType:', currentTariffType);
                 console.log('comparisonMode:', comparisonMode);
+                console.log('optimizedPowerEnabled:', window.optimizedPowerEnabled);
                 
                 const isMultiCupsMode = currentTariffType === 'MULTICUPS';
 
@@ -10872,6 +11133,36 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 console.log('Data prepared:', data);
                 
                 if (data.importe_total <= 0) return window.showErrorModal("Introduce el total de la factura.");
+                
+                // NUEVO: Si está activado el comparativo de potencias optimizadas para 3.0TD
+                if (window.optimizedPowerEnabled && tariffToUse === '3.0TD' && !isMultiCupsMode) {
+                    const optimizedPowers = getOptimizedPowerData();
+                    
+                    // Validar que se hayan introducido potencias optimizadas
+                    if (!optimizedPowers || (optimizedPowers.p1 === 0 && optimizedPowers.p2 === 0)) {
+                        return window.showErrorModal("Por favor, introduce las potencias optimizadas.");
+                    }
+                    
+                    // Crear datos con potencias optimizadas
+                    const dataOptimized = {...data};
+                    for(let i=1; i<=6; i++) {
+                        dataOptimized[`potencia_p${i}_kw`] = optimizedPowers[`p${i}`];
+                    }
+                    
+                    // Guardar ambos escenarios en variables globales
+                    window.currentPowerScenario = data;
+                    window.optimizedPowerScenario = dataOptimized;
+                    
+                    console.log('Dual power comparison enabled');
+                    console.log('Current powers:', data);
+                    console.log('Optimized powers:', dataOptimized);
+                    
+                    closeManualInputModal();
+                    
+                    // Calcular ambos escenarios
+                    compareOffersDualPower(data, dataOptimized);
+                    return;
+                }
                 
                 closeManualInputModal();
                 

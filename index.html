@@ -12915,8 +12915,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 // Contexto MultiCups: Añadir a la lista (sin indexado)
                 addSupplyToMultiCupsList(lastComparisonResult, null);
             } else {
-                // Contexto individual: Mostrar resultados (sin indexado)
-                renderResultsUI(lastComparisonResult, null);
+                // NUEVO: Verificar si hay comparativo dual de potencias activo
+                if (window.lastDualPowerComparison) {
+                    console.log('🔥 Comparativo DUAL DE POTENCIAS detectado - Renderizando vista dual');
+                    const dualComp = window.lastDualPowerComparison;
+                    renderDualPowerResultsUI(dualComp.actual, dualComp.optimized, dualComp.brand);
+                } else {
+                    // Contexto individual normal: Mostrar resultados (sin indexado)
+                    renderResultsUI(lastComparisonResult, null);
+                }
+                
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');

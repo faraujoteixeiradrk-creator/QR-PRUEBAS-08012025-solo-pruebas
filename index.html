@@ -8857,6 +8857,283 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 // ===============================================
                 // PÁGINA 2: DESGLOSE DETALLADO
                 // ===============================================
+                doc.addPage();
+                yPos = 20;
+                
+                // Header de la segunda página
+                doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                doc.rect(0, 0, pageWidth, 15, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                doc.text('DESGLOSE DETALLADO POR SUMINISTRO', pageWidth / 2, 10, { align: 'center' });
+                
+                if (presentationMode === 'two-columns') {
+                    // ===============================================
+                    // MODO DOS COLUMNAS: COMPARATIVO LADO A LADO
+                    // ===============================================
+                    const colWidth = (contentWidth - 5) / 2;
+                    let leftX = margin;
+                    let rightX = margin + colWidth + 5;
+                    let currentY = yPos;
+                    
+                    // Función auxiliar para generar una columna de desglose
+                    const generateColumn = (res, x, title, color) => {
+                        let y = currentY;
+                        
+                        // Header de la columna
+                        doc.setFillColor(color[0], color[1], color[2]);
+                        doc.roundedRect(x, y, colWidth, 8, 1, 1, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(9);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text(title, x + colWidth / 2, y + 5.5, { align: 'center' });
+                        y += 10;
+                        
+                        // Datos del CUPS
+                        doc.setFillColor(70, 70, 80);
+                        doc.roundedRect(x, y, colWidth, 15, 1, 1, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(7);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('[ES]', x + 3, y + 5);
+                        doc.text(`Tipo: ${res.tariffType}`, x + colWidth - 3, y + 5, { align: 'right' });
+                        doc.setFont('helvetica', 'normal');
+                        doc.text(`Días: ${res.dias_facturados || 30}`, x + colWidth - 3, y + 9, { align: 'right' });
+                        doc.setFontSize(6);
+                        doc.text(res.offer.name || 'Tarifa', x + 3, y + 9);
+                        y += 17;
+                        
+                        // Precios aplicados
+                        doc.setFillColor(90, 90, 100);
+                        doc.roundedRect(x, y, colWidth, 6, 1, 1, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(7);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('PRECIOS APLICADOS:', x + 3, y + 4);
+                        y += 8;
+                        
+                        // Tabla de precios (simplificada)
+                        doc.setFillColor(100, 100, 110);
+                        doc.roundedRect(x, y, colWidth, 20, 1, 1, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(6);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('POTENCIA:', x + 3, y + 4);
+                        doc.text('ENERGÍA:', x + colWidth / 2 + 2, y + 4);
+                        
+                        doc.setFont('helvetica', 'normal');
+                        let priceY = y + 8;
+                        res.powerCosts.slice(0, 3).forEach((p, idx) => {
+                            doc.text(`P${p.period}: ${num(p.priceDay, 6)} €/kW/día`, x + 3, priceY, { maxWidth: colWidth / 2 - 5 });
+                            priceY += 3;
+                        });
+                        
+                        priceY = y + 8;
+                        res.energyCosts.slice(0, 3).forEach((e, idx) => {
+                            doc.text(`E${e.period}: ${num(e.price, 5)} €/kWh`, x + colWidth / 2 + 2, priceY, { maxWidth: colWidth / 2 - 5 });
+                            priceY += 3;
+                        });
+                        y += 22;
+                        
+                        // POTENCIA
+                        doc.setFillColor(250, 250, 250);
+                        doc.roundedRect(x, y, colWidth, 6, 1, 1, 'F');
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFontSize(7);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('POTENCIA', x + 3, y + 4);
+                        y += 8;
+                        
+                        res.powerCosts.forEach(p => {
+                            if (p.kw > 0 || res.powerCosts.length <= 6) {
+                                doc.setFontSize(6);
+                                doc.setFont('helvetica', 'normal');
+                                doc.setTextColor(60, 60, 60);
+                                const powerLine = `P${p.period}: (${num(p.kw, 2)} kW x ${num(p.priceDay, 6)} €/kW/día)`;
+                                doc.text(powerLine, x + 3, y);
+                                doc.text(`${num(p.cost, 2)} €`, x + colWidth - 3, y, { align: 'right' });
+                                y += 3.5;
+                            }
+                        });
+                        
+                        // ENERGÍA
+                        y += 2;
+                        doc.setFillColor(250, 250, 250);
+                        doc.roundedRect(x, y, colWidth, 6, 1, 1, 'F');
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFontSize(7);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('ENERGÍA', x + 3, y + 4);
+                        y += 8;
+                        
+                        res.energyCosts.forEach(e => {
+                            if (e.kwh > 0 || res.energyCosts.length <= 6) {
+                                doc.setFontSize(6);
+                                doc.setFont('helvetica', 'normal');
+                                doc.setTextColor(60, 60, 60);
+                                const energyLine = `E${e.period}: (${num(e.kwh, 0)} kWh x ${num(e.price, 5)} €/kWh)`;
+                                doc.text(energyLine, x + 3, y);
+                                doc.text(`${num(e.cost, 2)} €`, x + colWidth - 3, y, { align: 'right' });
+                                y += 3.5;
+                            }
+                        });
+                        
+                        // TOTAL
+                        y += 2;
+                        doc.setFillColor(color[0], color[1], color[2]);
+                        doc.roundedRect(x, y, colWidth, 8, 1, 1, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(8);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text(`TOTAL (${res.dias_facturados || 30} DÍAS)`, x + 3, y + 5.5);
+                        doc.text(eur(res.totalPeriod), x + colWidth - 3, y + 5.5, { align: 'right' });
+                        y += 10;
+                        
+                        // AHORRO
+                        doc.setFillColor(220, 38, 38);
+                        doc.roundedRect(x, y, colWidth, 8, 1, 1, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(8);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('AHORRO:', x + 3, y + 5.5);
+                        doc.text(eur(res.savings), x + colWidth - 3, y + 5.5, { align: 'right' });
+                        
+                        return y + 12;
+                    };
+                    
+                    // Generar columna izquierda (Actuales)
+                    generateColumn(resActual, leftX, '[ES] - POTENCIAS ACTUALES', primaryColor);
+                    
+                    // Generar columna derecha (Optimizadas)
+                    generateColumn(resOptimized, rightX, '⚡ [ES] - POTENCIAS OPTIMIZADAS', greenColor);
+                    
+                } else {
+                    // ===============================================
+                    // MODO UNA COLUMNA: SOLO ACTUALES
+                    // ===============================================
+                    let y = yPos;
+                    
+                    // Header del desglose
+                    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                    doc.roundedRect(margin, y, contentWidth, 8, 1, 1, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('[ES] - CON TU TARIFA ACTUAL', pageWidth / 2, y + 5.5, { align: 'center' });
+                    y += 10;
+                    
+                    // Datos del CUPS
+                    doc.setFillColor(70, 70, 80);
+                    doc.roundedRect(margin, y, contentWidth, 15, 1, 1, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('[ES]', margin + 3, y + 5);
+                    doc.text(`Tipo: ${resActual.tariffType}`, pageWidth - margin - 3, y + 5, { align: 'right' });
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(`Días: ${resActual.dias_facturados || 30}`, pageWidth - margin - 3, y + 9, { align: 'right' });
+                    doc.setFontSize(6);
+                    doc.text(resActual.offer.name || 'Tarifa', margin + 3, y + 9);
+                    y += 17;
+                    
+                    // Precios aplicados
+                    doc.setFillColor(90, 90, 100);
+                    doc.roundedRect(margin, y, contentWidth, 6, 1, 1, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('PRECIOS APLICADOS:', margin + 3, y + 4);
+                    y += 8;
+                    
+                    // Tabla de precios
+                    doc.setFillColor(100, 100, 110);
+                    doc.roundedRect(margin, y, contentWidth, 25, 1, 1, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('POTENCIA:', margin + 3, y + 4);
+                    doc.text('ENERGÍA:', margin + contentWidth / 2 + 3, y + 4);
+                    
+                    doc.setFont('helvetica', 'normal');
+                    let priceY = y + 8;
+                    resActual.powerCosts.forEach((p, idx) => {
+                        if (idx < 6) {
+                            doc.text(`P${p.period}: ${num(p.priceDay, 6)} €/kW/día`, margin + 3, priceY);
+                            priceY += 3;
+                        }
+                    });
+                    
+                    priceY = y + 8;
+                    resActual.energyCosts.forEach((e, idx) => {
+                        if (idx < 6) {
+                            doc.text(`E${e.period}: ${num(e.price, 5)} €/kWh`, margin + contentWidth / 2 + 3, priceY);
+                            priceY += 3;
+                        }
+                    });
+                    y += 27;
+                    
+                    // POTENCIA
+                    doc.setFillColor(250, 250, 250);
+                    doc.roundedRect(margin, y, contentWidth, 6, 1, 1, 'F');
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('POTENCIA', margin + 3, y + 4);
+                    y += 8;
+                    
+                    resActual.powerCosts.forEach(p => {
+                        doc.setFontSize(6);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setTextColor(60, 60, 60);
+                        const powerLine = `P${p.period}: (${num(p.kw, 2)} kW x ${num(p.priceDay, 6)} €/kW/día)`;
+                        doc.text(powerLine, margin + 3, y);
+                        doc.text(`${num(p.cost, 2)} €`, pageWidth - margin - 3, y, { align: 'right' });
+                        y += 3.5;
+                    });
+                    
+                    // ENERGÍA
+                    y += 2;
+                    doc.setFillColor(250, 250, 250);
+                    doc.roundedRect(margin, y, contentWidth, 6, 1, 1, 'F');
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('ENERGÍA', margin + 3, y + 4);
+                    y += 8;
+                    
+                    resActual.energyCosts.forEach(e => {
+                        doc.setFontSize(6);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setTextColor(60, 60, 60);
+                        const energyLine = `E${e.period}: (${num(e.kwh, 0)} kWh x ${num(e.price, 5)} €/kWh)`;
+                        doc.text(energyLine, margin + 3, y);
+                        doc.text(`${num(e.cost, 2)} €`, pageWidth - margin - 3, y, { align: 'right' });
+                        y += 3.5;
+                    });
+                    
+                    // TOTAL
+                    y += 2;
+                    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                    doc.roundedRect(margin, y, contentWidth, 8, 1, 1, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(`TOTAL (${resActual.dias_facturados || 30} DÍAS)`, margin + 3, y + 5.5);
+                    doc.text(eur(resActual.totalPeriod), pageWidth - margin - 3, y + 5.5, { align: 'right' });
+                    y += 10;
+                    
+                    // AHORRO
+                    doc.setFillColor(220, 38, 38);
+                    doc.roundedRect(margin, y, contentWidth, 8, 1, 1, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('AHORRO:', margin + 3, y + 5.5);
+                    doc.text(eur(resActual.savings), pageWidth - margin - 3, y + 5.5, { align: 'right' });
+                }
+                
+                // Guardar PDF
                 const pdfName = `Comparativo_Potencias_${clientName.replace(/\s+/g, '_')}_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.pdf`;
                 doc.save(pdfName);
                 

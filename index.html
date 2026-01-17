@@ -9131,12 +9131,24 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFont('helvetica', 'bold');
                     doc.text('AHORRO:', margin + 3, y + 5.5);
                     doc.text(eur(resActual.savings), pageWidth - margin - 3, y + 5.5, { align: 'right' });
+                    
+                    // Actualizar finalY para que el resumen vaya después del desglose
+                    finalY = y + 15;
                 }
                 
                 // ===============================================
-                // RESUMEN DE AHORRO AL FINAL
+                // RESUMEN DE AHORRO JUSTO DESPUÉS DEL DESGLOSE
                 // ===============================================
-                let finalY = 240; // Posición fija al final de la página
+                // Si finalY no fue definido (modo dos columnas), usar una posición por defecto
+                if (typeof finalY === 'undefined') {
+                    finalY = 190; // Posición después de las dos columnas
+                }
+                
+                // Verificar si necesitamos una nueva página
+                if (finalY > 220) {
+                    doc.addPage();
+                    finalY = 20;
+                }
                 
                 if (presentationMode === 'two-columns') {
                     // Modo dos columnas: Mostrar resumen comparativo
@@ -9184,6 +9196,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.text('AHORRO TOTAL OPTIMIZADO:', margin + 10, finalY + 30);
                     doc.text(eur(resOptimized.savings), pageWidth - margin - 10, finalY + 30, { align: 'right' });
                     
+                    finalY += 40; // Avanzar después del resumen
+                    
                 } else {
                     // Modo una columna: Resumen simple
                     doc.setFillColor(250, 250, 250);
@@ -9219,7 +9233,55 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(100, 100, 100);
                     const ahorroAdicional = resActual.totalAnnual - resOptimized.totalAnnual;
                     doc.text(`* Ahorro adicional disponible optimizando potencias: ${eur(ahorroAdicional)}`, pageWidth / 2, finalY + 22, { align: 'center' });
+                    
+                    finalY += 30; // Avanzar después del resumen
                 }
+                
+                // ===============================================
+                // TEXTO DE FORMALIZACIÓN
+                // ===============================================
+                // Verificar si necesitamos una nueva página para el texto de formalización
+                if (finalY > 210) {
+                    doc.addPage();
+                    finalY = 20;
+                }
+                
+                // Caja de formalización
+                doc.setFillColor(70, 80, 90);
+                doc.roundedRect(margin, finalY, contentWidth, 50, 2, 2, 'F');
+                
+                // Título
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.text('PARA FORMALIZAR ESTE CONTRATO:', margin + 5, finalY + 8);
+                
+                // Subtítulo
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Responde a este email adjuntando la siguiente documentacion:', margin + 5, finalY + 14);
+                
+                // Lista de documentos
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                doc.text('1. Foto del DNI/CIF (anverso y reverso)', margin + 8, finalY + 19);
+                doc.text('2. Ultima factura (minimo 3 meses de antiguedad)', margin + 8, finalY + 23);
+                doc.text('3. Email de contacto para validacion', margin + 8, finalY + 27);
+                doc.text('4. Telefono de contacto', margin + 8, finalY + 31);
+                doc.text('5. Numero de cuenta bancaria (IBAN)', margin + 8, finalY + 35);
+                
+                // Línea separadora
+                doc.setDrawColor(200, 200, 200);
+                doc.setLineWidth(0.5);
+                doc.line(margin + 5, finalY + 39, pageWidth - margin - 5, finalY + 39);
+                
+                // Texto de envío
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Envia la documentacion al comercial:', margin + 5, finalY + 44);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9);
+                doc.text(commercialCode || 'a<sz', margin + 5, finalY + 48);
                 
                 // Guardar PDF
                 const pdfName = `Comparativo_Potencias_${clientName.replace(/\s+/g, '_')}_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.pdf`;

@@ -13047,6 +13047,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // NUEVA LÓGICA: Determinar si estamos en modo DRK o POWER CUP
             const isDrkMode = activeBrand.NAME.includes('DRK');
             console.log('🔍 Modo activo:', isDrkMode ? 'DRK' : 'POWER CUP');
+            console.log('🔍 bestOptionTariffChoice:', bestOptionTariffChoice);
+            console.log('🔍 availableOffers total:', availableOffers.length);
             
             // Filtrar availableOffers según la elección Y el modo
             let filteredOffersChosen = availableOffers.filter(offer => {
@@ -13055,17 +13057,26 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 const isIndexed = offerName.includes('INDEX') || offerDesc.includes('INDEX');
                 const isDrkOffer = offer.offer.isDrk === true;
                 
+                // LOG: Ver cada oferta
+                console.log(`  - ${offer.offer.name}: isIndexed=${isIndexed}, isDrkOffer=${isDrkOffer}`);
+                
                 if (bestOptionTariffChoice === 'indexada') {
                     // Usuario eligió INDEXADA → Solo DRK INDEX (siempre)
-                    return isIndexed && isDrkOffer;
+                    const result = isIndexed && isDrkOffer;
+                    if (result) console.log(`    ✅ INCLUIDA (INDEXADA)`);
+                    return result;
                 } else {
                     // Usuario eligió FIJA
                     if (isDrkMode) {
                         // Modo DRK → Solo tarifas FIJAS de DRK
-                        return !isIndexed && isDrkOffer;
+                        const result = !isIndexed && isDrkOffer;
+                        if (result) console.log(`    ✅ INCLUIDA (FIJA DRK)`);
+                        return result;
                     } else {
                         // Modo POWER CUP → Tarifas FIJAS de cualquier comercializadora
-                        return !isIndexed;
+                        const result = !isIndexed;
+                        if (result) console.log(`    ✅ INCLUIDA (FIJA cualquiera)`);
+                        return result;
                     }
                 }
             });

@@ -1479,59 +1479,55 @@
         </div>
 
         <!-- 9. Send Offer Modal (Copy HTML) -->
-        <div id="send-offer-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-            <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full">
-                <h3 class="text-xl font-bold text-drk-800 mb-4" id="modal-client-data-title">Datos del Comercial y Cliente</h3>
-                <p class="text-sm text-slate-600 mb-3">Rellene sus datos. El resumen profesional de la oferta se copiará a su portapapeles (Ctrl+V).</p>
+        <div id="send-offer-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm overflow-y-auto">
+            <div class="bg-white p-5 rounded-2xl shadow-2xl max-w-sm w-full my-8 max-h-[90vh] overflow-y-auto">
+                <h3 class="text-lg font-bold text-drk-800 mb-3" id="modal-client-data-title">Datos del Comercial y Cliente</h3>
+                <p class="text-xs text-slate-600 mb-3">Rellene sus datos para generar el comparativo.</p>
                 
-                <input type="text" id="comercial-code-input" placeholder="CÓDIGO COMERCIAL (Obligatorio)" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
-                <input type="text" id="client-name-input" placeholder="Nombre Cliente" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
-                <input type="tel" id="client-phone-input" placeholder="Teléfono" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
-                <input type="email" id="client-email-input" placeholder="Email" class="w-full mb-4 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
+                <input type="text" id="comercial-code-input" placeholder="CÓDIGO COMERCIAL (Obligatorio)" class="w-full mb-2 p-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
+                <input type="text" id="client-name-input" placeholder="Nombre Cliente" class="w-full mb-2 p-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
+                <input type="tel" id="client-phone-input" placeholder="Teléfono" class="w-full mb-2 p-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
+                <input type="email" id="client-email-input" placeholder="Email" class="w-full mb-3 p-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
                 
-                <!-- NUEVO: Selector de modo de presentación para potencias optimizadas (solo visible cuando está activado) -->
-                <div id="optimized-presentation-mode-selector" class="hidden mb-4 bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-300 p-4 rounded-xl">
-                    <label class="block text-sm font-bold text-purple-900 mb-3">📊 Modo de Presentación de Potencias Optimizadas</label>
+                <!-- NUEVO: Selector de modo de presentación para potencias optimizadas (COMPACTO) -->
+                <div id="optimized-presentation-mode-selector" class="hidden mb-3 bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-300 p-3 rounded-xl">
+                    <label class="block text-xs font-bold text-purple-900 mb-2">📊 Modo de Presentación de Potencias Optimizadas</label>
                     <div class="space-y-2">
-                        <label class="flex items-start cursor-pointer bg-white p-3 rounded-lg border-2 border-transparent hover:border-purple-400 transition">
-                            <input type="radio" name="presentation-mode" value="two-columns" checked class="mt-1 w-4 h-4 text-purple-600 focus:ring-purple-500 mr-3">
-                            <div>
-                                <span class="text-sm font-bold text-slate-800">Modo A - Dos Columnas</span>
-                                <p class="text-xs text-slate-600 mt-1">Muestra potencias actuales y optimizadas lado a lado. El cliente VE las potencias propuestas.</p>
+                        <label class="flex items-start cursor-pointer bg-white p-2 rounded-lg border-2 border-transparent hover:border-purple-400 transition">
+                            <input type="radio" name="presentation-mode" value="two-columns" checked class="mt-0.5 w-3.5 h-3.5 text-purple-600 focus:ring-purple-500 mr-2 flex-shrink-0">
+                            <div class="flex-1">
+                                <span class="text-xs font-bold text-slate-800">Modo A - Dos Columnas</span>
+                                <p class="text-[10px] text-slate-600 mt-0.5 leading-tight">Muestra potencias actuales y optimizadas lado a lado. El cliente VE las potencias propuestas.</p>
                             </div>
                         </label>
-                        <label class="flex items-start cursor-pointer bg-white p-3 rounded-lg border-2 border-transparent hover:border-purple-400 transition">
-                            <input type="radio" name="presentation-mode" value="one-column" class="mt-1 w-4 h-4 text-purple-600 focus:ring-purple-500 mr-3">
-                            <div>
-                                <span class="text-sm font-bold text-slate-800">Modo B - Una Columna (Ocultar optimización)</span>
-                                <p class="text-xs text-slate-600 mt-1">Solo muestra potencias actuales. Al final incluye resumen de ahorros. El cliente NO ve qué potencias bajar.</p>
+                        <label class="flex items-start cursor-pointer bg-white p-2 rounded-lg border-2 border-transparent hover:border-purple-400 transition">
+                            <input type="radio" name="presentation-mode" value="one-column" class="mt-0.5 w-3.5 h-3.5 text-purple-600 focus:ring-purple-500 mr-2 flex-shrink-0">
+                            <div class="flex-1">
+                                <span class="text-xs font-bold text-slate-800">Modo B - Una Columna</span>
+                                <p class="text-[10px] text-slate-600 mt-0.5 leading-tight">Solo potencias actuales. Al final resumen de ahorros. El cliente NO ve qué potencias bajar.</p>
                             </div>
                         </label>
                     </div>
                 </div>
                 
-                <!-- Nota informativa para iPhone -->
-                <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-                    <div class="flex items-start gap-2">
-                        <span class="text-amber-600 text-xl">⚠️</span>
-                        <div class="text-xs text-amber-800">
-                            <p class="font-bold mb-1">NOTA PARA USUARIOS DE iPHONE:</p>
-                            <p class="leading-relaxed">Si copias desde iPhone, el formato puede no verse correctamente en algunos correos. Para mejor resultado:</p>
-                            <ul class="mt-1 ml-3 space-y-0.5">
-                                <li>✓ Copia desde un <strong>ordenador</strong></li>
-                                <li>✓ O usa <strong>Gmail/Outlook web</strong> en el navegador móvil</li>
-                            </ul>
+                <!-- Nota informativa para iPhone (COMPACTA) -->
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 mb-3">
+                    <div class="flex items-start gap-1.5">
+                        <span class="text-amber-600 text-base flex-shrink-0">⚠️</span>
+                        <div class="text-[10px] text-amber-800 leading-tight">
+                            <p class="font-bold mb-0.5">NOTA PARA iPHONE:</p>
+                            <p>Para mejor resultado: ✓ Copia desde <strong>ordenador</strong> o ✓ Usa <strong>Gmail/Outlook web</strong> en navegador móvil</p>
                         </div>
                     </div>
                 </div>
                 
-                <button id="execute-send-offer-btn" class="w-full bg-cta-red-500 hover:bg-cta-red-600 text-white font-black py-3 rounded-xl shadow-md mb-3">
+                <button id="execute-send-offer-btn" class="w-full bg-cta-red-500 hover:bg-cta-red-600 text-white font-bold py-3 rounded-xl shadow-md mb-2">
                     📧 COPIAR COMPARATIVO (HTML)
                 </button>
-                <button id="execute-pdf-offer-btn" class="w-full bg-drk-600 hover:bg-drk-700 text-white font-black py-3 rounded-xl shadow-md mb-3">
+                <button id="execute-pdf-offer-btn" class="w-full bg-drk-600 hover:bg-drk-700 text-white font-bold py-3 rounded-xl shadow-md mb-2">
                     📄 CREAR PDF COMPARATIVO
                 </button>
-                <button onclick="document.getElementById('send-offer-modal').classList.add('hidden'); document.getElementById('send-offer-modal').classList.remove('flex');" class="w-full bg-slate-200 font-bold py-3 rounded-xl text-sm">Cancelar</button>
+                <button onclick="document.getElementById('send-offer-modal').classList.add('hidden'); document.getElementById('send-offer-modal').classList.remove('flex');" class="w-full bg-slate-200 font-bold py-2.5 rounded-xl text-sm">Cancelar</button>
             </div>
         </div>
 

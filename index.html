@@ -12199,6 +12199,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const isDrkMode = comparisonMode !== 'overall_best';
             const isIndividual = currentTariffType !== 'MULTICUPS';
             
+            // NUEVO: Si hay optimización de potencias activa, ejecutar directamente SIN selector
+            if (window.optimizedPowerEnabled || window.lastDualPowerComparison) {
+                console.log('⚡ Optimización de potencias activa - Ejecutando directamente SIN selector');
+                selectorDiv?.classList.add('hidden');
+                if (checkboxContainer) checkboxContainer.classList.add('hidden');
+                selectBestOptionDirect();
+                return;
+            }
+            
             if (isDrkMode) {
                 // DRK (Individual o MULTICUPS)
                 

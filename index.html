@@ -5029,12 +5029,354 @@
         
         // --- COPIA HTML MEJORADA ---
 
+        // NUEVA FUNCIÓN: Manejar copia de oferta con comparativo dual de potencias
+        async function handleCopyOfferDualPower() {
+            console.log('🔥 handleCopyOfferDualPower - Generando HTML para comparativo dual');
+            
+            const dualComparison = window.lastDualPowerComparison;
+            const resActual = dualComparison.actual;
+            const resOptimized = dualComparison.optimized;
+            const brand = dualComparison.brand;
+            const presentationMode = getPresentationMode();
+            
+            const isDrk = brand.NAME.includes('DRK');
+            const brandColor = isDrk ? '#2e5266' : '#3f6212';
+            
+            const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+            const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
+            
+            console.log('Modo de presentación seleccionado:', presentationMode);
+            
+            let htmlContent = '';
+            
+            if (presentationMode === 'two-columns') {
+                // MODO A: DOS COLUMNAS - Mostrar ambos comparativos lado a lado
+                console.log('📊 Generando HTML Modo A - Dos Columnas');
+                
+                htmlContent = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head><meta charset="UTF-8"></head>
+                    <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background:#f1f5f9;">
+                    
+                    <table width="900" cellpadding="0" cellspacing="0" align="center" style="background:#ffffff;">
+                        <!-- HEADER -->
+                        <tr>
+                            <td bgcolor="${brandColor}" style="padding:30px;text-align:center;">
+                                <h1 style="margin:0;color:#ffffff;font-size:32px;">${brand.FULL_NAME}</h1>
+                                <p style="margin:10px 0 0 0;color:#ffffff;font-size:15px;">Comparativa: Potencias Actuales vs Potencias Optimizadas</p>
+                            </td>
+                        </tr>
+                        
+                        <!-- BADGE OPTIMIZACIÓN -->
+                        <tr>
+                            <td style="padding:15px;background:linear-gradient(to right, #f59e0b, #ea580c);text-align:center;">
+                                <p style="margin:0;color:#ffffff;font-size:14px;font-weight:bold;">⚡ COMPARATIVO 3.0TD CON OPTIMIZACIÓN DE POTENCIAS</p>
+                            </td>
+                        </tr>
+                        
+                        <!-- CUPS -->
+                        <tr>
+                            <td style="padding:15px 20px;background:#f8fafc;">
+                                <p style="margin:0;color:#64748b;font-size:12px;">CUPS: <span style="font-family:monospace;color:#1e293b;font-weight:bold;">${resActual.cups}</span></p>
+                            </td>
+                        </tr>
+                        
+                        <!-- DOS COLUMNAS COMPARATIVAS -->
+                        <tr>
+                            <td style="padding:20px;">
+                                <table width="100%" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <!-- COLUMNA 1: POTENCIAS ACTUALES -->
+                                        <td width="48%" valign="top" style="padding-right:10px;">
+                                            <!-- Header Columna 1 -->
+                                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:15px;">
+                                                <tr>
+                                                    <td bgcolor="${brandColor}" style="padding:15px;text-align:center;border-radius:8px 8px 0 0;">
+                                                        <h3 style="margin:0;color:#ffffff;font-size:16px;">CON POTENCIAS ACTUALES</h3>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            
+                                            <!-- Ahorro Actual -->
+                                            <table width="100%" cellpadding="15" cellspacing="0" style="background:#f8fafc;border:2px solid ${brandColor};border-radius:8px;margin-bottom:15px;">
+                                                <tr>
+                                                    <td style="text-align:center;">
+                                                        <p style="margin:0 0 8px 0;color:#64748b;font-size:11px;font-weight:bold;">TU AHORRO ANUAL</p>
+                                                        <p style="margin:0;color:#16a34a;font-size:32px;font-weight:bold;">${eur(resActual.savings)}</p>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            
+                                            <!-- Costes Actual -->
+                                            <table width="100%" cellpadding="10" cellspacing="0" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:15px;">
+                                                <tr>
+                                                    <td style="text-align:center;border-bottom:1px solid #e2e8f0;padding:15px;">
+                                                        <p style="margin:0 0 5px 0;color:#64748b;font-size:11px;">TU FACTURA ACTUAL</p>
+                                                        <p style="margin:0;color:#dc2626;font-size:20px;font-weight:bold;text-decoration:line-through;">${eur(resActual.originalBillAnnual)}/año</p>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align:center;padding:15px;">
+                                                        <p style="margin:0 0 5px 0;color:${brandColor};font-size:11px;font-weight:bold;">TU NUEVO COSTE ${brand.NAME}</p>
+                                                        <p style="margin:0 0 5px 0;color:#1e293b;font-size:18px;font-weight:bold;">${eur(resActual.totalAnnual / 12)}/mes</p>
+                                                        <p style="margin:0;color:#1e293b;font-size:16px;font-weight:bold;">${eur(resActual.totalAnnual)}/año</p>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            
+                                            <!-- Potencias Actuales -->
+                                            <table width="100%" cellpadding="10" cellspacing="0" bgcolor="#f8fafc" style="border-radius:8px;">
+                                                <tr>
+                                                    <td colspan="2" style="padding:10px;border-bottom:1px solid #e2e8f0;">
+                                                        <p style="margin:0;color:${brandColor};font-size:13px;font-weight:bold;">POTENCIAS CONTRATADAS (kW)</p>
+                                                    </td>
+                                                </tr>
+                                                ${resActual.powerCosts ? resActual.powerCosts.map(p => `
+                                                <tr>
+                                                    <td style="padding:5px 10px;color:#64748b;font-size:12px;">P${p.period}</td>
+                                                    <td align="right" style="padding:5px 10px;color:#1e293b;font-size:12px;font-weight:bold;">${(p.kw || 0).toFixed(2)} kW</td>
+                                                </tr>
+                                                `).join('') : ''}
+                                            </table>
+                                        </td>
+                                        
+                                        <!-- SEPARADOR -->
+                                        <td width="4%" style="background:#e2e8f0;"></td>
+                                        
+                                        <!-- COLUMNA 2: POTENCIAS OPTIMIZADAS -->
+                                        <td width="48%" valign="top" style="padding-left:10px;">
+                                            <!-- Header Columna 2 -->
+                                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:15px;">
+                                                <tr>
+                                                    <td bgcolor="#16a34a" style="padding:15px;text-align:center;border-radius:8px 8px 0 0;">
+                                                        <h3 style="margin:0;color:#ffffff;font-size:16px;">⚡ CON POTENCIAS OPTIMIZADAS</h3>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            
+                                            <!-- Ahorro Optimizado -->
+                                            <table width="100%" cellpadding="15" cellspacing="0" style="background:#dcfce7;border:2px solid #16a34a;border-radius:8px;margin-bottom:15px;">
+                                                <tr>
+                                                    <td style="text-align:center;">
+                                                        <p style="margin:0 0 8px 0;color:#15803d;font-size:11px;font-weight:bold;">TU AHORRO ANUAL CON OPTIMIZACIÓN</p>
+                                                        <p style="margin:0;color:#16a34a;font-size:32px;font-weight:bold;">${eur(resOptimized.savings)}</p>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            
+                                            <!-- Costes Optimizado -->
+                                            <table width="100%" cellpadding="10" cellspacing="0" style="background:#ffffff;border:2px solid #16a34a;border-radius:8px;margin-bottom:15px;">
+                                                <tr>
+                                                    <td style="text-align:center;border-bottom:1px solid #e2e8f0;padding:15px;">
+                                                        <p style="margin:0 0 5px 0;color:#64748b;font-size:11px;">TU FACTURA ACTUAL</p>
+                                                        <p style="margin:0;color:#dc2626;font-size:20px;font-weight:bold;text-decoration:line-through;">${eur(resOptimized.originalBillAnnual)}/año</p>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align:center;padding:15px;">
+                                                        <p style="margin:0 0 5px 0;color:#16a34a;font-size:11px;font-weight:bold;">TU NUEVO COSTE ${brand.NAME}</p>
+                                                        <p style="margin:0 0 5px 0;color:#1e293b;font-size:18px;font-weight:bold;">${eur(resOptimized.totalAnnual / 12)}/mes</p>
+                                                        <p style="margin:0;color:#1e293b;font-size:16px;font-weight:bold;">${eur(resOptimized.totalAnnual)}/año</p>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            
+                                            <!-- Potencias Optimizadas -->
+                                            <table width="100%" cellpadding="10" cellspacing="0" bgcolor="#dcfce7" style="border:2px solid #16a34a;border-radius:8px;">
+                                                <tr>
+                                                    <td colspan="2" style="padding:10px;border-bottom:1px solid #86efac;">
+                                                        <p style="margin:0;color:#15803d;font-size:13px;font-weight:bold;">⚡ POTENCIAS OPTIMIZADAS (kW)</p>
+                                                    </td>
+                                                </tr>
+                                                ${resOptimized.powerCosts ? resOptimized.powerCosts.map(p => `
+                                                <tr>
+                                                    <td style="padding:5px 10px;color:#15803d;font-size:12px;">P${p.period}</td>
+                                                    <td align="right" style="padding:5px 10px;color:#1e293b;font-size:12px;font-weight:bold;">${(p.kw || 0).toFixed(2)} kW</td>
+                                                </tr>
+                                                `).join('') : ''}
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                        <!-- AHORRO ADICIONAL POR OPTIMIZACIÓN -->
+                        <tr>
+                            <td style="padding:20px;">
+                                <table width="100%" cellpadding="20" cellspacing="0" style="background:linear-gradient(to right, #fef3c7, #fed7aa);border:3px solid #f59e0b;border-radius:12px;">
+                                    <tr>
+                                        <td style="text-align:center;">
+                                            <p style="margin:0 0 8px 0;color:#92400e;font-size:14px;font-weight:bold;">💰 AHORRO ADICIONAL POR OPTIMIZACIÓN DE POTENCIAS</p>
+                                            <p style="margin:0;color:#d97706;font-size:36px;font-weight:bold;">${eur(resActual.totalAnnual - resOptimized.totalAnnual)}</p>
+                                            <p style="margin:8px 0 0 0;color:#78350f;font-size:12px;">Extra al año ajustando tus potencias contratadas</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                        <!-- FOOTER -->
+                        <tr>
+                            <td bgcolor="${brandColor}" style="padding:20px;text-align:center;">
+                                <p style="margin:0;color:#ffffff;font-size:12px;">${brand.FULL_NAME} - Soluciones Energéticas Inteligentes</p>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    </body>
+                    </html>
+                `;
+                
+            } else {
+                // MODO B: UNA COLUMNA - Solo mostrar escenario actual con resumen al final
+                console.log('📊 Generando HTML Modo B - Una Columna (Ocultar optimización)');
+                
+                htmlContent = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head><meta charset="UTF-8"></head>
+                    <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background:#f1f5f9;">
+                    
+                    <table width="700" cellpadding="0" cellspacing="0" align="center" style="background:#ffffff;">
+                        <!-- HEADER -->
+                        <tr>
+                            <td bgcolor="${brandColor}" style="padding:30px;text-align:center;">
+                                <h1 style="margin:0;color:#ffffff;font-size:32px;">${brand.FULL_NAME}</h1>
+                                <p style="margin:10px 0 0 0;color:#ffffff;font-size:15px;">Tu Estudio de Ahorro Energético</p>
+                            </td>
+                        </tr>
+                        
+                        <!-- OFERTA -->
+                        <tr>
+                            <td bgcolor="${brandColor}" style="padding:15px;text-align:center;">
+                                <p style="margin:0;color:#ffffff;font-size:11px;">LA MEJOR OPCIÓN PARA TI</p>
+                                <h2 style="margin:5px 0 0 0;color:#ffffff;font-size:22px;">${resActual.offer.name}</h2>
+                            </td>
+                        </tr>
+                        
+                        <!-- AHORRO -->
+                        <tr>
+                            <td style="padding:25px;text-align:center;border-bottom:1px solid #e2e8f0;">
+                                <p style="margin:0 0 8px 0;color:#64748b;font-size:11px;font-weight:bold;">TU AHORRO ANUAL ESTIMADO</p>
+                                <p style="margin:0;color:#16a34a;font-size:42px;font-weight:bold;">${eur(resActual.savings)}</p>
+                            </td>
+                        </tr>
+                        
+                        <!-- COMPARATIVA -->
+                        <tr>
+                            <td style="padding:0;">
+                                <table width="100%" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td width="50%" style="padding:20px;text-align:center;border-right:1px solid #e2e8f0;">
+                                            <p style="margin:0 0 10px 0;color:#64748b;font-size:10px;font-weight:bold;">TU FACTURA ACTUAL</p>
+                                            <p style="margin:0;color:#dc2626;font-size:18px;font-weight:bold;text-decoration:line-through;">${eur(resActual.originalBillAnnual)}/año</p>
+                                        </td>
+                                        <td width="50%" style="padding:20px;text-align:center;">
+                                            <p style="margin:0 0 10px 0;color:${brandColor};font-size:10px;font-weight:bold;">TU NUEVO COSTE ${brand.NAME}</p>
+                                            <p style="margin:0 0 5px 0;color:#1e293b;font-size:20px;font-weight:bold;">${eur(resActual.totalAnnual / 12)}/mes</p>
+                                            <p style="margin:0;color:#1e293b;font-size:16px;font-weight:bold;">${eur(resActual.totalAnnual)}/año</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                        <!-- RESUMEN DE OPTIMIZACIÓN (Sin detalles de potencias) -->
+                        <tr>
+                            <td style="padding:30px 20px;">
+                                <table width="100%" cellpadding="20" cellspacing="0" style="background:#f8fafc;border:2px solid #f59e0b;border-radius:12px;">
+                                    <tr>
+                                        <td>
+                                            <h3 style="margin:0 0 15px 0;color:#1e293b;font-size:18px;text-align:center;">📊 Resumen de Optimización</h3>
+                                            
+                                            <table width="100%" cellpadding="10" cellspacing="0">
+                                                <tr>
+                                                    <td style="padding:10px;background:#ffffff;border-radius:8px;margin-bottom:10px;">
+                                                        <p style="margin:0 0 5px 0;color:#64748b;font-size:12px;">Ahorro sin optimizar:</p>
+                                                        <p style="margin:0;color:#16a34a;font-size:20px;font-weight:bold;">${eur(resActual.savings)}/año</p>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding:10px;background:#dcfce7;border:2px solid #16a34a;border-radius:8px;">
+                                                        <p style="margin:0 0 5px 0;color:#15803d;font-size:12px;font-weight:bold;">Ahorro con optimización de potencias:</p>
+                                                        <p style="margin:0;color:#16a34a;font-size:24px;font-weight:bold;">${eur(resOptimized.savings)}/año</p>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            
+                                            <table width="100%" cellpadding="15" cellspacing="0" style="margin-top:15px;background:linear-gradient(to right, #fef3c7, #fed7aa);border-radius:8px;">
+                                                <tr>
+                                                    <td style="text-align:center;">
+                                                        <p style="margin:0 0 5px 0;color:#92400e;font-size:13px;font-weight:bold;">💰 Ahorro adicional ajustando potencias:</p>
+                                                        <p style="margin:0;color:#d97706;font-size:28px;font-weight:bold;">${eur(resActual.totalAnnual - resOptimized.totalAnnual)}</p>
+                                                        <p style="margin:5px 0 0 0;color:#78350f;font-size:11px;font-style:italic;">¡Podemos ayudarte a optimizar tus potencias!</p>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        
+                        <!-- FOOTER -->
+                        <tr>
+                            <td bgcolor="${brandColor}" style="padding:20px;text-align:center;">
+                                <p style="margin:0;color:#ffffff;font-size:12px;">${brand.FULL_NAME} - Soluciones Energéticas Inteligentes</p>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    </body>
+                    </html>
+                `;
+            }
+            
+            // Copiar al portapapeles
+            try {
+                const tempElement = document.createElement('div');
+                tempElement.innerHTML = htmlContent;
+                tempElement.style.position = 'absolute';
+                tempElement.style.left = '-9999px';
+                document.body.appendChild(tempElement);
+                
+                const range = document.createRange();
+                range.selectNodeContents(tempElement);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                
+                let success = document.execCommand('copy');
+                document.body.removeChild(tempElement);
+                
+                if (success) {
+                    window.showMessageModal(`✅ ¡Comparativo de potencias copiado! (Modo: ${presentationMode === 'two-columns' ? 'Dos Columnas' : 'Una Columna'})`);
+                    document.getElementById('send-offer-modal').classList.add('hidden');
+                    document.getElementById('send-offer-modal').classList.remove('flex');
+                } else {
+                    window.showErrorModal("No se pudo copiar. Intente desde un PC.");
+                }
+            } catch (e) {
+                console.error("Error al copiar:", e);
+                window.showErrorModal(`Error: ${e.message}`);
+            }
+        }
+
         async function handleCopyOffer() {
             console.log('handleCopyOffer llamada', {
                 lastComparisonResult: lastComparisonResult,
                 lastIndexedResult: lastIndexedResult,
-                compareWithIndexed: compareWithIndexed
+                compareWithIndexed: compareWithIndexed,
+                dualPowerComparison: window.lastDualPowerComparison
             });
+            
+            // NUEVO: Detectar si hay comparativa dual de potencias
+            if (window.lastDualPowerComparison) {
+                console.log('🔄 Comparativa DUAL DE POTENCIAS detectada');
+                return await handleCopyOfferDualPower();
+            }
             
             if (!lastComparisonResult) {
                 console.error('ERROR: lastComparisonResult es null o undefined');

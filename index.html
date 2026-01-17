@@ -8617,11 +8617,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 yPos += 25;
                 
                 // ===============================================
-                // DOS COLUMNAS COMPARATIVAS
+                // COLUMNAS COMPARATIVAS
                 // ===============================================
-                const colWidth = (contentWidth - 5) / 2;
+                // Ajustar ancho según el modo
+                const colWidth = presentationMode === 'two-columns' ? (contentWidth - 5) / 2 : contentWidth;
                 
-                // COLUMNA IZQUIERDA: POTENCIAS ACTUALES
+                // COLUMNA IZQUIERDA (o ÚNICA): POTENCIAS ACTUALES
                 let leftX = margin;
                 let leftY = yPos;
                 
@@ -8630,7 +8631,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
-                doc.text('CON POTENCIAS ACTUALES', leftX + colWidth / 2, leftY + 8, { align: 'center' });
+                const headerText = presentationMode === 'two-columns' ? 'CON POTENCIAS ACTUALES' : 'TU NUEVA TARIFA';
+                doc.text(headerText, leftX + colWidth / 2, leftY + 8, { align: 'center' });
                 
                 leftY += 15;
                 
@@ -8682,93 +8684,177 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                 });
                 
-                // COLUMNA DERECHA: POTENCIAS OPTIMIZADAS
-                let rightX = margin + colWidth + 5;
-                let rightY = yPos;
-                
-                doc.setFillColor(greenColor[0], greenColor[1], greenColor[2]);
-                doc.roundedRect(rightX, rightY, colWidth, 12, 2, 2, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'bold');
-                doc.text('⚡ CON POTENCIAS OPTIMIZADAS', rightX + colWidth / 2, rightY + 8, { align: 'center' });
-                
-                rightY += 15;
-                
-                // Ahorro optimizado
-                doc.setFillColor(220, 252, 231);
-                doc.setDrawColor(greenColor[0], greenColor[1], greenColor[2]);
-                doc.setLineWidth(0.5);
-                doc.roundedRect(rightX, rightY, colWidth, 20, 2, 2, 'FD');
-                doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'bold');
-                doc.text('TU AHORRO CON OPTIMIZACIÓN', rightX + colWidth / 2, rightY + 5, { align: 'center' });
-                doc.setFontSize(16);
-                doc.text(eur(resOptimized.savings), rightX + colWidth / 2, rightY + 14, { align: 'center' });
-                
-                rightY += 25;
-                
-                // Nuevo coste optimizado
-                doc.setDrawColor(greenColor[0], greenColor[1], greenColor[2]);
-                doc.setLineWidth(0.8);
-                doc.roundedRect(rightX, rightY, colWidth, 20, 2, 2, 'S');
-                doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'bold');
-                doc.text('TU NUEVO COSTE', rightX + colWidth / 2, rightY + 5, { align: 'center' });
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(11);
-                doc.text(eur(resOptimized.totalAnnual / 12) + '/mes', rightX + colWidth / 2, rightY + 11, { align: 'center' });
-                doc.setFontSize(9);
-                doc.text(eur(resOptimized.totalAnnual) + '/año', rightX + colWidth / 2, rightY + 16, { align: 'center' });
-                
-                rightY += 25;
-                
-                // Potencias optimizadas
-                doc.setFillColor(220, 252, 231);
-                doc.setDrawColor(greenColor[0], greenColor[1], greenColor[2]);
-                doc.setLineWidth(0.5);
-                doc.roundedRect(rightX, rightY, colWidth, 35, 2, 2, 'FD');
-                doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'bold');
-                doc.text('⚡ POTENCIAS OPTIMIZADAS (kW)', rightX + colWidth / 2, rightY + 5, { align: 'center' });
-                
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'normal');
-                powerY = rightY + 10;
-                resOptimized.powerCosts.forEach((p, idx) => {
-                    if (p.kw > 0 || idx < 6) {
-                        doc.text(`P${p.period}: ${num(p.kw, 2)} kW`, rightX + 5, powerY);
-                        powerY += 4;
-                    }
-                });
-                
-                yPos = Math.max(leftY, rightY) + 40;
-                
                 // ===============================================
-                // AHORRO ADICIONAL POR OPTIMIZACIÓN
+                // COLUMNA DERECHA (SOLO EN MODO DOS COLUMNAS)
                 // ===============================================
-                if (yPos > 250) {
-                    doc.addPage();
-                    yPos = 20;
+                if (presentationMode === 'two-columns') {
+                    // COLUMNA DERECHA: POTENCIAS OPTIMIZADAS
+                    let rightX = margin + colWidth + 5;
+                    let rightY = yPos;
+                    
+                    doc.setFillColor(greenColor[0], greenColor[1], greenColor[2]);
+                    doc.roundedRect(rightX, rightY, colWidth, 12, 2, 2, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('⚡ CON POTENCIAS OPTIMIZADAS', rightX + colWidth / 2, rightY + 8, { align: 'center' });
+                    
+                    rightY += 15;
+                    
+                    // Ahorro optimizado
+                    doc.setFillColor(220, 252, 231);
+                    doc.setDrawColor(greenColor[0], greenColor[1], greenColor[2]);
+                    doc.setLineWidth(0.5);
+                    doc.roundedRect(rightX, rightY, colWidth, 20, 2, 2, 'FD');
+                    doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('TU AHORRO CON OPTIMIZACIÓN', rightX + colWidth / 2, rightY + 5, { align: 'center' });
+                    doc.setFontSize(16);
+                    doc.text(eur(resOptimized.savings), rightX + colWidth / 2, rightY + 14, { align: 'center' });
+                    
+                    rightY += 25;
+                    
+                    // Nuevo coste optimizado
+                    doc.setDrawColor(greenColor[0], greenColor[1], greenColor[2]);
+                    doc.setLineWidth(0.8);
+                    doc.roundedRect(rightX, rightY, colWidth, 20, 2, 2, 'S');
+                    doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('TU NUEVO COSTE', rightX + colWidth / 2, rightY + 5, { align: 'center' });
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(11);
+                    doc.text(eur(resOptimized.totalAnnual / 12) + '/mes', rightX + colWidth / 2, rightY + 11, { align: 'center' });
+                    doc.setFontSize(9);
+                    doc.text(eur(resOptimized.totalAnnual) + '/año', rightX + colWidth / 2, rightY + 16, { align: 'center' });
+                    
+                    rightY += 25;
+                    
+                    // Potencias optimizadas
+                    doc.setFillColor(220, 252, 231);
+                    doc.setDrawColor(greenColor[0], greenColor[1], greenColor[2]);
+                    doc.setLineWidth(0.5);
+                    doc.roundedRect(rightX, rightY, colWidth, 35, 2, 2, 'FD');
+                    doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('⚡ POTENCIAS OPTIMIZADAS (kW)', rightX + colWidth / 2, rightY + 5, { align: 'center' });
+                    
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'normal');
+                    powerY = rightY + 10;
+                    resOptimized.powerCosts.forEach((p, idx) => {
+                        if (p.kw > 0 || idx < 6) {
+                            doc.text(`P${p.period}: ${num(p.kw, 2)} kW`, rightX + 5, powerY);
+                            powerY += 4;
+                        }
+                    });
+                    
+                    yPos = Math.max(leftY, rightY) + 40;
+                } else {
+                    // MODO UNA COLUMNA: Extender la columna izquierda a ancho completo
+                    yPos = leftY;
                 }
                 
-                const ahorroAdicional = resActual.totalAnnual - resOptimized.totalAnnual;
+                // ===============================================
+                // AHORRO ADICIONAL (SOLO EN MODO DOS COLUMNAS)
+                // ===============================================
+                if (presentationMode === 'two-columns') {
+                    if (yPos > 250) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    
+                    const ahorroAdicional = resActual.totalAnnual - resOptimized.totalAnnual;
+                    
+                    doc.setFillColor(254, 243, 199);
+                    doc.setDrawColor(orangeColor[0], orangeColor[1], orangeColor[2]);
+                    doc.setLineWidth(1);
+                    doc.roundedRect(margin, yPos, contentWidth, 25, 3, 3, 'FD');
+                    
+                    doc.setTextColor(orangeColor[0], orangeColor[1], orangeColor[2]);
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('💰 AHORRO ADICIONAL POR OPTIMIZACIÓN DE POTENCIAS', pageWidth / 2, yPos + 7, { align: 'center' });
+                    
+                    doc.setFontSize(18);
+                    doc.text(eur(ahorroAdicional) + '/año', pageWidth / 2, yPos + 18, { align: 'center' });
+                    
+                    yPos += 30;
+                } else {
+                    // MODO UNA COLUMNA: Mostrar resumen de optimización sin revelar potencias
+                    if (yPos > 235) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    
+                    yPos += 5;
+                    
+                    const ahorroAdicional = resActual.totalAnnual - resOptimized.totalAnnual;
+                    
+                    // Título
+                    doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+                    doc.roundedRect(margin, yPos, contentWidth, 10, 2, 2, 'F');
+                    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('⚡ POTENCIAL DE OPTIMIZACIÓN', pageWidth / 2, yPos + 6.5, { align: 'center' });
+                    
+                    yPos += 15;
+                    
+                    // Resumen de ahorros
+                    doc.setFillColor(255, 255, 255);
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.5);
+                    doc.roundedRect(margin, yPos, contentWidth, 45, 2, 2, 'FD');
+                    
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text('Con tu tarifa actual y potencias contratadas:', margin + 5, yPos + 8);
+                    
+                    doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Ahorro: ' + eur(resActual.savings) + '/año', margin + 5, yPos + 18);
+                    
+                    yPos += 23;
+                    
+                    // Línea separadora
+                    doc.setDrawColor(220, 220, 220);
+                    doc.setLineWidth(0.3);
+                    doc.line(margin + 5, yPos, pageWidth - margin - 5, yPos);
+                    
+                    yPos += 5;
+                    
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text('Con optimización de potencias (ajuste técnico):', margin + 5, yPos);
+                    
+                    yPos += 6;
+                    
+                    doc.setTextColor(orangeColor[0], orangeColor[1], orangeColor[2]);
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Ahorro adicional: ' + eur(ahorroAdicional) + '/año', margin + 5, yPos);
+                    
+                    yPos += 8;
+                    
+                    // Total
+                    doc.setFillColor(greenColor[0], greenColor[1], greenColor[2]);
+                    doc.roundedRect(margin, yPos, contentWidth, 12, 2, 2, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('AHORRO TOTAL OPTIMIZADO: ' + eur(resOptimized.savings) + '/año', pageWidth / 2, yPos + 8, { align: 'center' });
+                    
+                    yPos += 17;
+                }
                 
-                doc.setFillColor(254, 243, 199);
-                doc.setDrawColor(orangeColor[0], orangeColor[1], orangeColor[2]);
-                doc.setLineWidth(1);
-                doc.roundedRect(margin, yPos, contentWidth, 25, 3, 3, 'FD');
-                
-                doc.setTextColor(orangeColor[0], orangeColor[1], orangeColor[2]);
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'bold');
-                doc.text('💰 AHORRO ADICIONAL POR OPTIMIZACIÓN DE POTENCIAS', pageWidth / 2, yPos + 7, { align: 'center' });
-                
-                doc.setFontSize(20);
+                // Continuar con el resto del PDF...                doc.setFontSize(20);
                 doc.text(eur(ahorroAdicional), pageWidth / 2, yPos + 16, { align: 'center' });
                 
                 doc.setTextColor(120, 53, 15);
@@ -8816,7 +8902,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             });
             
             // NUEVO: Detectar si hay comparativa dual de potencias
-            if (window.lastDualPowerComparison) {
+            if (window.lastDualPowerComparison && !window.pdfModeAlreadySelected) {
                 console.log('🔄 Comparativa DUAL DE POTENCIAS detectada - Mostrando modal de selección de modo');
                 showPresentationModeModal();
                 return; // No generar PDF todavía, esperar a que el usuario elija
@@ -12559,10 +12645,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const selectedMode = document.querySelector('input[name="presentation-mode"]:checked').value;
             console.log('📊 Modo seleccionado:', selectedMode);
             
+            // Activar bandera para evitar que se vuelva a mostrar el modal
+            window.pdfModeAlreadySelected = true;
+            
             closePresentationModeModal();
             
             // Llamar a la función de generación PDF con el modo seleccionado
             await handleGeneratePDF_DualPower(selectedMode);
+            
+            // Resetear bandera después de generar el PDF
+            window.pdfModeAlreadySelected = false;
         }
         
         // NUEVA: Manejar click en VER MEJOR OPCIÓN

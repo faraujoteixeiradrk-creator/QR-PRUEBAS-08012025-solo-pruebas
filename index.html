@@ -14598,6 +14598,53 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             console.log('manuallySelectedOffer:', manuallySelectedOffer);
             console.log('lastComparisonResult:', lastComparisonResult);
             
+            // NUEVO: Si hay optimización de potencias activa, recalcular con potencias actuales y optimizadas
+            if (window.lastDualPowerComparison && manuallySelectedOffer) {
+                console.log('⚡ Optimización de potencias detectada en ELEGIR ENTRE RESULTADOS');
+                console.log('   Oferta seleccionada manualmente:', manuallySelectedOffer.offer.name);
+                
+                // Obtener las potencias actuales y optimizadas
+                const actualData = window.lastDualPowerComparison.actual;
+                const optimizedData = window.lastDualPowerComparison.optimized;
+                const tariffType = actualData.originalTariffType || currentTariffType;
+                
+                // Recalcular la oferta seleccionada con potencias ACTUALES
+                const resultWithActualPowers = calculateTariffCost(manuallySelectedOffer.offer, actualData, tariffType);
+                resultWithActualPowers.savings = resultWithActualPowers.originalBillAnnual - resultWithActualPowers.totalAnnual;
+                
+                // Recalcular la misma oferta con potencias OPTIMIZADAS
+                const resultWithOptimizedPowers = calculateTariffCost(manuallySelectedOffer.offer, optimizedData, tariffType);
+                resultWithOptimizedPowers.savings = resultWithOptimizedPowers.originalBillAnnual - resultWithOptimizedPowers.totalAnnual;
+                
+                console.log('✅ Oferta recalculada:');
+                console.log('   - Con potencias actuales:', resultWithActualPowers.totalAnnual, '€/año, ahorro:', resultWithActualPowers.savings);
+                console.log('   - Con potencias optimizadas:', resultWithOptimizedPowers.totalAnnual, '€/año, ahorro:', resultWithOptimizedPowers.savings);
+                
+                // Actualizar window.lastDualPowerComparison
+                window.lastDualPowerComparison.actual = resultWithActualPowers;
+                window.lastDualPowerComparison.optimized = resultWithOptimizedPowers;
+                
+                // Actualizar lastComparisonResult para compatibilidad
+                lastComparisonResult = resultWithOptimizedPowers;
+                lastComparisonResult.isMulti = false;
+                
+                // Cerrar modales
+                document.getElementById('offer-decision-modal').classList.add('hidden');
+                document.getElementById('offer-decision-modal').classList.remove('flex');
+                document.getElementById('offer-selection-modal').classList.add('hidden');
+                document.getElementById('offer-selection-modal').classList.remove('flex');
+                
+                // Renderizar vista dual
+                renderDualPowerResultsUI(resultWithActualPowers, resultWithOptimizedPowers, window.lastDualPowerComparison.brand);
+                
+                document.getElementById('initial-view').classList.add('hidden');
+                document.getElementById('scanner-view').classList.add('hidden');
+                document.getElementById('results-view').classList.remove('hidden');
+                document.getElementById('results-view').classList.add('animate-fade-in-up');
+                
+                return; // IMPORTANTE: Salir aquí para no ejecutar el resto
+            }
+            
             // Usar la oferta seleccionada manualmente
             let result = manuallySelectedOffer;
             

@@ -12200,7 +12200,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const isIndividual = currentTariffType !== 'MULTICUPS';
             
             // NUEVO: Si hay optimización de potencias activa, ejecutar directamente SIN selector
-            if (window.optimizedPowerEnabled || window.lastDualPowerComparison) {
+            if (window.lastDualPowerComparison) {
                 console.log('⚡ Optimización de potencias activa - Ejecutando directamente SIN selector');
                 selectorDiv?.classList.add('hidden');
                 if (checkboxContainer) checkboxContainer.classList.add('hidden');
@@ -12208,6 +12208,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 return;
             }
             
+            // FLUJO NORMAL (SIN OPTIMIZACIÓN)
             if (isDrkMode) {
                 // DRK (Individual o MULTICUPS)
                 

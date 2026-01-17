@@ -13197,8 +13197,19 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 // Contexto MultiCups: Añadir a la lista
                 addSupplyToMultiCupsList(lastComparisonResult, lastIndexedResult);
             } else {
-                // Contexto individual: Mostrar resultados
-                renderResultsUI(lastComparisonResult, lastIndexedResult);
+                // NUEVO: Verificar si hay comparativo dual de potencias activo
+                if (window.lastDualPowerComparison) {
+                    console.log('🔥 Comparativo DUAL DE POTENCIAS detectado - Renderizando vista dual');
+                    const dualComp = window.lastDualPowerComparison;
+                    renderDualPowerResultsUI(dualComp.actual, dualComp.optimized, dualComp.brand);
+                } else if (lastIndexedResult && compareWithIndexed) {
+                    // Comparativa Fijo vs Indexado
+                    renderDualComparisonUI(lastComparisonResult, lastIndexedResult);
+                } else {
+                    // Contexto individual normal
+                    renderResultsUI(lastComparisonResult);
+                }
+                
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
@@ -14031,8 +14042,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     return; // FIN
                 }
                 
-                // Mostrar resultados (pasando indexedResult si existe)
-                renderResultsUI(result, indexedResult);
+                // NUEVO: Verificar si hay comparativo dual de potencias activo
+                if (window.lastDualPowerComparison) {
+                    console.log('🔥 Comparativo DUAL DE POTENCIAS detectado - Renderizando vista dual');
+                    const dualComp = window.lastDualPowerComparison;
+                    renderDualPowerResultsUI(dualComp.actual, dualComp.optimized, dualComp.brand);
+                } else if (indexedResult && compareWithIndexed) {
+                    // Comparativa Fijo vs Indexado
+                    renderDualComparisonUI(result, indexedResult);
+                } else {
+                    // Mostrar resultados normales
+                    renderResultsUI(result);
+                }
                 
                 console.log('Hiding initial-view and showing results-view');
                 document.getElementById('loading-status').classList.add('hidden');

@@ -2516,7 +2516,21 @@
                     }
                 });
                 
-                // Aplicar lógica de selección según modo de comparación
+                // NUEVO: Guardar TODAS las ofertas con ahorro positivo para ambos escenarios
+                availableOffers = resultsOptimized.filter(r => {
+                    r.savings = r.originalBillAnnual - r.totalAnnual;
+                    const hasPositiveSavings = r.savings > 0 && r.totalAnnual < r.originalBillAnnual;
+                    
+                    if (comparisonMode === 'drk_only') {
+                        return hasPositiveSavings && r.offer.isDrk;
+                    }
+                    
+                    return hasPositiveSavings;
+                });
+                
+                console.log('Available offers with savings (filtered by mode):', availableOffers.length);
+                
+                // Aplicar lógica de selección según modo de comparación SOLO PARA LA MEJOR
                 let finalActual = bestActual;
                 let finalOptimized = bestOptimized;
                 let brand = activeBrand;
@@ -2547,6 +2561,8 @@
                 window.dualPowerResultActual = finalActual;
                 window.dualPowerResultOptimized = finalOptimized;
                 window.dualPowerBrand = brand;
+                window.dualPowerAllResultsActual = resultsActual;
+                window.dualPowerAllResultsOptimized = resultsOptimized;
                 
                 console.log('Mejor oferta con potencias actuales:', finalActual.offer.name, finalActual.totalAnnual, '€/año');
                 console.log('Mejor oferta con potencias optimizadas:', finalOptimized.offer.name, finalOptimized.totalAnnual, '€/año');
@@ -2555,7 +2571,20 @@
                 // Aplicar branding
                 applyBrandStyles(brand);
                 
-                // Renderizar UI con ambos resultados
+                // Guardar el mejor resultado temporalmente para compatibilidad
+                lastComparisonResult = finalOptimized;
+                lastComparisonResult.isMulti = false;
+                
+                // NUEVO: Si hay múltiples ofertas con ahorro, mostrar modal de decisión
+                // (igual que el flujo normal)
+                if (availableOffers.length > 1) {
+                    console.log('Mostrando modal de decisión con', availableOffers.length, 'ofertas');
+                    showOfferDecisionModal();
+                    return; // No renderizar resultados todavía
+                }
+                
+                // Si solo hay 1 oferta o ninguna, renderizar directamente
+                console.log('Renderizando resultados directamente (1 o 0 ofertas)');
                 renderDualPowerResultsUI(finalActual, finalOptimized, brand);
                 
                 // Mostrar vista de resultados
@@ -12114,9 +12143,21 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // Ocultar el selector de tarifa al abrir el modal (se mostrará solo si es necesario)
             document.getElementById('best-option-tariff-selector')?.classList.add('hidden');
             
-            // IMPORTANTE: El checkbox de comparación siempre visible (para DRK y POWER CUP)
+            // NUEVO: Si hay comparativo de potencias optimizadas activo, OCULTAR el checkbox de Fijo & Indexado
             const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
-            checkboxContainer?.classList.remove('hidden');
+            if (window.optimizedPowerEnabled) {
+                console.log('⚡ Optimización de potencias activa - Ocultando checkbox Fijo & Indexado');
+                checkboxContainer?.classList.add('hidden');
+                // Asegurar que el checkbox esté desmarcado
+                const indexedCheckbox = document.getElementById('compare-with-indexed');
+                if (indexedCheckbox) {
+                    indexedCheckbox.checked = false;
+                    compareWithIndexed = false;
+                }
+            } else {
+                // IMPORTANTE: El checkbox de comparación visible normalmente (para DRK y POWER CUP)
+                checkboxContainer?.classList.remove('hidden');
+            }
             
             // Resetear selector a FIJA por defecto
             const fijaRadio = document.querySelector('input[name="best-option-tariff-type"][value="fija"]');

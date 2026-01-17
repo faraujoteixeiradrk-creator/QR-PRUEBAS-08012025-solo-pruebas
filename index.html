@@ -12199,16 +12199,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const isDrkMode = comparisonMode !== 'overall_best';
             const isIndividual = currentTariffType !== 'MULTICUPS';
             
-            // NUEVO: Si hay optimización de potencias activa, ejecutar directamente SIN selector
-            if (window.lastDualPowerComparison) {
-                console.log('⚡ Optimización de potencias activa - Ejecutando directamente SIN selector');
-                selectorDiv?.classList.add('hidden');
-                if (checkboxContainer) checkboxContainer.classList.add('hidden');
-                selectBestOptionDirect();
-                return;
-            }
-            
-            // FLUJO NORMAL (SIN OPTIMIZACIÓN)
             if (isDrkMode) {
                 // DRK (Individual o MULTICUPS)
                 
@@ -12340,6 +12330,51 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             }, filteredOffersChosen[0]);
             
             console.log('✅ Mejor tarifa del tipo elegido:', bestChosen.offer.name, 'Ahorro:', bestChosen.savings);
+            
+            // NUEVO: Si hay optimización de potencias activa, necesitamos calcular también con potencias ACTUALES
+            if (window.lastDualPowerComparison) {
+                console.log('⚡ Optimización de potencias detectada - Recalculando con potencias actuales');
+                
+                // Obtener las potencias actuales desde window.lastDualPowerComparison
+                const actualData = window.lastDualPowerComparison.actual;
+                const tariffType = actualData.originalTariffType || currentTariffType;
+                
+                // Recalcular la MISMA tarifa pero con potencias ACTUALES
+                const resultWithActualPowers = calculateTariffCost(bestChosen.offer, actualData, tariffType);
+                resultWithActualPowers.savings = resultWithActualPowers.originalBillAnnual - resultWithActualPowers.totalAnnual;
+                
+                console.log('✅ Tarifa recalculada con potencias actuales:', resultWithActualPowers.offer.name);
+                console.log('   - Con potencias actuales:', resultWithActualPowers.totalAnnual, '€/año');
+                console.log('   - Con potencias optimizadas:', bestChosen.totalAnnual, '€/año');
+                
+                // Actualizar window.lastDualPowerComparison con los nuevos resultados
+                window.lastDualPowerComparison.actual = resultWithActualPowers;
+                window.lastDualPowerComparison.optimized = bestChosen;
+                
+                // Actualizar lastComparisonResult para compatibilidad
+                lastComparisonResult = bestChosen;
+                lastComparisonResult.isMulti = false;
+                
+                // Cerrar modal
+                closeOfferDecisionModal();
+                document.getElementById('best-option-tariff-selector')?.classList.add('hidden');
+                
+                // Renderizar vista dual directamente
+                renderDualPowerResultsUI(resultWithActualPowers, bestChosen, window.lastDualPowerComparison.brand);
+                
+                document.getElementById('initial-view').classList.add('hidden');
+                document.getElementById('scanner-view').classList.add('hidden');
+                document.getElementById('results-view').classList.remove('hidden');
+                document.getElementById('results-view').classList.add('animate-fade-in-up');
+                
+                // Resetear bandera
+                setTimeout(() => {
+                    isProcessingBestOption = false;
+                    console.log('✅ Bandera reseteada');
+                }, 100);
+                
+                return; // IMPORTANTE: Salir aquí
+            }
             
             // SI EL CHECK ESTABA MARCADO: Calcular también la mejor del tipo contrario
             let bestOtherType = null;

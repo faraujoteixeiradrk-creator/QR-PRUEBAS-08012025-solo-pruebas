@@ -2802,22 +2802,14 @@
                     </div>
                 `;
                 
-                // Ocultar el contenedor de detalles (no necesario en vista dual)
-                document.getElementById('details-container').classList.add('hidden');
+                // NUEVO: Crear desglose dual con pestañas para potencias actuales vs optimizadas
+                createDualPowerBreakdown(resActual, resOptimized, brand);
                 
                 // Botones de acción
                 document.getElementById('send-offer-btn').style.display = 'flex';
                 document.getElementById('request-improvement-btn').style.display = 'none';
                 
                 console.log('✅ Vista dual de potencias renderizada correctamente');
-                
-                // Ocultar el contenedor de detalles (no necesario en vista dual)
-                document.getElementById('details-container').classList.add('hidden');
-                
-                // Botones de acción
-                document.getElementById('send-offer-btn').style.display = 'flex';
-                document.getElementById('request-improvement-btn').style.display = 'none';
-                
                 console.log('✅ Vista dual de potencias renderizada correctamente');
                 
             } catch (error) {
@@ -2825,6 +2817,251 @@
                 // Si falla, mostrar al menos el resultado optimizado
                 renderResultsUI(resOptimized);
             }
+        }
+
+        // NUEVA FUNCIÓN: Crear desglose dual con pestañas para comparativo de potencias
+        function createDualPowerBreakdown(resActual, resOptimized, brand) {
+            console.log('📊 Creando desglose dual de potencias');
+            
+            const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+            const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
+            
+            const isDrk = brand.NAME.includes('DRK');
+            const brandPrefix = isDrk ? 'drk' : 'powercup';
+            
+            // Generar HTML de desglose para potencias actuales
+            const breakdownActualHTML = generateBreakdownHTML(resActual, brand);
+            
+            // Generar HTML de desglose para potencias optimizadas
+            const breakdownOptimizedHTML = generateBreakdownHTML(resOptimized, brand);
+            
+            const detailsContainer = document.getElementById('details-container');
+            
+            detailsContainer.innerHTML = `
+                <div id="dual-power-tabs" class="sticky top-0 z-50 bg-white border-b-2 border-slate-200 shadow-md mb-6">
+                    <div class="relative">
+                        <!-- Botón Flecha Izquierda -->
+                        <button onclick="scrollDualTabs('left')" 
+                                class="absolute left-0 top-0 bottom-0 z-10 bg-gradient-to-r from-white to-transparent hover:from-slate-100 px-2 text-slate-600 hover:text-${brandPrefix}-600 transition-colors"
+                                style="box-shadow: 2px 0 8px rgba(0,0,0,0.1);">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+                        
+                        <!-- Contenedor de tabs con scroll -->
+                        <div id="dual-tabs-container" class="flex overflow-x-auto scrollbar-hide scroll-smooth px-10" style="scroll-behavior: smooth;">
+                            <button onclick="showDualPowerTab('actual')" id="btn-power-actual"
+                                    class="dual-power-tab active flex-1 min-w-fit px-6 py-3 text-sm font-semibold text-${brandPrefix}-600 bg-${brandPrefix}-50 border-b-4 border-${brandPrefix}-600 transition-all whitespace-nowrap">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                ${tr('Cálculo con Potencias Actuales')}
+                            </button>
+                            <button onclick="showDualPowerTab('optimized')" id="btn-power-optimized"
+                                    class="dual-power-tab flex-1 min-w-fit px-6 py-3 text-sm font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 border-b-4 border-transparent transition-all whitespace-nowrap">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                ⚡ ${tr('Cálculo con Potencias Optimizadas')}
+                            </button>
+                        </div>
+                        
+                        <!-- Botón Flecha Derecha -->
+                        <button onclick="scrollDualTabs('right')" 
+                                class="absolute right-0 top-0 bottom-0 z-10 bg-gradient-to-l from-white to-transparent hover:from-slate-100 px-2 text-slate-600 hover:text-${brandPrefix}-600 transition-colors"
+                                style="box-shadow: -2px 0 8px rgba(0,0,0,0.1);">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Contenido de potencias actuales -->
+                <div id="content-power-actual" class="dual-power-content">
+                    <h3 class="text-lg font-bold text-slate-800 border-l-4 border-${brandPrefix}-500 pl-3 mb-4">${tr('Desglose Detallado - Potencias Actuales')}</h3>
+                    <div class="bg-white p-0 rounded-xl border border-slate-200 shadow-sm overflow-hidden text-sm">
+                        ${breakdownActualHTML}
+                    </div>
+                </div>
+                
+                <!-- Contenido de potencias optimizadas -->
+                <div id="content-power-optimized" class="dual-power-content hidden">
+                    <h3 class="text-lg font-bold text-slate-800 border-l-4 border-green-500 pl-3 mb-4">⚡ ${tr('Desglose Detallado - Potencias Optimizadas')}</h3>
+                    <div class="bg-white p-0 rounded-xl border border-slate-200 shadow-sm overflow-hidden text-sm">
+                        ${breakdownOptimizedHTML}
+                    </div>
+                </div>
+            `;
+            
+            // Mostrar el contenedor de detalles
+            detailsContainer.classList.remove('hidden');
+        }
+        
+        // Función para cambiar entre pestañas del comparativo dual
+        function showDualPowerTab(tabName) {
+            console.log('Cambiando a pestaña:', tabName);
+            
+            // Detectar marca activa para los colores
+            const isDrk = activeBrand.NAME.includes('DRK');
+            const brandPrefix = isDrk ? 'drk' : 'powercup';
+            
+            // Ocultar todos los contenidos
+            document.querySelectorAll('.dual-power-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Resetear estilos de todos los tabs
+            document.querySelectorAll('.dual-power-tab').forEach(tab => {
+                tab.className = 'dual-power-tab flex-1 min-w-fit px-6 py-3 text-sm font-semibold text-slate-600 hover:text-green-600 hover:bg-green-50 border-b-4 border-transparent transition-all whitespace-nowrap';
+            });
+            
+            // Mostrar contenido seleccionado y activar tab correspondiente
+            if (tabName === 'actual') {
+                document.getElementById('content-power-actual').classList.remove('hidden');
+                document.getElementById('btn-power-actual').className = `dual-power-tab active flex-1 min-w-fit px-6 py-3 text-sm font-semibold text-${brandPrefix}-600 bg-${brandPrefix}-50 border-b-4 border-${brandPrefix}-600 transition-all whitespace-nowrap`;
+            } else if (tabName === 'optimized') {
+                document.getElementById('content-power-optimized').classList.remove('hidden');
+                document.getElementById('btn-power-optimized').className = 'dual-power-tab active flex-1 min-w-fit px-6 py-3 text-sm font-semibold text-green-600 bg-green-50 border-b-4 border-green-600 transition-all whitespace-nowrap';
+            }
+        }
+        
+        // Función para scroll horizontal de las pestañas duales
+        function scrollDualTabs(direction) {
+            const container = document.getElementById('dual-tabs-container');
+            const scrollAmount = 200;
+            
+            if (direction === 'left') {
+                container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            } else {
+                container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+            }
+        }
+        
+        // Función auxiliar para generar HTML de desglose
+        function generateBreakdownHTML(res, brand) {
+            const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+            const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
+            
+            // Generar filas de potencia
+            let powerRowsHTML = '';
+            if (res.powerCosts && res.powerCosts.length > 0) {
+                res.powerCosts.forEach((pc, idx) => {
+                    const periodName = pc.period || `P${idx + 1}`;
+                    const kw = pc.kw || 0;
+                    const priceDay = pc.priceDay || pc.price_euro_kw_day || 0;
+                    const days = res.dias_facturados || 30;
+                    const totalPower = kw * priceDay * days;
+                    
+                    powerRowsHTML += `
+                        <tr class="border-t border-slate-100">
+                            <td class="py-2 px-3 font-medium text-slate-700">${periodName}</td>
+                            <td class="py-2 px-3 text-right">${num(kw, 2)} kW</td>
+                            <td class="py-2 px-3 text-right">${eur(priceDay)}</td>
+                            <td class="py-2 px-3 text-right">${days}</td>
+                            <td class="py-2 px-3 text-right font-semibold">${eur(totalPower)}</td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            // Generar filas de energía
+            let energyRowsHTML = '';
+            if (res.energyCosts && res.energyCosts.length > 0) {
+                res.energyCosts.forEach((ec, idx) => {
+                    const periodName = ec.period || `E${idx + 1}`;
+                    const kwh = ec.kwh || 0;
+                    const price = ec.price || ec.price_euro_kwh || 0;
+                    const totalEnergy = kwh * price;
+                    
+                    energyRowsHTML += `
+                        <tr class="border-t border-slate-100">
+                            <td class="py-2 px-3 font-medium text-slate-700">${periodName}</td>
+                            <td class="py-2 px-3 text-right">${num(kwh, 0)} kWh</td>
+                            <td class="py-2 px-3 text-right">${eur(price)}</td>
+                            <td class="py-2 px-3 text-right font-semibold">${eur(totalEnergy)}</td>
+                        </tr>
+                    `;
+                });
+            }
+            
+            return `
+                <div class="p-4">
+                    <!-- Tabla de Potencia -->
+                    <h4 class="font-bold text-slate-800 mb-3">💡 Potencia Contratada</h4>
+                    <div class="overflow-x-auto mb-6">
+                        <table class="w-full text-xs">
+                            <thead class="bg-red-50">
+                                <tr>
+                                    <th class="py-2 px-3 text-left font-semibold text-red-700">Periodo</th>
+                                    <th class="py-2 px-3 text-right font-semibold text-red-700">Potencia</th>
+                                    <th class="py-2 px-3 text-right font-semibold text-red-700">Precio/día</th>
+                                    <th class="py-2 px-3 text-right font-semibold text-red-700">Días</th>
+                                    <th class="py-2 px-3 text-right font-semibold text-red-700">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${powerRowsHTML}
+                            </tbody>
+                            <tfoot class="bg-red-50 font-bold">
+                                <tr>
+                                    <td colspan="4" class="py-2 px-3 text-right">Subtotal Potencia:</td>
+                                    <td class="py-2 px-3 text-right">${eur(res.subPower || 0)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <!-- Tabla de Energía -->
+                    <h4 class="font-bold text-slate-800 mb-3">⚡ Energía Consumida</h4>
+                    <div class="overflow-x-auto mb-6">
+                        <table class="w-full text-xs">
+                            <thead class="bg-green-50">
+                                <tr>
+                                    <th class="py-2 px-3 text-left font-semibold text-green-700">Periodo</th>
+                                    <th class="py-2 px-3 text-right font-semibold text-green-700">Consumo</th>
+                                    <th class="py-2 px-3 text-right font-semibold text-green-700">Precio/kWh</th>
+                                    <th class="py-2 px-3 text-right font-semibold text-green-700">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${energyRowsHTML}
+                            </tbody>
+                            <tfoot class="bg-green-50 font-bold">
+                                <tr>
+                                    <td colspan="3" class="py-2 px-3 text-right">Subtotal Energía:</td>
+                                    <td class="py-2 px-3 text-right">${eur(res.subEnergyNet || 0)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <!-- Resumen Final -->
+                    <div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-slate-600">Base Imponible:</span>
+                            <span class="font-semibold">${eur(res.subBase || 0)}</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-slate-600">Impuesto Eléctrico (5.113%):</span>
+                            <span class="font-semibold">${eur(res.costIE || 0)}</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-slate-600">Base con IE:</span>
+                            <span class="font-semibold">${eur(res.baseImp || 0)}</span>
+                        </div>
+                        <div class="flex justify-between mb-3">
+                            <span class="text-slate-600">IVA (21%):</span>
+                            <span class="font-semibold">${eur(res.costIVA || 0)}</span>
+                        </div>
+                        <div class="flex justify-between pt-3 border-t-2 border-slate-300">
+                            <span class="font-bold text-slate-900">Total Periodo (${res.dias_facturados || 30} días):</span>
+                            <span class="font-bold text-lg text-blue-600">${eur(res.totalPeriod || 0)}</span>
+                        </div>
+                        <div class="flex justify-between pt-2">
+                            <span class="font-bold text-slate-900">Total Anual:</span>
+                            <span class="font-bold text-xl text-blue-600">${eur(res.totalAnnual || 0)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         function selectTariffType(type) {

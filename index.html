@@ -1678,6 +1678,93 @@
             </div>
         </div>
 
+        <!-- 9.8 Modal de Selección de Modo de Presentación (Potencias Optimizadas) -->
+        <div id="pdf-presentation-mode-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white">
+                    <h3 class="text-2xl font-black">📊 Modo de Presentación de Potencias Optimizadas</h3>
+                    <p class="text-purple-100 text-sm mt-1">Selecciona cómo mostrar las potencias en el PDF</p>
+                </div>
+                
+                <!-- Content -->
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <!-- Modo A - Dos Columnas -->
+                        <label class="block">
+                            <input 
+                                type="radio" 
+                                name="presentation-mode" 
+                                value="two-columns" 
+                                checked
+                                class="hidden peer"
+                                id="mode-two-columns"
+                            >
+                            <div class="p-6 rounded-xl border-2 border-slate-300 bg-white cursor-pointer transition hover:border-purple-500 hover:bg-purple-50 peer-checked:border-purple-600 peer-checked:bg-purple-50 peer-checked:shadow-lg">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 peer-checked:bg-purple-600">
+                                        <svg class="w-6 h-6 text-purple-600 peer-checked:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-black text-lg text-slate-900 mb-2">📊 Modo A - Dos Columnas</p>
+                                        <p class="text-sm text-slate-600 mb-2">Muestra potencias actuales y optimizadas lado a lado. El cliente VE las potencias propuestas.</p>
+                                        <ul class="text-xs text-slate-500 space-y-1 ml-4">
+                                            <li>• Columna izquierda: Potencias actuales</li>
+                                            <li>• Columna derecha: Potencias optimizadas</li>
+                                            <li>• Comparación visual directa</li>
+                                            <li>• Ideal para mostrar propuesta de optimización</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <!-- Modo B - Una Columna -->
+                        <label class="block">
+                            <input 
+                                type="radio" 
+                                name="presentation-mode" 
+                                value="one-column"
+                                class="hidden peer"
+                                id="mode-one-column"
+                            >
+                            <div class="p-6 rounded-xl border-2 border-slate-300 bg-white cursor-pointer transition hover:border-blue-500 hover:bg-blue-50 peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:shadow-lg">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 peer-checked:bg-blue-600">
+                                        <svg class="w-6 h-6 text-blue-600 peer-checked:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-black text-lg text-slate-900 mb-2">📄 Modo B - Una Columna</p>
+                                        <p class="text-sm text-slate-600 mb-2">Solo potencias actuales. Al final resumen de ahorros. El cliente NO ve qué potencias bajar.</p>
+                                        <ul class="text-xs text-slate-500 space-y-1 ml-4">
+                                            <li>• Muestra solo el cálculo actual</li>
+                                            <li>• Resumen final: "Ahorro con optimización"</li>
+                                            <li>• No revela las potencias propuestas</li>
+                                            <li>• Ideal para presentación comercial</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Botones -->
+                    <div class="flex gap-3 mt-6">
+                        <button onclick="closePresentationModeModal()" class="flex-1 px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition">
+                            Cancelar
+                        </button>
+                        <button onclick="confirmPresentationMode()" class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl transition shadow-lg">
+                            Generar PDF →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 9.9. Modal de Selección de Oferta -->
         <div id="offer-selection-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
             <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
@@ -8403,14 +8490,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         // --- GENERACIÓN DE PDF PROFESIONAL COMPLETO ---
         
         // NUEVA FUNCIÓN: Generar PDF con comparativo dual de potencias
-        async function handleGeneratePDF_DualPower() {
+        async function handleGeneratePDF_DualPower(mode = 'two-columns') {
             console.log('🔥 handleGeneratePDF_DualPower - Generando PDF comparativo dual');
+            console.log('📊 Modo seleccionado:', mode);
             
             const dualComparison = window.lastDualPowerComparison;
             const resActual = dualComparison.actual;
             const resOptimized = dualComparison.optimized;
             const brand = dualComparison.brand;
-            const presentationMode = getPresentationMode();
+            const presentationMode = mode; // Usar el modo pasado como parámetro
             
             const commercialCode = document.getElementById('comercial-code-input').value.trim();
             const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
@@ -8729,8 +8817,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // NUEVO: Detectar si hay comparativa dual de potencias
             if (window.lastDualPowerComparison) {
-                console.log('🔄 Comparativa DUAL DE POTENCIAS detectada - Generando PDF dual');
-                return await handleGeneratePDF_DualPower();
+                console.log('🔄 Comparativa DUAL DE POTENCIAS detectada - Mostrando modal de selección de modo');
+                showPresentationModeModal();
+                return; // No generar PDF todavía, esperar a que el usuario elija
             }
             
             if (!lastComparisonResult) {
@@ -12450,6 +12539,30 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         function closeOfferDecisionModal() {
             document.getElementById('offer-decision-modal').classList.add('hidden');
             document.getElementById('offer-decision-modal').classList.remove('flex');
+        }
+        
+        // NUEVO: Funciones para el modal de modo de presentación
+        function showPresentationModeModal() {
+            document.getElementById('pdf-presentation-mode-modal').classList.remove('hidden');
+            document.getElementById('pdf-presentation-mode-modal').classList.add('flex');
+            
+            // Resetear a "Dos Columnas" por defecto
+            document.getElementById('mode-two-columns').checked = true;
+        }
+        
+        function closePresentationModeModal() {
+            document.getElementById('pdf-presentation-mode-modal').classList.add('hidden');
+            document.getElementById('pdf-presentation-mode-modal').classList.remove('flex');
+        }
+        
+        async function confirmPresentationMode() {
+            const selectedMode = document.querySelector('input[name="presentation-mode"]:checked').value;
+            console.log('📊 Modo seleccionado:', selectedMode);
+            
+            closePresentationModeModal();
+            
+            // Llamar a la función de generación PDF con el modo seleccionado
+            await handleGeneratePDF_DualPower(selectedMode);
         }
         
         // NUEVA: Manejar click en VER MEJOR OPCIÓN

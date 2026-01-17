@@ -8854,25 +8854,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     yPos += 17;
                 }
                 
-                // Continuar con el resto del PDF...                doc.setFontSize(20);
-                doc.text(eur(ahorroAdicional), pageWidth / 2, yPos + 16, { align: 'center' });
-                
-                doc.setTextColor(120, 53, 15);
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Extra al año ajustando tus potencias contratadas', pageWidth / 2, yPos + 21, { align: 'center' });
-                
-                yPos += 30;
-                
-                // Footer
-                doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-                doc.rect(0, 280, pageWidth, 17, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.text(`${brand.FULL_NAME} - Soluciones Energéticas Inteligentes`, pageWidth / 2, 288, { align: 'center' });
-                
-                // Guardar PDF
+                // ===============================================
+                // PÁGINA 2: DESGLOSE DETALLADO
+                // ===============================================
                 const pdfName = `Comparativo_Potencias_${clientName.replace(/\s+/g, '_')}_${new Date().toLocaleDateString('es-ES').replace(/\//g, '-')}.pdf`;
                 doc.save(pdfName);
                 
@@ -8903,9 +8887,26 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // NUEVO: Detectar si hay comparativa dual de potencias
             if (window.lastDualPowerComparison && !window.pdfModeAlreadySelected) {
-                console.log('🔄 Comparativa DUAL DE POTENCIAS detectada - Mostrando modal de selección de modo');
-                showPresentationModeModal();
-                return; // No generar PDF todavía, esperar a que el usuario elija
+                console.log('🔄 Comparativa DUAL DE POTENCIAS detectada');
+                
+                // Verificar si el selector compacto está visible
+                const compactSelector = document.getElementById('optimized-presentation-mode-selector');
+                if (compactSelector && !compactSelector.classList.contains('hidden')) {
+                    // El selector compacto está visible, tomar el valor de ahí
+                    const selectedModeCompact = document.querySelector('#optimized-presentation-mode-selector input[name="presentation-mode"]:checked').value;
+                    console.log('📊 Modo seleccionado desde selector compacto:', selectedModeCompact);
+                    
+                    // Marcar como seleccionado y generar PDF directamente
+                    window.pdfModeAlreadySelected = true;
+                    await handleGeneratePDF_DualPower(selectedModeCompact);
+                    window.pdfModeAlreadySelected = false;
+                    return;
+                } else {
+                    // El selector compacto no está visible, mostrar modal grande
+                    console.log('📊 Mostrando modal de selección de modo');
+                    showPresentationModeModal();
+                    return; // No generar PDF todavía, esperar a que el usuario elija
+                }
             }
             
             if (!lastComparisonResult) {

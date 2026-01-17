@@ -2603,16 +2603,36 @@
                     }
                 });
                 
-                // NUEVO: Guardar TODAS las ofertas con ahorro positivo para ambos escenarios
-                availableOffers = resultsOptimized.filter(r => {
-                    r.savings = r.originalBillAnnual - r.totalAnnual;
-                    const hasPositiveSavings = r.savings > 0 && r.totalAnnual < r.originalBillAnnual;
+                // NUEVO: Guardar TODAS las ofertas calculando ahorro TOTAL (actuales + optimización)
+                availableOffers = resultsOptimized.map((rOpt, index) => {
+                    const rActual = resultsActual[index]; // Resultado con potencias actuales
+                    
+                    // Calcular ahorros individuales
+                    rActual.savings = rActual.originalBillAnnual - rActual.totalAnnual;
+                    rOpt.savings = rOpt.originalBillAnnual - rOpt.totalAnnual;
+                    
+                    // Calcular ahorro adicional por optimización
+                    const ahorroAdicional = rActual.totalAnnual - rOpt.totalAnnual;
+                    
+                    // Calcular ahorro TOTAL (ahorro con potencias actuales + ahorro adicional optimizando)
+                    const ahorroTotal = rActual.savings + ahorroAdicional;
+                    
+                    // Guardar información adicional en el objeto
+                    rOpt.savingsActual = rActual.savings; // Ahorro solo con potencias actuales
+                    rOpt.savingsOptimized = rOpt.savings; // Ahorro con potencias optimizadas
+                    rOpt.ahorroAdicional = ahorroAdicional; // Ahorro adicional por optimizar
+                    rOpt.ahorroTotal = ahorroTotal; // Ahorro total
+                    
+                    return rOpt;
+                }).filter(r => {
+                    // Filtrar por ahorro TOTAL positivo (no solo por ahorro con optimización)
+                    const hasPositiveTotalSavings = r.ahorroTotal > 0;
                     
                     if (comparisonMode === 'drk_only') {
-                        return hasPositiveSavings && r.offer.isDrk;
+                        return hasPositiveTotalSavings && r.offer.isDrk;
                     }
                     
-                    return hasPositiveSavings;
+                    return hasPositiveTotalSavings;
                 });
                 
                 console.log('Available offers with savings (filtered by mode):', availableOffers.length);
@@ -14599,8 +14619,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             filteredOffers.sort((a, b) => {
                 switch(sortBy) {
                     case 'savings_desc':
+                        // Si hay optimización de potencias, ordenar por ahorro total
+                        if (window.optimizedPowerEnabled && a.offer.ahorroTotal !== undefined) {
+                            return b.offer.ahorroTotal - a.offer.ahorroTotal;
+                        }
                         return b.offer.savings - a.offer.savings;
                     case 'savings_asc':
+                        // Si hay optimización de potencias, ordenar por ahorro total
+                        if (window.optimizedPowerEnabled && a.offer.ahorroTotal !== undefined) {
+                            return a.offer.ahorroTotal - b.offer.ahorroTotal;
+                        }
                         return a.offer.savings - b.offer.savings;
                     case 'name_asc':
                         return a.offer.offer.name.localeCompare(b.offer.offer.name);
@@ -14665,8 +14693,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             <p class="text-sm text-slate-600">${displaySubtitle}</p>
                         </div>
                         <div class="text-right flex-shrink-0">
-                            <p class="text-xs text-slate-500">${tr('Ahorro anual')}</p>
-                            <p class="text-xl font-black text-green-600">${eur(offer.savings)}</p>
+                            ${window.optimizedPowerEnabled && offer.ahorroTotal !== undefined ? `
+                                <p class="text-xs text-slate-500">${tr('Ahorro anual')}</p>
+                                <p class="text-sm font-bold text-green-600">${eur(offer.savingsActual)}</p>
+                                <p class="text-xs text-orange-600 font-semibold">+ ${eur(offer.ahorroAdicional)} opt.</p>
+                                <p class="text-xl font-black text-green-700">${eur(offer.ahorroTotal)}</p>
+                            ` : `
+                                <p class="text-xs text-slate-500">${tr('Ahorro anual')}</p>
+                                <p class="text-xl font-black text-green-600">${eur(offer.savings)}</p>
+                            `}
                         </div>
                     </div>
                 `;

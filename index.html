@@ -2730,8 +2730,8 @@
                                     <p class="text-xs font-bold uppercase">${tr("TU FACTURA ACTUAL")}</p>
                                 </div>
                                 <div class="bg-white border-2 border-slate-300 rounded-b-lg p-3">
-                                    <p class="text-xs text-slate-500 mb-2 uppercase">${tr("Total Periodo")} (${resActual.dias_facturados || 0} ${tr('días')})</p>
-                                    <p class="text-2xl font-black text-red-600 line-through mb-3">${eur(resActual.originalBillPeriod || resActual.importe_total)}</p>
+                                    <p class="text-2xl font-black text-red-600 line-through mb-2">${eur(resActual.originalBillPeriod || resActual.importe_total)}</p>
+                                    <p class="text-xs text-slate-500 mb-3">${tr('Total Periodo')} (${resActual.dias_facturados || 0} ${tr('días')})</p>
                                     <p class="text-2xl font-black text-red-600 line-through">${eur(resActual.originalBillAnnual)}</p>
                                     <p class="text-xs text-slate-500 mt-1">${tr("/año")}</p>
                                 </div>
@@ -2745,7 +2745,7 @@
                                 <div class="${isDrk ? 'bg-drk-50 border-drk-400' : 'bg-powercup-50 border-powercup-400'} border-2 rounded-b-lg p-3">
                                     <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mb-2 font-bold">${resActual.offer.name}</p>
                                     <p class="text-3xl font-black text-green-600 mb-3">${eur(resActual.savings)}</p>
-                                    <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mb-2 font-semibold">${tr("TU NUEVO COSTE DRK")}</p>
+                                    <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mb-2 font-semibold uppercase">${tr("TU NUEVO COSTE")} ${isDrk ? 'DRK' : 'POWER CUP'}</p>
                                     <p class="text-xl font-black ${isDrk ? 'text-drk-900' : 'text-powercup-900'} mb-1">${eur(resActual.totalAnnual / 12)}${tr("/mes")}</p>
                                     <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mb-2">${tr("Estimado Mensual")}</p>
                                     <p class="text-lg font-black ${isDrk ? 'text-drk-900' : 'text-powercup-900'}">${eur(resActual.totalAnnual)}${tr("/año")}</p>
@@ -2760,7 +2760,7 @@
                                 <div class="bg-green-50 border-2 border-green-400 rounded-b-lg p-3">
                                     <p class="text-xs text-green-700 mb-2 font-bold">${resOptimized.offer.name}</p>
                                     <p class="text-3xl font-black text-green-600 mb-3">${eur(resOptimized.savings)}</p>
-                                    <p class="text-xs text-green-700 mb-2 font-semibold">${tr("TU NUEVO COSTE DRK")}</p>
+                                    <p class="text-xs text-green-700 mb-2 font-semibold uppercase">${tr("TU NUEVO COSTE")} ${isDrk ? 'DRK' : 'POWER CUP'}</p>
                                     <p class="text-xl font-black text-green-900 mb-1">${eur(resOptimized.totalAnnual / 12)}${tr("/mes")}</p>
                                     <p class="text-xs text-green-700 mb-2">${tr("Estimado Mensual")}</p>
                                     <p class="text-lg font-black text-green-900">${eur(resOptimized.totalAnnual)}${tr("/año")}</p>
@@ -2788,6 +2788,15 @@
                         </div>
                     </div>
                 `;
+                
+                // Ocultar el contenedor de detalles (no necesario en vista dual)
+                document.getElementById('details-container').classList.add('hidden');
+                
+                // Botones de acción
+                document.getElementById('send-offer-btn').style.display = 'flex';
+                document.getElementById('request-improvement-btn').style.display = 'none';
+                
+                console.log('✅ Vista dual de potencias renderizada correctamente');
                 
                 // Ocultar el contenedor de detalles (no necesario en vista dual)
                 document.getElementById('details-container').classList.add('hidden');

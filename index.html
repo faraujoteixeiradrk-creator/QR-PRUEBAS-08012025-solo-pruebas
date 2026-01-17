@@ -12172,6 +12172,31 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 checkboxContainer?.classList.remove('hidden');
             }
             
+            // NUEVO: Actualizar textos y colores del selector según la marca activa
+            const isDrkMode = activeBrand.NAME.includes('DRK');
+            const brandName = isDrkMode ? 'DRK' : 'POWER CUP';
+            const primaryColor = isDrkMode ? 'drk' : 'powercup';
+            
+            // Actualizar título del selector
+            const selectorTitle = document.getElementById('tariff-selector-title');
+            if (selectorTitle) {
+                selectorTitle.textContent = `🎯 ¿Qué tipo de tarifa quieres ver?`;
+            }
+            
+            // Actualizar descripción de tarifa INDEXADA
+            const indexadaTitle = document.getElementById('tarifa-indexada-title');
+            const indexadaDesc = document.getElementById('tarifa-indexada-desc');
+            if (indexadaTitle && indexadaDesc) {
+                indexadaTitle.textContent = '🌱 Tarifa INDEXADA (DRK INDEX)';
+                indexadaDesc.textContent = 'Solo muestra DRK INDEX del mercado';
+            }
+            
+            // Actualizar botón de continuar
+            const continueBtn = document.getElementById('tariff-selector-continue-btn');
+            if (continueBtn) {
+                continueBtn.className = `w-full mt-3 bg-${primaryColor}-600 hover:bg-${primaryColor}-700 text-white font-bold py-3 rounded-lg transition`;
+            }
+            
             // Resetear selector a FIJA por defecto
             const fijaRadio = document.querySelector('input[name="best-option-tariff-type"][value="fija"]');
             if (fijaRadio) {
@@ -12216,10 +12241,21 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     if (checkboxContainer) checkboxContainer.classList.add('hidden');
                 }
             } else {
-                // POWER CUP: Ejecutar directamente (respeta su propio checkbox)
-                selectorDiv?.classList.add('hidden');
-                if (checkboxContainer) checkboxContainer.classList.remove('hidden');
-                selectBestOptionDirect();
+                // POWER CUP
+                
+                if (compareWithIndexed) {
+                    // CHECK MARCADO: Comparar automáticamente FIJO vs INDEXADO (NO mostrar selector)
+                    console.log('POWER CUP con CHECK marcado: Comparando automáticamente FIJO vs INDEXADO');
+                    selectorDiv?.classList.add('hidden');
+                    if (checkboxContainer) checkboxContainer.classList.remove('hidden');
+                    selectBestOptionDirect(); // Ejecutar directamente
+                } else {
+                    // CHECK NO MARCADO: Mostrar selector para elegir FIJA o INDEXADA
+                    console.log('POWER CUP sin CHECK: Mostrando selector de tipo de tarifa');
+                    selectorDiv?.classList.remove('hidden');
+                    // OCULTAR checkbox porque el usuario va a elegir un solo tipo
+                    if (checkboxContainer) checkboxContainer.classList.add('hidden');
+                }
             }
         }
         
@@ -12228,16 +12264,21 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             bestOptionTariffChoice = choice;
             console.log('Tipo de tarifa seleccionada en VER MEJOR OPCIÓN:', choice);
             
-            // Actualizar estilos visuales de los labels
+            // Actualizar estilos visuales de los labels según la marca activa
             const fijaLabel = document.getElementById('best-fija-label');
             const indexadaLabel = document.getElementById('best-indexada-label');
             
+            // Detectar si es DRK o POWER CUP
+            const isDrkMode = activeBrand.NAME.includes('DRK');
+            const primaryColor = isDrkMode ? 'drk' : 'powercup';
+            const accentColor = isDrkMode ? 'drk' : 'green';
+            
             if (choice === 'fija') {
-                fijaLabel.className = 'flex items-center gap-3 p-3 rounded-lg border-2 border-drk-500 bg-drk-50 cursor-pointer transition hover:bg-drk-100';
-                indexadaLabel.className = 'flex items-center gap-3 p-3 rounded-lg border-2 border-slate-200 bg-white cursor-pointer transition hover:bg-green-50';
+                fijaLabel.className = `flex items-center gap-3 p-3 rounded-lg border-2 border-${primaryColor}-500 bg-${primaryColor}-50 cursor-pointer transition hover:bg-${primaryColor}-100`;
+                indexadaLabel.className = `flex items-center gap-3 p-3 rounded-lg border-2 border-slate-200 bg-white cursor-pointer transition hover:bg-${accentColor}-50`;
             } else {
-                fijaLabel.className = 'flex items-center gap-3 p-3 rounded-lg border-2 border-slate-200 bg-white cursor-pointer transition hover:bg-drk-50';
-                indexadaLabel.className = 'flex items-center gap-3 p-3 rounded-lg border-2 border-green-500 bg-green-50 cursor-pointer transition hover:bg-green-100';
+                fijaLabel.className = `flex items-center gap-3 p-3 rounded-lg border-2 border-slate-200 bg-white cursor-pointer transition hover:bg-${primaryColor}-50`;
+                indexadaLabel.className = `flex items-center gap-3 p-3 rounded-lg border-2 border-${accentColor}-500 bg-${accentColor}-50 cursor-pointer transition hover:bg-${accentColor}-100`;
             }
         }
         

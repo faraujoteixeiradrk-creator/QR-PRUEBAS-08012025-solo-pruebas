@@ -8565,7 +8565,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
-                doc.text('⚡ COMPARATIVO 3.0TD CON OPTIMIZACIÓN DE POTENCIAS', pageWidth / 2, yPos + 6.5, { align: 'center' });
+                doc.text('COMPARATIVO 3.0TD CON OPTIMIZACION DE POTENCIAS', pageWidth / 2, yPos + 6.5, { align: 'center' });
                 
                 yPos += 15;
                 
@@ -8697,7 +8697,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('⚡ CON POTENCIAS OPTIMIZADAS', rightX + colWidth / 2, rightY + 8, { align: 'center' });
+                    doc.text('CON POTENCIAS OPTIMIZADAS', rightX + colWidth / 2, rightY + 8, { align: 'center' });
                     
                     rightY += 15;
                     
@@ -8739,7 +8739,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('⚡ POTENCIAS OPTIMIZADAS (kW)', rightX + colWidth / 2, rightY + 5, { align: 'center' });
+                    doc.text('POTENCIAS OPTIMIZADAS (kW)', rightX + colWidth / 2, rightY + 5, { align: 'center' });
                     
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(7);
@@ -8777,7 +8777,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(orangeColor[0], orangeColor[1], orangeColor[2]);
                     doc.setFontSize(9);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('💰 AHORRO ADICIONAL POR OPTIMIZACIÓN DE POTENCIAS', pageWidth / 2, yPos + 7, { align: 'center' });
+                    doc.text('AHORRO ADICIONAL POR OPTIMIZACION DE POTENCIAS', pageWidth / 2, yPos + 7, { align: 'center' });
                     
                     doc.setFontSize(18);
                     doc.text(eur(ahorroAdicional) + '/año', pageWidth / 2, yPos + 18, { align: 'center' });
@@ -8800,7 +8800,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
                     doc.setFontSize(9);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('⚡ POTENCIAL DE OPTIMIZACIÓN', pageWidth / 2, yPos + 6.5, { align: 'center' });
+                    doc.text('POTENCIAL DE OPTIMIZACION', pageWidth / 2, yPos + 6.5, { align: 'center' });
                     
                     yPos += 15;
                     
@@ -9006,7 +9006,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     generateColumn(resActual, leftX, '[ES] - POTENCIAS ACTUALES', primaryColor);
                     
                     // Generar columna derecha (Optimizadas)
-                    generateColumn(resOptimized, rightX, '⚡ [ES] - POTENCIAS OPTIMIZADAS', greenColor);
+                    generateColumn(resOptimized, rightX, '[ES] - POTENCIAS OPTIMIZADAS', greenColor);
                     
                 } else {
                     // ===============================================
@@ -9131,6 +9131,94 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFont('helvetica', 'bold');
                     doc.text('AHORRO:', margin + 3, y + 5.5);
                     doc.text(eur(resActual.savings), pageWidth - margin - 3, y + 5.5, { align: 'right' });
+                }
+                
+                // ===============================================
+                // RESUMEN DE AHORRO AL FINAL
+                // ===============================================
+                let finalY = 240; // Posición fija al final de la página
+                
+                if (presentationMode === 'two-columns') {
+                    // Modo dos columnas: Mostrar resumen comparativo
+                    doc.setFillColor(250, 250, 250);
+                    doc.roundedRect(margin, finalY, contentWidth, 35, 2, 2, 'F');
+                    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                    doc.setLineWidth(0.5);
+                    doc.roundedRect(margin, finalY, contentWidth, 35, 2, 2, 'S');
+                    
+                    // Título
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                    doc.text('RESUMEN DE AHORRO ANUAL', pageWidth / 2, finalY + 7, { align: 'center' });
+                    
+                    // Línea de separación
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.3);
+                    doc.line(margin + 5, finalY + 10, pageWidth - margin - 5, finalY + 10);
+                    
+                    // Ahorro con potencias actuales
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(0, 0, 0);
+                    doc.text('Con potencias actuales:', margin + 5, finalY + 16);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
+                    doc.text(eur(resActual.savings), pageWidth - margin - 5, finalY + 16, { align: 'right' });
+                    
+                    // Ahorro adicional con optimización
+                    const ahorroAdicional = resActual.totalAnnual - resOptimized.totalAnnual;
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(0, 0, 0);
+                    doc.text('Ahorro adicional optimizando:', margin + 5, finalY + 22);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(orangeColor[0], orangeColor[1], orangeColor[2]);
+                    doc.text(eur(ahorroAdicional), pageWidth - margin - 5, finalY + 22, { align: 'right' });
+                    
+                    // Total optimizado
+                    doc.setFillColor(greenColor[0], greenColor[1], greenColor[2]);
+                    doc.roundedRect(margin + 5, finalY + 25, contentWidth - 10, 8, 1, 1, 'F');
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(9);
+                    doc.text('AHORRO TOTAL OPTIMIZADO:', margin + 10, finalY + 30);
+                    doc.text(eur(resOptimized.savings), pageWidth - margin - 10, finalY + 30, { align: 'right' });
+                    
+                } else {
+                    // Modo una columna: Resumen simple
+                    doc.setFillColor(250, 250, 250);
+                    doc.roundedRect(margin, finalY, contentWidth, 25, 2, 2, 'F');
+                    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                    doc.setLineWidth(0.5);
+                    doc.roundedRect(margin, finalY, contentWidth, 25, 2, 2, 'S');
+                    
+                    // Título
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                    doc.text('TU AHORRO ANUAL', pageWidth / 2, finalY + 7, { align: 'center' });
+                    
+                    // Línea de separación
+                    doc.setDrawColor(200, 200, 200);
+                    doc.setLineWidth(0.3);
+                    doc.line(margin + 5, finalY + 10, pageWidth - margin - 5, finalY + 10);
+                    
+                    // Ahorro actual
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(0, 0, 0);
+                    doc.text('Ahorro con tu tarifa actual:', margin + 5, finalY + 16);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
+                    doc.setFontSize(10);
+                    doc.text(eur(resActual.savings), pageWidth - margin - 5, finalY + 16, { align: 'right' });
+                    
+                    // Nota de optimización disponible
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'italic');
+                    doc.setTextColor(100, 100, 100);
+                    const ahorroAdicional = resActual.totalAnnual - resOptimized.totalAnnual;
+                    doc.text(`* Ahorro adicional disponible optimizando potencias: ${eur(ahorroAdicional)}`, pageWidth / 2, finalY + 22, { align: 'center' });
                 }
                 
                 // Guardar PDF

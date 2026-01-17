@@ -2578,11 +2578,10 @@
         // NUEVA FUNCIÓN: Renderizar UI con comparación dual de potencias
         function renderDualPowerResultsUI(resActual, resOptimized, brand) {
             try {
+                console.log('🔥🔥🔥 renderDualPowerResultsUI INICIADO 🔥🔥🔥');
                 console.log('Renderizando UI de comparación dual de potencias');
-                
-                // Por ahora, mostrar el resultado optimizado (que tiene mejor ahorro)
-                // y guardar ambos resultados para la generación del comparativo
-                renderResultsUI(resOptimized);
+                console.log('Potencias Actuales - Ahorro:', resActual.savings);
+                console.log('Potencias Optimizadas - Ahorro:', resOptimized.savings);
                 
                 // Guardar en variables globales para acceso posterior
                 window.lastDualPowerComparison = {
@@ -2592,24 +2591,196 @@
                     mode: getPresentationMode()
                 };
                 
-                // Modificar el texto del ahorro para indicar que es con potencias optimizadas
-                const savingsLabel = document.getElementById('savings-label');
-                if (savingsLabel && !resOptimized.isNegativeSavings) {
-                    savingsLabel.textContent = "TU AHORRO ANUAL CON OPTIMIZACIÓN";
-                }
+                // IMPORTANTE: Guardar también en lastComparisonResult para compatibilidad
+                lastComparisonResult = resOptimized;
+                lastIndexedResult = null; // No es comparativa Fijo vs Indexado
                 
-                // Añadir badge indicando que se muestra el escenario optimizado
+                const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+                const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
+                
+                // CRÍTICO: Colores dinámicos según marca
+                const isDrk = brand.NAME.includes('DRK');
+                const brandPrefix = isDrk ? 'drk' : 'powercup';
+                
+                console.log('🎨 Marca detectada:', brand.NAME, '| isDrk:', isDrk, '| Prefix:', brandPrefix);
+                
+                // ══════════════════════════════════════════════════════════
+                // BOTÓN ROJO DE VOLVER (RECARGA PÁGINA)
+                // ══════════════════════════════════════════════════════════
+                let backButtonContainer = document.getElementById('back-button-top-container');
+                if (!backButtonContainer) {
+                    backButtonContainer = document.createElement('div');
+                    backButtonContainer.id = 'back-button-top-container';
+                    backButtonContainer.className = 'fixed top-0 left-0 right-0 z-[100] bg-white shadow-lg p-3 border-b-4 border-red-500';
+                    backButtonContainer.innerHTML = `
+                        <div class="max-w-lg mx-auto">
+                            <button id="force-back-button" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-black py-4 px-6 rounded-xl shadow-2xl transform transition active:scale-95 flex items-center justify-center gap-3 text-lg">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                                </svg>
+                                <span>⬅️ VOLVER AL INICIO</span>
+                            </button>
+                        </div>
+                    `;
+                    document.body.insertBefore(backButtonContainer, document.body.firstChild);
+                    
+                    document.getElementById('force-back-button').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🔄 RECARGANDO PÁGINA...');
+                        window.location.reload();
+                    });
+                }
+                backButtonContainer.style.display = 'block';
+                
+                const resultsView = document.getElementById('results-view');
+                if (resultsView) {
+                    resultsView.style.paddingTop = '80px';
+                }
+                // ══════════════════════════════════════════════════════════
+                
+                // Banner de empresa con badge de optimización
                 const companyBanner = document.getElementById('company-banner');
-                if (companyBanner) {
-                    const badge = document.createElement('div');
-                    badge.className = 'mt-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-4 py-2 rounded-lg text-sm font-bold text-center shadow-lg';
-                    badge.innerHTML = '⚡ Comparativo con Potencias Optimizadas Activado';
-                    companyBanner.appendChild(badge);
+                
+                if (isDrk) {
+                    companyBanner.innerHTML = `
+                        <div class="bg-gradient-to-r from-drk-900 via-drk-800 to-drk-700 p-8 md:p-12 rounded-2xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div class="flex flex-col md:flex-row items-center gap-6 flex-1">
+                                <div class="transform scale-125">
+                                    ${brand.LOGO_SVG}
+                                </div>
+                                <div class="text-center md:text-left">
+                                    <h1 class="text-white text-4xl md:text-5xl font-black tracking-tight mb-2">${brand.FULL_NAME}</h1>
+                                    <p class="text-drk-100 text-lg md:text-xl font-semibold">${tr('Liderando el ahorro y la eficiencia energética')}</p>
+                                </div>
+                            </div>
+                            <div class="text-center md:text-right bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                                <p class="text-white text-sm md:text-base font-bold uppercase tracking-wider">📊 ESTUDIO DE AHORRO</p>
+                                <p class="text-drk-100 text-xl md:text-2xl font-black mt-1">COMPARATIVA</p>
+                                <p class="text-drk-100 text-base md:text-lg font-bold">${tr("PROFESIONAL")}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-4 py-3 rounded-lg text-sm font-bold text-center shadow-lg">
+                            ⚡ COMPARATIVO: POTENCIAS ACTUALES vs POTENCIAS OPTIMIZADAS
+                        </div>
+                    `;
+                } else {
+                    companyBanner.innerHTML = `
+                        <div class="bg-gradient-to-r from-powercup-700 via-powercup-600 to-powercup-500 p-8 md:p-12 rounded-2xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div class="flex flex-col md:flex-row items-center gap-6 flex-1">
+                                <div class="transform scale-125">
+                                    ${brand.LOGO_SVG}
+                                </div>
+                                <div class="text-center md:text-left">
+                                    <h1 class="text-white text-4xl md:text-5xl font-black tracking-tight mb-2">${brand.FULL_NAME}</h1>
+                                    <p class="text-powercup-50 text-lg md:text-xl font-semibold">Asesoría Energética</p>
+                                </div>
+                            </div>
+                            <div class="text-center md:text-right bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                                <p class="text-white text-sm md:text-base font-bold uppercase tracking-wider">📊 ESTUDIO DE AHORRO</p>
+                                <p class="text-powercup-50 text-xl md:text-2xl font-black mt-1">COMPARATIVA</p>
+                                <p class="text-powercup-50 text-base md:text-lg font-bold">${tr("PROFESIONAL")}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white px-4 py-3 rounded-lg text-sm font-bold text-center shadow-lg">
+                            ⚡ COMPARATIVO: POTENCIAS ACTUALES vs POTENCIAS OPTIMIZADAS
+                        </div>
+                    `;
                 }
                 
-                console.log('Ahorro con potencias actuales:', resActual.savings.toFixed(2), '€/año');
-                console.log('Ahorro con potencias optimizadas:', resOptimized.savings.toFixed(2), '€/año');
-                console.log('Ahorro adicional por optimización:', (resActual.totalAnnual - resOptimized.totalAnnual).toFixed(2), '€/año');
+                // CUPS
+                document.getElementById('results-cups-list').innerHTML = `
+                    CUPS: <span class="font-mono text-slate-700">${resActual.cups}</span>
+                `;
+                
+                // Vista con TRES COLUMNAS (Factura Actual + Potencias Actuales + Potencias Optimizadas)
+                const resultCard = document.getElementById('result-card');
+                resultCard.innerHTML = `
+                    <div class="p-4">
+                        <!-- TRES COLUMNAS -->
+                        <div class="grid grid-cols-3 gap-3 mb-6">
+                            <!-- COLUMNA 1: TU FACTURA ACTUAL -->
+                            <div class="text-center">
+                                <div class="bg-slate-600 text-white py-2 px-2 rounded-t-lg">
+                                    <p class="text-xs font-bold uppercase">${tr("TU FACTURA ACTUAL")}</p>
+                                </div>
+                                <div class="bg-white border-2 border-slate-300 rounded-b-lg p-3">
+                                    <p class="text-2xl font-black text-red-600 line-through mb-2">${eur(resActual.originalBillPeriod || resActual.importe_total)}</p>
+                                    <p class="text-xs text-slate-500 mb-3">${tr('Total Periodo')} (${resActual.dias_facturados || 0} ${tr('días')})</p>
+                                    <p class="text-2xl font-black text-red-600">${eur(resActual.originalBillAnnual)}${tr("/año")}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- COLUMNA 2: POTENCIAS ACTUALES (Color de marca) -->
+                            <div class="text-center">
+                                <div class="${isDrk ? 'bg-drk-600' : 'bg-powercup-600'} text-white py-2 px-2 rounded-t-lg">
+                                    <p class="text-xs font-bold uppercase">TU AHORRO ANUAL CON POTENCIAS ACTUALES</p>
+                                </div>
+                                <div class="${isDrk ? 'bg-drk-50 border-drk-400' : 'bg-powercup-50 border-powercup-400'} border-2 rounded-b-lg p-3">
+                                    <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mb-2 font-bold">${resActual.offer.name}</p>
+                                    <p class="text-2xl font-black ${isDrk ? 'text-drk-900' : 'text-powercup-900'} mb-2">${eur(resActual.totalAnnual / 12)}${tr("/mes")}</p>
+                                    <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mb-3">${tr("Estimado Mensual")}</p>
+                                    <p class="text-2xl font-black ${isDrk ? 'text-drk-900' : 'text-powercup-900'}">${eur(resActual.totalAnnual)}${tr("/año")}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- COLUMNA 3: POTENCIAS OPTIMIZADAS (Verde para destacar la mejor opción) -->
+                            <div class="text-center">
+                                <div class="bg-green-600 text-white py-2 px-2 rounded-t-lg">
+                                    <p class="text-xs font-bold uppercase">TU AHORRO ANUAL CON OPTIMIZACIÓN</p>
+                                </div>
+                                <div class="bg-green-50 border-2 border-green-400 rounded-b-lg p-3">
+                                    <p class="text-xs text-green-700 mb-2 font-bold">${resOptimized.offer.name}</p>
+                                    <p class="text-2xl font-black text-green-900 mb-2">${eur(resOptimized.totalAnnual / 12)}${tr("/mes")}</p>
+                                    <p class="text-xs text-green-700 mb-3">${tr("Estimado Mensual")}</p>
+                                    <p class="text-2xl font-black text-green-900">${eur(resOptimized.totalAnnual)}${tr("/año")}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- AHORROS -->
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="${isDrk ? 'bg-drk-100 border-drk-400' : 'bg-powercup-100 border-powercup-400'} border-2 rounded-xl p-4 text-center">
+                                <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} font-bold uppercase mb-2">💼 AHORRO SIN OPTIMIZAR</p>
+                                <p class="text-4xl font-black text-green-600">${eur(resActual.savings)}</p>
+                                <p class="text-xs ${isDrk ? 'text-drk-700' : 'text-powercup-700'} mt-1">Ahorro anual estimado</p>
+                            </div>
+                            <div class="bg-green-100 border-2 border-green-400 rounded-xl p-4 text-center">
+                                <p class="text-xs text-green-700 font-bold uppercase mb-2">⚡ AHORRO CON OPTIMIZACIÓN</p>
+                                <p class="text-4xl font-black text-green-600">${eur(resOptimized.savings)}</p>
+                                <p class="text-xs text-green-700 mt-1">Ahorro anual estimado</p>
+                            </div>
+                        </div>
+                        
+                        <!-- AHORRO ADICIONAL POR OPTIMIZACIÓN -->
+                        <div class="bg-gradient-to-r from-amber-100 to-orange-100 border-2 border-amber-400 rounded-xl p-4 mb-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="bg-amber-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl">
+                                        💰
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-amber-900">AHORRO ADICIONAL POR OPTIMIZACIÓN DE POTENCIAS</p>
+                                        <p class="text-xs text-amber-700">Al ajustar las potencias contratadas</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-3xl font-black text-amber-900">${eur(resActual.totalAnnual - resOptimized.totalAnnual)}</p>
+                                    <p class="text-xs text-amber-700">Extra al año</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Ocultar el contenedor de detalles (no necesario en vista dual)
+                document.getElementById('details-container').classList.add('hidden');
+                
+                // Botones de acción
+                document.getElementById('send-offer-btn').style.display = 'flex';
+                document.getElementById('request-improvement-btn').style.display = 'none';
+                
+                console.log('✅ Vista dual de potencias renderizada correctamente');
                 
             } catch (error) {
                 console.error('Error en renderDualPowerResultsUI:', error);

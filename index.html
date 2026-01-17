@@ -2564,6 +2564,14 @@
                 window.dualPowerAllResultsActual = resultsActual;
                 window.dualPowerAllResultsOptimized = resultsOptimized;
                 
+                // CRÍTICO: Guardar comparación dual ANTES del modal
+                window.lastDualPowerComparison = {
+                    actual: finalActual,
+                    optimized: finalOptimized,
+                    brand: brand,
+                    mode: getPresentationMode()
+                };
+                
                 console.log('Mejor oferta con potencias actuales:', finalActual.offer.name, finalActual.totalAnnual, '€/año');
                 console.log('Mejor oferta con potencias optimizadas:', finalOptimized.offer.name, finalOptimized.totalAnnual, '€/año');
                 console.log('Ahorro adicional por optimización:', (finalActual.totalAnnual - finalOptimized.totalAnnual).toFixed(2), '€/año');
@@ -2608,13 +2616,18 @@
                 console.log('Potencias Actuales - Ahorro:', resActual.savings);
                 console.log('Potencias Optimizadas - Ahorro:', resOptimized.savings);
                 
-                // Guardar en variables globales para acceso posterior
-                window.lastDualPowerComparison = {
-                    actual: resActual,
-                    optimized: resOptimized,
-                    brand: brand,
-                    mode: getPresentationMode()
-                };
+                // Guardar en variables globales para acceso posterior SOLO si no existe
+                if (!window.lastDualPowerComparison) {
+                    window.lastDualPowerComparison = {
+                        actual: resActual,
+                        optimized: resOptimized,
+                        brand: brand,
+                        mode: getPresentationMode()
+                    };
+                    console.log('✅ window.lastDualPowerComparison creado');
+                } else {
+                    console.log('ℹ️ window.lastDualPowerComparison ya existía, preservando');
+                }
                 
                 // IMPORTANTE: Guardar también en lastComparisonResult para compatibilidad
                 lastComparisonResult = resOptimized;

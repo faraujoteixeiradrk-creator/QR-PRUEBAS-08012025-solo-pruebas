@@ -9193,42 +9193,52 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     finalY += 35; // Avanzar después del resumen
                     
                 } else {
-                    // Modo una columna: Resumen simple (más compacto)
+                    // Modo una columna: MISMO RESUMEN que dos columnas
                     doc.setFillColor(250, 250, 250);
-                    doc.roundedRect(margin, finalY, contentWidth, 22, 2, 2, 'F');
+                    doc.roundedRect(margin, finalY, contentWidth, 30, 2, 2, 'F');
                     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
                     doc.setLineWidth(0.5);
-                    doc.roundedRect(margin, finalY, contentWidth, 22, 2, 2, 'S');
+                    doc.roundedRect(margin, finalY, contentWidth, 30, 2, 2, 'S');
                     
                     // Título
                     doc.setFontSize(9);
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-                    doc.text('TU AHORRO ANUAL', pageWidth / 2, finalY + 6, { align: 'center' });
+                    doc.text('RESUMEN DE AHORRO ANUAL', pageWidth / 2, finalY + 6, { align: 'center' });
                     
                     // Línea de separación
                     doc.setDrawColor(200, 200, 200);
                     doc.setLineWidth(0.3);
                     doc.line(margin + 5, finalY + 9, pageWidth - margin - 5, finalY + 9);
                     
-                    // Ahorro actual
+                    // Ahorro con potencias actuales
                     doc.setFontSize(7.5);
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(0, 0, 0);
-                    doc.text('Ahorro con tu tarifa actual:', margin + 5, finalY + 14);
+                    doc.text('Con potencias actuales:', margin + 5, finalY + 14);
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
-                    doc.setFontSize(9);
                     doc.text(eur(resActual.savings), pageWidth - margin - 5, finalY + 14, { align: 'right' });
                     
-                    // Nota de optimización disponible
-                    doc.setFontSize(6.5);
-                    doc.setFont('helvetica', 'italic');
-                    doc.setTextColor(100, 100, 100);
+                    // Ahorro adicional con optimización
                     const ahorroAdicional = resActual.totalAnnual - resOptimized.totalAnnual;
-                    doc.text(`* Ahorro adicional disponible optimizando potencias: ${eur(ahorroAdicional)}`, pageWidth / 2, finalY + 19, { align: 'center' });
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(0, 0, 0);
+                    doc.text('Ahorro adicional optimizando:', margin + 5, finalY + 19);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(orangeColor[0], orangeColor[1], orangeColor[2]);
+                    doc.text(eur(ahorroAdicional), pageWidth - margin - 5, finalY + 19, { align: 'right' });
                     
-                    finalY += 26; // Avanzar después del resumen
+                    // Total optimizado
+                    doc.setFillColor(greenColor[0], greenColor[1], greenColor[2]);
+                    doc.roundedRect(margin + 5, finalY + 22, contentWidth - 10, 7, 1, 1, 'F');
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(8);
+                    doc.text('AHORRO TOTAL OPTIMIZADO:', margin + 10, finalY + 27);
+                    doc.text(eur(resOptimized.savings), pageWidth - margin - 10, finalY + 27, { align: 'right' });
+                    
+                    finalY += 35; // Avanzar después del resumen
                 }
                 
                 // ===============================================

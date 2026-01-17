@@ -2954,7 +2954,7 @@
                         <tr class="border-t border-slate-100">
                             <td class="py-2 px-3 font-medium text-slate-700">${periodName}</td>
                             <td class="py-2 px-3 text-right">${num(kw, 2)} kW</td>
-                            <td class="py-2 px-3 text-right">${eur(priceDay)}</td>
+                            <td class="py-2 px-3 text-right">${num(priceDay, 6)} €/día</td>
                             <td class="py-2 px-3 text-right">${days}</td>
                             <td class="py-2 px-3 text-right font-semibold">${eur(totalPower)}</td>
                         </tr>
@@ -2975,7 +2975,7 @@
                         <tr class="border-t border-slate-100">
                             <td class="py-2 px-3 font-medium text-slate-700">${periodName}</td>
                             <td class="py-2 px-3 text-right">${num(kwh, 0)} kWh</td>
-                            <td class="py-2 px-3 text-right">${eur(price)}</td>
+                            <td class="py-2 px-3 text-right">${num(price, 5)} €/kWh</td>
                             <td class="py-2 px-3 text-right font-semibold">${eur(totalEnergy)}</td>
                         </tr>
                     `;
@@ -2992,7 +2992,7 @@
                                 <tr>
                                     <th class="py-2 px-3 text-left font-semibold text-red-700">Periodo</th>
                                     <th class="py-2 px-3 text-right font-semibold text-red-700">Potencia</th>
-                                    <th class="py-2 px-3 text-right font-semibold text-red-700">Precio/día</th>
+                                    <th class="py-2 px-3 text-right font-semibold text-red-700">Precio/día<br><span class="text-[10px] font-normal">(€/kW/día)</span></th>
                                     <th class="py-2 px-3 text-right font-semibold text-red-700">Días</th>
                                     <th class="py-2 px-3 text-right font-semibold text-red-700">Total</th>
                                 </tr>
@@ -3017,7 +3017,7 @@
                                 <tr>
                                     <th class="py-2 px-3 text-left font-semibold text-green-700">Periodo</th>
                                     <th class="py-2 px-3 text-right font-semibold text-green-700">Consumo</th>
-                                    <th class="py-2 px-3 text-right font-semibold text-green-700">Precio/kWh</th>
+                                    <th class="py-2 px-3 text-right font-semibold text-green-700">Precio/kWh<br><span class="text-[10px] font-normal">(€/kWh)</span></th>
                                     <th class="py-2 px-3 text-right font-semibold text-green-700">Total</th>
                                 </tr>
                             </thead>

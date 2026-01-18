@@ -2186,6 +2186,32 @@
         let pendingSupplyData = null; // Almacena temporalmente los datos del suministro mientras se pide la dirección
         let pendingSupplyTariffType = null;
         
+        // --- FUNCIONES PARA MODAL DE DIRECCIÓN DE SUMINISTRO (DUAL) ---
+        let pendingDualSupply = null; // Almacena temporalmente el suministro DUAL mientras se pide la dirección
+        
+        function showDualSupplyAddressModal(type, tariff, data, results) {
+            // Guardar datos temporalmente
+            pendingDualSupply = { type, tariff, data, results };
+            
+            // Actualizar contenido del modal
+            const supplyNumber = dualSupplies.length + 1;
+            const typeLabel = type === 'electricidad' ? 'Electricidad' : 'Gas';
+            document.getElementById('supply-number-label').textContent = `#${supplyNumber} (${typeLabel})`;
+            document.getElementById('supply-cups-display').textContent = data.cups || 'N/A';
+            
+            // Limpiar el input
+            document.getElementById('multicups-supply-address').value = '';
+            
+            // Mostrar modal
+            document.getElementById('supply-address-modal').classList.remove('hidden');
+            document.getElementById('supply-address-modal').classList.add('flex');
+            
+            // Focus en el input
+            setTimeout(() => {
+                document.getElementById('multicups-supply-address').focus();
+            }, 100);
+        }
+        
         function showSupplyAddressModal(data, tariffType) {
             // Guardar datos temporalmente
             pendingSupplyData = data;
@@ -2216,8 +2242,22 @@
             document.getElementById('supply-address-modal').classList.add('hidden');
             document.getElementById('supply-address-modal').classList.remove('flex');
             
-            // Añadir la dirección a los datos
-            if (pendingSupplyData) {
+            // Verificar si es DUAL o Multicups
+            if (pendingDualSupply) {
+                // Es DUAL - añadir dirección y procesar
+                const { type, tariff, data, results } = pendingDualSupply;
+                
+                // Añadir la dirección a los datos
+                const addressToSave = address || 'No especificada';
+                
+                // Procesar el suministro DUAL con la dirección
+                processDualSupplyWithAddress(type, tariff, data, results, addressToSave);
+                
+                // Limpiar datos temporales
+                pendingDualSupply = null;
+                
+            } else if (pendingSupplyData) {
+                // Es Multicups - procesar normalmente
                 pendingSupplyData.supplyAddress = address || 'No especificada';
                 
                 // Procesar el suministro
@@ -2230,12 +2270,23 @@
         };
         
         window.cancelAddressInput = function() {
-            // Cerrar modal y continuar sin dirección
+            // Cerrar modal
             document.getElementById('supply-address-modal').classList.add('hidden');
             document.getElementById('supply-address-modal').classList.remove('flex');
             
-            // Añadir valor por defecto
-            if (pendingSupplyData) {
+            // Verificar si es DUAL o Multicups
+            if (pendingDualSupply) {
+                // Es DUAL - procesar sin dirección
+                const { type, tariff, data, results } = pendingDualSupply;
+                
+                // Procesar el suministro DUAL sin dirección
+                processDualSupplyWithAddress(type, tariff, data, results, 'No especificada');
+                
+                // Limpiar datos temporales
+                pendingDualSupply = null;
+                
+            } else if (pendingSupplyData) {
+                // Es Multicups - procesar sin dirección
                 pendingSupplyData.supplyAddress = 'No especificada';
                 
                 // Procesar el suministro
@@ -2246,6 +2297,72 @@
                 pendingSupplyTariffType = null;
             }
         };
+        
+        // Nueva función para procesar suministro DUAL con dirección
+        function processDualSupplyWithAddress(type, tariff, data, results, supplyAddress) {
+            console.log('=== processDualSupplyWithAddress ===');
+            console.log('Type:', type);
+            console.log('Tariff:', tariff);
+            console.log('Data:', data);
+            console.log('Results:', results);
+            console.log('Address:', supplyAddress);
+            
+            if (results.drk.total_anual === 0 && results.powercup.total_anual === 0) {
+                console.error('⚠️⚠️⚠️ PROBLEMA: Ambos costes son 0 al añadir suministro');
+                console.error('Results completo:', JSON.stringify(results, null, 2));
+            }
+            
+            // Calcular descripción según el tipo
+            let description = '';
+            let totalKwh = 0;
+            
+            if (type === 'electricidad') {
+                totalKwh = (parseFloat(data.kwh_p1) || 0) + 
+                          (parseFloat(data.kwh_p2) || 0) + 
+                          (parseFloat(data.kwh_p3) || 0) + 
+                          (parseFloat(data.kwh_p4) || 0) + 
+                          (parseFloat(data.kwh_p5) || 0) + 
+                          (parseFloat(data.kwh_p6) || 0);
+                description = `${totalKwh.toFixed(0)} kWh, ${data.dias} días`;
+            } else {
+                totalKwh = parseFloat(data.kwh) || 0;
+                description = `${totalKwh.toFixed(0)} kWh, ${data.dias} días`;
+            }
+            
+            const supply = {
+                type: type, // 'electricidad' o 'gas'
+                cups: data.cups || 'N/A', // CUPS del suministro
+                tariff: tariff,
+                data: data,
+                results: results,
+                description: description,
+                totalKwh: totalKwh,
+                supplyAddress: supplyAddress, // NUEVA: Dirección del suministro
+                // CRÍTICO: Calcular totalAnnual desde el resultado correspondiente (DRK o Power Cup)
+                totalAnnual: (results.drk.total_anual > 0) ? results.drk.total_anual : results.powercup.total_anual,
+                // CRÍTICO: Guardar factura original para cálculo de ahorro
+                originalBillAnnual: data.originalBillAnnual || 0,
+                timestamp: new Date().getTime()
+            };
+            
+            console.log('Suministro a añadir:', supply);
+            console.log('Verificación - DRK:', supply.results.drk.total_anual, 'PowerCup:', supply.results.powercup.total_anual);
+            
+            // Añadir al array
+            dualSupplies.push(supply);
+            console.log('Total suministros:', dualSupplies.length);
+            console.log('Array completo:', dualSupplies);
+            
+            // Volver al gestor DUAL
+            backToDualManager();
+            
+            // Mostrar mensaje de confirmación
+            setTimeout(() => {
+                const drkCost = supply.results.drk.total_anual;
+                const pcCost = supply.results.powercup.total_anual;
+                alert(`✅ Suministro añadido correctamente\n\nTipo: ${type === 'electricidad' ? 'Electricidad' : 'Gas'}\nTarifa: ${tariff}\n${description}\n\nDRK anual: ${drkCost.toFixed(2)} €\nPowerCup anual: ${pcCost.toFixed(2)} €\n\nTotal: ${dualSupplies.length} suministro(s)`);
+            }, 100);
+        }
         
         // Permitir confirmar con Enter
         document.addEventListener('DOMContentLoaded', function() {
@@ -18812,11 +18929,11 @@ ${clientName}
             closeClientDataModal();
             
             // Generar PDF
-            dualGeneratePDF(comercialCode, clientName, clientPhone, clientEmail);
+            dualGeneratePDF(comercialCode, clientName, clientPhone, clientEmail, clientAddress);
         }
         
         // Función: Generar PDF DUAL
-        async function dualGeneratePDF(comercialCode = 'D=00', clientName = '', clientPhone = '', clientEmail = '') {
+        async function dualGeneratePDF(comercialCode = 'D=00', clientName = '', clientPhone = '', clientEmail = '', clientAddress = '') {
             if (!clientName) {
                 clientName = tr('[NOMBRE COMPLETO CLIENTE]');
             }
@@ -19125,8 +19242,15 @@ ${clientName}
                 
                 yPos += 15;
                 
-                // TABLA DE SUMINISTROS
-                const tablaHeight = 10 + (dualSupplies.length * 9) + 12;
+                // TABLA DE SUMINISTROS - calcular altura dinámicamente según direcciones
+                let tablaHeightDynamic = 10 + 12; // Header + footer
+                dualSupplies.forEach(supply => {
+                    // 9 base + 4 adicionales si tiene dirección
+                    const hasAddress = supply.supplyAddress && supply.supplyAddress !== 'No especificada';
+                    tablaHeightDynamic += hasAddress ? 13 : 9;
+                });
+                const tablaHeight = tablaHeightDynamic;
+                
                 doc.setFillColor(255, 255, 255);
                 doc.roundedRect(margin, yPos, contentWidth, tablaHeight, 2, 2, 'F');
                 doc.setDrawColor(200, 200, 200);
@@ -19149,7 +19273,7 @@ ${clientName}
                 doc.setTextColor(100, 116, 139);
                 doc.setFont('helvetica', 'bold');
                 doc.text('#', margin + 5, yPos + 4.5);
-                doc.text('CUPS', margin + 15, yPos + 4.5);
+                doc.text('CUPS / DIRECCIÓN', margin + 15, yPos + 4.5);
                 doc.text(tr('Tipo'), margin + 100, yPos + 4.5);
                 doc.text(tr('Tarifa'), margin + 130, yPos + 4.5);
                 doc.text(tr('Ahorro Anual'), pageWidth - margin - 12, yPos + 4.5, { align: 'right' });
@@ -19160,16 +19284,32 @@ ${clientName}
                 dualSupplies.forEach((supply, idx) => {
                     console.log('Supply', idx, ':', supply);
                     
+                    // Altura de fila ajustada según si hay dirección
+                    const rowHeight = supply.supplyAddress && supply.supplyAddress !== 'No especificada' ? 11 : 7;
+                    
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(71, 85, 105);
                     doc.setFontSize(8);
                     
                     doc.text(String(idx + 1), margin + 5, yPos + 3.5);
                     
+                    // CUPS (primera línea)
                     const cupsShort = supply.cups && supply.cups.length > 22 ? supply.cups.substring(0, 20) + '...' : (supply.cups || 'N/A');
                     doc.text(cupsShort, margin + 15, yPos + 3.5);
                     
+                    // DIRECCIÓN (segunda línea, si existe)
+                    if (supply.supplyAddress && supply.supplyAddress !== 'No especificada') {
+                        doc.setFontSize(6);
+                        doc.setTextColor(100, 116, 139); // Gris para la dirección
+                        const direccionCorta = supply.supplyAddress.length > 35 
+                            ? supply.supplyAddress.substring(0, 32) + '...' 
+                            : supply.supplyAddress;
+                        doc.text(direccionCorta, margin + 15, yPos + 7.5);
+                        doc.setTextColor(71, 85, 105);
+                    }
+                    
                     // Tipo SIN emojis
+                    doc.setFontSize(8);
                     const tipoText = supply.type === 'electricidad' ? tr('Electricidad') : tr('Gas');
                     doc.text(tipoText, margin + 100, yPos + 3.5);
                     
@@ -19183,7 +19323,7 @@ ${clientName}
                     doc.setFontSize(9);
                     doc.text(eur(ahorro), pageWidth - margin - 12, yPos + 3.5, { align: 'right' });
                     
-                    yPos += 7;
+                    yPos += rowHeight;
                     
                     if (idx < dualSupplies.length - 1) {
                         doc.setDrawColor(226, 232, 240);
@@ -19923,55 +20063,8 @@ ${clientName}
                 console.error('Results completo:', JSON.stringify(results, null, 2));
             }
             
-            // Calcular descripción según el tipo
-            let description = '';
-            let totalKwh = 0;
-            
-            if (type === 'electricidad') {
-                totalKwh = (parseFloat(data.kwh_p1) || 0) + 
-                          (parseFloat(data.kwh_p2) || 0) + 
-                          (parseFloat(data.kwh_p3) || 0) + 
-                          (parseFloat(data.kwh_p4) || 0) + 
-                          (parseFloat(data.kwh_p5) || 0) + 
-                          (parseFloat(data.kwh_p6) || 0);
-                description = `${totalKwh.toFixed(0)} kWh, ${data.dias} días`;
-            } else {
-                totalKwh = parseFloat(data.kwh) || 0;
-                description = `${totalKwh.toFixed(0)} kWh, ${data.dias} días`;
-            }
-            
-            const supply = {
-                type: type, // 'electricidad' o 'gas'
-                cups: data.cups || 'N/A', // CUPS del suministro
-                tariff: tariff,
-                data: data,
-                results: results,
-                description: description,
-                totalKwh: totalKwh,
-                // CRÍTICO: Calcular totalAnnual desde el resultado correspondiente (DRK o Power Cup)
-                totalAnnual: (results.drk.total_anual > 0) ? results.drk.total_anual : results.powercup.total_anual,
-                // CRÍTICO: Guardar factura original para cálculo de ahorro
-                originalBillAnnual: data.originalBillAnnual || 0,
-                timestamp: new Date().getTime()
-            };
-            
-            console.log('Suministro a añadir:', supply);
-            console.log('Verificación - DRK:', supply.results.drk.total_anual, 'PowerCup:', supply.results.powercup.total_anual);
-            
-            // Añadir al array
-            dualSupplies.push(supply);
-            console.log('Total suministros:', dualSupplies.length);
-            console.log('Array completo:', dualSupplies);
-            
-            // Volver al gestor DUAL
-            backToDualManager();
-            
-            // Mostrar mensaje de confirmación
-            setTimeout(() => {
-                const drkCost = supply.results.drk.total_anual;
-                const pcCost = supply.results.powercup.total_anual;
-                alert(`✅ Suministro añadido correctamente\n\nTipo: ${type === 'electricidad' ? 'Electricidad' : 'Gas'}\nTarifa: ${tariff}\n${description}\n\nDRK anual: ${drkCost.toFixed(2)} €\nPowerCup anual: ${pcCost.toFixed(2)} €\n\nTotal: ${dualSupplies.length} suministro(s)`);
-            }, 100);
+            // NUEVO: Solicitar dirección del suministro antes de añadir
+            showDualSupplyAddressModal(type, tariff, data, results);
         };
         
         // Función: Añadir resultado actual a DUAL

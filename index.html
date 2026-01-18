@@ -23508,7 +23508,10 @@ ${clientName}
             doc.roundedRect(leftX, leftY, colW, 18, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(7);
-            doc.text('[ES0021000020679723GY]', leftX + 3, leftY + 5);
+            // Usar CUPS de gasCalculationParams
+            const gasParams = window.gasCalculationParams || {};
+            const cups = gasParams.cups || 'N/A';
+            doc.text(`[${cups}]`, leftX + 3, leftY + 5);
             doc.text('Tipo: ' + currentGasTariff, leftX + colW - 3, leftY + 5, { align: 'right' });
             doc.text('Días: ' + dias, leftX + colW - 3, leftY + 10, { align: 'right' });
             doc.setFontSize(8);
@@ -23606,7 +23609,7 @@ ${clientName}
             doc.roundedRect(rightX, rightY, colW, 18, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(7);
-            doc.text('[ES0021000020679723GY]', rightX + 3, rightY + 5);
+            doc.text(`[${cups}]`, rightX + 3, rightY + 5);
             doc.text('Tipo: ' + currentGasTariff, rightX + colW - 3, rightY + 5, { align: 'right' });
             doc.text('Días: ' + dias, rightX + colW - 3, rightY + 10, { align: 'right' });
             doc.setFontSize(8);
@@ -23774,7 +23777,7 @@ ${clientName}
             });
             
             doc.save('GAS_Dual_' + currentGasTariff + '.pdf');
-            window.showMessageModal("✅ PDF generado", false);
+            window.showMessageModal("✅ PDF generado correctamente");
         }
         
         // ============================================
@@ -24124,7 +24127,7 @@ ${clientName}
             doc.text(eur(bestResult.ahorro_anual) + tr('/ AÑO'), 15, y + 16);
             
             doc.save('GAS_PowerCup_' + tariffName + '_' + new Date().toISOString().slice(0,10) + '.pdf');
-            window.showMessageModal("✅ PDF POWER CUP generado", false);
+            window.showMessageModal("✅ PDF POWER CUP generado correctamente");
         }
         
         // PDF DUAL POWER CUP
@@ -24439,7 +24442,10 @@ ${clientName}
             doc.roundedRect(leftX, leftY, colW, 18, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(7);
-            doc.text('[ES0021000020679723GY]', leftX + 3, leftY + 5);
+            // Usar CUPS de gasCalculationParams
+            const gasParams = window.gasCalculationParams || {};
+            const cups = gasParams.cups || 'N/A';
+            doc.text(`[${cups}]`, leftX + 3, leftY + 5);
             doc.text('Tipo: ' + currentGasTariff, leftX + colW - 3, leftY + 5, { align: 'right' });
             doc.text('Días: ' + dias, leftX + colW - 3, leftY + 10, { align: 'right' });
             doc.setFontSize(8);
@@ -24537,7 +24543,7 @@ ${clientName}
             doc.roundedRect(rightX, rightY, colW, 18, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(7);
-            doc.text('[ES0021000020679723GY]', rightX + 3, rightY + 5);
+            doc.text(`[${cups}]`, rightX + 3, rightY + 5);
             doc.text('Tipo: ' + currentGasTariff, rightX + colW - 3, rightY + 5, { align: 'right' });
             doc.text('Días: ' + dias, rightX + colW - 3, rightY + 10, { align: 'right' });
             doc.setFontSize(8);

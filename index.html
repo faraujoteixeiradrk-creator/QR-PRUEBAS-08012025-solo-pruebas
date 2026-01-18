@@ -2356,7 +2356,7 @@
             if (finalResult && finalResult.offer) {
                 offerData = {
                     ...finalResult.offer,
-                    // Añadir precios de potencia y energía si existen
+                    // Añadir precios de potencia y energía si existen (para electricidad)
                     p1_power_price: finalResult.powerCosts?.[0]?.priceDay || finalResult.powerCosts?.[0]?.price_euro_kw_day,
                     p2_power_price: finalResult.powerCosts?.[1]?.priceDay || finalResult.powerCosts?.[1]?.price_euro_kw_day,
                     p3_power_price: finalResult.powerCosts?.[2]?.priceDay || finalResult.powerCosts?.[2]?.price_euro_kw_day,
@@ -2370,6 +2370,16 @@
                     p5_price: finalResult.energyCosts?.[4]?.price || finalResult.energyCosts?.[4]?.price_euro_kwh,
                     p6_price: finalResult.energyCosts?.[5]?.price || finalResult.energyCosts?.[5]?.price_euro_kwh
                 };
+                
+                // Si es gas, agregar precios de gas
+                if (type === 'gas') {
+                    const energiaTotal = finalResult.energia || finalResult.total_energia || 0;
+                    const kwhTotal = parseFloat(data.kwh) || 1;
+                    const precioEnergiaUnitario = kwhTotal > 0 ? energiaTotal / kwhTotal : (finalResult.p_fijo_1 || 0);
+                    
+                    offerData.p_fijo_diario = finalResult.termino_fijo_diario || finalResult.p_fijo_diario || 0;
+                    offerData.p1_price = precioEnergiaUnitario; // Precio unitario de energía
+                }
             }
             
             const supply = {
@@ -2409,6 +2419,10 @@
                 };
             } else {
                 // Para gas, extraer correctamente los datos de finalResult
+                const energiaTotal = finalResult?.energia || finalResult?.total_energia || 0;
+                const kwhTotal = totalKwh || 1; // Evitar división por 0
+                const precioEnergiaUnitario = kwhTotal > 0 ? energiaTotal / kwhTotal : (finalResult?.p_fijo_1 || 0);
+                
                 supply.gasBreakdown = {
                     totalKwh: totalKwh,
                     kwh: totalKwh,
@@ -2417,8 +2431,8 @@
                     termino_fijo: finalResult?.termino_fijo || finalResult?.total_fijo || 0,
                     termino_fijo_diario: finalResult?.termino_fijo_diario || finalResult?.p_fijo_diario || 0,
                     precio_fijo_diario: finalResult?.termino_fijo_diario || finalResult?.p_fijo_diario || 0,
-                    energia: finalResult?.energia || finalResult?.total_energia || 0,
-                    precio_energia: finalResult?.p_fijo_1 || 0,
+                    energia: energiaTotal,
+                    precio_energia: precioEnergiaUnitario, // Calculado: total energía / kWh
                     impuesto_hidrocarburos: finalResult?.impuesto_hidrocarburos || 0,
                     subtotal: finalResult?.subtotal || 0,
                     iva: finalResult?.iva || 0,

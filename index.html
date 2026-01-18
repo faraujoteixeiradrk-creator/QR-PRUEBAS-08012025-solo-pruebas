@@ -7711,6 +7711,91 @@
                     noteY += 3;
                 });
                 
+                yPos = noteY + 10;
+                
+                // === TABLA RESUMEN DE SUMINISTROS ===
+                // Verificar si necesitamos nueva página
+                if (yPos > 200) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                
+                // Título resumen (verde)
+                doc.setFillColor(...greenColor);
+                doc.roundedRect(margin, yPos, contentWidth, 10, 3, 3, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                const resumenText = `${tr('RESUMEN DE')} ${res.individualResults.length} ${tr('SUMINISTROS')}`;
+                doc.text(resumenText, margin + 3, yPos + 6.5);
+                yPos += 14;
+                
+                // Cabecera tabla (gris oscuro con texto blanco)
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.setFillColor(...darkColor);
+                doc.roundedRect(margin, yPos, contentWidth, 7, 2, 2, 'F');
+                doc.text('Nº', margin + 2, yPos + 5);
+                doc.text(tr('CUPS / DIRECCIÓN'), margin + 12, yPos + 5);
+                doc.text('TIPO', margin + 95, yPos + 5);
+                doc.text('DÍAS', margin + 115, yPos + 5);
+                doc.text('AHORRO', pageWidth - margin - 28, yPos + 5);
+                yPos += 7;
+                
+                // Filas de suministros
+                doc.setFont('helvetica', 'normal');
+                res.individualResults.forEach((supply, idx) => {
+                    // Verificar si necesitamos nueva página
+                    if (yPos > 270) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                    
+                    // Fondo alternado - altura aumentada para incluir dirección
+                    const rowHeight = supply.supplyAddress ? 11 : 7;
+                    if (idx % 2 === 0) {
+                        doc.setFillColor(248, 250, 252); // Azul muy claro
+                        doc.rect(margin, yPos, contentWidth, rowHeight, 'F');
+                    }
+                    
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(8);
+                    doc.text(`[${idx + 1}]`, margin + 2, yPos + 4.5);
+                    
+                    // CUPS (primera línea)
+                    doc.setFontSize(7);
+                    doc.text(supply.cups.substring(0, 18) + '...', margin + 12, yPos + 4.5);
+                    
+                    // DIRECCIÓN (segunda línea, si existe)
+                    if (supply.supplyAddress && supply.supplyAddress !== 'No especificada') {
+                        doc.setFontSize(6);
+                        doc.setTextColor(100, 116, 139); // Gris para la dirección
+                        const direccionCorta = supply.supplyAddress.length > 35 
+                            ? supply.supplyAddress.substring(0, 32) + '...' 
+                            : supply.supplyAddress;
+                        doc.text(direccionCorta, margin + 12, yPos + 8.5);
+                        doc.setTextColor(0, 0, 0);
+                    }
+                    
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(supply.originalTariffType, margin + 95, yPos + 4.5);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(`${supply.dias_facturados}`, margin + 118, yPos + 4.5, { align: 'center' });
+                    
+                    // Calcular ahorro (fijo vs indexado)
+                    const ahorroSupply = supply.savings || 0;
+                    const savSupply = ahorroSupply < 0 ? '0,00 €' : eur(ahorroSupply);
+                    const colorSupply = ahorroSupply < 0 ? [150, 150, 150] : greenColor;
+                    doc.setTextColor(...colorSupply);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(savSupply, pageWidth - margin - 2, yPos + 4.5, { align: 'right' });
+                    yPos += rowHeight;
+                });
+                
+                yPos += 10;
+                
                 // === PÁGINAS 2-N: DESARROLLO DETALLADO DE CADA CUPS ===
                 
                 // Función auxiliar para generar desglose detallado

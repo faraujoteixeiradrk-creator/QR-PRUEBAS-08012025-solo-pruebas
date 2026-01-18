@@ -22867,6 +22867,13 @@ ${clientName}
             doc.setFontSize(8);
             doc.text(`COMERCIAL: ${comercialCode}`, pageWidth - 12 - 43, y + 22.5);
             
+            // Dirección debajo del comercial (si existe)
+            if (clientAddress) {
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(7);
+                doc.text(tr('Dirección:') + ' ' + clientAddress, pageWidth - 12 - 43, y + 27);
+            }
+            
             y += 35;
             
             // CAJA GRIS "LA MEJOR OPCIÓN"

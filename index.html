@@ -8797,7 +8797,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(orangeColor[0], orangeColor[1], orangeColor[2]);
                     doc.setFontSize(9);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('AHORRO ADICIONAL POR OPTIMIZACION DE POTENCIAS', pageWidth / 2, yPos + 7, { align: 'center' });
+                    doc.text(tr('AHORRO ADICIONAL POR OPTIMIZACION DE POTENCIAS'), pageWidth / 2, yPos + 7, { align: 'center' });
                     
                     doc.setFontSize(18);
                     doc.text(eur(ahorroAdicional) + '/año', pageWidth / 2, yPos + 18, { align: 'center' });
@@ -8820,7 +8820,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
                     doc.setFontSize(9);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('POTENCIAL DE OPTIMIZACION', pageWidth / 2, yPos + 6.5, { align: 'center' });
+                    doc.text(tr('POTENCIAL DE OPTIMIZACION'), pageWidth / 2, yPos + 6.5, { align: 'center' });
                     
                     yPos += 15;
                     
@@ -8833,12 +8833,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'normal');
-                    doc.text('Con tu tarifa actual y potencias contratadas:', margin + 5, yPos + 8);
+                    doc.text(tr('Con tu tarifa actual y potencias contratadas:'), margin + 5, yPos + 8);
                     
                     doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
                     doc.setFontSize(12);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('Ahorro: ' + eur(resActual.savings) + '/año', margin + 5, yPos + 18);
+                    doc.text(tr('Ahorro') + ': ' + eur(resActual.savings) + '/año', margin + 5, yPos + 18);
                     
                     yPos += 23;
                     
@@ -8852,14 +8852,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'normal');
-                    doc.text('Con optimización de potencias (ajuste técnico):', margin + 5, yPos);
+                    doc.text(tr('Con optimización de potencias (ajuste técnico):'), margin + 5, yPos);
                     
                     yPos += 6;
                     
                     doc.setTextColor(orangeColor[0], orangeColor[1], orangeColor[2]);
                     doc.setFontSize(12);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('Ahorro adicional: ' + eur(ahorroAdicional) + '/año', margin + 5, yPos);
+                    doc.text(tr('Ahorro adicional') + ': ' + eur(ahorroAdicional) + '/año', margin + 5, yPos);
                     
                     yPos += 8;
                     
@@ -8886,7 +8886,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(14);
                 doc.setFont('helvetica', 'bold');
-                doc.text('DESGLOSE DETALLADO POR SUMINISTRO', pageWidth / 2, 10, { align: 'center' });
+                doc.text(tr('DESGLOSE DETALLADO POR SUMINISTRO'), pageWidth / 2, 10, { align: 'center' });
                 
                 if (presentationMode === 'two-columns') {
                     // ===============================================
@@ -8930,7 +8930,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setTextColor(255, 255, 255);
                         doc.setFontSize(7);
                         doc.setFont('helvetica', 'bold');
-                        doc.text('PRECIOS APLICADOS:', x + 3, y + 4);
+                        doc.text(tr('PRECIOS APLICADOS:'), x + 3, y + 4);
                         y += 8;
                         
                         // Tabla de precios (simplificada)
@@ -8939,8 +8939,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setTextColor(255, 255, 255);
                         doc.setFontSize(6);
                         doc.setFont('helvetica', 'bold');
-                        doc.text('POTENCIA:', x + 3, y + 4);
-                        doc.text('ENERGÍA:', x + colWidth / 2 + 2, y + 4);
+                        doc.text(tr('POTENCIA:'), x + 3, y + 4);
+                        doc.text(tr('ENERGÍA:'), x + colWidth / 2 + 2, y + 4);
                         
                         doc.setFont('helvetica', 'normal');
                         let priceY = y + 8;
@@ -8962,7 +8962,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setTextColor(0, 0, 0);
                         doc.setFontSize(7);
                         doc.setFont('helvetica', 'bold');
-                        doc.text('POTENCIA', x + 3, y + 4);
+                        doc.text(tr('POTENCIA'), x + 3, y + 4);
                         y += 8;
                         
                         res.powerCosts.forEach(p => {
@@ -8984,7 +8984,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setTextColor(0, 0, 0);
                         doc.setFontSize(7);
                         doc.setFont('helvetica', 'bold');
-                        doc.text('ENERGÍA', x + 3, y + 4);
+                        doc.text(tr('ENERGÍA'), x + 3, y + 4);
                         y += 8;
                         
                         res.energyCosts.forEach(e => {
@@ -9006,7 +9006,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setTextColor(255, 255, 255);
                         doc.setFontSize(8);
                         doc.setFont('helvetica', 'bold');
-                        doc.text(`TOTAL (${res.dias_facturados || 30} DÍAS)`, x + 3, y + 5.5);
+                        doc.text(tr('TOTAL (30 DÍAS)'), x + 3, y + 5.5);
                         doc.text(eur(res.totalPeriod), x + colWidth - 3, y + 5.5, { align: 'right' });
                         y += 10;
                         
@@ -9016,17 +9016,17 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setTextColor(255, 255, 255);
                         doc.setFontSize(8);
                         doc.setFont('helvetica', 'bold');
-                        doc.text('AHORRO:', x + 3, y + 5.5);
+                        doc.text(tr('AHORRO:'), x + 3, y + 5.5);
                         doc.text(eur(res.savings), x + colWidth - 3, y + 5.5, { align: 'right' });
                         
                         return y + 12;
                     };
                     
                     // Generar columna izquierda (Actuales)
-                    generateColumn(resActual, leftX, '[ES] - POTENCIAS ACTUALES', primaryColor);
+                    generateColumn(resActual, leftX, tr('[ES] - POTENCIAS ACTUALES'), primaryColor);
                     
                     // Generar columna derecha (Optimizadas)
-                    generateColumn(resOptimized, rightX, '[ES] - POTENCIAS OPTIMIZADAS', greenColor);
+                    generateColumn(resOptimized, rightX, tr('[ES] - POTENCIAS OPTIMIZADAS'), greenColor);
                     
                 } else {
                     // ===============================================
@@ -9040,7 +9040,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(9);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('[ES] - CON TU TARIFA ACTUAL', pageWidth / 2, y + 5.5, { align: 'center' });
+                    doc.text(tr('[ES] - CON TU TARIFA ACTUAL'), pageWidth / 2, y + 5.5, { align: 'center' });
                     y += 10;
                     
                     // Datos del CUPS
@@ -24494,6 +24494,9 @@ ${clientName}
                 "ENERGÍA": { en: "ENERGY", zh: "能源", de: "ENERGIE", fr: "ÉNERGIE" },
                 "TOTAL (30 DÍAS)": { en: "TOTAL (30 DAYS)", zh: "总计（30天）", de: "GESAMT (30 TAGE)", fr: "TOTAL (30 JOURS)" },
                 "AHORRO:": { en: "SAVINGS:", zh: "节省：", de: "ERSPARNIS:", fr: "ÉCONOMIES :" },
+                "AHORRO:": { en: "SAVINGS:", zh: "节省：", de: "ERSPARNIS:", fr: "ÉCONOMIES :" },
+                "Ahorro": { en: "Savings", zh: "节省", de: "Ersparnis", fr: "Économies" },
+                "Ahorro adicional": { en: "Additional savings", zh: "额外节省", de: "Zusätzliche Ersparnis", fr: "Économies supplémentaires" },
                 "RESUMEN DE AHORRO ANUAL": { en: "ANNUAL SAVINGS SUMMARY", zh: "年度节省摘要", de: "ZUSAMMENFASSUNG DER JÄHRLICHEN ERSPARNIS", fr: "RÉSUMÉ DES ÉCONOMIES ANNUELLES" },
                 "Con potencias actuales:": { en: "With current power:", zh: "使用当前功率：", de: "Mit aktueller Leistung:", fr: "Avec puissance actuelle :" },
                 "Ahorro adicional optimizando:": { en: "Additional savings optimizing:", zh: "优化额外节省：", de: "Zusätzliche Ersparnis durch Optimierung:", fr: "Économies supplémentaires en optimisant :" },

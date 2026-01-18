@@ -2341,6 +2341,13 @@
                 description = `${totalKwh.toFixed(0)} kWh, ${data.dias} días`;
             }
             
+            // Construir objeto offer básico con información disponible
+            const offerData = {
+                name: 'DRK',
+                description: type === 'electricidad' ? 'DRK FIJO 4' : 'DRK 1',
+                isDrk: true
+            };
+            
             const supply = {
                 type: type, // 'electricidad' o 'gas'
                 cups: data.cups || 'N/A', // CUPS del suministro
@@ -2350,12 +2357,29 @@
                 description: description,
                 totalKwh: totalKwh,
                 supplyAddress: supplyAddress, // NUEVA: Dirección del suministro
+                offer: offerData, // Información de la oferta
                 // CRÍTICO: Calcular totalAnnual desde el resultado correspondiente (DRK o Power Cup)
                 totalAnnual: (results.drk.total_anual > 0) ? results.drk.total_anual : results.powercup.total_anual,
                 // CRÍTICO: Guardar factura original para cálculo de ahorro
                 originalBillAnnual: data.originalBillAnnual || 0,
                 timestamp: new Date().getTime()
             };
+            
+            // Añadir breakdown específico según el tipo
+            if (type === 'electricidad') {
+                supply.electricityBreakdown = {
+                    energyCosts: [], // Se completará en el PDF si es necesario
+                    powerCosts: [],  // Se completará en el PDF si es necesario
+                    totalKwh: totalKwh,
+                    dias: data.dias || 30
+                };
+            } else {
+                supply.gasBreakdown = {
+                    totalKwh: totalKwh,
+                    kwh: totalKwh,
+                    dias: data.dias || 30
+                };
+            }
             
             console.log('Suministro a añadir:', supply);
             console.log('Verificación - DRK:', supply.results.drk.total_anual, 'PowerCup:', supply.results.powercup.total_anual);
@@ -10027,7 +10051,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFillColor(...darkColor);
                     doc.roundedRect(margin, yPos, contentWidth, 7, 2, 2, 'F');
                     doc.text('Nº', margin + 2, yPos + 5);
-                    doc.text('CUPS / DIRECCIÓN', margin + 12, yPos + 5);
+                    doc.text(tr('CUPS / DIRECCIÓN'), margin + 12, yPos + 5);
                     doc.text('TIPO', margin + 95, yPos + 5);
                     doc.text('DÍAS', margin + 115, yPos + 5);
                     doc.text('AHORRO', pageWidth - margin - 28, yPos + 5);
@@ -19168,7 +19192,7 @@ ${clientName}
                 doc.setTextColor(100, 116, 139);
                 doc.setFont('helvetica', 'bold');
                 doc.text('#', margin + 5, yPos + 4.5);
-                doc.text('CUPS / DIRECCIÓN', margin + 15, yPos + 4.5);
+                doc.text(tr('CUPS / DIRECCIÓN'), margin + 15, yPos + 4.5);
                 doc.text(tr('Tipo'), margin + 100, yPos + 4.5);
                 doc.text(tr('Tarifa'), margin + 130, yPos + 4.5);
                 doc.text(tr('Ahorro Anual'), pageWidth - margin - 12, yPos + 4.5, { align: 'right' });
@@ -25201,6 +25225,7 @@ ${clientName}
                 "CÓDIGO COMERCIAL (Obligatorio)": { en: "COMMERCIAL CODE (Required)", zh: "商业代码（必填）", de: "HANDELSCODE (Erforderlich)", fr: "CODE COMMERCIAL (Obligatoire)" },
                 "Nombre Cliente": { en: "Client Name", zh: "客户名称", de: "Kundenname", fr: "Nom du client" },
                 "CUPS": { en: "CUPS", zh: "CUPS", de: "CUPS", fr: "CUPS" },
+                "CUPS / DIRECCIÓN": { en: "CUPS / ADDRESS", zh: "CUPS / 地址", de: "CUPS / ADRESSE", fr: "CUPS / ADRESSE" },
                 "Teléfono": { en: "Phone", zh: "电话", de: "Telefon", fr: "Téléphone" },
                 "Email": { en: "Email", zh: "邮箱", de: "E-Mail", fr: "Email" },
                 "Observaciones (opcional)": { en: "Observations (optional)", zh: "备注（可选）", de: "Anmerkungen (optional)", fr: "Observations (facultatif)" },

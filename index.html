@@ -23215,7 +23215,6 @@ ${clientName}
             
             const eur = n => new Intl.NumberFormat('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(n || 0) + ' €';
             const num = (n, d=2) => new Intl.NumberFormat('es-ES', {minimumFractionDigits: d, maximumFractionDigits: d}).format(n || 0);
-            const cups = (window.gasCalculationParams && window.gasCalculationParams.cups) ? window.gasCalculationParams.cups : 'N/A';
             
             // PÁGINA 1: DISEÑO PROFESIONAL BONITO
             const pageWidth = 210;
@@ -23509,7 +23508,7 @@ ${clientName}
             doc.roundedRect(leftX, leftY, colW, 18, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(7);
-            doc.text('[' + cups + ']', leftX + 3, leftY + 5);
+            doc.text('[ES0021000020679723GY]', leftX + 3, leftY + 5);
             doc.text('Tipo: ' + currentGasTariff, leftX + colW - 3, leftY + 5, { align: 'right' });
             doc.text('Días: ' + dias, leftX + colW - 3, leftY + 10, { align: 'right' });
             doc.setFontSize(8);
@@ -23607,7 +23606,7 @@ ${clientName}
             doc.roundedRect(rightX, rightY, colW, 18, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(7);
-            doc.text('[' + cups + ']', rightX + 3, rightY + 5);
+            doc.text('[ES0021000020679723GY]', rightX + 3, rightY + 5);
             doc.text('Tipo: ' + currentGasTariff, rightX + colW - 3, rightY + 5, { align: 'right' });
             doc.text('Días: ' + dias, rightX + colW - 3, rightY + 10, { align: 'right' });
             doc.setFontSize(8);
@@ -24141,7 +24140,6 @@ ${clientName}
             
             const eur = n => new Intl.NumberFormat('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(n || 0) + ' €';
             const num = (n, d=2) => new Intl.NumberFormat('es-ES', {minimumFractionDigits: d, maximumFractionDigits: d}).format(n || 0);
-            const cups = (window.gasCalculationParams && window.gasCalculationParams.cups) ? window.gasCalculationParams.cups : 'N/A';
             
             const pageWidth = 210;
             let y = 0;
@@ -24441,7 +24439,7 @@ ${clientName}
             doc.roundedRect(leftX, leftY, colW, 18, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(7);
-            doc.text('[' + cups + ']', leftX + 3, leftY + 5);
+            doc.text('[ES0021000020679723GY]', leftX + 3, leftY + 5);
             doc.text('Tipo: ' + currentGasTariff, leftX + colW - 3, leftY + 5, { align: 'right' });
             doc.text('Días: ' + dias, leftX + colW - 3, leftY + 10, { align: 'right' });
             doc.setFontSize(8);
@@ -24539,7 +24537,7 @@ ${clientName}
             doc.roundedRect(rightX, rightY, colW, 18, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(7);
-            doc.text('[' + cups + ']', rightX + 3, rightY + 5);
+            doc.text('[ES0021000020679723GY]', rightX + 3, rightY + 5);
             doc.text('Tipo: ' + currentGasTariff, rightX + colW - 3, rightY + 5, { align: 'right' });
             doc.text('Días: ' + dias, rightX + colW - 3, rightY + 10, { align: 'right' });
             doc.setFontSize(8);

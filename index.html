@@ -2190,6 +2190,13 @@
         let pendingDualSupply = null; // Almacena temporalmente el suministro DUAL mientras se pide la dirección
         
         function showDualSupplyAddressModal(type, tariff, data, results) {
+            console.log('🔵 showDualSupplyAddressModal llamada');
+            console.log('  Type:', type);
+            console.log('  Tariff:', tariff);
+            console.log('  Data:', data);
+            console.log('  Data.cups:', data.cups);
+            console.log('  Results:', results);
+            
             // Guardar datos temporalmente
             pendingDualSupply = { type, tariff, data, results };
             
@@ -2202,9 +2209,14 @@
             // Limpiar el input
             document.getElementById('multicups-supply-address').value = '';
             
+            console.log('🔵 Mostrando modal de dirección DUAL');
+            
             // Mostrar modal
-            document.getElementById('supply-address-modal').classList.remove('hidden');
-            document.getElementById('supply-address-modal').classList.add('flex');
+            const modal = document.getElementById('supply-address-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            console.log('🔵 Modal classList después de mostrar:', modal.classList.toString());
             
             // Focus en el input
             setTimeout(() => {
@@ -20064,7 +20076,9 @@ ${clientName}
             }
             
             // NUEVO: Solicitar dirección del suministro antes de añadir
+            console.log('🟢 Llamando a showDualSupplyAddressModal...');
             showDualSupplyAddressModal(type, tariff, data, results);
+            console.log('🟢 showDualSupplyAddressModal debería haberse ejecutado');
         };
         
         // Función: Añadir resultado actual a DUAL

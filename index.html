@@ -4463,7 +4463,7 @@
                                     ${res.individualResults.map((supply, idx) => `
                                         <div class="bg-white rounded p-2 border border-blue-200">
                                             <div class="flex justify-between items-start mb-1">
-                                                <span class="font-mono text-slate-600">${supply.cups.slice(-12)}</span>
+                                                <span class="font-mono text-slate-600">${supply.cups}</span>
                                                 <span class="font-bold text-green-600">${eur(supply.savings)}</span>
                                             </div>
                                             <div class="text-slate-700">
@@ -4484,7 +4484,7 @@
                                         return `
                                         <div class="bg-white rounded p-2 border border-green-200">
                                             <div class="flex justify-between items-start mb-1">
-                                                <span class="font-mono text-slate-600">${supply.cups.slice(-12)}</span>
+                                                <span class="font-mono text-slate-600">${supply.cups}</span>
                                                 <span class="font-bold text-green-600">${eur(indexedSavings)}</span>
                                             </div>
                                             <div class="text-slate-700">
@@ -7835,7 +7835,7 @@
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(`[${supply.cups.slice(-12)}]`, x + 3, y + 4);
+                    doc.text(`[${supply.cups}]`, x + 3, y + 4);
                     doc.text(`Tipo: ${tariffType}`, x + width - 3, y + 4, { align: 'right' });
                     doc.text(`Días: ${resultado.dias_facturados || 0}`, x + width - 3, y + 8, { align: 'right' });
                     
@@ -8049,7 +8049,7 @@
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(supply.cups.slice(-12), leftX + 2, yPos + 4);
+                    doc.text(supply.cups, leftX + 2, yPos + 4);
                     doc.setTextColor(22, 163, 74);
                     doc.setFontSize(7);
                     doc.text(eur(supply.savings), leftX + colWidth - 2, yPos + 4, { align: 'right' });
@@ -8065,7 +8065,7 @@
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(supply.cups.slice(-12), rightX + 2, yPos + 4);
+                    doc.text(supply.cups, rightX + 2, yPos + 4);
                     const savingsIdx = supply.indexedComparison ? supply.indexedComparison.savings : 0;
                     doc.setTextColor(22, 163, 74);
                     doc.setFontSize(7);

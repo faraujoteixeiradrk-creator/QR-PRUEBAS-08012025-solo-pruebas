@@ -2756,12 +2756,13 @@
             document.getElementById('input-e3-kwh').placeholder = isHighVoltage ? 'E3' : `E3 (${tr('Valle')})`;
             
             // NUEVO: Mostrar/Ocultar el toggle de potencias optimizadas solo para 3.0TD
-            // IMPORTANTE: NO mostrar en modo MULTICUPS
+            // IMPORTANTE: NO mostrar en modo MULTICUPS ni en modo DUAL
             const isMultiCupsMode = currentTariffType === 'MULTICUPS';
+            const isDualMode = window.dualMode === true;
             const optimizedToggleWrapper = document.getElementById('optimized-power-toggle-wrapper');
             if (optimizedToggleWrapper) {
-                // Solo mostrar si es 3.0TD Y NO estamos en MULTICUPS
-                optimizedToggleWrapper.classList.toggle('hidden', !isHighVoltage || isMultiCupsMode);
+                // Solo mostrar si es 3.0TD Y NO estamos en MULTICUPS Y NO estamos en DUAL
+                optimizedToggleWrapper.classList.toggle('hidden', !isHighVoltage || isMultiCupsMode || isDualMode);
             }
             
             // NUEVO: Mostrar/Ocultar periodos optimizados según tipo de tarifa
@@ -13194,6 +13195,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         
         function startManualInputFlow() {
             const isMultiCupsMode = currentTariffType === 'MULTICUPS';
+            const isDualMode = window.dualMode === true;
             const tariffToConfigure = isMultiCupsMode ? multiCupsAddType : currentTariffType;
             
             if (isMultiCupsMode && !tariffToConfigure) return window.showErrorModal("Error interno: Seleccione primero 2.0 TD o 3.0 TD en la pantalla anterior.");
@@ -13201,7 +13203,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // 1. Limpiar inputs
             clearManualInputs('input');
             
-            // 2. Configurar el modal para modo Individual o Multi
+            // 2. Configurar el modal para modo Individual, Multi o DUAL
             const selectorWrapper = document.getElementById('manual-tariff-selector-wrapper');
             const selectEl = document.getElementById('manual-input-tariff-select');
             const modalTitleEl = document.getElementById('manual-modal-title');
@@ -13238,6 +13240,33 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 }
                 toggleMultiCupsInputPeriods(tariffToConfigure, 'input');
 
+            } else if (isDualMode) {
+                // MODO DUAL: Ocultar selector y opción de optimización
+                selectorWrapper.classList.add('hidden');
+                modalTitleEl.textContent = tr('Entrada de Datos Manual') + ` (${currentTariffType})`;
+                document.getElementById('execute-manual-input-btn').textContent = tr("CALCULAR");
+                
+                // IMPORTANTE: En modo DUAL, SIEMPRE ocultar la opción de potencias optimizadas
+                const optimizedToggleWrapper = document.getElementById('optimized-power-toggle-wrapper');
+                if (optimizedToggleWrapper) {
+                    optimizedToggleWrapper.classList.add('hidden');
+                }
+                
+                // Desactivar el checkbox de potencias optimizadas si estaba activado
+                const optimizedCheckbox = document.getElementById('enable-optimized-power');
+                if (optimizedCheckbox) {
+                    optimizedCheckbox.checked = false;
+                    window.optimizedPowerEnabled = false;
+                }
+                
+                // Ocultar los campos de potencias optimizadas si estaban visibles
+                const optimizedFields = document.getElementById('optimized-power-fields');
+                if (optimizedFields) {
+                    optimizedFields.classList.add('hidden');
+                }
+                
+                toggleMultiCupsInputPeriods(currentTariffType, 'input');
+                
             } else {
                 // MODO INDIVIDUAL: Ocultar selector (solo se usa la tarifa seleccionada en el landing)
                 selectorWrapper.classList.add('hidden');

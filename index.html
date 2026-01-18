@@ -9389,6 +9389,13 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const clientAddress = document.getElementById('client-address-input').value.trim();
             const clientEmail = document.getElementById('client-email-input').value.trim();
             
+            console.log('📋 DATOS CAPTURADOS EN handleGeneratePDF:');
+            console.log('  - Código comercial:', commercialCode);
+            console.log('  - Nombre cliente:', clientName);
+            console.log('  - Teléfono:', clientPhone);
+            console.log('  - 🏠 DIRECCIÓN:', clientAddress);
+            console.log('  - Email:', clientEmail);
+            
             if (!commercialCode) return window.showErrorModal("Indique el Código Comercial.");
             
             // IMPORTANTE: Detectar si hay resultado indexado para generar PDF dual

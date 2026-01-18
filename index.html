@@ -23508,7 +23508,7 @@ ${clientName}
             doc.roundedRect(leftX, leftY, colW, 18, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(7);
-            doc.text('[ES0021000020679723GY]', leftX + 3, leftY + 5);
+            doc.text(('[' + (window.gasCalculationParams && window.gasCalculationParams.cups ? window.gasCalculationParams.cups : 'N/A') + ']'), leftX + 3, leftY + 5);
             doc.text('Tipo: ' + currentGasTariff, leftX + colW - 3, leftY + 5, { align: 'right' });
             doc.text('Días: ' + dias, leftX + colW - 3, leftY + 10, { align: 'right' });
             doc.setFontSize(8);
@@ -23606,7 +23606,7 @@ ${clientName}
             doc.roundedRect(rightX, rightY, colW, 18, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(7);
-            doc.text('[ES0021000020679723GY]', rightX + 3, rightY + 5);
+            doc.text(('[' + (window.gasCalculationParams && window.gasCalculationParams.cups ? window.gasCalculationParams.cups : 'N/A') + ']'), rightX + 3, rightY + 5);
             doc.text('Tipo: ' + currentGasTariff, rightX + colW - 3, rightY + 5, { align: 'right' });
             doc.text('Días: ' + dias, rightX + colW - 3, rightY + 10, { align: 'right' });
             doc.setFontSize(8);
@@ -24439,7 +24439,7 @@ ${clientName}
             doc.roundedRect(leftX, leftY, colW, 18, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(7);
-            doc.text('[ES0021000020679723GY]', leftX + 3, leftY + 5);
+            doc.text(('[' + (window.gasCalculationParams && window.gasCalculationParams.cups ? window.gasCalculationParams.cups : 'N/A') + ']'), leftX + 3, leftY + 5);
             doc.text('Tipo: ' + currentGasTariff, leftX + colW - 3, leftY + 5, { align: 'right' });
             doc.text('Días: ' + dias, leftX + colW - 3, leftY + 10, { align: 'right' });
             doc.setFontSize(8);
@@ -24537,7 +24537,7 @@ ${clientName}
             doc.roundedRect(rightX, rightY, colW, 18, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(7);
-            doc.text('[ES0021000020679723GY]', rightX + 3, rightY + 5);
+            doc.text(('[' + (window.gasCalculationParams && window.gasCalculationParams.cups ? window.gasCalculationParams.cups : 'N/A') + ']'), rightX + 3, rightY + 5);
             doc.text('Tipo: ' + currentGasTariff, rightX + colW - 3, rightY + 5, { align: 'right' });
             doc.text('Días: ' + dias, rightX + colW - 3, rightY + 10, { align: 'right' });
             doc.setFontSize(8);

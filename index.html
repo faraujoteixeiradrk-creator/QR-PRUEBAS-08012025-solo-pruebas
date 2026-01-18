@@ -2189,7 +2189,7 @@
         // --- FUNCIONES PARA MODAL DE DIRECCIÓN DE SUMINISTRO (DUAL) ---
         let pendingDualSupply = null; // Almacena temporalmente el suministro DUAL mientras se pide la dirección
         
-        function showDualSupplyAddressModal(type, tariff, data, results) {
+        window.showDualSupplyAddressModal = function(type, tariff, data, results) {
             console.log('🔵 showDualSupplyAddressModal llamada');
             console.log('  Type:', type);
             console.log('  Tariff:', tariff);
@@ -20076,9 +20076,9 @@ ${clientName}
             }
             
             // NUEVO: Solicitar dirección del suministro antes de añadir
-            console.log('🟢 Llamando a showDualSupplyAddressModal...');
-            showDualSupplyAddressModal(type, tariff, data, results);
-            console.log('🟢 showDualSupplyAddressModal debería haberse ejecutado');
+            console.log('🟢 Llamando a window.showDualSupplyAddressModal...');
+            window.showDualSupplyAddressModal(type, tariff, data, results);
+            console.log('🟢 window.showDualSupplyAddressModal debería haberse ejecutado');
         };
         
         // Función: Añadir resultado actual a DUAL

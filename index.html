@@ -18579,7 +18579,7 @@ ${clientName}
         <!-- DATOS CLIENTE -->
         <div style="padding:15px 30px;background:#f8f9fa">
             <p style="margin:0 0 5px 0;font-size:11px;color:#1e293b"><strong>${tr("CLIENTE:")}</strong> ${clientName}</p>
-            <p style="margin:0 0 5px 0;font-size:11px;color:#1e293b"><strong>${tr("CUPS:")}</strong> ${dualSupplies[0].cups}</p>
+            <p style="margin:0 0 5px 0;font-size:11px;color:#1e293b"><strong>${tr("CUPS:")}</strong> ${dualSupplies && dualSupplies[0] && dualSupplies[0].cups ? dualSupplies[0].cups : 'N/A'}</p>
             <p style="margin:0;font-size:11px;color:#1e293b"><strong>${tr("COMERCIAL:")}</strong> ${comercialCode}</p>
         </div>
         
@@ -19222,9 +19222,11 @@ ${clientName}
                 doc.setFont('helvetica', 'normal');
                 doc.text(tr('CLIENTE: ') + clientName, margin + 5, yPos + 20);
                 
-                // CUPS del primer suministro
-                if (dualSupplies && dualSupplies.length > 0) {
-                    doc.text(tr('CUPS: ') + (dualSupplies[0].cups || 'N/A'), margin + 5, yPos + 25);
+                // CUPS del primer suministro (usar de dualSupplies si existe)
+                if (dualSupplies && dualSupplies.length > 0 && dualSupplies[0].cups) {
+                    doc.text(tr('CUPS: ') + dualSupplies[0].cups, margin + 5, yPos + 25);
+                } else {
+                    doc.text(tr('CUPS: ') + 'N/A', margin + 5, yPos + 25);
                 }
                 
                 // Comercial en caja destacada
@@ -24189,7 +24191,10 @@ ${clientName}
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
             doc.text(tr('CLIENTE:') + ' ' + clientName, 25, y + 12);
-            doc.text('CUPS: ES0021000020679723GY', 25, y + 17);
+            // Usar CUPS de gasCalculationParams
+            const gasParams = window.gasCalculationParams || {};
+            const cups = gasParams.cups || 'N/A';
+            doc.text(`CUPS: ${cups}`, 25, y + 17);
             
             // Comercial en caja destacada (derecha)
             doc.setFillColor(240, 245, 240);

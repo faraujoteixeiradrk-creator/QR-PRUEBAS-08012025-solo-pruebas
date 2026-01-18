@@ -22494,7 +22494,14 @@ ${clientName}
             doc.text('TARIFA: ' + currentGasTariff, margin + 5, yPos + 18);
             
             doc.setFont('helvetica', 'bold');
-            doc.text('COMERCIAL: zdc', pageWidth - margin - 45, yPos + 13);
+            doc.text('COMERCIAL: ' + comercialCode, pageWidth - margin - 45, yPos + 13);
+            
+            // Dirección debajo del comercial (si existe)
+            if (clientAddress) {
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.text(tr('Dirección:') + ' ' + clientAddress, pageWidth - margin - 45, yPos + 18);
+            }
             
             yPos += 28;
             

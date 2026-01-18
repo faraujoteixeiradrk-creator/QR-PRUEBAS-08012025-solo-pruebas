@@ -21072,6 +21072,7 @@ ${clientName}
             }
             
             const clientName = prompt(window.tr('NOMBRE DEL CLIENTE:'), window.tr('[NOMBRE COMPLETO CLIENTE]')) || window.tr('[NOMBRE COMPLETO CLIENTE]');
+            const clientAddress = prompt(window.tr('DIRECCIÓN DE SUMINISTRO:'), '') || '';
             
             // AHORA SÍ: Si está en chino, cambiar temporalmente a inglés para el PDF
             if (wasChineseMode) {
@@ -21097,15 +21098,15 @@ ${clientName}
                     const resFijo = results.find(r => !r.name.toUpperCase().includes('INDEX'));
                     
                     if (isPowerCup) {
-                        await generateGasPDF_Dual_PowerCup(resFijo, resIndexed, dias, kwh, totalCliente, clientName, comercialCode);
+                        await generateGasPDF_Dual_PowerCup(resFijo, resIndexed, dias, kwh, totalCliente, clientName, comercialCode, clientAddress);
                     } else {
-                        await generateGasPDF_Dual(resFijo, resIndexed, dias, kwh, totalCliente, clientName, comercialCode);
+                        await generateGasPDF_Dual(resFijo, resIndexed, dias, kwh, totalCliente, clientName, comercialCode, clientAddress);
                     }
                 } else {
                     if (isPowerCup) {
-                        await generateGasPDF_Simple_PowerCup(results[0], dias, kwh, totalCliente, clientName, comercialCode);
+                        await generateGasPDF_Simple_PowerCup(results[0], dias, kwh, totalCliente, clientName, comercialCode, clientAddress);
                     } else {
-                        await generateGasPDF_Simple(results[0], dias, kwh, totalCliente, clientName, comercialCode);
+                        await generateGasPDF_Simple(results[0], dias, kwh, totalCliente, clientName, comercialCode, clientAddress);
                     }
                 }
                 
@@ -22345,7 +22346,7 @@ ${clientName}
 
         
         // PDF INDIVIDUAL
-        async function generateGasPDF_Simple(bestResult, dias, kwh, totalCliente, clientName = '[NOMBRE COMPLETO CLIENTE]', comercialCode = 'D=00') {
+        async function generateGasPDF_Simple(bestResult, dias, kwh, totalCliente, clientName = '[NOMBRE COMPLETO CLIENTE]', comercialCode = 'D=00', clientAddress = '') {
             window.showMessageModal("⏳ Generando PDF... Por favor espere.");
             
             const { jsPDF } = window.jspdf;
@@ -22745,7 +22746,7 @@ ${clientName}
         }
         
         // PDF DUAL
-        async function generateGasPDF_Dual(resFijo, resIndexed, dias, kwh, totalCliente, clientName = '[NOMBRE COMPLETO CLIENTE]', comercialCode = 'D=00') {
+        async function generateGasPDF_Dual(resFijo, resIndexed, dias, kwh, totalCliente, clientName = '[NOMBRE COMPLETO CLIENTE]', comercialCode = 'D=00', clientAddress = '') {
             window.showMessageModal("⏳ Generando PDF comparativo...");
             const { jsPDF } = window.jspdf;
             let doc = new jsPDF('p', 'mm', 'a4');
@@ -23650,7 +23651,7 @@ ${clientName}
         }
         
         // PDF DUAL POWER CUP
-        async function generateGasPDF_Dual_PowerCup(resFijo, resIndexed, dias, kwh, totalCliente, clientName = '[NOMBRE COMPLETO CLIENTE]', comercialCode = 'D=00') {
+        async function generateGasPDF_Dual_PowerCup(resFijo, resIndexed, dias, kwh, totalCliente, clientName = '[NOMBRE COMPLETO CLIENTE]', comercialCode = 'D=00', clientAddress = '') {
             window.showMessageModal("⏳ Generando PDF comparativo POWER CUP...");
             const { jsPDF} = window.jspdf;
             let doc = new jsPDF('p', 'mm', 'a4');
@@ -23776,6 +23777,13 @@ ${clientName}
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(8);
             doc.text(tr('COMERCIAL:') + ' ' + comercialCode, pageWidth - 20 - 43, y + 14.5);
+            
+            // Dirección debajo del comercial (si existe)
+            if (clientAddress) {
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(7);
+                doc.text(tr('Dirección:') + ' ' + clientAddress, pageWidth - 20 - 43, y + 19);
+            }
             
             y += 25;
             
@@ -24990,6 +24998,7 @@ ${clientName}
                 "CALCULAR": { en: "CALCULATE", zh: "计算", de: "BERECHNEN", fr: "CALCULER" },
                 "Dirección": { en: "Address", zh: "地址", de: "Adresse", fr: "Adresse" },
                 "Dirección de Suministro": { en: "Supply Address", zh: "供应地址", de: "Versorgungsadresse", fr: "Adresse d'Approvisionnement" },
+                "DIRECCIÓN DE SUMINISTRO:": { en: "SUPPLY ADDRESS:", zh: "供应地址：", de: "VERSORGUNGSADRESSE:", fr: "ADRESSE D'APPROVISIONNEMENT:" },
                 "FINALIZAR Y COMPARAR": { en: "FINISH AND COMPARE", zh: "完成并比较", de: "ABSCHLIESSEN UND VERGLEICHEN", fr: "TERMINER ET COMPARER" },
                 "Suministros": { en: "Supplies", zh: "供应", de: "Versorgungen", fr: "Approvisionnements" },
                 

@@ -7689,37 +7689,7 @@
                 
                 yPos = maxY + 15;
                 
-                // Nota
-                doc.setFillColor(255, 251, 235);
-                doc.setDrawColor(245, 158, 11);
-                doc.setLineWidth(0.3);
-                doc.roundedRect(margin, yPos, contentWidth, 18, 1, 1, 'FD');
-                
-                doc.setTextColor(146, 64, 14);
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'bold');
-                doc.text('⚠️ IMPORTANTE:', margin + 2, yPos + 5);
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(6.5);
-                const noteText = doc.splitTextToSize(
-                    'A continuación encontrará el desarrollo detallado de cálculos para cada suministro, mostrando el desglose completo de costes tanto para tarifas fijas como indexadas.',
-                    contentWidth - 4
-                );
-                let noteY = yPos + 10;
-                noteText.forEach(line => {
-                    doc.text(line, margin + 2, noteY);
-                    noteY += 3;
-                });
-                
-                yPos = noteY + 10;
-                
                 // === TABLA RESUMEN DE SUMINISTROS ===
-                // Verificar si necesitamos nueva página
-                if (yPos > 200) {
-                    doc.addPage();
-                    yPos = 20;
-                }
-                
                 // Título resumen (verde)
                 doc.setFillColor(...greenColor);
                 doc.roundedRect(margin, yPos, contentWidth, 10, 3, 3, 'F');

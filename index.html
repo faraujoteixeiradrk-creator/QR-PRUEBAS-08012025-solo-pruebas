@@ -3832,11 +3832,12 @@
                 
                 // NUEVO: Si estamos en modo DUAL, mostrar confirmación en lugar de resultados
                 if (window.dualMode === true) {
-                    console.log('Modo DUAL detectado - añadiendo suministro al array');
+                    console.log('Modo DUAL detectado - usando flujo con dirección');
                     
                     // Extraer datos para DUAL
                     const tariff = final.tariffType || currentTariffType || '2.0TD';
                     const data = {
+                        cups: final.cups || 'CUPS-ELECTRICIDAD',
                         tariff: tariff,
                         kwh_p1: parseFloat(final.kwh_p1) || 0,
                         kwh_p2: parseFloat(final.kwh_p2) || 0,
@@ -3887,60 +3888,10 @@
                         }
                     };
                     
-                    // NUEVO FLUJO DUAL: Añadir suministro directamente al array
-                    const currentCost = comparisonMode === 'overall_best' ? powercupCost : drkCost;
-                    const originalBill = parseFloat(final.originalBillAnnual) || parseFloat(final.totalBillPeriod) * 12 || 0;
+                    console.log('Llamando a dualAddFromResults con:', { type: 'electricidad', tariff, data, results });
                     
-                    // CORRECCIÓN: Usar final.totalAnnual si existe (ya tiene la lógica de "Tu Tarifa Actual")
-                    const totalAnnualCost = final.totalAnnual || currentCost;
-                    
-                    const newSupply = {
-                        type: 'electricidad',
-                        tariff: tariff,
-                        cups: final.cups || 'CUPS-ELECTRICIDAD',
-                        originalBillAnnual: originalBill,
-                        totalAnnual: totalAnnualCost, // Usar el valor correcto
-                        offer: final.bestOffer || final.offer,
-                        data: final,
-                        electricityBreakdown: {
-                            energyCosts: final.energyCosts || [],
-                            powerCosts: final.powerCosts || [],
-                            subEnergy: final.subEnergyNet || 0,
-                            subPower: final.subPower || 0,
-                            subBase: final.subBase || 0,
-                            costIE: final.costIE || 0,
-                            baseImp: final.baseImp || 0,
-                            costIVA: final.costIVA || 0,
-                            totalPeriod: final.totalPeriod || 0,
-                            totalAnnual: final.totalAnnual || 0,
-                            ahorro_mensual: (final.originalBillPeriod || 0) - (final.totalPeriod || 0),
-                            ahorro_anual: final.savings || (originalBill - totalAnnualCost), // Usar final.savings si existe
-                            dias: final.dias_facturados || 30
-                        },
-                        results: results
-                    };
-                    
-                    // Añadir al array
-                    dualSupplies.push(newSupply);
-                    console.log('✅ Suministro ELECTRICIDAD añadido al array DUAL');
-                    console.log('  - Total suministros:', dualSupplies.length);
-                    console.log('  - CUPS:', newSupply.cups);
-                    console.log('  - originalBillAnnual:', newSupply.originalBillAnnual);
-                    console.log('  - totalAnnual:', newSupply.totalAnnual);
-                    console.log('  - final.totalAnnual (source):', final.totalAnnual);
-                    console.log('  - final.savings:', final.savings);
-                    console.log('  - results.drk.total_anual:', newSupply.results.drk.total_anual);
-                    console.log('  - results.powercup.total_anual:', newSupply.results.powercup.total_anual);
-                    console.log('  - Ahorro:', (originalBill - totalAnnualCost).toFixed(2), '€/año');
-                    
-                    // Actualizar lista
-                    updateDualSuppliesList();
-                    
-                    // Volver al gestor DUAL
-                    hideAllScreens();
-                    document.getElementById('screen-dual').classList.add('active');
-                    
-                    console.log('✅ Usuario puede añadir más suministros o calcular');
+                    // Usar el flujo con modal de dirección
+                    window.dualAddFromResults('electricidad', tariff, data, results);
                 
                 } else {
                     // Flujo normal - mostrar resultados
@@ -21077,21 +21028,32 @@ ${clientName}
                         }
                     };
                     
-                    // AÑADIR al array
-                    dualSupplies.push(newSupply);
+                    console.log('Llamando a dualAddFromResults para GAS');
                     
-                    console.log('✅ Suministro GAS añadido al array');
-                    console.log('  - Total suministros:', dualSupplies.length);
-                    console.log('  - Tarifa:', newSupply.tariff);
-                    console.log('  - Coste anual (totalAnnual):', newSupply.totalAnnual);
-                    console.log('  - Coste mensual:', newSupply.totalAnnual / 12);
-                    console.log('  - Objeto completo:', newSupply);
+                    // Construir datos para el flujo unificado
+                    const gasData = {
+                        cups: data.cups || 'N/A',
+                        kwh: data.kwh || 0,
+                        dias: data.dias || 30,
+                        totalCliente: importeFacturaMensual,
+                        originalBillAnnual: originalBillAnnual
+                    };
                     
-                    // Actualizar UI
-                    updateDualSuppliesList();
-                    console.log('✅ UI actualizada');
+                    const gasResults = {
+                        drk: {
+                            total: totalMensual,
+                            total_anual: totalAnual
+                        },
+                        powercup: {
+                            total: results.length > 1 ? results[1].total : totalMensual,
+                            total_anual: results.length > 1 ? results[1].total_anual : totalAnual
+                        }
+                    };
                     
-                    // Cerrar modal de gas si está abierto
+                    // Usar el flujo con modal de dirección
+                    window.dualAddFromResults('gas', currentGasTariff || 'RL1', gasData, gasResults);
+                    
+                    // Cerrar modal de gas
                     const gasModal = document.getElementById('gas-modal');
                     if (gasModal) {
                         gasModal.classList.add('hidden');

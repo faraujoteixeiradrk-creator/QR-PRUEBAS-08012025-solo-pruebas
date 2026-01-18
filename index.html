@@ -6988,8 +6988,9 @@
                 const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
                 const numPriceFormula = (n) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: 6, maximumFractionDigits: 6 }).format(n || 0);
                 
-                // Obtener nombre del cliente
+                // Obtener nombre del cliente y dirección
                 const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
+                const clientAddress = document.getElementById('client-address-input').value.trim();
                 
                 let yPos = 0;
                 const pageWidth = 210;
@@ -9372,6 +9373,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const commercialCode = document.getElementById('comercial-code-input').value.trim();
             const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
             const clientPhone = document.getElementById('client-phone-input').value.trim();
+            const clientAddress = document.getElementById('client-address-input').value.trim();
             const clientEmail = document.getElementById('client-email-input').value.trim();
             
             if (!commercialCode) return window.showErrorModal("Indique el Código Comercial.");
@@ -11161,6 +11163,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
             const clientPhone = document.getElementById('client-phone-input').value.trim() || '[TELÉFONO CLIENTE]';
+            const clientAddress = document.getElementById('client-address-input').value.trim();
             const clientEmail = document.getElementById('client-email-input').value.trim() || '[EMAIL CLIENTE]';
             
             const ahorroFijo = resFijo.savings;
@@ -11312,8 +11315,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                              `✓ Email · Teléfono · IBAN${LB}${LB}` +
                              `════════════════════════════════════════${LB}${LB}` +
                              `Quedo a la espera de confirmación.${LB}${LB}` +
-                             `Atentamente,${LB}${clientName}${LB}${LB}` +
-                             `Comercial: ${commercialCode}`;
+                             `Atentamente,${LB}${clientName}${LB}` +
+                             (clientAddress ? `${tr('Dirección:')}: ${clientAddress}${LB}` : '') +
+                             `${LB}Comercial: ${commercialCode}`;
             
             const subject = `✅ FORMALIZACIÓN - ${resFijo.cups} - ${brand.NAME.toUpperCase()}`;
             const formalizationRecipients = 'f.araujo@drk.es,r.guerra@drk.es,s.caballero@drk.es';
@@ -11554,6 +11558,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     <!-- FOOTER -->
                     <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; text-align: center;">
                         <p style="margin: 0 0 5px 0; font-size: 11px; color: #6b7280;">Comercial: <strong>${commercialCode}</strong></p>
+                        ${clientAddress ? `<p style="margin: 0 0 5px 0; font-size: 10px; color: #6b7280;">${tr('Dirección:')}: ${clientAddress}</p>` : ''}
                         <p style="margin: 0; font-size: 9px; color: #9ca3af;">Documento generado por ${brand.NAME.toUpperCase()}</p>
                     </div>
                     
@@ -18844,6 +18849,13 @@ ${clientName}
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(8);
                 doc.text(tr('COMERCIAL: ') + comercialCode, pageWidth - margin - 43, yPos + 22.5);
+                
+                // Dirección debajo del comercial (si existe)
+                if (clientAddress) {
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(7);
+                    doc.text(tr('Dirección:') + ' ' + clientAddress, pageWidth - margin - 43, yPos + 27);
+                }
                 
                 yPos += 35;
                 

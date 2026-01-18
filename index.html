@@ -22387,6 +22387,11 @@ ${clientName}
         
         // PDF INDIVIDUAL
         async function generateGasPDF_Simple(bestResult, dias, kwh, totalCliente, clientName = '[NOMBRE COMPLETO CLIENTE]', comercialCode = 'D=00', clientAddress = '') {
+            console.log('🏭 GAS PDF Simple - Parámetros recibidos:');
+            console.log('  - clientName:', clientName);
+            console.log('  - comercialCode:', comercialCode);
+            console.log('  - 🏠 clientAddress:', clientAddress);
+            
             window.showMessageModal("⏳ Generando PDF... Por favor espere.");
             
             const { jsPDF } = window.jspdf;

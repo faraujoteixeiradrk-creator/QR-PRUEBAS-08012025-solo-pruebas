@@ -6588,10 +6588,13 @@
         
         // --- GENERACIÓN DE PDF CON COMPARACIÓN DUAL (FIJO VS INDEXADO) CON DESARROLLO COMPLETO ---
         
-        async function generatePDF_Dual(resFijo, resIndexed) {
+        async function generatePDF_Dual(resFijo, resIndexed, commercialCode = 'D=00', clientName = '[NOMBRE COMPLETO CLIENTE]', clientPhone = '', clientEmail = '', clientAddress = '') {
             try {
                 console.log('=== generatePDF_Dual INICIADO ===');
                 console.log('resFijo:', resFijo);
+                console.log('commercialCode:', commercialCode);
+                console.log('clientName:', clientName);
+                console.log('clientAddress:', clientAddress);
                 console.log('resFijo tiene powerCosts?:', !!resFijo.powerCosts);
                 console.log('resFijo tiene energyCosts?:', !!resFijo.energyCosts);
                 console.log('resIndexed:', resIndexed);
@@ -6633,9 +6636,13 @@
                 const tariffType = resFijo.originalTariffType || currentTariffType;
                 const config = TARIFF_CONFIG[tariffType] || TARIFF_CONFIG['2.0TD'];
                 
-                const commercialCode = document.getElementById('comercial-code-input').value.trim();
-                const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
-                const clientAddress = document.getElementById('client-address-input').value.trim();
+                // Ya no necesitamos capturar desde el DOM, usamos los parámetros de la función
+                console.log('📋 Datos del comercial recibidos como parámetros:');
+                console.log('  - Código comercial:', commercialCode);
+                console.log('  - Nombre cliente:', clientName);
+                console.log('  - 🏠 Dirección:', clientAddress);
+                console.log('  - Teléfono:', clientPhone);
+                console.log('  - Email:', clientEmail);
                 
                 // Colores dinámicos según la marca activa
                 const darkColor = [107, 125, 142];
@@ -9770,7 +9777,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 } else {
                     // Individual con índice
                     console.log('✅ Generando PDF INDIVIDUAL DUAL');
-                    await generatePDF_Dual(lastComparisonResult, lastIndexedResult);
+                    await generatePDF_Dual(lastComparisonResult, lastIndexedResult, commercialCode, clientName, clientPhone, clientEmail, clientAddress);
                 }
                 
                 // Cerrar modal

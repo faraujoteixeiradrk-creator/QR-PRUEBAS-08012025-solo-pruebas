@@ -22842,17 +22842,21 @@ ${clientName}
             
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
-            doc.text(tr('CLIENTE:') + ' ' + clientName, margin + 5, yPos + 13);
-            doc.text('TARIFA: ' + currentGasTariff, margin + 5, yPos + 18);
+            doc.text(tr('CLIENTE:') + ' ' + clientName, margin + 5, yPos + 7);
+            // Agregar CUPS
+            const gasParams = window.gasCalculationParams || {};
+            const cups = gasParams.cups || 'N/A';
+            doc.text('CUPS: ' + cups, margin + 5, yPos + 12);
+            doc.text('TARIFA: ' + currentGasTariff, margin + 5, yPos + 17);
             
             doc.setFont('helvetica', 'bold');
-            doc.text('COMERCIAL: ' + comercialCode, pageWidth - margin - 45, yPos + 13);
+            doc.text('COMERCIAL: ' + comercialCode, pageWidth - margin - 45, yPos + 7);
             
             // Dirección debajo del comercial (si existe)
             if (clientAddress) {
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(8);
-                doc.text(tr('Dirección:') + ' ' + clientAddress, pageWidth - margin - 45, yPos + 18);
+                doc.text(tr('Dirección:') + ' ' + clientAddress, pageWidth - margin - 45, yPos + 12);
             }
             
             yPos += 28;

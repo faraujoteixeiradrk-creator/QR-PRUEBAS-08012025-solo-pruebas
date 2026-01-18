@@ -9330,7 +9330,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setTextColor(255, 255, 255);
                         doc.setFontSize(7);
                         doc.setFont('helvetica', 'bold');
-                        doc.text('[ES]', x + 3, y + 5);
+                        doc.text('[' + (res.cups || 'ES') + ']', x + 3, y + 5);
                         doc.text(`Tipo: ${res.tariffType}`, x + colWidth - 3, y + 5, { align: 'right' });
                         doc.setFont('helvetica', 'normal');
                         doc.text(`Días: ${res.dias_facturados || 30}`, x + colWidth - 3, y + 9, { align: 'right' });
@@ -9463,7 +9463,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('[ES]', margin + 3, y + 5);
+                    doc.text('[' + (resActual.cups || 'ES') + ']', margin + 3, y + 5);
                     doc.text(`Tipo: ${resActual.tariffType}`, pageWidth - margin - 3, y + 5, { align: 'right' });
                     doc.setFont('helvetica', 'normal');
                     doc.text(`Días: ${resActual.dias_facturados || 30}`, pageWidth - margin - 3, y + 9, { align: 'right' });

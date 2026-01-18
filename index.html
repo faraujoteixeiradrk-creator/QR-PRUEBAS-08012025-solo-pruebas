@@ -18645,7 +18645,7 @@ ${clientName}
                     return `
                     <tr style="border-bottom:1px solid #f1f5f9">
                         <td style="padding:12px 8px;font-size:11px;color:#1e293b;font-weight:bold">${i+1}</td>
-                        <td style="padding:12px 8px;font-size:9px;color:#64748b">${s.cups.substring(0,17)}...</td>
+                        <td style="padding:12px 8px;font-size:9px;color:#64748b">${s.cups}</td>
                         <td style="padding:12px 8px;font-size:10px;color:#1e293b;text-align:center">${emoji} ${tipo}</td>
                         <td style="padding:12px 8px;font-size:11px;color:#1e293b;text-align:center;font-weight:bold">${s.tariff}</td>
                         <td style="padding:12px 8px;font-size:12px;color:${ahorro > 0 ? '#22c55e' : '#9ca3af'};text-align:right;font-weight:bold">${ahorro.toFixed(2)} €</td>
@@ -18721,7 +18721,7 @@ ${clientName}
                 
                 return `
                 <div style="margin:15px 30px;background:${primaryColor};padding:12px;border-radius:5px">
-                    <p style="margin:0 0 5px 0;font-size:11px;color:white;font-weight:bold">[${i+1}] ${s.cups.substring(0,25)}...</p>
+                    <p style="margin:0 0 5px 0;font-size:11px;color:white;font-weight:bold">[${i+1}] ${s.cups}</p>
                     <p style="margin:0;font-size:10px;color:white">${tr('Tipo:')}: ${s.tariff} | ${tr('Días:')}: ${dias} ${tr('días')} | CUPS: [${i+1}]</p>
                     <p style="margin:5px 0 0 0;font-size:10px;color:white"><strong>${tr('TARIFA:')}</strong> ${tarifaCompleta}</p>
                 </div>
@@ -23305,7 +23305,7 @@ ${clientName}
             // Usar cups de gasCalculationParams
             const gasParams = window.gasCalculationParams || {};
             const cups = gasParams.cups || 'N/A';
-            doc.text(`CUPS: ${cups.length > 20 ? cups.substring(0, 20) + '...' : cups}`, 17, y + 25);
+            doc.text(`CUPS: ${cups}`, 17, y + 25);
             
             // Comercial en caja destacada (derecha)
             doc.setFillColor(240, 245, 248);

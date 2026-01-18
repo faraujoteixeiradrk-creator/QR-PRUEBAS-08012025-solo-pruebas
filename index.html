@@ -7774,7 +7774,7 @@
                     
                     // CUPS (primera línea)
                     doc.setFontSize(7);
-                    doc.text(supply.cups.substring(0, 18) + '...', margin + 12, yPos + 4.5);
+                    doc.text(supply.cups, margin + 12, yPos + 4.5);
                     
                     // DIRECCIÓN (segunda línea, si existe)
                     if (supply.supplyAddress && supply.supplyAddress !== 'No especificada') {
@@ -10228,7 +10228,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         
                         // CUPS (primera línea)
                         doc.setFontSize(7);
-                        doc.text(supply.cups.substring(0, 18) + '...', margin + 12, yPos + 4.5);
+                        doc.text(supply.cups, margin + 12, yPos + 4.5);
                         
                         // DIRECCIÓN (segunda línea, si existe)
                         if (supply.supplyAddress && supply.supplyAddress !== 'No especificada') {
@@ -19382,7 +19382,7 @@ ${clientName}
                     doc.text(String(idx + 1), margin + 5, yPos + 3.5);
                     
                     // CUPS (primera línea)
-                    const cupsShort = supply.cups && supply.cups.length > 22 ? supply.cups.substring(0, 20) + '...' : (supply.cups || 'N/A');
+                    const cupsShort = supply.cups || 'N/A';
                     doc.text(cupsShort, margin + 15, yPos + 3.5);
                     
                     // DIRECCIÓN (segunda línea, si existe)
@@ -19580,7 +19580,7 @@ ${clientName}
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
-                    const cupsDisplay = supply.cups && supply.cups.length > 30 ? supply.cups.substring(0, 28) + '...' : (supply.cups || 'N/A');
+                    const cupsDisplay = supply.cups || 'N/A';
                     doc.text(`[${idx + 1}] ${cupsDisplay}`, margin + 3, yPos + 6);
                     
                     doc.setFontSize(8);

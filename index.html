@@ -13503,10 +13503,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // Ocultar el selector de tarifa al abrir el modal (se mostrará solo si es necesario)
             document.getElementById('best-option-tariff-selector')?.classList.add('hidden');
             
-            // NUEVO: Si hay comparativo de potencias optimizadas activo, OCULTAR el checkbox de Fijo & Indexado
+            // NUEVO: Si hay comparativo de potencias optimizadas activo O es modo DUAL, OCULTAR el checkbox de Fijo & Indexado
             const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
-            if (window.optimizedPowerEnabled) {
-                console.log('⚡ Optimización de potencias activa - Ocultando checkbox Fijo & Indexado');
+            const isDualMode = window.dualMode === true;
+            
+            if (window.optimizedPowerEnabled || isDualMode) {
+                if (isDualMode) {
+                    console.log('🔄 Modo DUAL activo - Ocultando checkbox Fijo & Indexado');
+                } else {
+                    console.log('⚡ Optimización de potencias activa - Ocultando checkbox Fijo & Indexado');
+                }
                 checkboxContainer?.classList.add('hidden');
                 // Asegurar que el checkbox esté desmarcado
                 const indexedCheckbox = document.getElementById('compare-with-indexed');
@@ -13515,7 +13521,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     compareWithIndexed = false;
                 }
             } else {
-                // IMPORTANTE: El checkbox de comparación visible normalmente (para DRK y POWER CUP)
+                // IMPORTANTE: El checkbox de comparación visible solo si NO es DUAL y NO hay optimización
                 checkboxContainer?.classList.remove('hidden');
             }
             
@@ -13600,6 +13606,13 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // Detectar contexto
             const isDrkMode = comparisonMode !== 'overall_best';
             const isIndividual = currentTariffType !== 'MULTICUPS';
+            const isDualMode = window.dualMode === true;
+            
+            // IMPORTANTE: En modo DUAL, siempre ocultar el checkbox
+            if (isDualMode) {
+                console.log('🔄 Modo DUAL: Ocultando checkbox de comparación indexada');
+                if (checkboxContainer) checkboxContainer.classList.add('hidden');
+            }
             
             if (isDrkMode) {
                 // DRK (Individual o MULTICUPS)
@@ -13608,7 +13621,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     // CHECK MARCADO: Comparar automáticamente FIJO vs INDEXADO (NO mostrar selector)
                     console.log('DRK con CHECK marcado: Comparando automáticamente FIJO vs INDEXADO');
                     selectorDiv?.classList.add('hidden');
-                    if (checkboxContainer) checkboxContainer.classList.remove('hidden');
+                    // Solo mostrar checkbox si NO es modo DUAL
+                    if (checkboxContainer && !isDualMode) checkboxContainer.classList.remove('hidden');
                     selectBestOptionDirect(); // Ejecutar directamente
                 } else {
                     // CHECK NO MARCADO: Mostrar selector para elegir FIJA o INDEXADA

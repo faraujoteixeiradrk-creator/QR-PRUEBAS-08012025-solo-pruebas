@@ -4504,7 +4504,7 @@
                 
                 // Incluir dirección si existe
                 const addressHTML = resItem.supplyAddress && resItem.supplyAddress !== 'No especificada' 
-                    ? `<div class="text-xs text-slate-500 mt-1">📍 ${resItem.supplyAddress}</div>` 
+                    ? `<div class="text-xs text-slate-500 mt-1">${resItem.supplyAddress}</div>` 
                     : '';
                 
                 return `<div class="py-2 border-b border-slate-100 last:border-b-0">
@@ -9976,7 +9976,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             const direccionCorta = supply.supplyAddress.length > 35 
                                 ? supply.supplyAddress.substring(0, 32) + '...' 
                                 : supply.supplyAddress;
-                            doc.text('📍 ' + direccionCorta, margin + 12, yPos + 8.5);
+                            doc.text(direccionCorta, margin + 12, yPos + 8.5);
                             doc.setTextColor(0, 0, 0);
                         }
                         
@@ -10037,7 +10037,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             const direccionCorta = res.supplyAddress.length > 40 
                                 ? res.supplyAddress.substring(0, 37) + '...' 
                                 : res.supplyAddress;
-                            doc.text('📍 ' + direccionCorta, x + 3, y + 8);
+                            doc.text(direccionCorta, x + 3, y + 8);
                         }
                         
                         // Nombre completo: Comercializadora - Tarifa
@@ -13128,6 +13128,25 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 selectorWrapper.classList.add('hidden');
                 modalTitleEl.textContent = tr('Añadir Suministro') + ` #${multiCupsData.length + 1} (${tariffToConfigure} Manual)`;
                 document.getElementById('execute-manual-input-btn').textContent = tr('AÑADIR SUMINISTRO');
+                
+                // IMPORTANTE: En modo MULTICUPS, SIEMPRE ocultar la opción de potencias optimizadas
+                const optimizedToggleWrapper = document.getElementById('optimized-power-toggle-wrapper');
+                if (optimizedToggleWrapper) {
+                    optimizedToggleWrapper.classList.add('hidden');
+                }
+                
+                // Desactivar el checkbox de potencias optimizadas si estaba activado
+                const optimizedCheckbox = document.getElementById('enable-optimized-power');
+                if (optimizedCheckbox) {
+                    optimizedCheckbox.checked = false;
+                    window.optimizedPowerEnabled = false;
+                }
+                
+                // Ocultar los campos de potencias optimizadas si estaban visibles
+                const optimizedFields = document.getElementById('optimized-power-fields');
+                if (optimizedFields) {
+                    optimizedFields.classList.add('hidden');
+                }
                 
                 // Forzar la selección del tipo de CUPS seleccionado en la vista SAGA
                 // Solo si el tipo existe en el selector (2.0TD o 3.0TD)

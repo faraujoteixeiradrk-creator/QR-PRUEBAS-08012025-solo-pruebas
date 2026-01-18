@@ -23853,7 +23853,10 @@ ${clientName}
             doc.text(tr('CLIENTE:') + ' ' + clientName + '', 25, y);
             
             y += 5;
-            doc.text('CUPS: ES0021000020679723GY', 25, y);
+            // Usar CUPS de gasCalculationParams
+            const gasParams = window.gasCalculationParams || {};
+            const cups = gasParams.cups || 'N/A';
+            doc.text(`CUPS: ${cups}`, 25, y);
             
             // Texto "COMERCIAL: <cz" en la esquina derecha
             doc.setTextColor(130, 140, 130);

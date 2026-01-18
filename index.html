@@ -22788,7 +22788,7 @@ ${clientName}
             doc.save('Comparativa_GAS_' + currentGasTariff + '_DRK_' + new Date().toISOString().slice(0,10) + '.pdf');
             
             setTimeout(() => {
-                window.showMessageModal("✅ PDF de GAS generado correctamente", false);
+                window.showMessageModal("✅ PDF de GAS generado correctamente");
             }, 500);
         }
         
@@ -22903,10 +22903,17 @@ ${clientName}
             doc.text(`COMERCIAL: ${comercialCode}`, pageWidth - 12 - 43, y + 22.5);
             
             // Dirección debajo del comercial (si existe)
+            console.log('🔍 Verificando clientAddress en PDF:', clientAddress);
+            console.log('🔍 ¿Es truthy?', !!clientAddress);
+            console.log('🔍 Tipo:', typeof clientAddress);
             if (clientAddress) {
+                console.log('✅ ENTRANDO en if(clientAddress) - Mostrando dirección');
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(7);
                 doc.text(tr('Dirección:') + ' ' + clientAddress, pageWidth - 12 - 43, y + 27);
+                console.log('✅ Dirección añadida al PDF en posición y=' + (y + 27));
+            } else {
+                console.log('❌ NO ENTRANDO en if(clientAddress) - clientAddress es falsy');
             }
             
             y += 35;

@@ -1881,6 +1881,52 @@
                 </div>
             </div>
         </div>
+        
+        <!-- 11. Modal de Dirección de Suministro (Multicups) -->
+        <div id="supply-address-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+            <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full">
+                <!-- Icono de ubicación -->
+                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </div>
+                
+                <h3 class="text-xl font-bold text-slate-800 mb-2 text-center">Dirección del Suministro</h3>
+                <p class="text-slate-600 text-sm mb-4 text-center">Introduce la dirección del suministro <span id="supply-number-label" class="font-bold text-drk-600"></span></p>
+                
+                <!-- CUPS del suministro -->
+                <div class="bg-slate-50 rounded-lg p-3 mb-4">
+                    <p class="text-xs font-bold text-slate-600 mb-1">📋 CUPS</p>
+                    <p class="text-sm font-mono text-slate-800" id="supply-cups-display"></p>
+                </div>
+                
+                <!-- Input de dirección -->
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">
+                        Dirección completa
+                    </label>
+                    <input 
+                        type="text" 
+                        id="multicups-supply-address" 
+                        placeholder="Ej: Calle Mayor 123, Madrid" 
+                        class="w-full px-4 py-3 border-2 border-slate-300 rounded-lg focus:border-drk-500 focus:outline-none"
+                    >
+                    <p class="text-xs text-slate-500 mt-2">Esta dirección aparecerá en el PDF junto al CUPS</p>
+                </div>
+                
+                <!-- Botones -->
+                <div class="flex gap-3">
+                    <button onclick="cancelAddressInput()" class="flex-1 px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition">
+                        Omitir
+                    </button>
+                    <button onclick="confirmAddressInput()" class="flex-1 px-6 py-3 bg-drk-500 hover:bg-drk-600 text-white font-bold rounded-xl transition">
+                        Confirmar →
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
     
     <!-- Overlay de procesamiento QR - Grande y visible -->
@@ -2135,6 +2181,83 @@
 
         window.showMessageModal = (msg, title=tr("Éxito")) => setModalContent(msg, title, false);
         window.showErrorModal = (msg, title=tr("¡Atención!")) => setModalContent(msg, title, true);
+        
+        // --- FUNCIONES PARA MODAL DE DIRECCIÓN DE SUMINISTRO (MULTICUPS) ---
+        let pendingSupplyData = null; // Almacena temporalmente los datos del suministro mientras se pide la dirección
+        let pendingSupplyTariffType = null;
+        
+        function showSupplyAddressModal(data, tariffType) {
+            // Guardar datos temporalmente
+            pendingSupplyData = data;
+            pendingSupplyTariffType = tariffType;
+            
+            // Actualizar contenido del modal
+            const supplyNumber = multiCupsData.length + 1;
+            document.getElementById('supply-number-label').textContent = `#${supplyNumber}`;
+            document.getElementById('supply-cups-display').textContent = data.cups || 'MANUAL';
+            
+            // Limpiar el input
+            document.getElementById('multicups-supply-address').value = '';
+            
+            // Mostrar modal
+            document.getElementById('supply-address-modal').classList.remove('hidden');
+            document.getElementById('supply-address-modal').classList.add('flex');
+            
+            // Focus en el input
+            setTimeout(() => {
+                document.getElementById('multicups-supply-address').focus();
+            }, 100);
+        }
+        
+        window.confirmAddressInput = function() {
+            const address = document.getElementById('multicups-supply-address').value.trim();
+            
+            // Cerrar modal
+            document.getElementById('supply-address-modal').classList.add('hidden');
+            document.getElementById('supply-address-modal').classList.remove('flex');
+            
+            // Añadir la dirección a los datos
+            if (pendingSupplyData) {
+                pendingSupplyData.supplyAddress = address || 'No especificada';
+                
+                // Procesar el suministro
+                saveSupply(pendingSupplyData, pendingSupplyTariffType);
+                
+                // Limpiar datos temporales
+                pendingSupplyData = null;
+                pendingSupplyTariffType = null;
+            }
+        };
+        
+        window.cancelAddressInput = function() {
+            // Cerrar modal y continuar sin dirección
+            document.getElementById('supply-address-modal').classList.add('hidden');
+            document.getElementById('supply-address-modal').classList.remove('flex');
+            
+            // Añadir valor por defecto
+            if (pendingSupplyData) {
+                pendingSupplyData.supplyAddress = 'No especificada';
+                
+                // Procesar el suministro
+                saveSupply(pendingSupplyData, pendingSupplyTariffType);
+                
+                // Limpiar datos temporales
+                pendingSupplyData = null;
+                pendingSupplyTariffType = null;
+            }
+        };
+        
+        // Permitir confirmar con Enter
+        document.addEventListener('DOMContentLoaded', function() {
+            const addressInput = document.getElementById('multicups-supply-address');
+            if (addressInput) {
+                addressInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        confirmAddressInput();
+                    }
+                });
+            }
+        });
         
         function cleanupPasteCatcher() {
             const pasteCatcher = document.getElementById('paste-catcher');
@@ -4378,10 +4501,19 @@
             let summaryListHTML = individualResults.map((resItem, index) => {
                 // MODIFICACIÓN #2: Eliminar "Sin Ahorro" en la vista interna, dejando un espacio.
                 const savingsText = resItem.isNegativeSavings ? `&nbsp;` : `(${tr('Ahorro')}: ${eur(resItem.savings)})`;
-                return `<div class="flex justify-between items-center py-1 border-b border-slate-100 last:border-b-0">
-                    <span class="font-bold text-sm text-slate-700">${resItem.cups}</span>
-                    <span class="text-xs text-drk-800 font-semibold">${resItem.originalTariffType}</span>
-                    <span class="text-xs ${resItem.isNegativeSavings ? 'text-slate-500' : 'text-cta-green-600 font-medium'}">${savingsText}</span>
+                
+                // Incluir dirección si existe
+                const addressHTML = resItem.supplyAddress && resItem.supplyAddress !== 'No especificada' 
+                    ? `<div class="text-xs text-slate-500 mt-1">📍 ${resItem.supplyAddress}</div>` 
+                    : '';
+                
+                return `<div class="py-2 border-b border-slate-100 last:border-b-0">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-sm text-slate-700">${resItem.cups}</span>
+                        <span class="text-xs text-drk-800 font-semibold">${resItem.originalTariffType}</span>
+                        <span class="text-xs ${resItem.isNegativeSavings ? 'text-slate-500' : 'text-cta-green-600 font-medium'}">${savingsText}</span>
+                    </div>
+                    ${addressHTML}
                 </div>`;
             }).join('');
 
@@ -9811,7 +9943,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFillColor(...darkColor);
                     doc.roundedRect(margin, yPos, contentWidth, 7, 2, 2, 'F');
                     doc.text('Nº', margin + 2, yPos + 5);
-                    doc.text('CUPS', margin + 12, yPos + 5);
+                    doc.text('CUPS / DIRECCIÓN', margin + 12, yPos + 5);
                     doc.text('TIPO', margin + 95, yPos + 5);
                     doc.text('DÍAS', margin + 115, yPos + 5);
                     doc.text('AHORRO', pageWidth - margin - 28, yPos + 5);
@@ -9820,19 +9952,34 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     // Filas (alternadas con borde sutil)
                     doc.setFont('helvetica', 'normal');
                     res.individualResults.forEach((supply, idx) => {
-                        checkNewPage(8);
+                        checkNewPage(12); // Aumentado para dar espacio a la dirección
                         
-                        // Fondo alternado
+                        // Fondo alternado - altura aumentada para incluir dirección
+                        const rowHeight = supply.supplyAddress ? 11 : 7;
                         if (idx % 2 === 0) {
                             doc.setFillColor(248, 250, 252); // Azul muy claro
-                            doc.rect(margin, yPos, contentWidth, 7, 'F');
+                            doc.rect(margin, yPos, contentWidth, rowHeight, 'F');
                         }
                         
                         doc.setTextColor(0, 0, 0);
                         doc.setFontSize(8);
                         doc.text(`[${idx + 1}]`, margin + 2, yPos + 4.5);
+                        
+                        // CUPS (primera línea)
                         doc.setFontSize(7);
                         doc.text(supply.cups.substring(0, 18) + '...', margin + 12, yPos + 4.5);
+                        
+                        // DIRECCIÓN (segunda línea, si existe)
+                        if (supply.supplyAddress && supply.supplyAddress !== 'No especificada') {
+                            doc.setFontSize(6);
+                            doc.setTextColor(100, 116, 139); // Gris para la dirección
+                            const direccionCorta = supply.supplyAddress.length > 35 
+                                ? supply.supplyAddress.substring(0, 32) + '...' 
+                                : supply.supplyAddress;
+                            doc.text('📍 ' + direccionCorta, margin + 12, yPos + 8.5);
+                            doc.setTextColor(0, 0, 0);
+                        }
+                        
                         doc.setFontSize(8);
                         doc.setFont('helvetica', 'bold');
                         doc.text(supply.originalTariffType, margin + 95, yPos + 4.5);
@@ -9844,7 +9991,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setTextColor(...colorSupply);
                         doc.setFont('helvetica', 'bold');
                         doc.text(savSupply, pageWidth - margin - 2, yPos + 4.5, { align: 'right' });
-                        yPos += 7;
+                        yPos += rowHeight;
                     });
                     
                     yPos += 10;
@@ -9882,9 +10029,21 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.text(`Tipo: ${res.originalTariffType || ''}`, x + width - 3, y + 4, { align: 'right' });
                         doc.text(`Días: ${res.dias_facturados || 0}`, x + width - 3, y + 8, { align: 'right' });
                         
+                        // Dirección del suministro (si existe)
+                        if (res.supplyAddress && res.supplyAddress !== 'No especificada') {
+                            doc.setFontSize(6);
+                            doc.setFont('helvetica', 'normal');
+                            doc.setTextColor(200, 220, 255); // Azul claro
+                            const direccionCorta = res.supplyAddress.length > 40 
+                                ? res.supplyAddress.substring(0, 37) + '...' 
+                                : res.supplyAddress;
+                            doc.text('📍 ' + direccionCorta, x + 3, y + 8);
+                        }
+                        
                         // Nombre completo: Comercializadora - Tarifa
                         doc.setFontSize(6.5);
                         doc.setFont('helvetica', 'normal');
+                        doc.setTextColor(255, 255, 255);
                         const comercializadora = res.offer.name || brand.NAME;
                         const nombreTarifa = res.offer.description || 'N/A';
                         const nombreCompleto = `${comercializadora} - ${nombreTarifa}`;
@@ -12937,8 +13096,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 closeManualInputModal();
                 
                 if (isMultiCupsMode) {
-                    console.log('Saving supply for MultiCups');
-                    saveSupply(data, tariffToUse);
+                    console.log('Saving supply for MultiCups - requesting address first');
+                    // En modo Multicups, primero solicitar la dirección del suministro
+                    showSupplyAddressModal(data, tariffToUse);
                 } else {
                     console.log('Comparing offers for single tariff');
                     compareOffers(data);
@@ -16463,9 +16623,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             if (!tempQrData) return;
             const tariffType = document.getElementById('confirm-tariff-select').value;
             
-            saveSupply(tempQrData, tariffType);
-            
+            // Cerrar modal de confirmación
             document.getElementById('qr-confirm-modal').classList.add('hidden');
+            
+            // En modo Multicups, solicitar dirección antes de guardar
+            if (currentTariffType === 'MULTICUPS') {
+                showSupplyAddressModal(tempQrData, tariffType);
+            } else {
+                saveSupply(tempQrData, tariffType);
+            }
+            
             tempQrData = null;  
         };
 

@@ -2627,9 +2627,12 @@
             document.getElementById('input-e3-kwh').placeholder = isHighVoltage ? 'E3' : `E3 (${tr('Valle')})`;
             
             // NUEVO: Mostrar/Ocultar el toggle de potencias optimizadas solo para 3.0TD
+            // IMPORTANTE: NO mostrar en modo MULTICUPS
+            const isMultiCupsMode = currentTariffType === 'MULTICUPS';
             const optimizedToggleWrapper = document.getElementById('optimized-power-toggle-wrapper');
             if (optimizedToggleWrapper) {
-                optimizedToggleWrapper.classList.toggle('hidden', !isHighVoltage);
+                // Solo mostrar si es 3.0TD Y NO estamos en MULTICUPS
+                optimizedToggleWrapper.classList.toggle('hidden', !isHighVoltage || isMultiCupsMode);
             }
             
             // NUEVO: Mostrar/Ocultar periodos optimizados según tipo de tarifa

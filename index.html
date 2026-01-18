@@ -2319,6 +2319,10 @@
             console.log('Results:', results);
             console.log('Address:', supplyAddress);
             
+            // Recuperar finalResult si fue guardado
+            const finalResult = window.pendingDualFinalResult;
+            console.log('FinalResult disponible:', finalResult);
+            
             if (results.drk.total_anual === 0 && results.powercup.total_anual === 0) {
                 console.error('⚠️⚠️⚠️ PROBLEMA: Ambos costes son 0 al añadir suministro');
                 console.error('Results completo:', JSON.stringify(results, null, 2));
@@ -2341,18 +2345,38 @@
                 description = `${totalKwh.toFixed(0)} kWh, ${data.dias} días`;
             }
             
-            // Construir objeto offer básico con información disponible
-            const offerData = {
+            // Construir objeto offer - usar finalResult si está disponible
+            let offerData = {
                 name: 'DRK',
                 description: type === 'electricidad' ? 'DRK FIJO 4' : 'DRK 1',
                 isDrk: true
             };
             
+            // Si tenemos finalResult, extraer la oferta real
+            if (finalResult && finalResult.offer) {
+                offerData = {
+                    ...finalResult.offer,
+                    // Añadir precios de potencia y energía si existen
+                    p1_power_price: finalResult.powerCosts?.[0]?.priceDay || finalResult.powerCosts?.[0]?.price_euro_kw_day,
+                    p2_power_price: finalResult.powerCosts?.[1]?.priceDay || finalResult.powerCosts?.[1]?.price_euro_kw_day,
+                    p3_power_price: finalResult.powerCosts?.[2]?.priceDay || finalResult.powerCosts?.[2]?.price_euro_kw_day,
+                    p4_power_price: finalResult.powerCosts?.[3]?.priceDay || finalResult.powerCosts?.[3]?.price_euro_kw_day,
+                    p5_power_price: finalResult.powerCosts?.[4]?.priceDay || finalResult.powerCosts?.[4]?.price_euro_kw_day,
+                    p6_power_price: finalResult.powerCosts?.[5]?.priceDay || finalResult.powerCosts?.[5]?.price_euro_kw_day,
+                    p1_price: finalResult.energyCosts?.[0]?.price || finalResult.energyCosts?.[0]?.price_euro_kwh,
+                    p2_price: finalResult.energyCosts?.[1]?.price || finalResult.energyCosts?.[1]?.price_euro_kwh,
+                    p3_price: finalResult.energyCosts?.[2]?.price || finalResult.energyCosts?.[2]?.price_euro_kwh,
+                    p4_price: finalResult.energyCosts?.[3]?.price || finalResult.energyCosts?.[3]?.price_euro_kwh,
+                    p5_price: finalResult.energyCosts?.[4]?.price || finalResult.energyCosts?.[4]?.price_euro_kwh,
+                    p6_price: finalResult.energyCosts?.[5]?.price || finalResult.energyCosts?.[5]?.price_euro_kwh
+                };
+            }
+            
             const supply = {
                 type: type, // 'electricidad' o 'gas'
                 cups: data.cups || 'N/A', // CUPS del suministro
                 tariff: tariff,
-                data: data,
+                data: finalResult || data, // Usar finalResult si está disponible
                 results: results,
                 description: description,
                 totalKwh: totalKwh,
@@ -2365,11 +2389,21 @@
                 timestamp: new Date().getTime()
             };
             
-            // Añadir breakdown específico según el tipo
+            // Añadir breakdown específico según el tipo - usar finalResult si está disponible
             if (type === 'electricidad') {
                 supply.electricityBreakdown = {
-                    energyCosts: [], // Se completará en el PDF si es necesario
-                    powerCosts: [],  // Se completará en el PDF si es necesario
+                    energyCosts: finalResult?.energyCosts || [],
+                    powerCosts: finalResult?.powerCosts || [],
+                    subEnergy: finalResult?.subEnergyNet || 0,
+                    subPower: finalResult?.subPower || 0,
+                    subBase: finalResult?.subBase || 0,
+                    costIE: finalResult?.costIE || 0,
+                    baseImp: finalResult?.baseImp || 0,
+                    costIVA: finalResult?.costIVA || 0,
+                    totalPeriod: finalResult?.totalPeriod || 0,
+                    totalAnnual: finalResult?.totalAnnual || supply.totalAnnual,
+                    ahorro_mensual: (finalResult?.originalBillPeriod || 0) - (finalResult?.totalPeriod || 0),
+                    ahorro_anual: (finalResult?.originalBillAnnual || data.originalBillAnnual || 0) - supply.totalAnnual,
                     totalKwh: totalKwh,
                     dias: data.dias || 30
                 };
@@ -2377,7 +2411,18 @@
                 supply.gasBreakdown = {
                     totalKwh: totalKwh,
                     kwh: totalKwh,
-                    dias: data.dias || 30
+                    dias: data.dias || 30,
+                    // Si hay finalResult con datos de gas, usarlos
+                    termino_fijo: finalResult?.total_fijo || 0,
+                    termino_fijo_diario: finalResult?.p_fijo_diario || 0,
+                    energia: finalResult?.total_energia || 0,
+                    impuesto_hidrocarburos: finalResult?.impuesto_hidrocarburos || 0,
+                    subtotal: finalResult?.subtotal || 0,
+                    iva: finalResult?.iva || 0,
+                    total: finalResult?.total || 0,
+                    total_anual: supply.totalAnnual,
+                    ahorro_mensual: 0,
+                    ahorro_anual: (data.originalBillAnnual || 0) - supply.totalAnnual
                 };
             }
             
@@ -2388,6 +2433,9 @@
             dualSupplies.push(supply);
             console.log('Total suministros:', dualSupplies.length);
             console.log('Array completo:', dualSupplies);
+            
+            // Limpiar finalResult pendiente
+            window.pendingDualFinalResult = null;
             
             // Volver al gestor DUAL
             backToDualManager();
@@ -3915,8 +3963,8 @@
                     
                     console.log('Llamando a dualAddFromResults con:', { type: 'electricidad', tariff, data, results });
                     
-                    // Usar el flujo con modal de dirección
-                    window.dualAddFromResults('electricidad', tariff, data, results);
+                    // Usar el flujo con modal de dirección, pasando el objeto final completo
+                    window.dualAddFromResults('electricidad', tariff, data, results, final);
                 
                 } else {
                     // Flujo normal - mostrar resultados
@@ -13822,8 +13870,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         tariffSelector.classList.add('hidden');
                     }
                     
-                    // Usar el flujo con modal de dirección
-                    window.dualAddFromResults('electricidad', tariff, data, results);
+                    // Usar el flujo con modal de dirección, pasando lastComparisonResult completo
+                    window.dualAddFromResults('electricidad', tariff, data, results, lastComparisonResult);
                     
                     console.log('✅ Usuario puede añadir más suministros');
                     
@@ -14052,8 +14100,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 console.log('Llamando a dualAddFromResults desde selectBestOptionDirectDual');
                 
-                // Usar el flujo con modal de dirección
-                window.dualAddFromResults('electricidad', tariff, data, results);
+                // Usar el flujo con modal de dirección, pasando lastComparisonResult completo
+                window.dualAddFromResults('electricidad', tariff, data, results, lastComparisonResult);
                 
                 return;
             }
@@ -15367,8 +15415,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         offerModal.classList.remove('flex');
                     }
                     
-                    // Usar el flujo con modal de dirección
-                    window.dualAddFromResults('electricidad', tariff, data, results);
+                    // Usar el flujo con modal de dirección, pasando result completo
+                    window.dualAddFromResults('electricidad', tariff, data, results, result);
                     
                     return;
                 }
@@ -19968,12 +20016,13 @@ ${clientName}
         // Función: Confirmar y enviar email
         
         // Función auxiliar: Añadir suministro desde resultados
-        window.dualAddFromResults = function(type, tariff, data, results) {
+        window.dualAddFromResults = function(type, tariff, data, results, finalResult = null) {
             console.log('=== dualAddFromResults ===');
             console.log('Type:', type);
             console.log('Tariff:', tariff);
             console.log('Data:', data);
             console.log('Results:', results);
+            console.log('FinalResult:', finalResult);
             console.log('Results.drk.total_anual:', results.drk.total_anual);
             console.log('Results.powercup.total_anual:', results.powercup.total_anual);
             
@@ -19981,6 +20030,9 @@ ${clientName}
                 console.error('⚠️⚠️⚠️ PROBLEMA: Ambos costes son 0 al añadir suministro');
                 console.error('Results completo:', JSON.stringify(results, null, 2));
             }
+            
+            // NUEVO: Guardar finalResult para usarlo al procesar
+            window.pendingDualFinalResult = finalResult;
             
             // NUEVO: Solicitar dirección del suministro antes de añadir
             console.log('🟢 Llamando a window.showDualSupplyAddressModal...');
@@ -21006,8 +21058,8 @@ ${clientName}
                         }
                     };
                     
-                    // Usar el flujo con modal de dirección
-                    window.dualAddFromResults('gas', currentGasTariff || 'RL1', gasData, gasResults);
+                    // Usar el flujo con modal de dirección, pasando bestResult completo
+                    window.dualAddFromResults('gas', currentGasTariff || 'RL1', gasData, gasResults, bestResult);
                     
                     // Cerrar modal de gas
                     const gasModal = document.getElementById('gas-modal');

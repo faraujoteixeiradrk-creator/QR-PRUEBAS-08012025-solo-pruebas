@@ -23249,8 +23249,9 @@ ${clientName}
             doc.setFontSize(9);
             doc.setFont('helvetica', 'normal');
             doc.text(`CLIENTE: ${clientName}`, 17, y + 20);
-            // Usar cups de resFijo o resIndexed (ambos deberían tener el mismo CUPS)
-            const cups = resFijo.cups || resIndexed.cups || 'N/A';
+            // Usar cups de gasCalculationParams
+            const gasParams = window.gasCalculationParams || {};
+            const cups = gasParams.cups || 'N/A';
             doc.text(`CUPS: ${cups.length > 20 ? cups.substring(0, 20) + '...' : cups}`, 17, y + 25);
             
             // Comercial en caja destacada (derecha)

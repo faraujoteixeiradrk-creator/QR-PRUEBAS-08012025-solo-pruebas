@@ -2353,25 +2353,27 @@
             };
             
             // Si tenemos finalResult, extraer la oferta real
-            if (finalResult && finalResult.offer) {
-                offerData = {
-                    ...finalResult.offer,
-                    // Añadir precios de potencia y energía si existen (para electricidad)
-                    p1_power_price: finalResult.powerCosts?.[0]?.priceDay || finalResult.powerCosts?.[0]?.price_euro_kw_day,
-                    p2_power_price: finalResult.powerCosts?.[1]?.priceDay || finalResult.powerCosts?.[1]?.price_euro_kw_day,
-                    p3_power_price: finalResult.powerCosts?.[2]?.priceDay || finalResult.powerCosts?.[2]?.price_euro_kw_day,
-                    p4_power_price: finalResult.powerCosts?.[3]?.priceDay || finalResult.powerCosts?.[3]?.price_euro_kw_day,
-                    p5_power_price: finalResult.powerCosts?.[4]?.priceDay || finalResult.powerCosts?.[4]?.price_euro_kw_day,
-                    p6_power_price: finalResult.powerCosts?.[5]?.priceDay || finalResult.powerCosts?.[5]?.price_euro_kw_day,
-                    p1_price: finalResult.energyCosts?.[0]?.price || finalResult.energyCosts?.[0]?.price_euro_kwh,
-                    p2_price: finalResult.energyCosts?.[1]?.price || finalResult.energyCosts?.[1]?.price_euro_kwh,
-                    p3_price: finalResult.energyCosts?.[2]?.price || finalResult.energyCosts?.[2]?.price_euro_kwh,
-                    p4_price: finalResult.energyCosts?.[3]?.price || finalResult.energyCosts?.[3]?.price_euro_kwh,
-                    p5_price: finalResult.energyCosts?.[4]?.price || finalResult.energyCosts?.[4]?.price_euro_kwh,
-                    p6_price: finalResult.energyCosts?.[5]?.price || finalResult.energyCosts?.[5]?.price_euro_kwh
-                };
+            if (finalResult) {
+                if (finalResult.offer) {
+                    offerData = {
+                        ...finalResult.offer,
+                        // Añadir precios de potencia y energía si existen (para electricidad)
+                        p1_power_price: finalResult.powerCosts?.[0]?.priceDay || finalResult.powerCosts?.[0]?.price_euro_kw_day,
+                        p2_power_price: finalResult.powerCosts?.[1]?.priceDay || finalResult.powerCosts?.[1]?.price_euro_kw_day,
+                        p3_power_price: finalResult.powerCosts?.[2]?.priceDay || finalResult.powerCosts?.[2]?.price_euro_kw_day,
+                        p4_power_price: finalResult.powerCosts?.[3]?.priceDay || finalResult.powerCosts?.[3]?.price_euro_kw_day,
+                        p5_power_price: finalResult.powerCosts?.[4]?.priceDay || finalResult.powerCosts?.[4]?.price_euro_kw_day,
+                        p6_power_price: finalResult.powerCosts?.[5]?.priceDay || finalResult.powerCosts?.[5]?.price_euro_kw_day,
+                        p1_price: finalResult.energyCosts?.[0]?.price || finalResult.energyCosts?.[0]?.price_euro_kwh,
+                        p2_price: finalResult.energyCosts?.[1]?.price || finalResult.energyCosts?.[1]?.price_euro_kwh,
+                        p3_price: finalResult.energyCosts?.[2]?.price || finalResult.energyCosts?.[2]?.price_euro_kwh,
+                        p4_price: finalResult.energyCosts?.[3]?.price || finalResult.energyCosts?.[3]?.price_euro_kwh,
+                        p5_price: finalResult.energyCosts?.[4]?.price || finalResult.energyCosts?.[4]?.price_euro_kwh,
+                        p6_price: finalResult.energyCosts?.[5]?.price || finalResult.energyCosts?.[5]?.price_euro_kwh
+                    };
+                }
                 
-                // Si es gas, agregar precios de gas
+                // Si es gas, agregar precios de gas (siempre, incluso si no hay offer)
                 if (type === 'gas') {
                     const energiaTotal = finalResult.energia || finalResult.total_energia || 0;
                     const kwhTotal = parseFloat(data.kwh) || 1;

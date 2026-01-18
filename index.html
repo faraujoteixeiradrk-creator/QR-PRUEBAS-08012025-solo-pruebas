@@ -7949,7 +7949,7 @@
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(`DESARROLLO DETALLADO - SUMINISTRO ${idx + 1} DE ${res.individualResults.length}`, pageWidth / 2, yPos + 8, { align: 'center' });
+                    doc.text(`${tr('DESARROLLO DETALLADO - SUMINISTRO')} ${idx + 1} ${tr('DE')} ${res.individualResults.length}`, pageWidth / 2, yPos + 8, { align: 'center' });
                     
                     yPos += headerHeight + 4;
                     
@@ -7992,11 +7992,11 @@
                 doc.roundedRect(leftX, yPos, colWidth, 8, 1, 1, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(8);
-                doc.text('TARIFAS FIJAS', leftX + colWidth / 2, yPos + 5.5, { align: 'center' });
+                doc.text(tr('TARIFAS FIJAS'), leftX + colWidth / 2, yPos + 5.5, { align: 'center' });
                 
                 doc.setFillColor(...headerBgColor);
                 doc.roundedRect(rightX, yPos, colWidth, 8, 1, 1, 'F');
-                doc.text('TARIFAS INDEXADAS', rightX + colWidth / 2, yPos + 5.5, { align: 'center' });
+                doc.text(tr('TARIFAS INDEXADAS'), rightX + colWidth / 2, yPos + 5.5, { align: 'center' });
                 yPos += 12;
                 
                 // Listar cada suministro
@@ -8074,7 +8074,7 @@
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(11);
                 doc.setFont('helvetica', 'bold');
-                doc.text('CUAL ES LA DIFERENCIA?', pageWidth / 2, yPos + 8, { align: 'center' });
+                doc.text(tr('CUAL ES LA DIFERENCIA?'), pageWidth / 2, yPos + 8, { align: 'center' });
                 
                 yPos += 15;
                 
@@ -8083,31 +8083,36 @@
                 doc.setFontSize(9);
                 doc.setTextColor(...blueColor);
                 doc.setFont('helvetica', 'bold');
-                doc.text('POR QUE TARIFA FIJA?', leftX + 2, leftColY);
+                doc.text(tr('POR QUE TARIFA FIJA?'), leftX + 2, leftColY);
                 leftColY += 6;
                 
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
+                
+                // Textos explicativos traducibles - divididos para caber en el PDF
+                const fijaText1 = tr('Implica un precio fijo por los kilovatios que consumes (kWh).');
+                const fijaText2 = tr('El precio se mantiene estable, independientemente de cómo se comporten los precios en el mercado eléctrico.');
+                const fijaText3 = tr('Cuando el precio del mercado está alto, el cliente está protegido frente a sobresaltos.');
+                const fijaText4 = tr('No tendrás que estar pendiente de las variaciones del mercado y podrás seguir usando la electricidad como siempre.');
+                
+                // Dividir textos en múltiples líneas para que quepan
                 const fijaExplText = [
-                    '• Implica un precio fijo por los kilovatios que',
-                    '  consumes (kWh).',
+                    `• ${doc.splitTextToSize(fijaText1, colWidth - 6).join('\n  ')}`,
                     '',
-                    '• El precio se mantiene estable,',
-                    '  independientemente de cómo se comporten los',
-                    '  precios en el mercado eléctrico.',
+                    `• ${doc.splitTextToSize(fijaText2, colWidth - 6).join('\n  ')}`,
                     '',
-                    '• Cuando el precio del mercado está alto, el',
-                    '  cliente está protegido frente a sobresaltos.',
+                    `• ${doc.splitTextToSize(fijaText3, colWidth - 6).join('\n  ')}`,
                     '',
-                    '• No tendrás que estar pendiente de las',
-                    '  variaciones del mercado y podrás seguir',
-                    '  usando la electricidad como siempre.'
+                    `• ${doc.splitTextToSize(fijaText4, colWidth - 6).join('\n  ')}`
                 ];
                 
                 fijaExplText.forEach(line => {
-                    doc.text(line, leftX + 2, leftColY, { maxWidth: colWidth - 4 });
-                    leftColY += 3.5;
+                    const lines = line.split('\n');
+                    lines.forEach(l => {
+                        doc.text(l, leftX + 2, leftColY, { maxWidth: colWidth - 4 });
+                        leftColY += 3.5;
+                    });
                 });
                 
                 // Columna derecha
@@ -8115,32 +8120,35 @@
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(...greenColor);
-                doc.text('POR QUE TARIFA INDEXADA?', rightX + 2, rightColY);
+                doc.text(tr('POR QUE TARIFA INDEXADA?'), rightX + 2, rightColY);
                 rightColY += 6;
                 
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
+                
+                // Textos explicativos traducibles - divididos para caber en el PDF
+                const indexText1 = tr('Implica un precio variable por los kilovatios que consumes (kWh) cada mes.');
+                const indexText2 = tr('Es la tarifa más justa, ya que pagas el coste real de la energía mes a mes.');
+                const indexText3 = tr('Al contratarla, el cliente evita pagar márgenes adicionales cuando el precio de la electricidad es más barato.');
+                const indexText4 = tr('A largo plazo, con un indexado 100% funcional, se puede obtener un ahorro aproximado de hasta un 20% en épocas de mejor precio.');
+                
                 const indexExplText = [
-                    '• Implica un precio variable por los kilovatios',
-                    '  que consumes (kWh) cada mes.',
+                    `• ${doc.splitTextToSize(indexText1, colWidth - 6).join('\n  ')}`,
                     '',
-                    '• Es la tarifa más justa, ya que pagas el coste',
-                    '  real de la energía mes a mes.',
+                    `• ${doc.splitTextToSize(indexText2, colWidth - 6).join('\n  ')}`,
                     '',
-                    '• Al contratarla, el cliente evita pagar',
-                    '  márgenes adicionales cuando el precio de la',
-                    '  electricidad es más barato.',
+                    `• ${doc.splitTextToSize(indexText3, colWidth - 6).join('\n  ')}`,
                     '',
-                    '• A largo plazo, con un indexado 100%',
-                    '  funcional, se puede obtener un ahorro',
-                    '  aproximado de hasta un 20% en épocas de',
-                    '  mejor precio.'
+                    `• ${doc.splitTextToSize(indexText4, colWidth - 6).join('\n  ')}`
                 ];
                 
                 indexExplText.forEach(line => {
-                    doc.text(line, rightX + 2, rightColY, { maxWidth: colWidth - 4 });
-                    rightColY += 3.5;
+                    const lines = line.split('\n');
+                    lines.forEach(l => {
+                        doc.text(l, rightX + 2, rightColY, { maxWidth: colWidth - 4 });
+                        rightColY += 3.5;
+                    });
                 });
                 
                 // Guardar
@@ -25047,6 +25055,61 @@ ${clientName}
                 "POTENCIA:": { en: "POWER:", zh: "功率：", de: "LEISTUNG:", fr: "PUISSANCE :" },
                 "ENERGIA:": { en: "ENERGY:", zh: "能源：", de: "ENERGIE:", fr: "ÉNERGIE :" },
                 "DESGLOSE DETALLADO POR SUMINISTRO": { en: "DETAILED BREAKDOWN BY SUPPLY", zh: "按供应详细分类", de: "DETAILLIERTE AUFSCHLÜSSELUNG NACH VERSORGUNG", fr: "RÉPARTITION DÉTAILLÉE PAR APPROVISIONNEMENT" },
+                "DESARROLLO DETALLADO - SUMINISTRO": { en: "DETAILED BREAKDOWN - SUPPLY", zh: "详细开发 - 供应", de: "DETAILLIERTE ENTWICKLUNG - VERSORGUNG", fr: "DÉVELOPPEMENT DÉTAILLÉ - APPROVISIONNEMENT" },
+                "DE": { en: "OF", zh: "的", de: "VON", fr: "DE" },
+                "TARIFAS FIJAS": { en: "FIXED RATES", zh: "固定费率", de: "FESTE TARIFE", fr: "TARIFS FIXES" },
+                "TARIFAS INDEXADAS": { en: "INDEXED RATES", zh: "指数费率", de: "INDEXIERTE TARIFE", fr: "TARIFS INDEXÉS" },
+                "CUAL ES LA DIFERENCIA?": { en: "WHAT'S THE DIFFERENCE?", zh: "有什么区别？", de: "WAS IST DER UNTERSCHIED?", fr: "QUELLE EST LA DIFFÉRENCE ?" },
+                "POR QUE TARIFA FIJA?": { en: "WHY FIXED RATE?", zh: "为什么选择固定费率？", de: "WARUM FESTER TARIF?", fr: "POURQUOI UN TARIF FIXE ?" },
+                "POR QUE TARIFA INDEXADA?": { en: "WHY INDEXED RATE?", zh: "为什么选择指数费率？", de: "WARUM INDEXIERTER TARIF?", fr: "POURQUOI UN TARIF INDEXÉ ?" },
+                "Implica un precio fijo por los kilovatios que consumes (kWh).": { 
+                    en: "Means a fixed price for the kilowatts you consume (kWh).", 
+                    zh: "意味着您消费的千瓦（kWh）价格固定。", 
+                    de: "Bedeutet einen festen Preis für die verbrauchten Kilowatt (kWh).", 
+                    fr: "Implique un prix fixe pour les kilowatts que vous consommez (kWh)." 
+                },
+                "El precio se mantiene estable, independientemente de cómo se comporten los precios en el mercado eléctrico.": { 
+                    en: "The price remains stable, regardless of how prices behave in the electricity market.", 
+                    zh: "价格保持稳定，不受电力市场价格波动的影响。", 
+                    de: "Der Preis bleibt stabil, unabhängig davon, wie sich die Preise auf dem Strommarkt verhalten.", 
+                    fr: "Le prix reste stable, quel que soit le comportement des prix sur le marché de l'électricité." 
+                },
+                "Cuando el precio del mercado está alto, el cliente está protegido frente a sobresaltos.": { 
+                    en: "When the market price is high, the customer is protected from sudden increases.", 
+                    zh: "当市场价格高时，客户可以免受突然上涨的影响。", 
+                    de: "Wenn der Marktpreis hoch ist, ist der Kunde vor plötzlichen Anstiegen geschützt.", 
+                    fr: "Lorsque le prix du marché est élevé, le client est protégé contre les hausses soudaines." 
+                },
+                "No tendrás que estar pendiente de las variaciones del mercado y podrás seguir usando la electricidad como siempre.": { 
+                    en: "You won't have to worry about market fluctuations and can continue using electricity as usual.", 
+                    zh: "您无需担心市场波动，可以照常使用电力。", 
+                    de: "Sie müssen sich keine Gedanken über Marktschwankungen machen und können weiterhin Strom wie gewohnt nutzen.", 
+                    fr: "Vous n'aurez pas à vous soucier des fluctuations du marché et pourrez continuer à utiliser l'électricité comme d'habitude." 
+                },
+                "Implica un precio variable por los kilovatios que consumes (kWh) cada mes.": { 
+                    en: "Means a variable price for the kilowatts you consume (kWh) each month.", 
+                    zh: "意味着每月消费的千瓦（kWh）价格可变。", 
+                    de: "Bedeutet einen variablen Preis für die monatlich verbrauchten Kilowatt (kWh).", 
+                    fr: "Implique un prix variable pour les kilowatts que vous consommez (kWh) chaque mois." 
+                },
+                "Es la tarifa más justa, ya que pagas el coste real de la energía mes a mes.": { 
+                    en: "It's the fairest rate, as you pay the real cost of energy month by month.", 
+                    zh: "这是最公平的费率，因为您每月支付能源的实际成本。", 
+                    de: "Es ist der fairste Tarif, da Sie Monat für Monat die tatsächlichen Energiekosten zahlen.", 
+                    fr: "C'est le tarif le plus juste, car vous payez le coût réel de l'énergie mois après mois." 
+                },
+                "Al contratarla, el cliente evita pagar márgenes adicionales cuando el precio de la electricidad es más barato.": { 
+                    en: "By contracting it, the customer avoids paying additional margins when electricity prices are cheaper.", 
+                    zh: "签订合同后，当电价便宜时，客户可以避免支付额外的利润。", 
+                    de: "Durch den Abschluss vermeidet der Kunde zusätzliche Margen, wenn die Strompreise günstiger sind.", 
+                    fr: "En la contractant, le client évite de payer des marges supplémentaires lorsque les prix de l'électricité sont moins chers." 
+                },
+                "A largo plazo, con un indexado 100% funcional, se puede obtener un ahorro aproximado de hasta un 20% en épocas de mejor precio.": { 
+                    en: "In the long term, with a fully functional 100% indexation, savings of up to 20% can be achieved during periods of better prices.", 
+                    zh: "从长远来看，通过100%功能性的指数化，在价格较好的时期可以节省高达20%。", 
+                    de: "Langfristig können mit einer voll funktionsfähigen 100%igen Indexierung Einsparungen von bis zu 20% in Zeiten besserer Preise erzielt werden.", 
+                    fr: "À long terme, avec une indexation 100% fonctionnelle, des économies pouvant aller jusqu'à 20% peuvent être réalisées pendant les périodes de meilleurs prix." 
+                },
                 "DESGLOSE DETALLADO DE LA SIMULACIÓN": { en: "DETAILED SIMULATION BREAKDOWN", zh: "详细模拟分类", de: "DETAILLIERTE SIMULATIONSAUFSCHLÜSSELUNG", fr: "RÉPARTITION DÉTAILLÉE DE LA SIMULATION" },
                 "TÉRMINO POTENCIA (Precio en €/kW Día)": { en: "POWER TERM (Price in €/kW Day)", zh: "功率条款（价格€/kW日）", de: "LEISTUNGSTERM (Preis in €/kW Tag)", fr: "TERME PUISSANCE (Prix en €/kW Jour)" },
                 "TÉRMINO ENERGÍA (Precios en €/kWh)": { en: "ENERGY TERM (Prices in €/kWh)", zh: "能源条款（价格€/kWh）", de: "ENERGIETERM (Preise in €/kWh)", fr: "TERME ÉNERGIE (Prix en €/kWh)" },

@@ -532,8 +532,8 @@
                             >
                         </div>
                         
-                        <!-- SELECTOR: Comparar Indexada vs Fija -->
-                        <div class="pt-4 border-t border-slate-200">
+                        <!-- SELECTOR: Comparar Indexada vs Fija (Oculto en modo DUAL) -->
+                        <div id="gas-indexed-comparison-section" class="pt-4 border-t border-slate-200">
                             <label class="flex items-center gap-3 cursor-pointer">
                                 <input 
                                     type="checkbox" 
@@ -20546,6 +20546,18 @@ ${clientName}
             // CRÍTICO: Verificar modo DUAL para ocultar/mostrar botón DUAL
             if (window.checkDualMode) {
                 window.checkDualMode();
+            }
+            
+            // NUEVO: Ocultar checkbox de comparación indexada si está en modo DUAL
+            const gasIndexedSection = document.getElementById('gas-indexed-comparison-section');
+            if (window.dualMode === true && gasIndexedSection) {
+                console.log('🔄 Modo DUAL en Gas: Ocultando checkbox de comparación indexada');
+                gasIndexedSection.classList.add('hidden');
+                // Asegurar que el checkbox esté desmarcado
+                document.getElementById('gas-compare-indexed-fixed').checked = false;
+            } else if (gasIndexedSection) {
+                // Mostrar la sección si NO es modo DUAL
+                gasIndexedSection.classList.remove('hidden');
             }
             
             // Mostrar modal

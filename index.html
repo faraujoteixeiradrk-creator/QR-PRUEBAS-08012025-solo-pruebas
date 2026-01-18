@@ -6988,9 +6988,9 @@
                 const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
                 const numPriceFormula = (n) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: 6, maximumFractionDigits: 6 }).format(n || 0);
                 
-                // Obtener nombre del cliente y dirección
-                const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
-                const clientAddress = document.getElementById('client-address-input').value.trim();
+                // Nota: clientName y clientAddress ya fueron capturados arriba (línea 6336-6337)
+                console.log('🏠 Dirección capturada:', clientAddress);
+                console.log('📍 Código comercial:', commercialCode);
                 
                 let yPos = 0;
                 const pageWidth = 210;

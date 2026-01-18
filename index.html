@@ -1487,6 +1487,7 @@
                 <input type="text" id="comercial-code-input" placeholder="CÓDIGO COMERCIAL (Obligatorio)" class="w-full mb-2 p-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
                 <input type="text" id="client-name-input" placeholder="Nombre Cliente" class="w-full mb-2 p-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
                 <input type="tel" id="client-phone-input" placeholder="Teléfono" class="w-full mb-2 p-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
+                <input type="text" id="client-address-input" placeholder="Dirección de Suministro" class="w-full mb-2 p-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
                 <input type="email" id="client-email-input" placeholder="Email" class="w-full mb-3 p-2.5 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-drk-500 outline-none">
                 
                 <!-- NUEVO: Selector de modo de presentación para potencias optimizadas (COMPACTO) -->
@@ -8523,6 +8524,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const commercialCode = document.getElementById('comercial-code-input').value.trim();
             const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
             const clientPhone = document.getElementById('client-phone-input').value.trim();
+            const clientAddress = document.getElementById('client-address-input').value.trim();
             const clientEmail = document.getElementById('client-email-input').value.trim();
             
             if (!commercialCode) return window.showErrorModal("Indique el Código Comercial.");
@@ -8606,9 +8608,13 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 doc.setFont('helvetica', 'bold');
                 doc.text(`${tr('Código Comercial')}: ${commercialCode}`, pageWidth - margin - 5, yPos + 12, { align: 'right' });
+                doc.setFont('helvetica', 'normal');
+                if (clientAddress) {
+                    doc.text(`${tr('Dirección')}: ${clientAddress}`, pageWidth - margin - 5, yPos + 17, { align: 'right' });
+                }
                 if (clientEmail) {
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(`Email: ${clientEmail}`, pageWidth - margin - 5, yPos + 17, { align: 'right' });
+                    const emailY = clientAddress ? yPos + 22 : yPos + 17;
+                    doc.text(`Email: ${clientEmail}`, pageWidth - margin - 5, emailY, { align: 'right' });
                 }
                 
                 yPos += 30;
@@ -24977,6 +24983,8 @@ ${clientName}
                 "Solo Entrada de Datos Manual": { en: "Manual Data Entry Only", zh: "仅手动数据输入", de: "Nur manuelle Dateneingabe", fr: "Saisie manuelle des données uniquement" },
                 "Entrada de Datos Manual": { en: "Manual Data Entry", zh: "手动数据输入", de: "Manuelle Dateneingabe", fr: "Saisie Manuelle des Données" },
                 "CALCULAR": { en: "CALCULATE", zh: "计算", de: "BERECHNEN", fr: "CALCULER" },
+                "Dirección": { en: "Address", zh: "地址", de: "Adresse", fr: "Adresse" },
+                "Dirección de Suministro": { en: "Supply Address", zh: "供应地址", de: "Versorgungsadresse", fr: "Adresse d'Approvisionnement" },
                 "FINALIZAR Y COMPARAR": { en: "FINISH AND COMPARE", zh: "完成并比较", de: "ABSCHLIESSEN UND VERGLEICHEN", fr: "TERMINER ET COMPARER" },
                 "Suministros": { en: "Supplies", zh: "供应", de: "Versorgungen", fr: "Approvisionnements" },
                 

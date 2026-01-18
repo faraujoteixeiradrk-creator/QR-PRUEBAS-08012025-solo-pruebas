@@ -8575,7 +8575,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Comparativa: Potencias Actuales vs Optimizadas', margin, 23);
+                doc.text(tr('Comparativa: Potencias Actuales vs Optimizadas'), margin, 23);
                 
                 yPos = headerHeight + 5;
                 
@@ -8585,7 +8585,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
-                doc.text('COMPARATIVO 3.0TD CON OPTIMIZACION DE POTENCIAS', pageWidth / 2, yPos + 6.5, { align: 'center' });
+                doc.text(tr('COMPARATIVO 3.0TD CON OPTIMIZACION DE POTENCIAS'), pageWidth / 2, yPos + 6.5, { align: 'center' });
                 
                 yPos += 15;
                 
@@ -8596,16 +8596,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(9);
                 doc.setFont('helvetica', 'bold');
-                doc.text('DATOS DEL CLIENTE', margin + 5, yPos + 6);
+                doc.text(tr('DATOS DEL CLIENTE'), margin + 5, yPos + 6);
                 
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(8);
-                doc.text(`Cliente: ${clientName}`, margin + 5, yPos + 12);
+                doc.text(`${tr('Cliente')}: ${clientName}`, margin + 5, yPos + 12);
                 doc.text(`CUPS: ${resActual.cups}`, margin + 5, yPos + 17);
                 if (clientPhone) doc.text(`Tel: ${clientPhone}`, margin + 5, yPos + 22);
                 
                 doc.setFont('helvetica', 'bold');
-                doc.text(`Código Comercial: ${commercialCode}`, pageWidth - margin - 5, yPos + 12, { align: 'right' });
+                doc.text(`${tr('Código Comercial')}: ${commercialCode}`, pageWidth - margin - 5, yPos + 12, { align: 'right' });
                 if (clientEmail) {
                     doc.setFont('helvetica', 'normal');
                     doc.text(`Email: ${clientEmail}`, pageWidth - margin - 5, yPos + 17, { align: 'right' });
@@ -8622,7 +8622,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(80, 80, 80);
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
-                doc.text('TU FACTURA ACTUAL', pageWidth / 2, yPos + 6, { align: 'center' });
+                doc.text(tr('TU FACTURA ACTUAL'), pageWidth / 2, yPos + 6, { align: 'center' });
                 
                 doc.setTextColor(redColor[0], redColor[1], redColor[2]);
                 doc.setFontSize(18);
@@ -8651,7 +8651,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
-                const headerText = presentationMode === 'two-columns' ? 'CON POTENCIAS ACTUALES' : 'TU NUEVA TARIFA';
+                const headerText = presentationMode === 'two-columns' ? tr('CON POTENCIAS ACTUALES') : tr('TU NUEVA TARIFA');
                 doc.text(headerText, leftX + colWidth / 2, leftY + 8, { align: 'center' });
                 
                 leftY += 15;
@@ -8662,7 +8662,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(100, 100, 100);
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'bold');
-                doc.text('TU AHORRO ANUAL', leftX + colWidth / 2, leftY + 5, { align: 'center' });
+                doc.text(tr('TU AHORRO ANUAL'), leftX + colWidth / 2, leftY + 5, { align: 'center' });
                 doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
                 doc.setFontSize(16);
                 doc.text(eur(resActual.savings), leftX + colWidth / 2, leftY + 14, { align: 'center' });
@@ -8676,7 +8676,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'bold');
-                doc.text('TU NUEVO COSTE', leftX + colWidth / 2, leftY + 5, { align: 'center' });
+                doc.text(tr('TU NUEVO COSTE'), leftX + colWidth / 2, leftY + 5, { align: 'center' });
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(11);
                 doc.text(eur(resActual.totalAnnual / 12) + '/mes', leftX + colWidth / 2, leftY + 11, { align: 'center' });
@@ -8691,7 +8691,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
-                doc.text('POTENCIAS CONTRATADAS (kW)', leftX + colWidth / 2, leftY + 5, { align: 'center' });
+                doc.text(tr('POTENCIAS CONTRATADAS (kW)'), leftX + colWidth / 2, leftY + 5, { align: 'center' });
                 
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(7);
@@ -8717,7 +8717,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('CON POTENCIAS OPTIMIZADAS', rightX + colWidth / 2, rightY + 8, { align: 'center' });
+                    doc.text(tr('CON POTENCIAS OPTIMIZADAS'), rightX + colWidth / 2, rightY + 8, { align: 'center' });
                     
                     rightY += 15;
                     
@@ -8729,7 +8729,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
                     doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('TU AHORRO CON OPTIMIZACIÓN', rightX + colWidth / 2, rightY + 5, { align: 'center' });
+                    doc.text(tr('TU AHORRO CON OPTIMIZACIÓN'), rightX + colWidth / 2, rightY + 5, { align: 'center' });
                     doc.setFontSize(16);
                     doc.text(eur(resOptimized.savings), rightX + colWidth / 2, rightY + 14, { align: 'center' });
                     
@@ -8742,7 +8742,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
                     doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('TU NUEVO COSTE', rightX + colWidth / 2, rightY + 5, { align: 'center' });
+                    doc.text(tr('TU NUEVO COSTE'), rightX + colWidth / 2, rightY + 5, { align: 'center' });
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(11);
                     doc.text(eur(resOptimized.totalAnnual / 12) + '/mes', rightX + colWidth / 2, rightY + 11, { align: 'center' });
@@ -8759,7 +8759,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('POTENCIAS OPTIMIZADAS (kW)', rightX + colWidth / 2, rightY + 5, { align: 'center' });
+                    doc.text(tr('POTENCIAS OPTIMIZADAS (kW)'), rightX + colWidth / 2, rightY + 5, { align: 'center' });
                     
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(7);

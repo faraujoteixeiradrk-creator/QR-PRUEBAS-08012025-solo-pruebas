@@ -9602,6 +9602,13 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setFontSize(8);
                 doc.text(`COMERCIAL: ${commercialCode}`, pageWidth - margin - 43, yPos + 22.5);
                 
+                // Dirección debajo del comercial (si existe)
+                if (clientAddress) {
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(7);
+                    doc.text(tr('Dirección:') + ' ' + clientAddress, pageWidth - margin - 43, yPos + 27);
+                }
+                
                 yPos += 35;
                 
                 // Definir savingsText para usarlo en la seccion comun al final

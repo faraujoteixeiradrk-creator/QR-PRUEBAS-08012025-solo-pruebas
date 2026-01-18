@@ -7120,7 +7120,7 @@
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(`TOTAL (${res.dias_facturados || 0} DÍAS)`, x + 3, y + 6);
+                    doc.text(`${tr('TOTAL')} (${res.dias_facturados || 0} ${tr('DÍAS')})`, x + 3, y + 6);
                     doc.text(eur(res.totalPeriod || res.importe_total || 0), x + width - 3, y + 6, { align: 'right' });
                     y += 12;
                     
@@ -7913,7 +7913,7 @@
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(8);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(`TOTAL (${resultado.dias_facturados || 0} DÍAS)`, x + 3, y + 6);
+                    doc.text(`${tr('TOTAL')} (${resultado.dias_facturados || 0} ${tr('DÍAS')})`, x + 3, y + 6);
                     doc.text(eur(resultado.totalPeriod || 0), x + width - 3, y + 6, { align: 'right' });
                     y += 12;
                     

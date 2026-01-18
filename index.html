@@ -15266,78 +15266,59 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 console.log('About to render results UI');
                 
-                // ⚡⚡⚡ MODO DUAL - AÑADIR AL ARRAY ⚡⚡⚡
+                // ⚡⚡⚡ MODO DUAL - USAR FLUJO CON DIRECCIÓN ⚡⚡⚡
                 if (window.dualMode === true) {
-                    console.log('===== 🔥 MODO DUAL - Añadiendo suministro desde ELEGIR ENTRE RESULTADOS =====');
+                    console.log('===== 🔥 MODO DUAL - Usando flujo con dirección (selección manual) =====');
                     
-                    // CREAR el objeto de suministro (igual que en selectBestOptionWithChoice)
-                    const newSupply = {
-                        type: 'electricidad',
-                        cups: result.cups || '',
-                        tariff: result.tariffType || result.originalTariffType || currentTariffType || '2.0TD',
-                        offer: {
-                            ...result.offer,
-                            // Extraer precios de los arrays powerCosts y energyCosts
-                            // CORREGIDO: Usar los nombres de propiedades correctos: priceDay y price
-                            p1_power_price: result.powerCosts?.[0]?.priceDay || result.powerCosts?.[0]?.price_euro_kw_day,
-                            p2_power_price: result.powerCosts?.[1]?.priceDay || result.powerCosts?.[1]?.price_euro_kw_day,
-                            p1_price: result.energyCosts?.[0]?.price || result.energyCosts?.[0]?.price_euro_kwh,
-                            p2_price: result.energyCosts?.[1]?.price || result.energyCosts?.[1]?.price_euro_kwh,
-                            p3_price: result.energyCosts?.[2]?.price || result.energyCosts?.[2]?.price_euro_kwh,
-                            p4_price: result.energyCosts?.[3]?.price || result.energyCosts?.[3]?.price_euro_kwh,
-                            p5_price: result.energyCosts?.[4]?.price || result.energyCosts?.[4]?.price_euro_kwh,
-                            p6_price: result.energyCosts?.[5]?.price || result.energyCosts?.[5]?.price_euro_kwh
+                    // Preparar datos para el flujo unificado
+                    const tariff = result.tariffType || result.originalTariffType || currentTariffType || '2.0TD';
+                    const data = {
+                        cups: result.cups || 'CUPS-ELECTRICIDAD',
+                        tariff: tariff,
+                        kwh_p1: parseFloat(result.kwh_p1) || 0,
+                        kwh_p2: parseFloat(result.kwh_p2) || 0,
+                        kwh_p3: parseFloat(result.kwh_p3) || 0,
+                        kwh_p4: parseFloat(result.kwh_p4) || 0,
+                        kwh_p5: parseFloat(result.kwh_p5) || 0,
+                        kwh_p6: parseFloat(result.kwh_p6) || 0,
+                        p1: parseFloat(result.p1) || 0,
+                        p2: parseFloat(result.p2) || 0,
+                        p3: parseFloat(result.p3) || 0,
+                        p4: parseFloat(result.p4) || 0,
+                        p5: parseFloat(result.p5) || 0,
+                        p6: parseFloat(result.p6) || 0,
+                        dias: parseInt(result.dias) || 30,
+                        originalBillAnnual: result.originalBillAnnual || (result.importe_total || 0) * 12
+                    };
+                    
+                    const drkCost = result.totalAnnual || 0;
+                    const powercupCost = indexedResult ? (indexedResult.totalAnnual || 0) : 0;
+                    
+                    const results = {
+                        drk: {
+                            total: drkCost / 12,
+                            total_anual: drkCost
                         },
-                        totalAnnual: result.totalAnnual,
-                        originalBillAnnual: result.originalBillAnnual || (result.importe_total || 0) * 12,
-                        data: result,
-                        // NUEVO: Añadir desglose completo de electricidad
-                        electricityBreakdown: {
-                            energyCosts: result.energyCosts || [],
-                            powerCosts: result.powerCosts || [],
-                            subEnergy: result.subEnergyNet || 0,
-                            subPower: result.subPower || 0,
-                            subBase: result.subBase || 0,
-                            costIE: result.costIE || 0,
-                            baseImp: result.baseImp || 0,
-                            costIVA: result.costIVA || 0,
-                            totalPeriod: result.totalPeriod || 0,
-                            totalAnnual: result.totalAnnual || 0,
-                            ahorro_mensual: (result.originalBillPeriod || 0) - (result.totalPeriod || 0),
-                            ahorro_anual: (result.originalBillAnnual || 0) - (result.totalAnnual || 0),
-                            dias: result.dias_facturados || 30
-                        },
-                        results: {
-                            drk: {
-                                total: result.totalAnnual / 12,
-                                total_anual: result.totalAnnual
-                            },
-                            powercup: {
-                                total: indexedResult ? (indexedResult.totalAnnual / 12) : 0,
-                                total_anual: indexedResult ? indexedResult.totalAnnual : 0
-                            }
+                        powercup: {
+                            total: powercupCost / 12,
+                            total_anual: powercupCost
                         }
                     };
                     
-                    // AÑADIR al array
-                    dualSupplies.push(newSupply);
+                    console.log('Llamando a dualAddFromResults desde selección manual');
                     
-                    console.log('✅ Suministro añadido al array desde selección manual');
-                    console.log('  - Total suministros:', dualSupplies.length);
-                    console.log('  - CUPS:', newSupply.cups);
-                    console.log('  - Tarifa:', newSupply.tariff);
-                    console.log('  - Coste anual:', newSupply.totalAnnual);
-                    
-                    // Actualizar UI usando la función existente
-                    updateDualSuppliesList();
-                    console.log('✅ UI actualizada con updateDualSuppliesList()');
-                    
-                    // CRÍTICO: Cerrar todos los modales
+                    // Cerrar modal de decisión primero
                     const offerModal = document.getElementById('offer-decision-modal');
                     if (offerModal) {
                         offerModal.classList.add('hidden');
                         offerModal.classList.remove('flex');
                     }
+                    
+                    // Usar el flujo con modal de dirección
+                    window.dualAddFromResults('electricidad', tariff, data, results);
+                    
+                    return;
+                }
                     
                     const selectionModal = document.getElementById('offer-selection-modal');
                     if (selectionModal) {

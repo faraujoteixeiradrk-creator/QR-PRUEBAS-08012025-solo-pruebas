@@ -13709,76 +13709,55 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 console.log('✅ Contexto procesado');
                 
-                // ⚡⚡⚡ MODO DUAL - Añadir directamente al array ⚡⚡⚡
+                // ⚡⚡⚡ MODO DUAL - Usar flujo con dirección ⚡⚡⚡
                 if (window.dualMode === true) {
-                    console.log('===== 🔥 MODO DUAL - Añadiendo directamente al array =====');
+                    console.log('===== 🔥 MODO DUAL - Usando flujo con dirección =====');
                     
-                    // CREAR el objeto de suministro CON DESGLOSE COMPLETO
-                    const newSupply = {
-                        type: 'electricidad',
-                        cups: lastComparisonResult.cups || '',
-                        tariff: lastComparisonResult.tariffType || currentTariffType || '2.0TD',
-                        offer: {
-                            ...lastComparisonResult.offer,
-                            p1_power_price: lastComparisonResult.powerCosts?.[0]?.priceDay || lastComparisonResult.powerCosts?.[0]?.price_euro_kw_day,
-                            p2_power_price: lastComparisonResult.powerCosts?.[1]?.priceDay || lastComparisonResult.powerCosts?.[1]?.price_euro_kw_day,
-                            p1_price: lastComparisonResult.energyCosts?.[0]?.price || lastComparisonResult.energyCosts?.[0]?.price_euro_kwh,
-                            p2_price: lastComparisonResult.energyCosts?.[1]?.price || lastComparisonResult.energyCosts?.[1]?.price_euro_kwh,
-                            p3_price: lastComparisonResult.energyCosts?.[2]?.price || lastComparisonResult.energyCosts?.[2]?.price_euro_kwh,
-                            p4_price: lastComparisonResult.energyCosts?.[3]?.price || lastComparisonResult.energyCosts?.[3]?.price_euro_kwh,
-                            p5_price: lastComparisonResult.energyCosts?.[4]?.price || lastComparisonResult.energyCosts?.[4]?.price_euro_kwh,
-                            p6_price: lastComparisonResult.energyCosts?.[5]?.price || lastComparisonResult.energyCosts?.[5]?.price_euro_kwh
+                    // Preparar datos para el flujo unificado
+                    const tariff = lastComparisonResult.tariffType || currentTariffType || '2.0TD';
+                    const data = {
+                        cups: lastComparisonResult.cups || 'CUPS-ELECTRICIDAD',
+                        tariff: tariff,
+                        kwh_p1: parseFloat(lastComparisonResult.kwh_p1) || 0,
+                        kwh_p2: parseFloat(lastComparisonResult.kwh_p2) || 0,
+                        kwh_p3: parseFloat(lastComparisonResult.kwh_p3) || 0,
+                        kwh_p4: parseFloat(lastComparisonResult.kwh_p4) || 0,
+                        kwh_p5: parseFloat(lastComparisonResult.kwh_p5) || 0,
+                        kwh_p6: parseFloat(lastComparisonResult.kwh_p6) || 0,
+                        p1: parseFloat(lastComparisonResult.p1) || 0,
+                        p2: parseFloat(lastComparisonResult.p2) || 0,
+                        p3: parseFloat(lastComparisonResult.p3) || 0,
+                        p4: parseFloat(lastComparisonResult.p4) || 0,
+                        p5: parseFloat(lastComparisonResult.p5) || 0,
+                        p6: parseFloat(lastComparisonResult.p6) || 0,
+                        dias: parseInt(lastComparisonResult.dias) || 30,
+                        originalBillAnnual: lastComparisonResult.originalBillAnnual || (lastComparisonResult.importe_total || 0) * 12
+                    };
+                    
+                    // Determinar costos según modo de comparación
+                    const drkCost = lastComparisonResult.totalAnnual || 0;
+                    const powercupCost = 0; // Solo hay un resultado en este flujo
+                    
+                    const results = {
+                        drk: comparisonMode === 'overall_best' ? {
+                            total: 0,
+                            total_anual: 0
+                        } : {
+                            total: drkCost / 12,
+                            total_anual: drkCost
                         },
-                        totalAnnual: lastComparisonResult.totalAnnual,
-                        originalBillAnnual: lastComparisonResult.originalBillAnnual || (lastComparisonResult.importe_total || 0) * 12,
-                        data: lastComparisonResult,
-                        electricityBreakdown: {
-                            energyCosts: lastComparisonResult.energyCosts || [],
-                            powerCosts: lastComparisonResult.powerCosts || [],
-                            subEnergy: lastComparisonResult.subEnergyNet || 0,
-                            subPower: lastComparisonResult.subPower || 0,
-                            subBase: lastComparisonResult.subBase || 0,
-                            costIE: lastComparisonResult.costIE || 0,
-                            baseImp: lastComparisonResult.baseImp || 0,
-                            costIVA: lastComparisonResult.costIVA || 0,
-                            totalPeriod: lastComparisonResult.totalPeriod || 0,
-                            totalAnnual: lastComparisonResult.totalAnnual || 0,
-                            ahorro_mensual: (lastComparisonResult.originalBillPeriod || 0) - (lastComparisonResult.totalPeriod || 0),
-                            ahorro_anual: (lastComparisonResult.originalBillAnnual || 0) - (lastComparisonResult.totalAnnual || 0),
-                            dias: lastComparisonResult.dias_facturados || 30
-                        },
-                        results: {
-                            drk: comparisonMode === 'overall_best' ? {
-                                total: 0,
-                                total_anual: 0
-                            } : {
-                                total: lastComparisonResult.totalAnnual / 12,
-                                total_anual: lastComparisonResult.totalAnnual
-                            },
-                            powercup: comparisonMode === 'overall_best' ? {
-                                total: lastComparisonResult.totalAnnual / 12,
-                                total_anual: lastComparisonResult.totalAnnual
-                            } : {
-                                total: 0,
-                                total_anual: 0
-                            }
+                        powercup: comparisonMode === 'overall_best' ? {
+                            total: drkCost / 12,
+                            total_anual: drkCost
+                        } : {
+                            total: 0,
+                            total_anual: 0
                         }
                     };
                     
-                    // AÑADIR al array
-                    dualSupplies.push(newSupply);
+                    console.log('Llamando a dualAddFromResults desde modal de decisión');
                     
-                    console.log('✅ Suministro añadido al array');
-                    console.log('  - Total suministros:', dualSupplies.length);
-                    console.log('  - CUPS:', newSupply.cups);
-                    console.log('  - Tarifa:', newSupply.tariff);
-                    console.log('  - Coste anual:', newSupply.totalAnnual);
-                    
-                    // Actualizar UI
-                    updateDualSuppliesList();
-                    console.log('✅ UI actualizada');
-                    
-                    // Cerrar modales
+                    // Cerrar modales primero
                     const offerModal = document.getElementById('offer-decision-modal');
                     if (offerModal) {
                         offerModal.classList.add('hidden');
@@ -13790,11 +13769,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         tariffSelector.classList.add('hidden');
                     }
                     
-                    // Ocultar todas las pantallas
-                    hideAllScreens();
-                    
-                    // Volver a pantalla DUAL
-                    document.getElementById('screen-dual').classList.add('active');
+                    // Usar el flujo con modal de dirección
+                    window.dualAddFromResults('electricidad', tariff, data, results);
                     
                     console.log('✅ Usuario puede añadir más suministros');
                     

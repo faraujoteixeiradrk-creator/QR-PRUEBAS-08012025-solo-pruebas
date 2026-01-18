@@ -22787,7 +22787,9 @@ ${clientName}
             // Descargar
             doc.save('Comparativa_GAS_' + currentGasTariff + '_DRK_' + new Date().toISOString().slice(0,10) + '.pdf');
             
-            window.showMessageModal("✅ PDF generado correctamente", false);
+            setTimeout(() => {
+                window.showMessageModal("✅ PDF de GAS generado correctamente", false);
+            }, 500);
         }
         
         // PDF DUAL

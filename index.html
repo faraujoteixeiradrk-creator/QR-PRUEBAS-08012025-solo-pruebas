@@ -2408,21 +2408,26 @@
                     dias: data.dias || 30
                 };
             } else {
+                // Para gas, extraer correctamente los datos de finalResult
                 supply.gasBreakdown = {
                     totalKwh: totalKwh,
                     kwh: totalKwh,
                     dias: data.dias || 30,
-                    // Si hay finalResult con datos de gas, usarlos
-                    termino_fijo: finalResult?.total_fijo || 0,
-                    termino_fijo_diario: finalResult?.p_fijo_diario || 0,
-                    energia: finalResult?.total_energia || 0,
+                    // Mapear correctamente los campos de gas
+                    termino_fijo: finalResult?.termino_fijo || finalResult?.total_fijo || 0,
+                    termino_fijo_diario: finalResult?.termino_fijo_diario || finalResult?.p_fijo_diario || 0,
+                    precio_fijo_diario: finalResult?.termino_fijo_diario || finalResult?.p_fijo_diario || 0,
+                    energia: finalResult?.energia || finalResult?.total_energia || 0,
+                    precio_energia: finalResult?.p_fijo_1 || 0,
                     impuesto_hidrocarburos: finalResult?.impuesto_hidrocarburos || 0,
                     subtotal: finalResult?.subtotal || 0,
                     iva: finalResult?.iva || 0,
                     total: finalResult?.total || 0,
                     total_anual: supply.totalAnnual,
                     ahorro_mensual: 0,
-                    ahorro_anual: (data.originalBillAnnual || 0) - supply.totalAnnual
+                    ahorro_anual: (data.originalBillAnnual || 0) - supply.totalAnnual,
+                    // Agregar también la oferta completa
+                    offer: finalResult?.offer || {}
                 };
             }
             

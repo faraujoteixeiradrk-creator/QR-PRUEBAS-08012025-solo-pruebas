@@ -6334,6 +6334,7 @@
                 
                 const commercialCode = document.getElementById('comercial-code-input').value.trim();
                 const clientName = document.getElementById('client-name-input').value.trim() || '[NOMBRE COMPLETO CLIENTE]';
+                const clientAddress = document.getElementById('client-address-input').value.trim();
                 
                 // Colores dinámicos según la marca activa
                 const darkColor = [107, 125, 142];
@@ -23306,7 +23307,7 @@ ${clientName}
         // ============================================
         
         // PDF INDIVIDUAL POWER CUP
-        async function generateGasPDF_Simple_PowerCup(bestResult, dias, kwh, totalCliente, clientName = '[NOMBRE COMPLETO CLIENTE]', comercialCode = 'D=00') {
+        async function generateGasPDF_Simple_PowerCup(bestResult, dias, kwh, totalCliente, clientName = '[NOMBRE COMPLETO CLIENTE]', comercialCode = 'D=00', clientAddress = '') {
             window.showMessageModal("⏳ Generando PDF POWER CUP...");
             
             const { jsPDF } = window.jspdf;
@@ -23434,6 +23435,10 @@ ${clientName}
             doc.setTextColor(130, 140, 130);
             doc.setFontSize(8);
             doc.text(tr('COMERCIAL:') + ' ' + comercialCode + '', 185, y, { align: 'right' });
+            if (clientAddress) {
+                y += 5;
+                doc.text(tr('Dirección:') + ' ' + clientAddress, 185, y, { align: 'right' });
+            }
             
             y += 15;
             

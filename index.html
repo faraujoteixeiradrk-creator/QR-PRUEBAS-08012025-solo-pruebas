@@ -15319,38 +15319,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     
                     return;
                 }
-                    
-                    const selectionModal = document.getElementById('offer-selection-modal');
-                    if (selectionModal) {
-                        selectionModal.classList.add('hidden');
-                        selectionModal.classList.remove('flex');
-                    }
-                    
-                    const tariffSelector = document.getElementById('best-option-tariff-selector');
-                    if (tariffSelector) {
-                        tariffSelector.classList.add('hidden');
-                    }
-                    
-                    // Ocultar TODAS las pantallas
-                    console.log('Ocultando todas las pantallas...');
-                    hideAllScreens();
-                    
-                    // Volver a la pantalla DUAL
-                    console.log('Mostrando pantalla DUAL...');
-                    document.getElementById('screen-dual').classList.add('active');
-                    
-                    console.log('✅ Usuario puede añadir más suministros o calcular');
-                    
-                    // Resetear bandera si existe
-                    if (typeof isProcessingBestOption !== 'undefined') {
-                        setTimeout(() => {
-                            isProcessingBestOption = false;
-                            console.log('✅ Bandera reseteada');
-                        }, 100);
-                    }
-                    
-                    return; // FIN
-                }
                 
                 // NUEVO: Verificar si hay comparativo dual de potencias activo
                 if (window.lastDualPowerComparison) {

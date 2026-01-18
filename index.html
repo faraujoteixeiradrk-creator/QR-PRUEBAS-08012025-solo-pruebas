@@ -1343,20 +1343,20 @@
                     <label class="flex items-center cursor-pointer">
                         <input type="checkbox" id="enable-optimized-power" onchange="toggleOptimizedPowerFields()" class="w-5 h-5 text-amber-600 bg-white border-amber-300 rounded focus:ring-amber-500 focus:ring-2 mr-3">
                         <div>
-                            <span class="text-sm font-bold text-amber-900">🔄 Activar Comparativo con Potencia Optimizada</span>
-                            <p class="text-xs text-amber-700 mt-1">Permite comparar las potencias actuales vs. potencias optimizadas</p>
+                            <span class="text-sm font-bold text-amber-900" data-i18n="Activar Comparativo con Potencia Optimizada">Activar Comparativo con Potencia Optimizada</span>
+                            <p class="text-xs text-amber-700 mt-1" data-i18n="Permite comparar las potencias actuales vs. potencias optimizadas">Permite comparar las potencias actuales vs. potencias optimizadas</p>
                         </div>
                     </label>
                 </div>
 
                 <div class="border-b border-slate-200 pb-3 mb-4 bg-slate-50 p-3 rounded-lg">
-                    <h4 id="multicups-datos-generales" class="font-bold text-slate-800 mb-2">Datos Generales</h4>
+                    <h4 id="multicups-datos-generales" class="font-bold text-slate-800 mb-2" data-i18n="General Data">Datos Generales</h4>
                     <input type="text" id="input-cups" placeholder="Número CUPS" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-2 focus:focus:border-drk-500">
                     <input type="number" id="input-billing-days" placeholder="Días Facturados" class="w-full p-3 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-2 focus:focus:border-drk-500">
                 </div>
                 
                 <div class="border-b border-slate-200 pb-3 mb-3">
-                    <h4 id="multicups-potencias" class="font-bold text-slate-800 mb-2">Potencias (kW)</h4>
+                    <h4 id="multicups-potencias" class="font-bold text-slate-800 mb-2" data-i18n="Power (kW)">Potencias (kW)</h4>
                     <div class="grid grid-cols-2 gap-2">
                         <input type="number" step="0.01" id="input-p1-kw" placeholder="P1" class="p-2 border rounded text-sm focus:outline-none focus:border-2 focus:focus:border-drk-500">
                         <input type="number" step="0.01" id="input-p2-kw" placeholder="P2" class="p-2 border rounded text-sm focus:outline-none focus:border-2 focus:focus:border-drk-500">
@@ -1370,8 +1370,8 @@
                 <!-- NUEVO: Campos de Potencias Optimizadas (solo visible cuando checkbox activado) -->
                 <div id="optimized-power-fields" class="border-b border-slate-200 pb-3 mb-3 hidden bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-lg">
                     <div class="flex items-center justify-between mb-2">
-                        <h4 class="font-bold text-emerald-800">⚡ Potencias Optimizadas (kW)</h4>
-                        <span class="text-xs bg-emerald-600 text-white px-2 py-1 rounded-full font-bold">PROPUESTA</span>
+                        <h4 class="font-bold text-emerald-800" data-i18n="Potencias Optimizadas (kW)">Potencias Optimizadas (kW)</h4>
+                        <span class="text-xs bg-emerald-600 text-white px-2 py-1 rounded-full font-bold" data-i18n="PROPUESTA">PROPUESTA</span>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <input type="number" step="0.01" id="input-p1-opt-kw" placeholder="P1 Opt" class="p-2 border-2 border-emerald-300 rounded text-sm focus:outline-none focus:border-2 focus:border-emerald-600 bg-white">
@@ -1381,11 +1381,11 @@
                         <input type="number" step="0.01" id="input-p5-opt-kw" placeholder="P5 Opt" class="p-2 border-2 border-emerald-300 rounded text-sm hidden-period-opt focus:outline-none focus:border-2 focus:border-emerald-600 bg-white">
                         <input type="number" step="0.01" id="input-p6-opt-kw" placeholder="P6 Opt" class="p-2 border-2 border-emerald-300 rounded text-sm hidden-period-opt focus:outline-none focus:border-2 focus:border-emerald-600 bg-white">
                     </div>
-                    <p class="text-xs text-emerald-700 mt-2 italic">💡 Introduce las potencias optimizadas que propones al cliente</p>
+                    <p class="text-xs text-emerald-700 mt-2 italic" data-i18n="Introduce las potencias optimizadas que propones al cliente">Introduce las potencias optimizadas que propones al cliente</p>
                 </div>
                 
                 <div class="border-b border-slate-200 pb-3 mb-3">
-                    <h4 id="multicups-energia" class="font-bold text-slate-800 mb-2">Energía (kWh)</h4>
+                    <h4 id="multicups-energia" class="font-bold text-slate-800 mb-2" data-i18n="Energy (kWh)">Energía (kWh)</h4>
                     <div class="grid grid-cols-2 gap-2">
                         <input type="number" step="1" id="input-e1-kwh" placeholder="E1" class="p-2 border rounded text-sm focus:outline-none focus:border-2 focus:focus:border-drk-500">
                         <input type="number" step="1" id="input-e2-kwh" placeholder="E2" class="p-2 border rounded text-sm focus:outline-none focus:border-2 focus:focus:border-drk-500">
@@ -8869,7 +8869,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('AHORRO TOTAL OPTIMIZADO: ' + eur(resOptimized.savings) + '/año', pageWidth / 2, yPos + 8, { align: 'center' });
+                    doc.text(tr('AHORRO TOTAL OPTIMIZADO:') + ' ' + eur(resOptimized.savings) + '/año', pageWidth / 2, yPos + 8, { align: 'center' });
                     
                     yPos += 17;
                 }
@@ -9176,7 +9176,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFontSize(9);
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-                    doc.text('RESUMEN DE AHORRO ANUAL', pageWidth / 2, finalY + 6, { align: 'center' });
+                    doc.text(tr('RESUMEN DE AHORRO ANUAL'), pageWidth / 2, finalY + 6, { align: 'center' });
                     
                     // Línea de separación
                     doc.setDrawColor(200, 200, 200);
@@ -9187,7 +9187,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFontSize(7.5);
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(0, 0, 0);
-                    doc.text('Con potencias actuales:', margin + 5, finalY + 14);
+                    doc.text(tr('Con potencias actuales:'), margin + 5, finalY + 14);
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
                     doc.text(eur(resActual.savings), pageWidth - margin - 5, finalY + 14, { align: 'right' });
@@ -9196,7 +9196,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     const ahorroAdicional = resActual.totalAnnual - resOptimized.totalAnnual;
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(0, 0, 0);
-                    doc.text('Ahorro adicional optimizando:', margin + 5, finalY + 19);
+                    doc.text(tr('Ahorro adicional optimizando:'), margin + 5, finalY + 19);
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(orangeColor[0], orangeColor[1], orangeColor[2]);
                     doc.text(eur(ahorroAdicional), pageWidth - margin - 5, finalY + 19, { align: 'right' });
@@ -9207,7 +9207,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(8);
-                    doc.text('AHORRO TOTAL OPTIMIZADO:', margin + 10, finalY + 27);
+                    doc.text(tr('AHORRO TOTAL OPTIMIZADO:'), margin + 10, finalY + 27);
                     doc.text(eur(resOptimized.savings), pageWidth - margin - 10, finalY + 27, { align: 'right' });
                     
                     finalY += 35; // Avanzar después del resumen
@@ -9224,7 +9224,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFontSize(9);
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-                    doc.text('RESUMEN DE AHORRO ANUAL', pageWidth / 2, finalY + 6, { align: 'center' });
+                    doc.text(tr('RESUMEN DE AHORRO ANUAL'), pageWidth / 2, finalY + 6, { align: 'center' });
                     
                     // Línea de separación
                     doc.setDrawColor(200, 200, 200);
@@ -9235,7 +9235,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFontSize(7.5);
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(0, 0, 0);
-                    doc.text('Con potencias actuales:', margin + 5, finalY + 14);
+                    doc.text(tr('Con potencias actuales:'), margin + 5, finalY + 14);
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(greenColor[0], greenColor[1], greenColor[2]);
                     doc.text(eur(resActual.savings), pageWidth - margin - 5, finalY + 14, { align: 'right' });
@@ -9244,7 +9244,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     const ahorroAdicional = resActual.totalAnnual - resOptimized.totalAnnual;
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(0, 0, 0);
-                    doc.text('Ahorro adicional optimizando:', margin + 5, finalY + 19);
+                    doc.text(tr('Ahorro adicional optimizando:'), margin + 5, finalY + 19);
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(orangeColor[0], orangeColor[1], orangeColor[2]);
                     doc.text(eur(ahorroAdicional), pageWidth - margin - 5, finalY + 19, { align: 'right' });
@@ -9255,7 +9255,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(8);
-                    doc.text('AHORRO TOTAL OPTIMIZADO:', margin + 10, finalY + 27);
+                    doc.text(tr('AHORRO TOTAL OPTIMIZADO:'), margin + 10, finalY + 27);
                     doc.text(eur(resOptimized.savings), pageWidth - margin - 10, finalY + 27, { align: 'right' });
                     
                     finalY += 35; // Avanzar después del resumen
@@ -9275,21 +9275,21 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
-                doc.text('PARA FORMALIZAR ESTE CONTRATO:', margin + 4, finalY + 7);
+                doc.text(tr('PARA FORMALIZAR ESTE CONTRATO:'), margin + 4, finalY + 7);
                 
                 // Subtítulo
                 doc.setFontSize(7.5);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Responde a este email adjuntando la siguiente documentacion:', margin + 4, finalY + 12);
+                doc.text(tr('Responde a este email adjuntando la siguiente documentacion:'), margin + 4, finalY + 12);
                 
                 // Lista de documentos (más compacta)
                 doc.setFontSize(6.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text('1. Foto del DNI/CIF (anverso y reverso)', margin + 7, finalY + 17);
-                doc.text('2. Ultima factura (minimo 3 meses de antiguedad)', margin + 7, finalY + 21);
-                doc.text('3. Email de contacto para validacion', margin + 7, finalY + 25);
-                doc.text('4. Telefono de contacto', margin + 7, finalY + 29);
-                doc.text('5. Numero de cuenta bancaria (IBAN)', margin + 7, finalY + 33);
+                doc.text(tr('1. Foto del DNI/CIF (anverso y reverso)'), margin + 7, finalY + 17);
+                doc.text(tr('2. Ultima factura (minimo 3 meses de antiguedad)'), margin + 7, finalY + 21);
+                doc.text(tr('3. Email de contacto para validacion'), margin + 7, finalY + 25);
+                doc.text(tr('4. Telefono de contacto'), margin + 7, finalY + 29);
+                doc.text(tr('5. Numero de cuenta bancaria (IBAN)'), margin + 7, finalY + 33);
                 
                 // Línea separadora
                 doc.setDrawColor(180, 180, 180);
@@ -9299,7 +9299,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 // Texto de envío
                 doc.setFontSize(6.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Envia la documentacion al comercial:', margin + 4, finalY + 41);
+                doc.text(tr('Envia la documentacion al comercial:'), margin + 4, finalY + 41);
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(8);
                 doc.text(commercialCode || 'a<sz', margin + 4, finalY + 45);
@@ -24452,6 +24452,11 @@ ${clientName}
                 // === TRADUCCIONES DE OPTIMIZACIÓN DE POTENCIAS ===
                 "Activar Comparativo con Potencia Optimizada": { en: "Activate Comparison with Optimized Power", zh: "启用优化功率比较", de: "Vergleich mit optimierter Leistung aktivieren", fr: "Activer la Comparaison avec Puissance Optimisée" },
                 "Permite comparar las potencias actuales vs. potencias optimizadas": { en: "Allows you to compare current power vs. optimized power", zh: "允许比较当前功率与优化功率", de: "Ermöglicht den Vergleich aktueller Leistung vs. optimierter Leistung", fr: "Permet de comparer la puissance actuelle vs. puissance optimisée" },
+                "Potencias Optimizadas (kW)": { en: "Optimized Power (kW)", zh: "优化功率 (kW)", de: "Optimierte Leistung (kW)", fr: "Puissance Optimisée (kW)" },
+                "General Data": { es: "Datos Generales", zh: "一般数据", de: "Allgemeine Daten", fr: "Données Générales" },
+                "Power (kW)": { es: "Potencias (kW)", zh: "功率 (kW)", de: "Leistung (kW)", fr: "Puissance (kW)" },
+                "Energy (kWh)": { es: "Energía (kWh)", zh: "能源 (kWh)", de: "Energie (kWh)", fr: "Énergie (kWh)" },
+                "Introduce las potencias optimizadas que propones al cliente": { en: "Enter the optimized power you propose to the client", zh: "输入您向客户建议的优化功率", de: "Geben Sie die optimierte Leistung ein, die Sie dem Kunden vorschlagen", fr: "Entrez la puissance optimisée que vous proposez au client" },
                 "Potencias Optimizadas": { en: "Optimized Power", zh: "优化功率", de: "Optimierte Leistung", fr: "Puissance Optimisée" },
                 "PROPUESTA": { en: "PROPOSAL", zh: "建议", de: "VORSCHLAG", fr: "PROPOSITION" },
                 "COMPARATIVO: POTENCIAS ACTUALES vs POTENCIAS OPTIMIZADAS": { en: "COMPARISON: CURRENT POWER vs OPTIMIZED POWER", zh: "比较：当前功率与优化功率", de: "VERGLEICH: AKTUELLE LEISTUNG vs OPTIMIERTE LEISTUNG", fr: "COMPARATIF : PUISSANCE ACTUELLE vs PUISSANCE OPTIMISÉE" },
@@ -24502,6 +24507,14 @@ ${clientName}
                 "Ahorro adicional optimizando:": { en: "Additional savings optimizing:", zh: "优化额外节省：", de: "Zusätzliche Ersparnis durch Optimierung:", fr: "Économies supplémentaires en optimisant :" },
                 "PARA FORMALIZAR ESTE CONTRATO:": { en: "TO FORMALIZE THIS CONTRACT:", zh: "正式化此合同：", de: "UM DIESEN VERTRAG ZU FORMALISIEREN:", fr: "POUR FORMALISER CE CONTRAT :" },
                 "Responde a este email adjuntando la siguiente documentacion:": { en: "Reply to this email attaching the following documentation:", zh: "回复此电子邮件并附上以下文件：", de: "Antworten Sie auf diese E-Mail und fügen Sie die folgende Dokumentation bei:", fr: "Répondez à cet e-mail en joignant la documentation suivante :" },
+                "PARA FORMALIZAR ESTE CONTRATO:": { en: "TO FORMALIZE THIS CONTRACT:", zh: "正式化此合同：", de: "UM DIESEN VERTRAG ZU FORMALISIEREN:", fr: "POUR FORMALISER CE CONTRAT :" },
+                "Responde a este email adjuntando la siguiente documentacion:": { en: "Reply to this email attaching the following documentation:", zh: "回复此电子邮件并附上以下文件：", de: "Antworten Sie auf diese E-Mail und fügen Sie die folgende Dokumentation bei:", fr: "Répondez à cet e-mail en joignant la documentation suivante :" },
+                "1. Foto del DNI/CIF (anverso y reverso)": { en: "1. Photo of ID/CIF (front and back)", zh: "1. 身份证/CIF照片（正反面）", de: "1. Foto des Ausweises/CIF (Vorder- und Rückseite)", fr: "1. Photo de la carte d'identité/CIF (recto et verso)" },
+                "2. Ultima factura (minimo 3 meses de antiguedad)": { en: "2. Last invoice (minimum 3 months old)", zh: "2. 最后发票（至少3个月前）", de: "2. Letzte Rechnung (mindestens 3 Monate alt)", fr: "2. Dernière facture (minimum 3 mois d'ancienneté)" },
+                "3. Email de contacto para validacion": { en: "3. Contact email for validation", zh: "3. 验证联系电子邮件", de: "3. Kontakt-E-Mail zur Validierung", fr: "3. E-mail de contact pour validation" },
+                "4. Telefono de contacto": { en: "4. Contact phone", zh: "4. 联系电话", de: "4. Kontakttelefon", fr: "4. Téléphone de contact" },
+                "5. Numero de cuenta bancaria (IBAN)": { en: "5. Bank account number (IBAN)", zh: "5. 银行账号（IBAN）", de: "5. Bankkontonummer (IBAN)", fr: "5. Numéro de compte bancaire (IBAN)" },
+                "Envia la documentacion al comercial:": { en: "Send the documentation to the sales representative:", zh: "将文件发送给销售代表：", de: "Senden Sie die Dokumentation an den Vertriebsmitarbeiter:", fr: "Envoyez la documentation au commercial :" },
                 "Foto del DNI/CIF (anverso y reverso)": { en: "Photo of ID/CIF (front and back)", zh: "身份证/CIF照片（正反面）", de: "Foto des Ausweises/CIF (Vorder- und Rückseite)", fr: "Photo de la carte d'identité/CIF (recto et verso)" },
                 "Ultima factura (minimo 3 meses de antiguedad)": { en: "Last invoice (minimum 3 months old)", zh: "最后发票（至少3个月前）", de: "Letzte Rechnung (mindestens 3 Monate alt)", fr: "Dernière facture (minimum 3 mois d'ancienneté)" },
                 "Email de contacto para validacion": { en: "Contact email for validation", zh: "验证联系电子邮件", de: "Kontakt-E-Mail zur Validierung", fr: "E-mail de contact pour validation" },

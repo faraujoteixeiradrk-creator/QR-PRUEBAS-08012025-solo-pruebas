@@ -7242,10 +7242,13 @@
         }
 
 
-        async function generateMultiPDF_Dual(res) {
+        async function generateMultiPDF_Dual(res, commercialCode = 'D=00', clientName = '[NOMBRE COMPLETO CLIENTE]', clientPhone = '', clientEmail = '', clientAddress = '') {
             try {
                 console.log('=== generateMultiPDF_Dual INICIADO ===');
                 console.log('res recibido:', res);
+                console.log('commercialCode:', commercialCode);
+                console.log('clientName:', clientName);
+                console.log('clientAddress:', clientAddress);
                 console.log('res.individualResults:', res.individualResults);
                 
                 if (res.individualResults && res.individualResults.length > 0) {
@@ -9700,7 +9703,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 if (lastComparisonResult.isMultiCups) {
                     // MULTICUPS con índice
                     console.log('✅ Generando PDF MULTICUPS DUAL');
-                    await generateMultiPDF_Dual(lastComparisonResult);
+                    await generateMultiPDF_Dual(lastComparisonResult, commercialCode, clientName, clientPhone, clientEmail, clientAddress);
                 } else {
                     // Individual con índice
                     console.log('✅ Generando PDF INDIVIDUAL DUAL');

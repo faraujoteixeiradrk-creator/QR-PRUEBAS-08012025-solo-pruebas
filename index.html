@@ -12940,8 +12940,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             } else {
                 // MODO INDIVIDUAL: Ocultar selector (solo se usa la tarifa seleccionada en el landing)
                 selectorWrapper.classList.add('hidden');
-                modalTitleEl.textContent = `Entrada de Datos Manual (${currentTariffType})`;
-                document.getElementById('execute-manual-input-btn').textContent = "CALCULAR";
+                modalTitleEl.textContent = tr('Entrada de Datos Manual') + ` (${currentTariffType})`;
+                document.getElementById('execute-manual-input-btn').textContent = tr("CALCULAR");
                 toggleMultiCupsInputPeriods(currentTariffType, 'input');
             }
 
@@ -24975,6 +24975,8 @@ ${clientName}
                 "Total de suministros actuales:": { en: "Total current supplies:", zh: "当前供应总数：", de: "Gesamtzahl aktueller Versorgungen:", fr: "Total des approvisionnements actuels :" },
                 "Permite Escáner QR, Imagen y Entrada Manual": { en: "Allows QR Scanner, Image and Manual Entry", zh: "允许二维码扫描、图像和手动输入", de: "Ermöglicht QR-Scanner, Bild und manuelle Eingabe", fr: "Permet le scanner QR, l'image et la saisie manuelle" },
                 "Solo Entrada de Datos Manual": { en: "Manual Data Entry Only", zh: "仅手动数据输入", de: "Nur manuelle Dateneingabe", fr: "Saisie manuelle des données uniquement" },
+                "Entrada de Datos Manual": { en: "Manual Data Entry", zh: "手动数据输入", de: "Manuelle Dateneingabe", fr: "Saisie Manuelle des Données" },
+                "CALCULAR": { en: "CALCULATE", zh: "计算", de: "BERECHNEN", fr: "CALCULER" },
                 "FINALIZAR Y COMPARAR": { en: "FINISH AND COMPARE", zh: "完成并比较", de: "ABSCHLIESSEN UND VERGLEICHEN", fr: "TERMINER ET COMPARER" },
                 "Suministros": { en: "Supplies", zh: "供应", de: "Versorgungen", fr: "Approvisionnements" },
                 

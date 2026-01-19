@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="app-title">DRK: Comparador 2.0 TD - Mejor Opción</title>
+    <title id="app-title">DRK: Plan Amigo 2.0 TD - Auto</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Incluimos QRCode.js y jsQR.min.js para el manejo de QR -->
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
@@ -2005,7 +2005,7 @@
         // **ATENCIÓN: Los IDs de las hojas deben ser públicos para funcionar (CSV)**
         // Eliminamos 6.1TD de la configuración
         const TARIFF_CONFIG = {
-            '2.0TD': { sheetId: '19CBiWVvxHoWW0fqdbSbLGs-hoISQGORAfebBztFYi3w', periods: 3, powerPeriods: 2, label: '2.0 TD', isHighVoltage: false, requiresQR: true, isMulti: false },
+            '2.0TD': { sheetId: '1kLfQOZnTsBJ8lRXA0ab5RXk-QM3VeSRkDQsatL3-tVk', periods: 3, powerPeriods: 2, label: '2.0 TD', isHighVoltage: false, requiresQR: true, isMulti: false },
             '3.0TD': { sheetId: '18nieA7yMD9Ytc2Z3EnktoNDZokuMrBet_ETGyhNZDuo', periods: 6, powerPeriods: 6, label: '3.0 TD', isHighVoltage: true, requiresQR: false, isMulti: false },
             'MULTICUPS': { sheetId: 'MULTICUPS_MIXED_TARIF_SHEET_ID', periods: 6, powerPeriods: 6, label: 'MULTICUPS', isHighVoltage: false, requiresQR: true, isMulti: true, baseTariffType: '2.0TD' }
         };
@@ -13620,54 +13620,22 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         
         // NUEVA: Manejar click en VER MEJOR OPCIÓN
         function handleBestOptionClick() {
+            console.log('🚀 AUTO-CÁLCULO: Ejecutando directamente con DRK PLAN AMIGO');
+            
+            // En esta versión simplificada, SIEMPRE calculamos automáticamente
+            // sin mostrar selector ni checkbox
             const selectorDiv = document.getElementById('best-option-tariff-selector');
             const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
             
-            // Detectar contexto
-            const isDrkMode = comparisonMode !== 'overall_best';
-            const isIndividual = currentTariffType !== 'MULTICUPS';
-            const isDualMode = window.dualMode === true;
+            // Ocultar todo
+            selectorDiv?.classList.add('hidden');
+            checkboxContainer?.classList.add('hidden');
             
-            // IMPORTANTE: En modo DUAL, siempre ocultar el checkbox
-            if (isDualMode) {
-                console.log('🔄 Modo DUAL: Ocultando checkbox de comparación indexada');
-                if (checkboxContainer) checkboxContainer.classList.add('hidden');
-            }
+            // Establecer automáticamente tarifa FIJA
+            bestOptionTariffChoice = 'fija';
             
-            if (isDrkMode) {
-                // DRK (Individual o MULTICUPS)
-                
-                if (compareWithIndexed) {
-                    // CHECK MARCADO: Comparar automáticamente FIJO vs INDEXADO (NO mostrar selector)
-                    console.log('DRK con CHECK marcado: Comparando automáticamente FIJO vs INDEXADO');
-                    selectorDiv?.classList.add('hidden');
-                    // Solo mostrar checkbox si NO es modo DUAL
-                    if (checkboxContainer && !isDualMode) checkboxContainer.classList.remove('hidden');
-                    selectBestOptionDirect(); // Ejecutar directamente
-                } else {
-                    // CHECK NO MARCADO: Mostrar selector para elegir FIJA o INDEXADA
-                    console.log('DRK sin CHECK: Mostrando selector de tipo de tarifa');
-                    selectorDiv?.classList.remove('hidden');
-                    // OCULTAR checkbox porque el usuario va a elegir un solo tipo
-                    if (checkboxContainer) checkboxContainer.classList.add('hidden');
-                }
-            } else {
-                // POWER CUP
-                
-                if (compareWithIndexed) {
-                    // CHECK MARCADO: Comparar automáticamente FIJO vs INDEXADO (NO mostrar selector)
-                    console.log('POWER CUP con CHECK marcado: Comparando automáticamente FIJO vs INDEXADO');
-                    selectorDiv?.classList.add('hidden');
-                    if (checkboxContainer) checkboxContainer.classList.remove('hidden');
-                    selectBestOptionDirect(); // Ejecutar directamente
-                } else {
-                    // CHECK NO MARCADO: Mostrar selector para elegir FIJA o INDEXADA
-                    console.log('POWER CUP sin CHECK: Mostrando selector de tipo de tarifa');
-                    selectorDiv?.classList.remove('hidden');
-                    // OCULTAR checkbox porque el usuario va a elegir un solo tipo
-                    if (checkboxContainer) checkboxContainer.classList.add('hidden');
-                }
-            }
+            // Ejecutar el cálculo directamente
+            selectBestOptionWithChoice();
         }
         
         // NUEVA: Actualizar elección de tipo de tarifa

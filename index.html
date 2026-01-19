@@ -9363,7 +9363,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         const numPowerPeriods = Math.min(res.powerCosts.length, 6);
                         const numEnergyPeriods = Math.min(res.energyCosts.length, 6);
                         const maxPeriods = Math.max(numPowerPeriods, numEnergyPeriods);
-                        const priceBoxHeight = 4 + (maxPeriods * 3); // Altura dinámica
+                        const priceBoxHeight = 8 + (maxPeriods * 3.5); // Altura base 8 + 3.5 por cada período (aún más espacio)
                         
                         doc.setFillColor(100, 100, 110);
                         doc.roundedRect(x, y, colWidth, priceBoxHeight, 1, 1, 'F');
@@ -9380,7 +9380,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         for (let i = 0; i < powerPeriodsToShow; i++) {
                             const p = res.powerCosts[i];
                             doc.text(`P${p.period}: ${num(p.priceDay, 6)} €/kW/día`, x + 3, priceY, { maxWidth: colWidth / 2 - 5 });
-                            priceY += 3;
+                            priceY += 3.5;
                         }
                         
                         priceY = y + 8;
@@ -9389,7 +9389,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         for (let i = 0; i < energyPeriodsToShow; i++) {
                             const e = res.energyCosts[i];
                             doc.text(`E${e.period}: ${num(e.price, 5)} €/kWh`, x + colWidth / 2 + 2, priceY, { maxWidth: colWidth / 2 - 5 });
-                            priceY += 3;
+                            priceY += 3.5;
                         }
                         y += priceBoxHeight + 2;
                         

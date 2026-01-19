@@ -7542,30 +7542,32 @@ Desglose mensual estimado:
                 }
                 
                 // 3. Preparar el contenido del email (MUY CORTO para evitar límites de mailto)
-                const emailSubject = `Solicitud Mejora ${tipoSuministro} - ${clientName || 'Cliente'} - ${cups || 'Sin CUPS'}`;
+                const emailSubject = `Solicitud Estudio Personalizado - ${clientName || 'Cliente'}`;
                 
-                const emailBody = `SOLICITUD DE MEJORA - ${tipoSuministro}
+                const emailBody = `SOLICITUD DE ESTUDIO PERSONALIZADO - ${tipoSuministro}
 
-Comercial: ${commercialCode}
 Cliente: ${clientName || 'No proporcionado'}
-CUPS: ${cups || 'No proporcionado'}
+Teléfono: ${phone || 'No proporcionado'}
+Email: ${email || 'No proporcionado'}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ INSTRUCCIONES IMPORTANTES:
+📋 INSTRUCCIONES:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. PEGAR contenido completo (Ctrl+V) debajo de este texto
+1. PEGAR el contenido de la comparativa (Ctrl+V) debajo de este texto
    → El contenido está copiado en el portapapeles
 
-2. ADJUNTAR facturas OBLIGATORIAS:
-   📄 Factura usada para el estudio
-   📄 Factura más actualizada del cliente
+2. ADJUNTAR tus facturas de luz:
+   📄 Factura que has analizado
+   📄 Tu factura más reciente (si es diferente)
 
-3. ENVIAR email
+3. ENVIAR este email
+
+Nuestro equipo revisará tu caso y te contactará con una oferta personalizada.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-[PEGAR AQUÍ EL CONTENIDO COMPLETO CON CTRL+V]
+[PEGAR AQUÍ EL CONTENIDO CON CTRL+V]
 
 `;
 
@@ -7578,45 +7580,44 @@ CUPS: ${cups || 'No proporcionado'}
                 tempElement.contentEditable = true;
                 tempElement.innerHTML = `
                     <div style="font-family: Arial, sans-serif;">
-                        <h2 style="color: #E50000;">SOLICITUD DE MEJORA DE COMPARATIVO - ${tipoSuministro}</h2>
-                        <p><strong>El comercial ${commercialCode} solicita una mejora de este comparativo.</strong></p>
+                        <h2 style="color: #0EA5E9;">SOLICITUD DE ESTUDIO PERSONALIZADO - ${tipoSuministro}</h2>
+                        <p><strong>Solicito que el equipo de DRK revise mi caso y me ofrezca una tarifa personalizada.</strong></p>
                         
                         <div style="background-color: #E0F2FE; border-left: 4px solid #0EA5E9; padding: 12px; margin: 16px 0;">
                             <p style="margin: 0; font-weight: bold;">📋 TIPO DE SUMINISTRO: ${tipoSuministro}</p>
                         </div>
                         
-                        <h3>DATOS DEL CLIENTE:</h3>
+                        <h3>MIS DATOS:</h3>
                         <ul>
                             <li><strong>Nombre:</strong> ${clientName || 'No proporcionado'}</li>
-                            <li><strong${tr("CUPS:")}</strong> ${cups || 'No proporcionado'}</li>
                             <li><strong>Teléfono:</strong> ${phone || 'No proporcionado'}</li>
                             <li><strong>Email:</strong> ${email || 'No proporcionado'}</li>
                             ${observations ? `<li><strong>Observaciones:</strong> ${observations}</li>` : ''}
                         </ul>
                         
                         <div style="background-color: #FEF3C7; border: 2px solid #F59E0B; border-radius: 8px; padding: 16px; margin: 20px 0;">
-                            <h3 style="margin: 0 0 12px 0; color: #92400E; font-size: 18px;">⚠️ IMPORTANTE - FACTURAS A ADJUNTAR:</h3>
+                            <h3 style="margin: 0 0 12px 0; color: #92400E; font-size: 18px;">📄 FACTURAS ADJUNTAS:</h3>
                             <div style="background-color: white; padding: 12px; border-radius: 6px; margin-bottom: 8px;">
-                                <p style="margin: 0; font-weight: bold; color: #92400E;">📄 1. La factura UTILIZADA para realizar este estudio</p>
-                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #78350F;">Esta es la factura que el comercial ha analizado para hacer la comparativa</p>
+                                <p style="margin: 0; font-weight: bold; color: #92400E;">✅ Factura analizada</p>
+                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #78350F;">La factura que he usado para hacer esta comparativa</p>
                             </div>
                             <div style="background-color: white; padding: 12px; border-radius: 6px;">
-                                <p style="margin: 0; font-weight: bold; color: #92400E;">📄 2. La factura MÁS ACTUALIZADA del cliente</p>
-                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #78350F;">Si es la misma factura que la del estudio, adjuntar solo una vez</p>
+                                <p style="margin: 0; font-weight: bold; color: #92400E;">✅ Mi factura más reciente</p>
+                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #78350F;">(Si es la misma, solo la adjunto una vez)</p>
                             </div>
                             <p style="margin: 12px 0 0 0; font-size: 12px; color: #92400E; font-style: italic;">
-                                ℹ️ Estas facturas son necesarias para que Back Office pueda verificar los datos y mejorar el comparativo
+                                ℹ️ Con estas facturas, el equipo de DRK podrá revisar mi caso y ofrecerme la mejor tarifa posible
                             </p>
                         </div>
                         
                         <hr style="margin: 24px 0;">
                         
-                        <h3>COMPARATIVO:</h3>
+                        <h3>RESULTADO DE MI COMPARATIVA:</h3>
                         ${htmlContent}
                         
                         <hr style="margin: 24px 0;">
                         
-                        <h3>DESGLOSE DETALLADO DE CÁLCULOS:</h3>
+                        <h3>DETALLES TÉCNICOS:</h3>
                         <pre style="background-color: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 12px;">${desglose}</pre>
                     </div>
                 `;

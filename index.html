@@ -22254,6 +22254,8 @@ ${clientName}
 
             // Función exhaustiva de traducción
             function translateAll() {
+                console.log(`🌐 Traduciendo TODO al idioma: ${lang}`);
+                
                 // Navbar
                 const accentEl = document.getElementById('app-logo-accent');
                 if (accentEl) accentEl.textContent = tr('Energía');
@@ -22294,11 +22296,22 @@ ${clientName}
                     }
                 });
 
-                // Traducir TODO el DOM por contenido
+                // CRÍTICO: Traducir TODO el DOM por contenido - MEJORADO
                 const walker = document.createTreeWalker(
                     document.body,
                     NodeFilter.SHOW_TEXT,
-                    null,
+                    {
+                        acceptNode: function(node) {
+                            // Filtrar scripts, estilos y nodos vacíos
+                            if (node.parentElement && 
+                                (node.parentElement.tagName === 'SCRIPT' || 
+                                 node.parentElement.tagName === 'STYLE' ||
+                                 !node.textContent.trim())) {
+                                return NodeFilter.FILTER_REJECT;
+                            }
+                            return NodeFilter.FILTER_ACCEPT;
+                        }
+                    },
                     false
                 );
 
@@ -22307,6 +22320,7 @@ ${clientName}
                 
                 while (node = walker.nextNode()) {
                     const trimmed = node.textContent.trim();
+                    // CRÍTICO: Buscar CUALQUIER texto que tenga traducción en TR
                     if (trimmed && TR[trimmed]) {
                         nodesToTranslate.push({node, original: trimmed});
                     }
@@ -22315,7 +22329,7 @@ ${clientName}
                 // Traducir todos los nodos encontrados
                 nodesToTranslate.forEach(({node, original}) => {
                     const newText = tr(original);
-                    if (node.textContent.includes(original)) {
+                    if (newText !== original && node.textContent.includes(original)) {
                         node.textContent = node.textContent.replace(original, newText);
                     }
                 });
@@ -22346,7 +22360,10 @@ ${clientName}
                     const options = sortSelect.querySelectorAll('option');
                     options.forEach(option => {
                         const originalText = option.textContent.trim();
-                        option.textContent = tr(originalText);
+                        const translated = tr(originalText);
+                        if (translated !== originalText) {
+                            option.textContent = translated;
+                        }
                     });
                 }
                 
@@ -22364,9 +22381,22 @@ ${clientName}
                     ];
                     
                     if (buttonTexts.includes(text)) {
-                        button.textContent = tr(text);
+                        const translated = tr(text);
+                        if (translated !== text) {
+                            button.textContent = translated;
+                        }
                     }
                 });
+                
+                // CRÍTICO: Traducir elementos con data-i18n
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (key) {
+                        el.textContent = tr(key);
+                    }
+                });
+                
+                console.log(`✅ Traducción completada al idioma: ${lang}`);
             }
             
             // CRÍTICO: Hacer translateAll disponible globalmente
@@ -22379,19 +22409,26 @@ ${clientName}
                     lang = newLang;
                     localStorage.setItem('appLanguage', newLang);
                     
-                    // Solo recargar si es un cambio manual del usuario (no la carga inicial)
-                    if (!skipReload && oldLang !== newLang) {
-                        console.log(`🔄 Cambiando idioma de ${oldLang} a ${newLang} - Recargando página...`);
+                    // CRÍTICO: Si hay un cambio real de idioma, SIEMPRE recargar para evitar textos mixtos
+                    if (oldLang !== newLang) {
+                        console.log(`🔄 Cambiando idioma de ${oldLang} a ${newLang} - Recargando página para limpiar todo...`);
+                        // Asegurar que el nuevo idioma esté guardado ANTES de recargar
+                        localStorage.setItem('appLanguage', newLang);
+                        // Forzar recarga completa para limpiar cualquier texto del idioma anterior
                         location.reload();
                         return;
                     }
                     
-                    // Si es carga inicial, solo actualizar la UI
+                    // Si es carga inicial (mismo idioma), solo actualizar la UI
                     if (document.getElementById('language-selector')) {
                         document.getElementById('language-selector').value = newLang;
                     }
                     document.title = tr('DRK COMPARADOR');
-                    translateAll();
+                    
+                    // CRÍTICO: Traducir TODO inmediatamente
+                    setTimeout(() => translateAll(), 0);
+                    setTimeout(() => translateAll(), 100);
+                    setTimeout(() => translateAll(), 500);
                 },
                 translate: tr,
                 retranslate: translateAll,

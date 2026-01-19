@@ -7862,7 +7862,7 @@
                     const numPowerPeriods = Math.min(resultado.powerCosts.length, 6);
                     const numEnergyPeriods = Math.min(resultado.energyCosts.length, 6);
                     const maxPeriods = Math.max(numPowerPeriods, numEnergyPeriods);
-                    const boxHeight = 4 + (maxPeriods * 3); // Altura base 4 + 3 por cada período
+                    const boxHeight = 6 + (maxPeriods * 3.2); // Altura base 6 + 3.2 por cada período (más espacio)
                     
                     doc.setFillColor(...headerMedColor);
                     doc.roundedRect(x, y, width, boxHeight, 2, 2, 'F');
@@ -7879,7 +7879,7 @@
                     for (let i = 0; i < maxPowerPeriodsToShow; i++) {
                         if (resultado.powerCosts[i]) {
                             doc.text(`P${i + 1}: ${num(resultado.powerCosts[i].priceDay || 0, 6)} €/kW/día`, x + 3, potenciaY);
-                            potenciaY += 3;
+                            potenciaY += 3.2;
                         }
                     }
                     
@@ -7895,7 +7895,7 @@
                     for (let i = 0; i < maxEnergyPeriodsToShow; i++) {
                         if (resultado.energyCosts[i]) {
                             doc.text(`E${i + 1}: ${num(resultado.energyCosts[i].price || 0, 6)} €/kWh`, x + width/2, energiaY);
-                            energiaY += 3;
+                            energiaY += 3.2;
                         }
                     }
                     y += boxHeight + 4;

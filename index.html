@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="app-title">DRK: Comparador Multitarifa</title>
+    <title id="app-title">DRK: Comparador 2.0 TD</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Incluimos QRCode.js y jsQR.min.js para el manejo de QR -->
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
@@ -56,6 +56,24 @@
         /* === SISTEMA PANTALLAS === */
         .screen { display: none; }
         .screen.active { display: block; }
+        
+        /* CRÍTICO: Ocultar permanentemente el modo de comparación en versión 2.0TD */
+        #modo-comparacion-section {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+        }
+        
+        /* CRÍTICO: Ocultar permanentemente el checkbox FIJO vs INDEXADO en versión simplificada */
+        #powercup-indexed-comparison-checkbox {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+        }
         
         /* Estilos base y animaciones */
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
@@ -243,32 +261,21 @@
     <!-- Main Content Area -->
     <div id="app" class="w-full max-w-lg mx-auto p-4 md:p-6 flex-grow">
 
-        <!-- MODO DE COMPARACIÓN (Siempre visible al inicio) -->
-        <div id="modo-comparacion-section" class="fade-in mb-6">
+        <!-- MODO DE COMPARACIÓN (OCULTO - Solo DRK) -->
+        <div id="modo-comparacion-section" class="fade-in mb-6" style="display: none !important;">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                 <p class="text-sm font-bold text-drk-800 mb-3 text-center uppercase tracking-wider">MODO DE COMPARACIÓN</p>
                 <div class="flex flex-wrap justify-center gap-2 text-sm">
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400">
-                        <input type="radio" name="comparison_mode" value="drk_only" class="hidden">
-                        <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
-                    </label>
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-500 text-white bg-drk-500 hover:bg-drk-600">
-                        <input type="radio" name="comparison_mode" value="drk_prioritized" class="hidden" checked>
-                        <span class="font-semibold flex items-center justify-between w-full">DRK Prioritario<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
-                    </label>
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400">
-                        <input type="radio" name="comparison_mode" value="overall_best" class="hidden">
-                        <span class="font-black flex flex-col items-center justify-center w-full leading-tight">
-                            <span class="text-base">POWER CUP</span><span class="text-xs font-semibold -mt-0.5">Global</span>
-                        </span>
-                        <svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-500 text-white bg-drk-500">
+                        <input type="radio" name="comparison_mode" value="drk_only" class="hidden" checked>
+                        <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
                     </label>
                 </div>
             </div>
         </div>
 
-        <!-- PANTALLA INICIAL: Solo selector de servicio -->
-        <div id="screen-inicio" class="screen active">
+        <!-- PANTALLA INICIAL: OCULTA - Directamente a 2.0TD -->
+        <div id="screen-inicio" class="screen" style="display: none;">
             <div class="fade-in flex flex-col items-center justify-center min-h-[40vh] py-8">
                 <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                     <div class="w-16 h-16 bg-drk-50 rounded-full flex items-center justify-center mx-auto mb-4 text-drk-600 shadow-inner">
@@ -312,8 +319,8 @@
             </div>
         </div>
 
-        <!-- PANTALLA 2: ELECTRICIDAD (landing-view original) -->
-        <div id="screen-electricidad" class="screen">
+        <!-- PANTALLA 2: ELECTRICIDAD (OCULTA - Ya no se usa) -->
+        <div id="screen-electricidad" class="screen" style="display: none;">
         <!-- 1. Landing View -->
         <div id="landing-view" class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500" id="landing-card">
@@ -1124,8 +1131,9 @@
 
         <!-- 3. Initial Input View (Scan/Manual) -->
         <div id="initial-view" class="fade-in hidden">
-            <button onclick="currentTariffType === 'MULTICUPS' ? showMultiCupsSagaView() : goBackFromInitialView()" class="mb-4 text-sm text-slate-500 hover:text-drk-600 flex items-center gap-1">
-                &larr; Volver <span id="back-button-label">a selección</span>
+            <!-- Botón Volver OCULTO - No necesario en versión directa 2.0TD -->
+            <button onclick="location.reload()" class="mb-4 text-sm text-slate-500 hover:text-drk-600 flex items-center gap-1" style="display: none;">
+                &larr; Volver <span id="back-button-label">a inicio</span>
             </button>
 
             <div id="initial-card" class="bg-white p-6 rounded-3xl shadow-xl text-center border-t-4 border-drk-500 relative">
@@ -1588,7 +1596,8 @@
                 <!-- Content -->
                 <div class="p-6">
                     <!-- NUEVO: Checkbox para comparación con tarifas indexadas (SOLO POWER CUP) -->
-                    <div id="powercup-indexed-comparison-checkbox" class="hidden mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-blue-200">
+                    <!-- OCULTO: Checkbox Comparar FIJO vs INDEXADO - Versión Simplificada -->
+                    <div id="powercup-indexed-comparison-checkbox" class="hidden mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-blue-200" style="display: none !important;">
                         <label class="flex items-start gap-3 cursor-pointer group">
                             <input 
                                 type="checkbox" 
@@ -2731,81 +2740,42 @@
 
         // FUNCIÓN GLOBAL: Hacer accesible desde onclick en HTML
         window.resetToLanding = function() {
-            console.log('resetToLanding llamada');
-            stopScanner();
+            console.log('🔄 resetToLanding llamada - Versión 2.0TD Directa');
             
-            // PRIMERO: Ocultar TODAS las pantallas antes de cualquier otra operación
-            hideAllScreens();
-            console.log('✅ Todas las pantallas ocultadas con hideAllScreens()');
+            // Detener el scanner si está activo
+            if (typeof stopScanner === 'function') {
+                stopScanner();
+            }
             
-            // CRÍTICO: Limpiar TODAS las variables globales
+            // Limpiar variables globales
             lastComparisonResult = null;
             lastIndexedResult = null;
-            multiCupsData = [];
-            multiCupsAddType = null;
             availableOffers = [];
             manuallySelectedOffer = null;
             compareWithIndexed = false;
-            bestOptionTariffChoice = 'fija';
-            currentTariffType = null; // NUEVO: Resetear tipo de tarifa
-            window.lastGasComparisonResult = null; // NUEVO: Resetear datos de GAS
-            window.dualGlobalResults = null; // NUEVO: Resetear datos DUAL
+            currentTariffType = null;
             
-            // DUAL: Limpiar variables DUAL
-            window.dualMode = false;
-            window.dualSupplies = [];
-            dualSupplies = window.dualSupplies; // Mantener referencia
-            window.dualGlobalResults = null;
-            dualTempSupply = null;
-            console.log('✅ Variables DUAL limpiadas');
-            
-            // Resetear checkbox de comparación indexada
-            const checkboxIndexed = document.getElementById('compare-indexed-checkbox');
-            if (checkboxIndexed) {
-                checkboxIndexed.checked = false;
-            }
-            
-            // Resetear selector de tipo de tarifa
-            const fijaRadio = document.querySelector('input[name="best-option-tariff-type"][value="fija"]');
-            if (fijaRadio) {
-                fijaRadio.checked = true;
-            }
-            
-            // Restaurar la marca activa según el modo de comparación
-            const brandToApply = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
-            applyBrandStyles(brandToApply);  
-            
-            // Asegurarse de que el radio button correcto esté checked
-            const selectorInput = document.querySelector(`input[name="comparison_mode"][value="${comparisonMode}"]`);
-            if (selectorInput) {
-                selectorInput.checked = true;
-                updateComparisonMode(comparisonMode);
-            }
-
-            // Ocultar vistas adicionales del flujo normal
-            document.getElementById('initial-view')?.classList.add('hidden');
-            document.getElementById('multicups-saga-view')?.classList.add('hidden');
+            // Ocultar TODAS las vistas primero
             document.getElementById('results-view')?.classList.add('hidden');
             document.getElementById('scanner-view')?.classList.add('hidden');
             document.getElementById('manual-input-modal')?.classList.add('hidden');
             document.getElementById('manual-input-modal')?.classList.remove('flex');
-            document.getElementById('multicups-finalize-btn-main')?.classList.add('hidden');
-            document.getElementById('manual-tariff-selector-wrapper')?.classList.add('hidden');
+            document.getElementById('landing-view')?.classList.add('hidden');
+            document.getElementById('multicups-saga-view')?.classList.add('hidden');
+            document.getElementById('initial-view')?.classList.add('hidden');
             
-            // IMPORTANTE: Mostrar landing-view para que esté visible al volver a Electricidad/Gas
-            document.getElementById('landing-view')?.classList.remove('hidden');
-            
-            document.querySelectorAll('.hidden-period').forEach(el => el.style.display = 'none');
-            document.getElementById('tariff-display-badge').textContent = '0';
-            
-            // FINALMENTE: Mostrar pantalla inicial y selector de modo
-            document.getElementById('screen-inicio')?.classList.add('active');
-            const modoComparacionSection = document.getElementById('modo-comparacion-section');
-            if (modoComparacionSection) {
-                modoComparacionSection.style.display = 'block';
+            // Limpiar los inputs manuales
+            if (typeof clearManualInputs === 'function') {
+                clearManualInputs();
             }
             
-            console.log('✅ resetToLanding completada - screen-inicio activa');
+            // Volver a inicializar 2.0TD
+            setTimeout(() => {
+                console.log('🚀 Re-iniciando en 2.0TD...');
+                selectTariffType('2.0TD');
+            }, 50);
+            
+            console.log('✅ Reset completado - reiniciando 2.0TD');
         };
         
         // NUEVA FUNCIÓN: Volver desde initial-view SIN hacer reset completo
@@ -26446,6 +26416,12 @@ ${clientName}
             window.addEventListener('DOMContentLoaded', () => {
                 const savedLang = localStorage.getItem('appLanguage') || 'es';
                 window.LANG.change(savedLang, true); // skipReload = true para carga inicial
+                
+                // INICIO DIRECTO EN 2.0TD
+                setTimeout(() => {
+                    console.log('🚀 Iniciando directamente en 2.0TD...');
+                    selectTariffType('2.0TD');
+                }, 100);
             });
 
             window.addEventListener('load', () => {

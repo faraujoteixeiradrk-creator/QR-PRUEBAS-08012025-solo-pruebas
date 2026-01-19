@@ -7075,19 +7075,12 @@
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(5.5);
                     
-                    // Mostrar precios de potencia reales (P1-P6)
-                    console.log('DEBUG PDF - res.tariffType:', res.tariffType);
-                    console.log('DEBUG PDF - res.powerCosts.length:', res.powerCosts.length);
-                    console.log('DEBUG PDF - res.powerCosts:', res.powerCosts);
-                    let powerY = y + 8;
-                    const powerPeriods = res.tariffType === '3.0TD' ? 6 : (res.tariffType === '2.0TD' ? 2 : 6);
-                    console.log('DEBUG PDF - powerPeriods calculado:', powerPeriods);
-                    for (let pi = 0; pi < powerPeriods; pi++) {
-                        console.log(`DEBUG PDF - Intentando mostrar P${pi+1}, existe:`, !!res.powerCosts[pi]);
-                        if (res.powerCosts[pi]) {
-                            doc.text(`P${pi+1}: ${num(res.powerCosts[pi].priceDay || 0, 6)} €/kW/día`, x + 3, powerY);
-                            powerY += 3;
-                        }
+                    // Mostrar precios de potencia reales
+                    if (res.powerCosts.length > 0) {
+                        doc.text(`P1: ${num(res.powerCosts[0].priceDay || 0, 6)} €/kW/día`, x + 3, y + 8);
+                    }
+                    if (res.powerCosts.length > 1) {
+                        doc.text(`P2: ${num(res.powerCosts[1].priceDay || 0, 6)} €/kW/día`, x + 3, y + 11);
                     }
                     
                     doc.setFont('helvetica', 'bold');
@@ -7096,14 +7089,15 @@
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(5.5);
                     
-                    // Mostrar precios de energía reales (E1-E6)
-                    let energyY = y + 8;
-                    const energyPeriods = res.tariffType === '3.0TD' ? 6 : (res.tariffType === '2.0TD' ? 3 : 6);
-                    for (let ei = 0; ei < energyPeriods; ei++) {
-                        if (res.energyCosts[ei]) {
-                            doc.text(`E${ei+1}: ${num(res.energyCosts[ei].price || 0, 6)} €/kWh`, x + width/2, energyY);
-                            energyY += 3;
-                        }
+                    // Mostrar precios de energía reales
+                    if (res.energyCosts.length > 0) {
+                        doc.text(`E1: ${num(res.energyCosts[0].price || 0, 6)} €/kWh`, x + width/2, y + 8);
+                    }
+                    if (res.energyCosts.length > 1) {
+                        doc.text(`E2: ${num(res.energyCosts[1].price || 0, 6)} €/kWh`, x + width/2, y + 11);
+                    }
+                    if (res.energyCosts.length > 2) {
+                        doc.text(`E3: ${num(res.energyCosts[2].price || 0, 6)} €/kWh`, x + width/2, y + 14);
                     }
                     y += 20;
                     
@@ -7864,9 +7858,14 @@
                     doc.text('PRECIOS APLICADOS:', x + 3, y + 6);
                     y += 10;
                     
-                    // Info de precios (Potencia y Energía)
+                    // Info de precios (Potencia y Energía) - Altura dinámica según períodos
+                    const numPowerPeriods = Math.min(resultado.powerCosts.length, 6);
+                    const numEnergyPeriods = Math.min(resultado.energyCosts.length, 6);
+                    const maxPeriods = Math.max(numPowerPeriods, numEnergyPeriods);
+                    const boxHeight = 4 + (maxPeriods * 3); // Altura base 4 + 3 por cada período
+                    
                     doc.setFillColor(...headerMedColor);
-                    doc.roundedRect(x, y, width, 16, 2, 2, 'F');
+                    doc.roundedRect(x, y, width, boxHeight, 2, 2, 'F');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(6);
                     doc.setFont('helvetica', 'bold');
@@ -7874,12 +7873,14 @@
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(5.5);
                     
-                    // Mostrar precios de potencia reales
-                    if (resultado.powerCosts.length > 0) {
-                        doc.text(`P1: ${num(resultado.powerCosts[0].priceDay || 0, 6)} €/kW/día`, x + 3, y + 8);
-                    }
-                    if (resultado.powerCosts.length > 1) {
-                        doc.text(`P2: ${num(resultado.powerCosts[1].priceDay || 0, 6)} €/kW/día`, x + 3, y + 11);
+                    // Mostrar precios de potencia reales (todos los períodos disponibles)
+                    let potenciaY = y + 8;
+                    const maxPowerPeriodsToShow = Math.min(resultado.powerCosts.length, 6); // Máximo 6 períodos
+                    for (let i = 0; i < maxPowerPeriodsToShow; i++) {
+                        if (resultado.powerCosts[i]) {
+                            doc.text(`P${i + 1}: ${num(resultado.powerCosts[i].priceDay || 0, 6)} €/kW/día`, x + 3, potenciaY);
+                            potenciaY += 3;
+                        }
                     }
                     
                     doc.setFont('helvetica', 'bold');
@@ -7888,17 +7889,16 @@
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(5.5);
                     
-                    // Mostrar precios de energía reales
-                    if (resultado.energyCosts.length > 0) {
-                        doc.text(`E1: ${num(resultado.energyCosts[0].price || 0, 6)} €/kWh`, x + width/2, y + 8);
+                    // Mostrar precios de energía reales (todos los períodos disponibles)
+                    let energiaY = y + 8;
+                    const maxEnergyPeriodsToShow = Math.min(resultado.energyCosts.length, 6); // Máximo 6 períodos
+                    for (let i = 0; i < maxEnergyPeriodsToShow; i++) {
+                        if (resultado.energyCosts[i]) {
+                            doc.text(`E${i + 1}: ${num(resultado.energyCosts[i].price || 0, 6)} €/kWh`, x + width/2, energiaY);
+                            energiaY += 3;
+                        }
                     }
-                    if (resultado.energyCosts.length > 1) {
-                        doc.text(`E2: ${num(resultado.energyCosts[1].price || 0, 6)} €/kWh`, x + width/2, y + 11);
-                    }
-                    if (resultado.energyCosts.length > 2) {
-                        doc.text(`E3: ${num(resultado.energyCosts[2].price || 0, 6)} €/kWh`, x + width/2, y + 14);
-                    }
-                    y += 20;
+                    y += boxHeight + 4;
                     
                     // === SECCIÓN POTENCIA ===
                     doc.setFillColor(...headerMedColor);

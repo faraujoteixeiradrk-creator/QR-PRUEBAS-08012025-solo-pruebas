@@ -9359,9 +9359,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.text(tr('PRECIOS APLICADOS:'), x + 3, y + 4);
                         y += 8;
                         
-                        // Tabla de precios (simplificada)
+                        // Tabla de precios - Altura dinámica según períodos
+                        const numPowerPeriods = Math.min(res.powerCosts.length, 6);
+                        const numEnergyPeriods = Math.min(res.energyCosts.length, 6);
+                        const maxPeriods = Math.max(numPowerPeriods, numEnergyPeriods);
+                        const priceBoxHeight = 4 + (maxPeriods * 3); // Altura dinámica
+                        
                         doc.setFillColor(100, 100, 110);
-                        doc.roundedRect(x, y, colWidth, 20, 1, 1, 'F');
+                        doc.roundedRect(x, y, colWidth, priceBoxHeight, 1, 1, 'F');
                         doc.setTextColor(255, 255, 255);
                         doc.setFontSize(6);
                         doc.setFont('helvetica', 'bold');
@@ -9370,17 +9375,23 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         
                         doc.setFont('helvetica', 'normal');
                         let priceY = y + 8;
-                        res.powerCosts.slice(0, 3).forEach((p, idx) => {
+                        // Mostrar todos los períodos de potencia disponibles (hasta 6)
+                        const powerPeriodsToShow = Math.min(res.powerCosts.length, 6);
+                        for (let i = 0; i < powerPeriodsToShow; i++) {
+                            const p = res.powerCosts[i];
                             doc.text(`P${p.period}: ${num(p.priceDay, 6)} €/kW/día`, x + 3, priceY, { maxWidth: colWidth / 2 - 5 });
                             priceY += 3;
-                        });
+                        }
                         
                         priceY = y + 8;
-                        res.energyCosts.slice(0, 3).forEach((e, idx) => {
+                        // Mostrar todos los períodos de energía disponibles (hasta 6)
+                        const energyPeriodsToShow = Math.min(res.energyCosts.length, 6);
+                        for (let i = 0; i < energyPeriodsToShow; i++) {
+                            const e = res.energyCosts[i];
                             doc.text(`E${e.period}: ${num(e.price, 5)} €/kWh`, x + colWidth / 2 + 2, priceY, { maxWidth: colWidth / 2 - 5 });
                             priceY += 3;
-                        });
-                        y += 22;
+                        }
+                        y += priceBoxHeight + 2;
                         
                         // POTENCIA
                         doc.setFillColor(250, 250, 250);

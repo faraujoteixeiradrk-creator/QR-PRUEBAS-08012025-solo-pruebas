@@ -23835,15 +23835,18 @@ async function showComparison() {
     document.body.classList.add('showing-comparison');
     window.scrollTo(0, 0);
     
-    // CRÍTICO: Sincronizar idioma del panel con el de la calculadora
-    const calcLang = localStorage.getItem('appLanguage') || 'es';
-    localStorage.setItem('selectedLanguage', calcLang);
-    currentPanelLanguage = calcLang;
+    // CRÍTICO: Usar el idioma ACTUAL del panel (que ya está sincronizado)
+    // Solo sincronizar si venimos de la calculadora
+    const panelLang = currentPanelLanguage || localStorage.getItem('selectedLanguage') || 'es';
+    
+    // Asegurar consistencia
+    currentPanelLanguage = panelLang;
+    localStorage.setItem('selectedLanguage', panelLang);
     
     // Actualizar selector de idioma del panel
     const panelSelector = document.getElementById('panel-language-selector');
     if (panelSelector) {
-        panelSelector.value = calcLang;
+        panelSelector.value = panelLang;
     }
     
     // Traducir la pantalla de comparación

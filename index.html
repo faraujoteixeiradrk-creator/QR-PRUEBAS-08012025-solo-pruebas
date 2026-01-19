@@ -7076,9 +7076,14 @@
                     doc.setFontSize(5.5);
                     
                     // Mostrar precios de potencia reales (P1-P6)
+                    console.log('DEBUG PDF - res.tariffType:', res.tariffType);
+                    console.log('DEBUG PDF - res.powerCosts.length:', res.powerCosts.length);
+                    console.log('DEBUG PDF - res.powerCosts:', res.powerCosts);
                     let powerY = y + 8;
                     const powerPeriods = res.tariffType === '3.0TD' ? 6 : (res.tariffType === '2.0TD' ? 2 : 6);
+                    console.log('DEBUG PDF - powerPeriods calculado:', powerPeriods);
                     for (let pi = 0; pi < powerPeriods; pi++) {
+                        console.log(`DEBUG PDF - Intentando mostrar P${pi+1}, existe:`, !!res.powerCosts[pi]);
                         if (res.powerCosts[pi]) {
                             doc.text(`P${pi+1}: ${num(res.powerCosts[pi].priceDay || 0, 6)} €/kW/día`, x + 3, powerY);
                             powerY += 3;

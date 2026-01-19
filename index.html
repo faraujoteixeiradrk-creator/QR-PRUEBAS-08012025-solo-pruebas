@@ -23203,11 +23203,47 @@ function showPanel() {
     document.body.classList.remove('showing-calculator');
     document.body.classList.remove('showing-comparison');
     window.scrollTo(0, 0);
+    
+    // CRÍTICO: Sincronizar idioma del panel con el de la calculadora
+    const calcLang = localStorage.getItem('appLanguage') || 'es';
+    localStorage.setItem('selectedLanguage', calcLang);
+    currentPanelLanguage = calcLang;
+    
+    // Actualizar selector de idioma del panel
+    const panelSelector = document.getElementById('panel-language-selector');
+    if (panelSelector) {
+        panelSelector.value = calcLang;
+    }
+    
+    // Traducir el panel inmediatamente
+    setTimeout(() => {
+        if (typeof translatePanel === 'function') {
+            translatePanel();
+        }
+    }, 50);
 }
 
 function showPanelFromComparison() {
     document.body.classList.remove('showing-comparison');
     window.scrollTo(0, 0);
+    
+    // CRÍTICO: Sincronizar idioma del panel con el de la calculadora
+    const calcLang = localStorage.getItem('appLanguage') || 'es';
+    localStorage.setItem('selectedLanguage', calcLang);
+    currentPanelLanguage = calcLang;
+    
+    // Actualizar selector de idioma del panel
+    const panelSelector = document.getElementById('panel-language-selector');
+    if (panelSelector) {
+        panelSelector.value = calcLang;
+    }
+    
+    // Traducir el panel inmediatamente
+    setTimeout(() => {
+        if (typeof translatePanel === 'function') {
+            translatePanel();
+        }
+    }, 50);
 }
 
 // ========== FRIENDS CODE SECTION ==========
@@ -23799,8 +23835,20 @@ async function showComparison() {
     document.body.classList.add('showing-comparison');
     window.scrollTo(0, 0);
     
+    // CRÍTICO: Sincronizar idioma del panel con el de la calculadora
+    const calcLang = localStorage.getItem('appLanguage') || 'es';
+    localStorage.setItem('selectedLanguage', calcLang);
+    currentPanelLanguage = calcLang;
+    
+    // Actualizar selector de idioma del panel
+    const panelSelector = document.getElementById('panel-language-selector');
+    if (panelSelector) {
+        panelSelector.value = calcLang;
+    }
+    
     // Traducir la pantalla de comparación
     translatePanel();
+    translateComparisonTexts();
     
     // Mostrar loading
     document.getElementById('comparison-loading').style.display = 'block';

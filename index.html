@@ -7075,12 +7075,13 @@
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(5.5);
                     
-                    // Mostrar precios de potencia reales
-                    if (res.powerCosts.length > 0) {
-                        doc.text(`P1: ${num(res.powerCosts[0].priceDay || 0, 6)} €/kW/día`, x + 3, y + 8);
-                    }
-                    if (res.powerCosts.length > 1) {
-                        doc.text(`P2: ${num(res.powerCosts[1].priceDay || 0, 6)} €/kW/día`, x + 3, y + 11);
+                    // Mostrar precios de potencia reales (todos los periodos)
+                    let powerY = y + 8;
+                    for (let pi = 0; pi < Math.min(res.powerCosts.length, 6); pi++) {
+                        if (res.powerCosts[pi]) {
+                            doc.text(`P${pi+1}: ${num(res.powerCosts[pi].priceDay || 0, 6)} €/kW/día`, x + 3, powerY);
+                            powerY += 3;
+                        }
                     }
                     
                     doc.setFont('helvetica', 'bold');
@@ -7089,15 +7090,13 @@
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(5.5);
                     
-                    // Mostrar precios de energía reales
-                    if (res.energyCosts.length > 0) {
-                        doc.text(`E1: ${num(res.energyCosts[0].price || 0, 6)} €/kWh`, x + width/2, y + 8);
-                    }
-                    if (res.energyCosts.length > 1) {
-                        doc.text(`E2: ${num(res.energyCosts[1].price || 0, 6)} €/kWh`, x + width/2, y + 11);
-                    }
-                    if (res.energyCosts.length > 2) {
-                        doc.text(`E3: ${num(res.energyCosts[2].price || 0, 6)} €/kWh`, x + width/2, y + 14);
+                    // Mostrar precios de energía reales (todos los periodos)
+                    let energyY = y + 8;
+                    for (let ei = 0; ei < Math.min(res.energyCosts.length, 6); ei++) {
+                        if (res.energyCosts[ei]) {
+                            doc.text(`E${ei+1}: ${num(res.energyCosts[ei].price || 0, 6)} €/kWh`, x + width/2, energyY);
+                            energyY += 3;
+                        }
                     }
                     y += 20;
                     

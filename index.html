@@ -23119,32 +23119,34 @@ function changePanelLanguage(lang) {
     translatePanel();
     translateComparisonTexts(); // Traducir textos de la comparativa
     
-    // Guardar idioma para cuando entre a la calculadora
+    // CRÍTICO: Sincronizar AMBOS sistemas de idioma
     localStorage.setItem('selectedLanguage', lang);
+    localStorage.setItem('appLanguage', lang); // ⭐ NUEVO: Sincronizar con calculadora
     
-    console.log('🌍 Idioma del panel cambiado a:', lang);
-    console.log('✅ El idioma se aplicará automáticamente en la calculadora');
+    console.log('🌍 Idioma cambiado a:', lang);
+    console.log('✅ Sincronizado: Panel y Calculadora');
 }
 
 // Cargar idioma guardado al inicio
 document.addEventListener('DOMContentLoaded', function() {
-    // CRÍTICO: Sincronizar idioma de calculadora con panel
-    const calcLang = localStorage.getItem('appLanguage') || 'es';
-    const panelLang = localStorage.getItem('selectedLanguage') || 'es';
+    // USAR UN SOLO localStorage como fuente de verdad
+    const savedLang = localStorage.getItem('appLanguage') || localStorage.getItem('selectedLanguage') || 'es';
     
-    // Si hay diferencia, usar el idioma de la calculadora (más reciente)
-    const finalLang = calcLang || panelLang;
+    // Sincronizar AMBOS para mantener consistencia
+    localStorage.setItem('appLanguage', savedLang);
+    localStorage.setItem('selectedLanguage', savedLang);
     
-    // Sincronizar ambos
-    localStorage.setItem('appLanguage', finalLang);
-    localStorage.setItem('selectedLanguage', finalLang);
+    // Aplicar al panel
+    currentPanelLanguage = savedLang;
+    const selector = document.getElementById('panel-language-selector');
+    if (selector) {
+        selector.value = savedLang;
+    }
     
-    currentPanelLanguage = finalLang;
-    document.getElementById('panel-language-selector').value = finalLang;
     translatePanel();
-    translateComparisonTexts(); // Traducir textos de comparativa si hay
+    translateComparisonTexts();
     
-    console.log('🌐 Idiomas sincronizados:', finalLang);
+    console.log('🌐 Idioma inicial cargado:', savedLang);
 });
 
 // ========== NAVEGACIÓN ENTRE PANEL Y CALCULADORA ==========
@@ -23204,18 +23206,7 @@ function showPanel() {
     document.body.classList.remove('showing-comparison');
     window.scrollTo(0, 0);
     
-    // CRÍTICO: Sincronizar idioma del panel con el de la calculadora
-    const calcLang = localStorage.getItem('appLanguage') || 'es';
-    localStorage.setItem('selectedLanguage', calcLang);
-    currentPanelLanguage = calcLang;
-    
-    // Actualizar selector de idioma del panel
-    const panelSelector = document.getElementById('panel-language-selector');
-    if (panelSelector) {
-        panelSelector.value = calcLang;
-    }
-    
-    // Traducir el panel inmediatamente
+    // Traducir el panel por si acaso
     setTimeout(() => {
         if (typeof translatePanel === 'function') {
             translatePanel();
@@ -23227,18 +23218,7 @@ function showPanelFromComparison() {
     document.body.classList.remove('showing-comparison');
     window.scrollTo(0, 0);
     
-    // CRÍTICO: Sincronizar idioma del panel con el de la calculadora
-    const calcLang = localStorage.getItem('appLanguage') || 'es';
-    localStorage.setItem('selectedLanguage', calcLang);
-    currentPanelLanguage = calcLang;
-    
-    // Actualizar selector de idioma del panel
-    const panelSelector = document.getElementById('panel-language-selector');
-    if (panelSelector) {
-        panelSelector.value = calcLang;
-    }
-    
-    // Traducir el panel inmediatamente
+    // Traducir el panel por si acaso
     setTimeout(() => {
         if (typeof translatePanel === 'function') {
             translatePanel();

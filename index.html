@@ -2073,11 +2073,16 @@
                 <h3 class="text-xl font-bold text-drk-800 mb-4" data-i18n="Request Improvement from DRK">Solicitar Mejora a DRK</h3>
                 <p class="text-sm text-slate-600 mb-4" data-i18n="Complete los datos para que el equipo de Back Office pueda revisar este comparativo y buscar una mejor opción.">Complete los datos para que el equipo de Back Office pueda revisar este comparativo y buscar una mejor opción.</p>
                 
-                <input type="text" id="improvement-comercial-code" data-i18n-placeholder="CÓDIGO COMERCIAL (Obligatorio)" placeholder="CÓDIGO COMERCIAL (Obligatorio)" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
-                <input type="text" id="improvement-client-name" data-i18n-placeholder="Nombre Cliente" placeholder="Nombre Cliente" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
-                <input type="text" id="improvement-client-cups" data-i18n-placeholder="CUPS" placeholder="CUPS" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
-                <input type="tel" id="improvement-client-phone" data-i18n-placeholder="Teléfono" placeholder="Teléfono" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
-                <input type="email" id="improvement-client-email" data-i18n-placeholder="Email" placeholder="Email" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                <!-- OCULTO: Código Comercial (no necesario para cliente final) -->
+                <input type="text" id="improvement-comercial-code" data-i18n-placeholder="CÓDIGO COMERCIAL (Obligatorio)" placeholder="CÓDIGO COMERCIAL (Obligatorio)" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none" style="display: none;">
+                
+                <input type="text" id="improvement-client-name" data-i18n-placeholder="Nombre Cliente (Opcional)" placeholder="Nombre Cliente (Opcional)" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                
+                <!-- OCULTO: CUPS (no necesario para cliente final) -->
+                <input type="text" id="improvement-client-cups" data-i18n-placeholder="CUPS" placeholder="CUPS" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none" style="display: none;">
+                
+                <input type="tel" id="improvement-client-phone" data-i18n-placeholder="Teléfono (Opcional)" placeholder="Teléfono (Opcional)" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                <input type="email" id="improvement-client-email" data-i18n-placeholder="Email (Opcional)" placeholder="Email (Opcional)" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
                 <textarea id="improvement-observations" data-i18n-placeholder="Observaciones (opcional)" placeholder="Observaciones (opcional)" rows="3" class="w-full mb-4 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none resize-none"></textarea>
                 
                 <!-- Recordatorio -->
@@ -6874,17 +6879,15 @@
                 return window.showErrorModal("Primero realice una comparación.");
             }
             
-            // Validar campos obligatorios
-            const commercialCode = document.getElementById('improvement-comercial-code').value.trim();
-            const clientName = document.getElementById('improvement-client-name').value.trim();
-            const cups = document.getElementById('improvement-client-cups').value.trim();
-            const phone = document.getElementById('improvement-client-phone').value.trim();
-            const email = document.getElementById('improvement-client-email').value.trim();
-            const observations = document.getElementById('improvement-observations').value.trim();
+            // Obtener campos (todos opcionales ahora)
+            const commercialCode = document.getElementById('improvement-comercial-code').value.trim() || 'N/A';
+            const clientName = document.getElementById('improvement-client-name').value.trim() || 'Cliente';
+            const cups = document.getElementById('improvement-client-cups').value.trim() || 'N/A';
+            const phone = document.getElementById('improvement-client-phone').value.trim() || 'N/A';
+            const email = document.getElementById('improvement-client-email').value.trim() || 'N/A';
+            const observations = document.getElementById('improvement-observations').value.trim() || 'Sin observaciones';
             
-            if (!commercialCode) {
-                return window.showErrorModal("El Código Comercial es obligatorio.");
-            }
+            // Ya no hay validación de campos obligatorios - todos son opcionales para cliente final
             
             try {
                 let htmlContent = '';
@@ -22052,11 +22055,11 @@ ${clientName}
                 
                 // CRÍTICO: Traducir placeholders del modal Request Improvement
                 const modalInputs = [
-                    { id: 'improvement-comercial-code', text: 'CÓDIGO COMERCIAL (Obligatorio)' },
-                    { id: 'improvement-client-name', text: 'Nombre Cliente' },
-                    { id: 'improvement-client-cups', text: 'CUPS' },
-                    { id: 'improvement-client-phone', text: 'Teléfono' },
-                    { id: 'improvement-client-email', text: 'Email' },
+                    { id: 'improvement-comercial-code', text: 'CÓDIGO COMERCIAL (Obligatorio)' }, // Oculto
+                    { id: 'improvement-client-name', text: 'Nombre Cliente (Opcional)' },
+                    { id: 'improvement-client-cups', text: 'CUPS' }, // Oculto
+                    { id: 'improvement-client-phone', text: 'Teléfono (Opcional)' },
+                    { id: 'improvement-client-email', text: 'Email (Opcional)' },
                     { id: 'improvement-observations', text: 'Observaciones (opcional)' }
                 ];
                 modalInputs.forEach(({id, text}) => {

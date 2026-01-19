@@ -1902,7 +1902,10 @@
             <!-- PESTAÑAS HORIZONTALES -->
             <div class="mb-6">
                 <div class="flex gap-2 border-b-2 border-slate-200 mb-4 overflow-x-auto">
-                    <button onclick="switchResultTab('tab-resumen')" id="btn-tab-resumen" class="tab-result-btn px-6 py-3 font-bold text-sm transition-all border-b-4 border-transparent hover:border-drk-400 whitespace-nowrap active" data-i18n="Resumen">
+                    <button onclick="switchResultTab('tab-horarios')" id="btn-tab-horarios" class="tab-result-btn px-6 py-3 font-bold text-sm transition-all border-b-4 border-transparent hover:border-drk-400 whitespace-nowrap active" data-i18n="Análisis de Horarios">
+                        🕐 Análisis de Horarios
+                    </button>
+                    <button onclick="switchResultTab('tab-resumen')" id="btn-tab-resumen" class="tab-result-btn px-6 py-3 font-bold text-sm transition-all border-b-4 border-transparent hover:border-drk-400 whitespace-nowrap" data-i18n="Resumen">
                         Resumen
                     </button>
                     <button onclick="switchResultTab('tab-precios')" id="btn-tab-precios" class="tab-result-btn px-6 py-3 font-bold text-sm transition-all border-b-4 border-transparent hover:border-drk-400 whitespace-nowrap" data-i18n="Precios">
@@ -1914,7 +1917,11 @@
                 </div>
                 
                 <!-- Contenido de pestañas -->
-                <div id="tab-resumen" class="tab-result-content">
+                <div id="tab-horarios" class="tab-result-content">
+                    <div id="horarios-content" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"></div>
+                </div>
+                
+                <div id="tab-resumen" class="tab-result-content hidden">
                     <div id="resumen-content" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm"></div>
                 </div>
                 
@@ -4957,14 +4964,131 @@
                 }
             }
             
-            // NUEVO: Llenar las 3 pestañas con contenido
+            // NUEVO: Llenar las 4 pestañas con contenido
+            
+            // PESTAÑA 1: Análisis de Horarios (NUEVO)
+            const puntaKwh = res.consumo_punta || 0;
+            const llanoKwh = res.consumo_llano || 0;
+            const valleKwh = res.consumo_valle || 0;
+            const totalKwh = puntaKwh + llanoKwh + valleKwh;
+            const puntaPct = totalKwh > 0 ? ((puntaKwh / totalKwh) * 100).toFixed(1) : 0;
+            const llanoPct = totalKwh > 0 ? ((llanoKwh / totalKwh) * 100).toFixed(1) : 0;
+            const vallePct = totalKwh > 0 ? ((valleKwh / totalKwh) * 100).toFixed(1) : 0;
+            
+            document.getElementById('horarios-content').innerHTML = `
+                <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-3">
+                    <svg class="w-6 h-6 text-drk-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    ${tr('Análisis de Horarios y Consumo - Tarifa 2.0 TD')}
+                </h3>
+                
+                <!-- Información de Horarios -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-xl shadow-md border border-slate-200">
+                        <h4 class="text-center font-bold text-slate-700 mb-3">${tr('Lunes a viernes laborables')}</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center gap-2 p-2 bg-red-50 rounded"><span class="w-3 h-3 rounded-full bg-red-600 flex-shrink-0"></span><span class="font-semibold text-red-700">${tr('Punta')}:</span><span class="text-slate-600">10-14h, 18-22h</span></div>
+                            <div class="flex items-center gap-2 p-2 bg-yellow-50 rounded"><span class="w-3 h-3 rounded-full bg-yellow-400 flex-shrink-0"></span><span class="font-semibold text-yellow-700">${tr('Llano')}:</span><span class="text-slate-600">8-10h, 14-18h, 22-24h</span></div>
+                            <div class="flex items-center gap-2 p-2 bg-green-50 rounded"><span class="w-3 h-3 rounded-full bg-green-600 flex-shrink-0"></span><span class="font-semibold text-green-700">${tr('Valle')}:</span><span class="text-slate-600">0-8h</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-xl shadow-md border border-slate-200">
+                        <h4 class="text-center font-bold text-slate-700 mb-3">${tr('Sábados, domingos y festivos')}</h4>
+                        <div class="flex items-center justify-center h-full">
+                            <div class="text-center p-4 bg-green-50 rounded-lg w-full">
+                                <div class="flex items-center justify-center gap-2 mb-2">
+                                    <span class="w-4 h-4 rounded-full bg-green-600"></span>
+                                    <span class="font-bold text-green-700 text-lg">${tr('Valle')}</span>
+                                </div>
+                                <p class="text-sm text-slate-600">24 horas (todo el día)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Análisis de Consumo -->
+                <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                    <h4 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-drk-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        ${tr('Tu Distribución de Consumo')}
+                    </h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <!-- Punta -->
+                        <div class="text-center p-4 bg-red-50 rounded-lg border-2 border-red-200">
+                            <div class="flex items-center justify-center gap-2 mb-2">
+                                <div class="w-4 h-4 rounded-full bg-red-600"></div>
+                                <h5 class="font-bold text-red-700">${tr('Periodo Punta')}</h5>
+                            </div>
+                            <div class="text-3xl font-black text-red-600 mb-1">${puntaPct}%</div>
+                            <div class="text-sm text-slate-600 mb-2">${puntaKwh.toFixed(0)} kWh</div>
+                            <div class="text-xs text-slate-500 bg-white p-2 rounded">${tr('Horario más caro')}<br>10-14h, 18-22h (lab.)</div>
+                        </div>
+                        
+                        <!-- Llano -->
+                        <div class="text-center p-4 bg-yellow-50 rounded-lg border-2 border-yellow-300">
+                            <div class="flex items-center justify-center gap-2 mb-2">
+                                <div class="w-4 h-4 rounded-full bg-yellow-400"></div>
+                                <h5 class="font-bold text-yellow-700">${tr('Periodo Llano')}</h5>
+                            </div>
+                            <div class="text-3xl font-black text-yellow-600 mb-1">${llanoPct}%</div>
+                            <div class="text-sm text-slate-600 mb-2">${llanoKwh.toFixed(0)} kWh</div>
+                            <div class="text-xs text-slate-500 bg-white p-2 rounded">${tr('Horario intermedio')}<br>8-10h, 14-18h, 22-24h</div>
+                        </div>
+                        
+                        <!-- Valle -->
+                        <div class="text-center p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                            <div class="flex items-center justify-center gap-2 mb-2">
+                                <div class="w-4 h-4 rounded-full bg-green-600"></div>
+                                <h5 class="font-bold text-green-700">${tr('Periodo Valle')}</h5>
+                            </div>
+                            <div class="text-3xl font-black text-green-600 mb-1">${vallePct}%</div>
+                            <div class="text-sm text-slate-600 mb-2">${valleKwh.toFixed(0)} kWh</div>
+                            <div class="text-xs text-slate-500 bg-white p-2 rounded">${tr('Horario más barato')}<br>0-8h + fines semana</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Barra de progreso visual -->
+                    <div class="mb-4">
+                        <div class="flex h-8 rounded-lg overflow-hidden shadow-inner">
+                            <div class="bg-red-600 flex items-center justify-center text-white text-xs font-bold" 
+                                 style="width: ${puntaPct}%">${parseFloat(puntaPct) > 8 ? puntaPct + '%' : ''}</div>
+                            <div class="bg-yellow-400 flex items-center justify-center text-slate-800 text-xs font-bold" 
+                                 style="width: ${llanoPct}%">${parseFloat(llanoPct) > 8 ? llanoPct + '%' : ''}</div>
+                            <div class="bg-green-600 flex items-center justify-center text-white text-xs font-bold" 
+                                 style="width: ${vallePct}%">${parseFloat(vallePct) > 8 ? vallePct + '%' : ''}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Consejo personalizado -->
+                    <div class="bg-blue-50 border-l-4 border-drk-600 p-4 rounded-r-lg">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-drk-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                            <div>
+                                <p class="font-bold text-drk-800 mb-2">${tr('💡 Consejo de Ahorro:')}</p>
+                                <p class="text-sm text-slate-700 leading-relaxed">
+                                    ${parseFloat(puntaPct) > 35 ? 
+                                        tr('Tu consumo en horario PUNTA es alto. Intenta usar electrodomésticos de alto consumo (lavadora, secadora, lavavajillas) en horario VALLE (0-8h) o fines de semana para reducir tu factura.') : 
+                                        parseFloat(vallePct) > 50 ?
+                                        tr('¡Excelente! Estás aprovechando bien el horario VALLE. Sigue consumiendo en estos horarios para maximizar tu ahorro.') :
+                                        tr('Puedes optimizar tu consumo desplazando algunos electrodomésticos a horarios más económicos (VALLE: 0-8h y fines de semana).')}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // PESTAÑA 2: Resumen
             document.getElementById('resumen-content').innerHTML = `
                 <h3 class="text-lg font-bold text-slate-800 mb-4">${tr('Datos Extraídos')}</h3>
                 ${consumptionHTML}
             `;
             
+            // PESTAÑA 3: Precios
             document.getElementById('precios-content').innerHTML = preciosHTML || '<p class="text-slate-500">No hay información de precios disponible.</p>';
             
+            // PESTAÑA 4: Cálculo Oficial
             document.getElementById('calculo-content').innerHTML = `
                 <h3 class="text-lg font-bold text-slate-800 mb-4">${tr('Cálculo Oficial')}</h3>
                 ${breakdownHTML}
@@ -21486,6 +21610,102 @@ ${clientName}
                 "Potencia Contratada (kW)": { en: "Contracted Power (kW)", zh: "签约功率 (kW)", de: "Vertragsleistung (kW)", fr: "Puissance Contractée (kW)" },
                 
                 // Interfaz de resultados
+                "Análisis de Horarios": { 
+                    en: "Schedule Analysis", 
+                    zh: "时间表分析", 
+                    de: "Zeitplananalyse", 
+                    fr: "Analyse des Horaires" 
+                },
+                "Análisis de Horarios y Consumo - Tarifa 2.0 TD": { 
+                    en: "Schedule and Consumption Analysis - Tariff 2.0 TD", 
+                    zh: "时间表和消耗分析 - 资费 2.0 TD", 
+                    de: "Zeitplan- und Verbrauchsanalyse - Tarif 2.0 TD", 
+                    fr: "Analyse des Horaires et de la Consommation - Tarif 2.0 TD" 
+                },
+                "Lunes a viernes laborables": { 
+                    en: "Monday to Friday (working days)", 
+                    zh: "周一至周五（工作日）", 
+                    de: "Montag bis Freitag (Werktage)", 
+                    fr: "Lundi au vendredi (jours ouvrables)" 
+                },
+                "Sábados, domingos y festivos": { 
+                    en: "Saturdays, Sundays and holidays", 
+                    zh: "周六、周日和节假日", 
+                    de: "Samstags, sonntags und an Feiertagen", 
+                    fr: "Samedis, dimanches et jours fériés" 
+                },
+                "Tu Distribución de Consumo": { 
+                    en: "Your Consumption Distribution", 
+                    zh: "您的消耗分布", 
+                    de: "Ihre Verbrauchsverteilung", 
+                    fr: "Votre Distribution de Consommation" 
+                },
+                "Periodo Punta": { 
+                    en: "Peak Period", 
+                    zh: "峰值时段", 
+                    de: "Spitzenlastperiode", 
+                    fr: "Période de Pointe" 
+                },
+                "Periodo Llano": { 
+                    en: "Flat Period", 
+                    zh: "平段时期", 
+                    de: "Mittellastperiode", 
+                    fr: "Période Pleine" 
+                },
+                "Periodo Valle": { 
+                    en: "Valley Period", 
+                    zh: "谷段时期", 
+                    de: "Schwachlastperiode", 
+                    fr: "Période Creuse" 
+                },
+                "Horario más caro": { 
+                    en: "Most expensive schedule", 
+                    zh: "最贵的时段", 
+                    de: "Teuerste Zeit", 
+                    fr: "Horaire le plus cher" 
+                },
+                "Horario intermedio": { 
+                    en: "Intermediate schedule", 
+                    zh: "中间时段", 
+                    de: "Zwischenzeit", 
+                    fr: "Horaire intermédiaire" 
+                },
+                "Horario más barato": { 
+                    en: "Cheapest schedule", 
+                    zh: "最便宜的时段", 
+                    de: "Günstigste Zeit", 
+                    fr: "Horaire le moins cher" 
+                },
+                "0-8h + fines semana": { 
+                    en: "0-8h + weekends", 
+                    zh: "0-8时 + 周末", 
+                    de: "0-8 Uhr + Wochenenden", 
+                    fr: "0-8h + week-ends" 
+                },
+                "💡 Consejo de Ahorro:": { 
+                    en: "💡 Savings Tip:", 
+                    zh: "💡 节省小贴士：", 
+                    de: "💡 Spartipp:", 
+                    fr: "💡 Conseil d'Économie:" 
+                },
+                "Tu consumo en horario PUNTA es alto. Intenta usar electrodomésticos de alto consumo (lavadora, secadora, lavavajillas) en horario VALLE (0-8h) o fines de semana para reducir tu factura.": {
+                    en: "Your consumption during PEAK hours is high. Try using high-consumption appliances (washing machine, dryer, dishwasher) during VALLEY hours (0-8h) or weekends to reduce your bill.",
+                    zh: "您在高峰时段的消耗很高。尝试在谷段时间（0-8时）或周末使用高消耗电器（洗衣机、烘干机、洗碗机）以减少账单。",
+                    de: "Ihr Verbrauch während der SPITZENZEITEN ist hoch. Versuchen Sie, energieintensive Geräte (Waschmaschine, Trockner, Geschirrspüler) während der TALZEITEN (0-8 Uhr) oder am Wochenende zu verwenden, um Ihre Rechnung zu reduzieren.",
+                    fr: "Votre consommation pendant les heures de POINTE est élevée. Essayez d'utiliser des appareils à forte consommation (lave-linge, sèche-linge, lave-vaisselle) pendant les heures CREUSES (0-8h) ou le week-end pour réduire votre facture."
+                },
+                "¡Excelente! Estás aprovechando bien el horario VALLE. Sigue consumiendo en estos horarios para maximizar tu ahorro.": {
+                    en: "Excellent! You are making good use of VALLEY hours. Keep consuming during these hours to maximize your savings.",
+                    zh: "太好了！您很好地利用了谷段时间。继续在这些时段消费以最大化您的节省。",
+                    de: "Ausgezeichnet! Sie nutzen die TALZEITEN gut. Verbrauchen Sie weiterhin in diesen Zeiten, um Ihre Einsparungen zu maximieren.",
+                    fr: "Excellent ! Vous utilisez bien les heures CREUSES. Continuez à consommer pendant ces heures pour maximiser vos économies."
+                },
+                "Puedes optimizar tu consumo desplazando algunos electrodomésticos a horarios más económicos (VALLE: 0-8h y fines de semana).": {
+                    en: "You can optimize your consumption by shifting some appliances to more economical schedules (VALLEY: 0-8h and weekends).",
+                    zh: "您可以通过将一些电器转移到更经济的时段（谷段：0-8时和周末）来优化消耗。",
+                    de: "Sie können Ihren Verbrauch optimieren, indem Sie einige Geräte in wirtschaftlichere Zeiten verlegen (TAL: 0-8 Uhr und Wochenenden).",
+                    fr: "Vous pouvez optimiser votre consommation en déplaçant certains appareils vers des horaires plus économiques (CREUSE: 0-8h et week-ends)."
+                },
                 "Resumen": { en: "Summary", zh: "摘要", pt: "Resumo", fr: "Résumé" },
                 "Precios": { en: "Prices", zh: "价格", pt: "Preços", fr: "Prix" },
                 "Datos Extraídos": { en: "Extracted Data", zh: "提取数据", de: "Extrahierte Daten", fr: "Données Extraites" },

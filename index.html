@@ -189,6 +189,15 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
+        /* Ocultar scrollbar en el contenedor de tabs */
+        #result-tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+        #result-tabs-container {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
     </style>
 </head>
     <style>
@@ -1899,20 +1908,43 @@
                 <button onclick="document.getElementById('details-container').classList.toggle('hidden')" class="text-center text-drk-800 font-bold text-sm hover:underline flex items-center justify-center gap-1" id="details-toggle-btn" style="display: none;"><span id="details-toggle-text"></span></button>
             </div>
             
-            <!-- PESTAÑAS HORIZONTALES -->
+            <!-- PESTAÑAS HORIZONTALES CON NAVEGACIÓN -->
             <div class="mb-6">
-                <div class="flex gap-2 border-b-2 border-slate-200 mb-4 overflow-x-auto">
-                    <button onclick="switchResultTab('tab-horarios')" id="btn-tab-horarios" class="tab-result-btn px-6 py-3 font-bold text-sm transition-all border-b-4 border-transparent hover:border-drk-400 whitespace-nowrap active" data-i18n="Análisis de Horarios">
-                        🕐 Análisis de Horarios
+                <div class="relative">
+                    <!-- Flecha Izquierda -->
+                    <button onclick="scrollResultTabs('left')" 
+                            id="scroll-tabs-left"
+                            class="absolute left-0 top-0 bottom-0 z-10 bg-gradient-to-r from-white to-transparent hover:from-slate-100 px-3 text-slate-600 hover:text-drk-600 transition-colors hidden md:block"
+                            style="box-shadow: 2px 0 8px rgba(0,0,0,0.1);">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
                     </button>
-                    <button onclick="switchResultTab('tab-resumen')" id="btn-tab-resumen" class="tab-result-btn px-6 py-3 font-bold text-sm transition-all border-b-4 border-transparent hover:border-drk-400 whitespace-nowrap" data-i18n="Resumen">
-                        Resumen
-                    </button>
-                    <button onclick="switchResultTab('tab-precios')" id="btn-tab-precios" class="tab-result-btn px-6 py-3 font-bold text-sm transition-all border-b-4 border-transparent hover:border-drk-400 whitespace-nowrap" data-i18n="Precios">
-                        Precios
-                    </button>
-                    <button onclick="switchResultTab('tab-calculo')" id="btn-tab-calculo" class="tab-result-btn px-6 py-3 font-bold text-sm transition-all border-b-4 border-transparent hover:border-drk-400 whitespace-nowrap" data-i18n="Cálculo Oficial">
-                        Cálculo Oficial
+                    
+                    <!-- Contenedor de Tabs con Scroll -->
+                    <div id="result-tabs-container" class="flex gap-2 border-b-2 border-slate-200 mb-4 overflow-x-auto scroll-smooth" style="scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none;">
+                        <button onclick="switchResultTab('tab-horarios')" id="btn-tab-horarios" class="tab-result-btn px-6 py-3 font-bold text-sm transition-all border-b-4 border-transparent hover:border-drk-400 whitespace-nowrap active" data-i18n="Análisis de Horarios">
+                            🕐 Análisis de Horarios
+                        </button>
+                        <button onclick="switchResultTab('tab-resumen')" id="btn-tab-resumen" class="tab-result-btn px-6 py-3 font-bold text-sm transition-all border-b-4 border-transparent hover:border-drk-400 whitespace-nowrap" data-i18n="Resumen">
+                            Resumen
+                        </button>
+                        <button onclick="switchResultTab('tab-precios')" id="btn-tab-precios" class="tab-result-btn px-6 py-3 font-bold text-sm transition-all border-b-4 border-transparent hover:border-drk-400 whitespace-nowrap" data-i18n="Precios">
+                            Precios
+                        </button>
+                        <button onclick="switchResultTab('tab-calculo')" id="btn-tab-calculo" class="tab-result-btn px-6 py-3 font-bold text-sm transition-all border-b-4 border-transparent hover:border-drk-400 whitespace-nowrap" data-i18n="Cálculo Oficial">
+                            Cálculo Oficial
+                        </button>
+                    </div>
+                    
+                    <!-- Flecha Derecha -->
+                    <button onclick="scrollResultTabs('right')" 
+                            id="scroll-tabs-right"
+                            class="absolute right-0 top-0 bottom-0 z-10 bg-gradient-to-l from-white to-transparent hover:from-slate-100 px-3 text-slate-600 hover:text-drk-600 transition-colors hidden md:block"
+                            style="box-shadow: -2px 0 8px rgba(0,0,0,0.1);">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
                     </button>
                 </div>
                 
@@ -14618,6 +14650,26 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // Activar el botón correspondiente
             document.getElementById('btn-' + tabId).classList.add('active');
+        }
+        
+        // Función para hacer scroll en los tabs de resultados
+        function scrollResultTabs(direction) {
+            const container = document.getElementById('result-tabs-container');
+            if (!container) return;
+            
+            const scrollAmount = 200; // Píxeles a desplazar
+            
+            if (direction === 'left') {
+                container.scrollBy({
+                    left: -scrollAmount,
+                    behavior: 'smooth'
+                });
+            } else if (direction === 'right') {
+                container.scrollBy({
+                    left: scrollAmount,
+                    behavior: 'smooth'
+                });
+            }
         }
 
         function goToInicio() {

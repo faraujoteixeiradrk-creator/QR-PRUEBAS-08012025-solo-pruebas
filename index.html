@@ -24633,8 +24633,25 @@ function renderComparisonHighlight(mejor, peor, mejorPrecio, peorPrecio, drkInde
 
 // ========== EMAIL BACKOFFICE MODAL ==========
 function openEmailModal() {
-    // Traducir el modal antes de abrirlo
-    translatePanel();
+    console.log('🌐 Abriendo modal de Email en idioma:', currentPanelLanguage);
+    
+    // CRÍTICO: Traducir TODO el modal usando data-translate
+    // Esto funciona independientemente del texto actual en el HTML
+    setTimeout(() => {
+        const elements = document.querySelectorAll('#email-modal [data-translate]');
+        console.log(`📝 Encontrados ${elements.length} elementos para traducir en el modal`);
+        
+        elements.forEach(el => {
+            const key = el.getAttribute('data-translate');
+            const translation = getPanelTranslation(key);
+            if (translation) {
+                el.textContent = translation;
+                console.log(`✅ Traducido ${key} → ${translation}`);
+            } else {
+                console.warn(`⚠️ No se encontró traducción para: ${key}`);
+            }
+        });
+    }, 10);
     
     document.getElementById('email-modal').classList.add('active');
     document.body.style.overflow = 'hidden';

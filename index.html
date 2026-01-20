@@ -22408,28 +22408,14 @@ ${clientName}
                     const oldLang = lang;
                     lang = newLang;
                     localStorage.setItem('appLanguage', newLang);
-                    
-                    // CRÍTICO: Sincronizar con el idioma del panel
-                    localStorage.setItem('selectedLanguage', newLang);
+                    localStorage.setItem('selectedLanguage', newLang); // ⭐ SINCRONIZAR
                     
                     // CRÍTICO: Si hay un cambio real de idioma, SIEMPRE recargar para evitar textos mixtos
                     if (oldLang !== newLang) {
                         console.log(`🔄 Cambiando idioma de ${oldLang} a ${newLang} - Recargando página para limpiar todo...`);
                         // Asegurar que el nuevo idioma esté guardado ANTES de recargar
                         localStorage.setItem('appLanguage', newLang);
-                        localStorage.setItem('selectedLanguage', newLang); // Sincronizar panel
-                        
-                        // CRÍTICO: Antes de recargar, verificar si hay resultados mostrados
-                        const resultsView = document.getElementById('results-view');
-                        if (resultsView && !resultsView.classList.contains('hidden')) {
-                            // Guardar flag para regenerar resultados después de recargar
-                            sessionStorage.setItem('needsResultsRegeneration', 'true');
-                            // Guardar el último resultado para poder regenerarlo
-                            if (lastComparisonResult) {
-                                sessionStorage.setItem('lastComparisonResult', JSON.stringify(lastComparisonResult));
-                            }
-                        }
-                        
+                        localStorage.setItem('selectedLanguage', newLang); // ⭐ SINCRONIZAR
                         // Forzar recarga completa para limpiar cualquier texto del idioma anterior
                         location.reload();
                         return;
@@ -22439,14 +22425,15 @@ ${clientName}
                     if (document.getElementById('language-selector')) {
                         document.getElementById('language-selector').value = newLang;
                     }
-                    // Actualizar también el selector del panel si existe
+                    // ⭐ Actualizar también selector del panel
                     if (document.getElementById('panel-language-selector')) {
                         document.getElementById('panel-language-selector').value = newLang;
+                        currentPanelLanguage = newLang;
                     }
                     
                     document.title = tr('DRK COMPARADOR');
                     
-                    // CRÍTICO: Traducir TODO inmediatamente (calculadora + panel)
+                    // CRÍTICO: Traducir TODO inmediatamente
                     setTimeout(() => {
                         translateAll();
                         if (typeof translatePanel === 'function') translatePanel();
@@ -22497,30 +22484,6 @@ ${clientName}
             window.addEventListener('DOMContentLoaded', () => {
                 const savedLang = localStorage.getItem('appLanguage') || 'es';
                 window.LANG.change(savedLang, true); // skipReload = true para carga inicial
-                
-                // CRÍTICO: Verificar si necesita regenerar resultados después de cambio de idioma
-                setTimeout(() => {
-                    if (sessionStorage.getItem('needsResultsRegeneration') === 'true') {
-                        console.log('🔄 Regenerando resultados después de cambio de idioma...');
-                        const savedResult = sessionStorage.getItem('lastComparisonResult');
-                        if (savedResult) {
-                            try {
-                                lastComparisonResult = JSON.parse(savedResult);
-                                // Regenerar la vista de resultados con el nuevo idioma
-                                renderResultsUI(lastComparisonResult);
-                                // Mostrar la vista de resultados
-                                hideAllScreens();
-                                document.getElementById('results-view').classList.remove('hidden');
-                                console.log('✅ Resultados regenerados en el nuevo idioma');
-                            } catch (e) {
-                                console.error('Error regenerando resultados:', e);
-                            }
-                        }
-                        // Limpiar flags
-                        sessionStorage.removeItem('needsResultsRegeneration');
-                        sessionStorage.removeItem('lastComparisonResult');
-                    }
-                }, 200);
             });
 
             window.addEventListener('load', () => {
@@ -23115,50 +23078,33 @@ function translatePanel() {
 }
 
 function changePanelLanguage(lang) {
-    console.log(`🔄 Cambiando idioma del panel de "${currentPanelLanguage}" a "${lang}"`);
-    
     currentPanelLanguage = lang;
     translatePanel();
     translateComparisonTexts(); // Traducir textos de la comparativa
     
-    // CRÍTICO: Sincronizar AMBOS sistemas de idioma
+    // CRÍTICO: Sincronizar AMBOS localStorage
     localStorage.setItem('selectedLanguage', lang);
-    localStorage.setItem('appLanguage', lang); // ⭐ NUEVO: Sincronizar con calculadora
+    localStorage.setItem('appLanguage', lang); // ⭐ SINCRONIZAR
     
-    console.log('✅ Idioma cambiado a:', lang);
-    console.log('📦 localStorage.appLanguage:', localStorage.getItem('appLanguage'));
-    console.log('📦 localStorage.selectedLanguage:', localStorage.getItem('selectedLanguage'));
-    console.log('🌐 currentPanelLanguage:', currentPanelLanguage);
+    console.log('🌍 Idioma del panel cambiado a:', lang);
+    console.log('✅ El idioma se aplicará automáticamente en la calculadora');
 }
 
 // Cargar idioma guardado al inicio
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📱 Cargando idioma inicial del panel...');
-    console.log('📦 localStorage.appLanguage:', localStorage.getItem('appLanguage'));
-    console.log('📦 localStorage.selectedLanguage:', localStorage.getItem('selectedLanguage'));
+    // ⭐ Leer de AMBOS y sincronizar
+    const savedLang = localStorage.getItem('appLanguage') 
+                   || localStorage.getItem('selectedLanguage') 
+                   || 'es';
     
-    // USAR UN SOLO localStorage como fuente de verdad
-    const savedLang = localStorage.getItem('appLanguage') || localStorage.getItem('selectedLanguage') || 'es';
-    
-    console.log('✅ Idioma detectado:', savedLang);
-    
-    // Sincronizar AMBOS para mantener consistencia
+    // ⭐ Sincronizar AMBOS
     localStorage.setItem('appLanguage', savedLang);
     localStorage.setItem('selectedLanguage', savedLang);
     
-    // Aplicar al panel
     currentPanelLanguage = savedLang;
-    const selector = document.getElementById('panel-language-selector');
-    if (selector) {
-        selector.value = savedLang;
-        console.log('🎛️ Selector del panel configurado a:', savedLang);
-    }
-    
+    document.getElementById('panel-language-selector').value = savedLang;
     translatePanel();
-    translateComparisonTexts();
-    
-    console.log('🌐 Idioma inicial cargado:', savedLang);
-    console.log('🌐 currentPanelLanguage:', currentPanelLanguage);
+    translateComparisonTexts(); // Traducir textos de comparativa si hay
 });
 
 // ========== NAVEGACIÓN ENTRE PANEL Y CALCULADORA ==========
@@ -23172,47 +23118,42 @@ function showCalculator() {
         calcLangSelector.style.display = 'none';
     }
     
-    // CRÍTICO: Aplicar idioma del panel a la calculadora SIN recargar
-    const panelLang = currentPanelLanguage || localStorage.getItem('selectedLanguage') || localStorage.getItem('appLanguage') || 'es';
-    
-    console.log('🔄 Aplicando idioma del panel a calculadora:', panelLang);
-    
-    // Sincronizar localStorage
-    localStorage.setItem('appLanguage', panelLang);
-    localStorage.setItem('selectedLanguage', panelLang);
-    
-    // Actualizar el selector oculto
-    const calcSelector = document.getElementById('language-selector');
-    if (calcSelector) {
-        calcSelector.value = panelLang;
-    }
-    
-    // APLICAR idioma SIN recargar (skipReload = true)
-    if (window.LANG && typeof window.LANG.change === 'function') {
-        window.LANG.change(panelLang, true); // true = NO recargar
-        console.log('✅ Idioma aplicado a calculadora (sin recargar):', panelLang);
-    }
-    
-    // Precargar tarifas automáticamente en segundo plano
-    if (typeof fetchTariffsFromSheet === 'function' && typeof currentTariffs !== 'undefined') {
-        if (currentTariffs['2.0TD'] && currentTariffs['2.0TD'].length === 0) {
-            console.log('📊 Precargando tarifas 2.0TD en segundo plano...');
-            fetchTariffsFromSheet('2.0TD').then(() => {
-                console.log('✅ Tarifas 2.0TD precargadas exitosamente');
-            }).catch(err => {
-                console.error('⚠️ Error precargando tarifas:', err);
-            });
-        }
-    }
-    
-    // Traducir calculadora después de mostrarla
+    // FORZAR el cambio de idioma cada vez que se muestra la calculadora
     setTimeout(() => {
-        if (window.LANG && typeof window.LANG.retranslate === 'function') {
-            window.LANG.retranslate();
-            console.log('✅ Calculadora traducida');
+        const savedLang = localStorage.getItem('selectedLanguage') || 'es';
+        
+        console.log('🔄 Aplicando idioma:', savedLang);
+        
+        // Actualizar el selector oculto primero
+        const calcSelector = document.getElementById('language-selector');
+        if (calcSelector) {
+            calcSelector.value = savedLang;
         }
-    }, 100);
-}
+        
+        // FORZAR cambio de idioma en la calculadora (sin skipReload)
+        if (window.LANG && typeof window.LANG.change === 'function') {
+            window.LANG.change(savedLang, false); // false = NO skip reload, fuerza cambio
+            console.log('✅ Idioma FORZADO en calculadora:', savedLang);
+        }
+        
+        // Precargar tarifas automáticamente en segundo plano
+        if (typeof fetchTariffsFromSheet === 'function' && typeof currentTariffs !== 'undefined') {
+            if (currentTariffs['2.0TD'] && currentTariffs['2.0TD'].length === 0) {
+                console.log('📊 Precargando tarifas 2.0TD en segundo plano...');
+                fetchTariffsFromSheet('2.0TD').then(() => {
+                    console.log('✅ Tarifas 2.0TD precargadas exitosamente');
+                }).catch(err => {
+                    console.error('⚠️ Error precargando tarifas:', err);
+                });
+            }
+        }
+        
+        // Doble verificación: volver a traducir después de un momento
+        setTimeout(() => {
+            if (window.LANG && typeof window.LANG.retranslate === 'function') {
+                window.LANG.retranslate();
+                console.log('✅ Traducción refrescada');
+            }
         }, 200);
         
     }, 150);
@@ -23223,11 +23164,9 @@ function showPanel() {
     document.body.classList.remove('showing-comparison');
     window.scrollTo(0, 0);
     
-    // Traducir el panel por si acaso
+    // Traducir panel por si acaso
     setTimeout(() => {
-        if (typeof translatePanel === 'function') {
-            translatePanel();
-        }
+        if (typeof translatePanel === 'function') translatePanel();
     }, 50);
 }
 
@@ -23235,11 +23174,9 @@ function showPanelFromComparison() {
     document.body.classList.remove('showing-comparison');
     window.scrollTo(0, 0);
     
-    // Traducir el panel por si acaso
+    // Traducir panel por si acaso
     setTimeout(() => {
-        if (typeof translatePanel === 'function') {
-            translatePanel();
-        }
+        if (typeof translatePanel === 'function') translatePanel();
     }, 50);
 }
 
@@ -23832,23 +23769,8 @@ async function showComparison() {
     document.body.classList.add('showing-comparison');
     window.scrollTo(0, 0);
     
-    // CRÍTICO: Usar el idioma ACTUAL del panel (que ya está sincronizado)
-    // Solo sincronizar si venimos de la calculadora
-    const panelLang = currentPanelLanguage || localStorage.getItem('selectedLanguage') || 'es';
-    
-    // Asegurar consistencia
-    currentPanelLanguage = panelLang;
-    localStorage.setItem('selectedLanguage', panelLang);
-    
-    // Actualizar selector de idioma del panel
-    const panelSelector = document.getElementById('panel-language-selector');
-    if (panelSelector) {
-        panelSelector.value = panelLang;
-    }
-    
     // Traducir la pantalla de comparación
     translatePanel();
-    translateComparisonTexts();
     
     // Mostrar loading
     document.getElementById('comparison-loading').style.display = 'block';
@@ -24650,28 +24572,21 @@ function renderComparisonHighlight(mejor, peor, mejorPrecio, peorPrecio, drkInde
 
 // ========== EMAIL BACKOFFICE MODAL ==========
 function openEmailModal() {
-    console.log('🌐 Abriendo modal de Email en idioma:', currentPanelLanguage);
+    document.getElementById('email-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
     
-    // CRÍTICO: Traducir TODO el modal usando data-translate
-    // Esto funciona independientemente del texto actual en el HTML
+    // Traducir el modal DESPUÉS de mostrarlo
     setTimeout(() => {
         const elements = document.querySelectorAll('#email-modal [data-translate]');
-        console.log(`📝 Encontrados ${elements.length} elementos para traducir en el modal`);
-        
+        console.log(`📧 Traduciendo ${elements.length} elementos del modal de email al idioma: ${currentPanelLanguage}`);
         elements.forEach(el => {
             const key = el.getAttribute('data-translate');
             const translation = getPanelTranslation(key);
             if (translation) {
                 el.textContent = translation;
-                console.log(`✅ Traducido ${key} → ${translation}`);
-            } else {
-                console.warn(`⚠️ No se encontró traducción para: ${key}`);
             }
         });
-    }, 10);
-    
-    document.getElementById('email-modal').classList.add('active');
-    document.body.style.overflow = 'hidden';
+    }, 100);
 }
 
 function closeEmailModal() {

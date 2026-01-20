@@ -23078,6 +23078,7 @@ function translatePanel() {
 }
 
 function changePanelLanguage(lang) {
+    console.log(`🔄 changePanelLanguage llamado: de "${currentPanelLanguage}" a "${lang}"`);
     currentPanelLanguage = lang;
     translatePanel();
     translateComparisonTexts(); // Traducir textos de la comparativa
@@ -23086,8 +23087,12 @@ function changePanelLanguage(lang) {
     localStorage.setItem('selectedLanguage', lang);
     localStorage.setItem('appLanguage', lang); // ⭐ SINCRONIZAR
     
-    console.log('🌍 Idioma del panel cambiado a:', lang);
-    console.log('✅ El idioma se aplicará automáticamente en la calculadora');
+    console.log('✅ Idioma del panel cambiado a:', lang);
+    console.log('📦 localStorage sincronizado:', {
+        appLanguage: localStorage.getItem('appLanguage'),
+        selectedLanguage: localStorage.getItem('selectedLanguage')
+    });
+    console.log('🌐 currentPanelLanguage ahora es:', currentPanelLanguage);
 }
 
 // Cargar idioma guardado al inicio

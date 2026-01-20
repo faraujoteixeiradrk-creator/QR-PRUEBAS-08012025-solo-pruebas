@@ -23172,42 +23172,47 @@ function showCalculator() {
         calcLangSelector.style.display = 'none';
     }
     
-    // FORZAR el cambio de idioma cada vez que se muestra la calculadora
+    // CRÍTICO: Aplicar idioma del panel a la calculadora SIN recargar
+    const panelLang = currentPanelLanguage || localStorage.getItem('selectedLanguage') || localStorage.getItem('appLanguage') || 'es';
+    
+    console.log('🔄 Aplicando idioma del panel a calculadora:', panelLang);
+    
+    // Sincronizar localStorage
+    localStorage.setItem('appLanguage', panelLang);
+    localStorage.setItem('selectedLanguage', panelLang);
+    
+    // Actualizar el selector oculto
+    const calcSelector = document.getElementById('language-selector');
+    if (calcSelector) {
+        calcSelector.value = panelLang;
+    }
+    
+    // APLICAR idioma SIN recargar (skipReload = true)
+    if (window.LANG && typeof window.LANG.change === 'function') {
+        window.LANG.change(panelLang, true); // true = NO recargar
+        console.log('✅ Idioma aplicado a calculadora (sin recargar):', panelLang);
+    }
+    
+    // Precargar tarifas automáticamente en segundo plano
+    if (typeof fetchTariffsFromSheet === 'function' && typeof currentTariffs !== 'undefined') {
+        if (currentTariffs['2.0TD'] && currentTariffs['2.0TD'].length === 0) {
+            console.log('📊 Precargando tarifas 2.0TD en segundo plano...');
+            fetchTariffsFromSheet('2.0TD').then(() => {
+                console.log('✅ Tarifas 2.0TD precargadas exitosamente');
+            }).catch(err => {
+                console.error('⚠️ Error precargando tarifas:', err);
+            });
+        }
+    }
+    
+    // Traducir calculadora después de mostrarla
     setTimeout(() => {
-        const savedLang = localStorage.getItem('selectedLanguage') || 'es';
-        
-        console.log('🔄 Aplicando idioma:', savedLang);
-        
-        // Actualizar el selector oculto primero
-        const calcSelector = document.getElementById('language-selector');
-        if (calcSelector) {
-            calcSelector.value = savedLang;
+        if (window.LANG && typeof window.LANG.retranslate === 'function') {
+            window.LANG.retranslate();
+            console.log('✅ Calculadora traducida');
         }
-        
-        // FORZAR cambio de idioma en la calculadora (sin skipReload)
-        if (window.LANG && typeof window.LANG.change === 'function') {
-            window.LANG.change(savedLang, false); // false = NO skip reload, fuerza cambio
-            console.log('✅ Idioma FORZADO en calculadora:', savedLang);
-        }
-        
-        // Precargar tarifas automáticamente en segundo plano
-        if (typeof fetchTariffsFromSheet === 'function' && typeof currentTariffs !== 'undefined') {
-            if (currentTariffs['2.0TD'] && currentTariffs['2.0TD'].length === 0) {
-                console.log('📊 Precargando tarifas 2.0TD en segundo plano...');
-                fetchTariffsFromSheet('2.0TD').then(() => {
-                    console.log('✅ Tarifas 2.0TD precargadas exitosamente');
-                }).catch(err => {
-                    console.error('⚠️ Error precargando tarifas:', err);
-                });
-            }
-        }
-        
-        // Doble verificación: volver a traducir después de un momento
-        setTimeout(() => {
-            if (window.LANG && typeof window.LANG.retranslate === 'function') {
-                window.LANG.retranslate();
-                console.log('✅ Traducción refrescada');
-            }
+    }, 100);
+}
         }, 200);
         
     }, 150);

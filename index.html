@@ -23115,6 +23115,8 @@ function translatePanel() {
 }
 
 function changePanelLanguage(lang) {
+    console.log(`🔄 Cambiando idioma del panel de "${currentPanelLanguage}" a "${lang}"`);
+    
     currentPanelLanguage = lang;
     translatePanel();
     translateComparisonTexts(); // Traducir textos de la comparativa
@@ -23123,14 +23125,22 @@ function changePanelLanguage(lang) {
     localStorage.setItem('selectedLanguage', lang);
     localStorage.setItem('appLanguage', lang); // ⭐ NUEVO: Sincronizar con calculadora
     
-    console.log('🌍 Idioma cambiado a:', lang);
-    console.log('✅ Sincronizado: Panel y Calculadora');
+    console.log('✅ Idioma cambiado a:', lang);
+    console.log('📦 localStorage.appLanguage:', localStorage.getItem('appLanguage'));
+    console.log('📦 localStorage.selectedLanguage:', localStorage.getItem('selectedLanguage'));
+    console.log('🌐 currentPanelLanguage:', currentPanelLanguage);
 }
 
 // Cargar idioma guardado al inicio
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('📱 Cargando idioma inicial del panel...');
+    console.log('📦 localStorage.appLanguage:', localStorage.getItem('appLanguage'));
+    console.log('📦 localStorage.selectedLanguage:', localStorage.getItem('selectedLanguage'));
+    
     // USAR UN SOLO localStorage como fuente de verdad
     const savedLang = localStorage.getItem('appLanguage') || localStorage.getItem('selectedLanguage') || 'es';
+    
+    console.log('✅ Idioma detectado:', savedLang);
     
     // Sincronizar AMBOS para mantener consistencia
     localStorage.setItem('appLanguage', savedLang);
@@ -23141,12 +23151,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const selector = document.getElementById('panel-language-selector');
     if (selector) {
         selector.value = savedLang;
+        console.log('🎛️ Selector del panel configurado a:', savedLang);
     }
     
     translatePanel();
     translateComparisonTexts();
     
     console.log('🌐 Idioma inicial cargado:', savedLang);
+    console.log('🌐 currentPanelLanguage:', currentPanelLanguage);
 });
 
 // ========== NAVEGACIÓN ENTRE PANEL Y CALCULADORA ==========

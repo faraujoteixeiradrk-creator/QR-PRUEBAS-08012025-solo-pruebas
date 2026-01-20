@@ -673,7 +673,7 @@
 <div id="panel-view">
     <!-- Selector de Idiomas -->
     <div class="panel-language-selector">
-        <select id="panel-language-selector" onchange="changePanelLanguage(this.value)">
+        <select id="panel-language-selector" onchange="currentPanelLanguage=this.value; localStorage.setItem('appLanguage',this.value); localStorage.setItem('selectedLanguage',this.value); changePanelLanguage(this.value); console.log('✅ Selector cambiado a:',this.value);">
             <option value="es">🇪🇸 Español</option>
             <option value="en">🇬🇧 English</option>
             <option value="pt">🇵🇹 Português</option>
@@ -23080,6 +23080,18 @@ function translatePanel() {
 function changePanelLanguage(lang) {
     console.log(`🔄 changePanelLanguage llamado: de "${currentPanelLanguage}" a "${lang}"`);
     currentPanelLanguage = lang;
+    
+    // ⭐ CRÍTICO: Actualizar también la variable lang de la calculadora
+    if (typeof window.LANG !== 'undefined' && window.LANG.getCurrentLang) {
+        // Actualizar lang sin recargar
+        const currentCalcLang = window.LANG.getCurrentLang();
+        if (currentCalcLang !== lang) {
+            // Forzar actualización de la variable lang interna
+            window.LANG.change(lang, true); // skipReload = true
+            console.log(`🔄 Variable lang de calculadora actualizada a: ${lang}`);
+        }
+    }
+    
     translatePanel();
     translateComparisonTexts(); // Traducir textos de la comparativa
     

@@ -781,34 +781,71 @@
 
             const params = info.params;
             
-            // Detectar consumos - pueden venir en cfP (Wh) o caP (kWh)
-            let consumoP1, consumoP2, consumoP3;
-            
-            // Si cfP tiene valores grandes (>100), probablemente sean consumos en Wh
-            const cfP1 = parseFloat(params['Coste Fijo P1 (€)'] || 0);
-            const cfP2 = parseFloat(params['Coste Fijo P2 (€)'] || 0);
-            const cfP3 = parseFloat(params['Coste Fijo P3 (€)'] || 0);
-            
+            // Extraer valores de consumo
             const caP1 = parseFloat(params['Consumo P1 (kWh)'] || 0);
             const caP2 = parseFloat(params['Consumo P2 (kWh)'] || 0);
             const caP3 = parseFloat(params['Consumo P3 (kWh)'] || 0);
             
-            // Lógica de detección: si cfP tiene valores grandes, son consumos en Wh
-            if (cfP1 > 100 || cfP2 > 100 || cfP3 > 100) {
-                // cfP son consumos en Wh, convertir a kWh
-                consumoP1 = cfP1;
-                consumoP2 = cfP2;
-                consumoP3 = cfP3;
-            } else if (caP1 > 0 || caP2 > 0 || caP3 > 0) {
-                // caP son consumos en kWh
+            const cfP1 = parseFloat(params['Coste Fijo P1 (€)'] || 0);
+            const cfP2 = parseFloat(params['Coste Fijo P2 (€)'] || 0);
+            const cfP3 = parseFloat(params['Coste Fijo P3 (€)'] || 0);
+            
+            // Detectar consumos - lógica inteligente
+            let consumoP1, consumoP2, consumoP3;
+            let usingCaP = false;
+            
+            const totalCaP = caP1 + caP2 + caP3;
+            const totalCfP = cfP1 + cfP2 + cfP3;
+            
+            // NUEVA LÓGICA INTELIGENTE:
+            // - Si caP1 es muy grande (>1500) probablemente sea un código, no consumo
+            // - Si cfP tiene valores razonables (10-10000) probablemente SÍ sean consumos
+            // - Priorizar el que tenga distribución más realista entre períodos
+            
+            const caP_looks_valid = (
+                totalCaP > 0 && 
+                caP1 < 10000 &&  // No es un código enorme
+                (caP2 > 0 || caP3 > 0) && // Tiene consumo en más de un período
+                caP1.toString().length < 6 // No es una fecha ni código
+            );
+            
+            const cfP_looks_valid = (
+                totalCfP > 0 && 
+                cfP1 < 10000 &&
+                (cfP1 > 0 || cfP2 > 0 || cfP3 > 0)
+            );
+            
+            // Si caP parece válido Y tiene valores en múltiples períodos, usarlo
+            if (caP_looks_valid && (caP2 > 0 || caP3 > 0)) {
                 consumoP1 = caP1;
                 consumoP2 = caP2;
                 consumoP3 = caP3;
-            } else {
-                // Por defecto, usar cfP
+                usingCaP = true;
+                console.log('✓ Usando caP (parece válido):', {caP1, caP2, caP3});
+            }
+            // Si cfP parece válido, usarlo
+            else if (cfP_looks_valid) {
                 consumoP1 = cfP1;
                 consumoP2 = cfP2;
                 consumoP3 = cfP3;
+                usingCaP = false;
+                console.log('✓ Usando cfP (parece válido):', {cfP1, cfP2, cfP3});
+            }
+            // Último recurso: usar caP si tiene algún valor
+            else if (totalCaP > 0) {
+                consumoP1 = caP1;
+                consumoP2 = caP2;
+                consumoP3 = caP3;
+                usingCaP = true;
+                console.log('⚠ Usando caP (fallback):', {caP1, caP2, caP3});
+            }
+            // Si todo falla, usar cfP
+            else {
+                consumoP1 = cfP1;
+                consumoP2 = cfP2;
+                consumoP3 = cfP3;
+                usingCaP = false;
+                console.log('⚠ Usando cfP (último recurso):', {cfP1, cfP2, cfP3});
             }
             
             const consumoTotal = consumoP1 + consumoP2 + consumoP3;
@@ -918,24 +955,21 @@
                             Consumos de Energía
                         </div>
                         <div class="consumption-chart">
-                            ${consumoP1 > 0 ? `
                             <div class="chart-bar">
                                 <div class="chart-bar-label">Período 1</div>
-                                <div class="chart-bar-visual" style="height: ${Math.min(100, (consumoP1 / consumoTotal * 100))}px"></div>
+                                <div class="chart-bar-visual" style="height: ${consumoTotal > 0 ? Math.max(20, (consumoP1 / consumoTotal * 100)) : 20}px"></div>
                                 <div class="chart-bar-value">${consumoP1.toFixed(0)} kWh</div>
-                            </div>` : ''}
-                            ${consumoP2 > 0 ? `
+                            </div>
                             <div class="chart-bar">
                                 <div class="chart-bar-label">Período 2</div>
-                                <div class="chart-bar-visual" style="height: ${Math.min(100, (consumoP2 / consumoTotal * 100))}px"></div>
+                                <div class="chart-bar-visual" style="height: ${consumoTotal > 0 ? Math.max(20, (consumoP2 / consumoTotal * 100)) : 20}px; opacity: ${consumoP2 > 0 ? 1 : 0.3}"></div>
                                 <div class="chart-bar-value">${consumoP2.toFixed(0)} kWh</div>
-                            </div>` : ''}
-                            ${consumoP3 > 0 ? `
+                            </div>
                             <div class="chart-bar">
                                 <div class="chart-bar-label">Período 3</div>
-                                <div class="chart-bar-visual" style="height: ${Math.min(100, (consumoP3 / consumoTotal * 100))}px"></div>
+                                <div class="chart-bar-visual" style="height: ${consumoTotal > 0 ? Math.max(20, (consumoP3 / consumoTotal * 100)) : 20}px; opacity: ${consumoP3 > 0 ? 1 : 0.3}"></div>
                                 <div class="chart-bar-value">${consumoP3.toFixed(0)} kWh</div>
-                            </div>` : ''}
+                            </div>
                         </div>
                         <div class="info-item" style="margin-top: 1rem; padding-top: 1rem; border-top: 2px solid rgba(0, 212, 255, 0.3);">
                             <span class="info-label">Consumo Total</span>
@@ -1005,8 +1039,20 @@
 
                     <div style="margin-top: 2rem; padding: 1rem; background: rgba(15, 23, 42, 0.5); border-radius: 8px;">
                         <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.5rem;">🔗 URL del Comparador CNMC:</div>
-                        <div style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--primary); word-break: break-all;">
+                        <div style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--primary); word-break: break-all; margin-bottom: 1rem;">
                             <a href="${info.url}" target="_blank" style="color: var(--primary); text-decoration: none;">${info.url}</a>
+                        </div>
+                        <div style="padding-top: 0.75rem; border-top: 1px solid rgba(100, 116, 139, 0.2); font-size: 0.75rem;">
+                            <div style="margin-bottom: 0.5rem;">
+                                <strong style="color: var(--light);">Valores en la URL:</strong>
+                            </div>
+                            <div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1rem; color: var(--gray);">
+                                <span>caP (P1, P2, P3):</span>
+                                <span style="font-family: 'Space Mono', monospace; ${usingCaP ? 'color: var(--success); font-weight: 700;' : ''}">${caP1}, ${caP2}, ${caP3} ${usingCaP ? '← USADO ✓' : ''}</span>
+                                
+                                <span>cfP (P1, P2, P3):</span>
+                                <span style="font-family: 'Space Mono', monospace; ${!usingCaP ? 'color: var(--success); font-weight: 700;' : ''}">${cfP1}, ${cfP2}, ${cfP3} ${!usingCaP ? '← USADO ✓' : ''}</span>
+                            </div>
                         </div>
                     </div>
                 </div>

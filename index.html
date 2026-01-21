@@ -497,27 +497,34 @@
                 updateLog('Iniciando escaneo visual de códigos QR...');
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
-                    
+                    let qrUrl = null;
+
                     // 1. Escaneo Rápido (x2.0)
                     updateLog(`Escaneando página ${i} (Modo Rápido)...`);
-                    let qrUrl = await scanPageForQR(page, 2.0);
+                    qrUrl = await scanPageForQR(page, 2.0);
+                    if (qrUrl) { processSuccess(qrUrl, 'Escáner Rápido', i); return; }
                     
                     // 2. Escaneo HD (x3.0)
-                    if (!qrUrl) {
-                        updateLog(`Reintentando página ${i} (Modo HD)...`);
-                        qrUrl = await scanPageForQR(page, 3.0);
-                    }
+                    updateLog(`Reintentando página ${i} (Modo HD)...`);
+                    qrUrl = await scanPageForQR(page, 3.0);
+                    if (qrUrl) { processSuccess(qrUrl, 'Escáner HD', i); return; }
 
-                    // 3. Escaneo MICROSCÓPICO (x5.0) - Para QRs diminutos
-                    if (!qrUrl) {
-                        updateLog(`Activando Microscopio Digital x5 para pág ${i}...`);
-                        qrUrl = await scanPageForQR(page, 5.0, true); // true = usar filtro de alto contraste
-                    }
+                    // 3. Escaneo FORENSE - Varios niveles de contraste
+                    updateLog(`Activando Modo Forense x5 para pág ${i}...`);
+                    
+                    // Intento A: Zoom 5.0 + Contraste Estándar (160)
+                    qrUrl = await scanPageForQR(page, 5.0, true, 160);
+                    if (qrUrl) { processSuccess(qrUrl, 'Forense (Std)', i); return; }
 
-                    if (qrUrl) {
-                        processSuccess(qrUrl, 'Micro-Escáner QR', i);
-                        return;
-                    }
+                    // Intento B: Zoom 5.0 + Contraste Oscuro (100) - Para QRs desvanecidos
+                    updateLog(`...Ajustando exposición (Dark)...`);
+                    qrUrl = await scanPageForQR(page, 5.0, true, 100);
+                    if (qrUrl) { processSuccess(qrUrl, 'Forense (Dark)', i); return; }
+
+                     // Intento C: Zoom 6.0 + Contraste Agresivo (Ultra Zoom)
+                    updateLog(`...Activando Super-Zoom x6...`);
+                    qrUrl = await scanPageForQR(page, 6.0, true, 180);
+                    if (qrUrl) { processSuccess(qrUrl, 'Super-Zoom x6', i); return; }
                 }
 
                 throw new Error("No se pudo encontrar ninguna referencia válida a la CNMC (QR o Enlace) en este documento.");
@@ -530,7 +537,7 @@
             }
         }
 
-        async function scanPageForQR(page, scale, enhanceContrast = false) {
+        async function scanPageForQR(page, scale, enhanceContrast = false, threshold = 180) {
             const viewport = page.getViewport({ scale: scale });
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
@@ -542,13 +549,14 @@
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
             let data = imageData.data;
 
-            // Filtro de Alto Contraste (Binarización)
-            // Ayuda a separar QRs pequeños y borrosos del fondo
+            // Filtro de Alto Contraste (Binarización) configurable
             if (enhanceContrast) {
                 for (let i = 0; i < data.length; i += 4) {
-                    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                    const threshold = 180; // Umbral agresivo para limpiar grises
-                    const val = avg < threshold ? 0 : 255;
+                    // Usamos una media ponderada para mejor detección de luminosidad (fórmula standard luma)
+                    const luma = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                    
+                    // Binarización dura
+                    const val = luma < threshold ? 0 : 255;
                     data[i] = val;     // R
                     data[i + 1] = val; // G
                     data[i + 2] = val; // B

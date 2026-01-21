@@ -576,17 +576,17 @@
             'cp': 'Código Postal',
             'pP1': 'Potencia P1 (kW)',
             'pP2': 'Potencia P2 (kW)',
-            'caP1': 'Consumo P1 (kWh)',
-            'caP2': 'Consumo P2 (kWh)',
-            'caP3': 'Consumo P3 (kWh)',
+            'caP1': 'Consumo Ref P1',
+            'caP2': 'Consumo Ref P2',
+            'caP3': 'Consumo Ref P3',
             'iniA': 'Inicio Alta',
             'tc': 'Tarifa Código',
             'finContrato': 'Fin Contrato',
             'tf': 'Tipo Facturación',
             'imp': 'Importe Total (€)',
-            'cfP1': 'Coste Fijo P1 (€)',
-            'cfP2': 'Coste Fijo P2 (€)',
-            'cfP3': 'Coste Fijo P3 (€)',
+            'cfP1': 'Consumo P1 (kWh)',
+            'cfP2': 'Consumo P2 (kWh)',
+            'cfP3': 'Consumo P3 (kWh)',
             'iniF': 'Inicio Factura',
             'finF': 'Fin Factura',
             'impOtrosSinIE': 'Otros Importes (€)',
@@ -781,74 +781,18 @@
 
             const params = info.params;
             
-            // Extraer valores de consumo
-            const caP1 = parseFloat(params['Consumo P1 (kWh)'] || 0);
-            const caP2 = parseFloat(params['Consumo P2 (kWh)'] || 0);
-            const caP3 = parseFloat(params['Consumo P3 (kWh)'] || 0);
-            
-            const cfP1 = parseFloat(params['Coste Fijo P1 (€)'] || 0);
-            const cfP2 = parseFloat(params['Coste Fijo P2 (€)'] || 0);
-            const cfP3 = parseFloat(params['Coste Fijo P3 (€)'] || 0);
-            
-            // Detectar consumos - lógica inteligente
-            let consumoP1, consumoP2, consumoP3;
-            let usingCaP = false;
-            
-            const totalCaP = caP1 + caP2 + caP3;
-            const totalCfP = cfP1 + cfP2 + cfP3;
-            
-            // NUEVA LÓGICA INTELIGENTE:
-            // - Si caP1 es muy grande (>1500) probablemente sea un código, no consumo
-            // - Si cfP tiene valores razonables (10-10000) probablemente SÍ sean consumos
-            // - Priorizar el que tenga distribución más realista entre períodos
-            
-            const caP_looks_valid = (
-                totalCaP > 0 && 
-                caP1 < 10000 &&  // No es un código enorme
-                (caP2 > 0 || caP3 > 0) && // Tiene consumo en más de un período
-                caP1.toString().length < 6 // No es una fecha ni código
-            );
-            
-            const cfP_looks_valid = (
-                totalCfP > 0 && 
-                cfP1 < 10000 &&
-                (cfP1 > 0 || cfP2 > 0 || cfP3 > 0)
-            );
-            
-            // Si caP parece válido Y tiene valores en múltiples períodos, usarlo
-            if (caP_looks_valid && (caP2 > 0 || caP3 > 0)) {
-                consumoP1 = caP1;
-                consumoP2 = caP2;
-                consumoP3 = caP3;
-                usingCaP = true;
-                console.log('✓ Usando caP (parece válido):', {caP1, caP2, caP3});
-            }
-            // Si cfP parece válido, usarlo
-            else if (cfP_looks_valid) {
-                consumoP1 = cfP1;
-                consumoP2 = cfP2;
-                consumoP3 = cfP3;
-                usingCaP = false;
-                console.log('✓ Usando cfP (parece válido):', {cfP1, cfP2, cfP3});
-            }
-            // Último recurso: usar caP si tiene algún valor
-            else if (totalCaP > 0) {
-                consumoP1 = caP1;
-                consumoP2 = caP2;
-                consumoP3 = caP3;
-                usingCaP = true;
-                console.log('⚠ Usando caP (fallback):', {caP1, caP2, caP3});
-            }
-            // Si todo falla, usar cfP
-            else {
-                consumoP1 = cfP1;
-                consumoP2 = cfP2;
-                consumoP3 = cfP3;
-                usingCaP = false;
-                console.log('⚠ Usando cfP (último recurso):', {cfP1, cfP2, cfP3});
-            }
-            
+            // SIEMPRE usar cfP para consumos (los valores correctos están ahí)
+            const consumoP1 = parseFloat(params['Consumo P1 (kWh)'] || 0);
+            const consumoP2 = parseFloat(params['Consumo P2 (kWh)'] || 0);
+            const consumoP3 = parseFloat(params['Consumo P3 (kWh)'] || 0);
             const consumoTotal = consumoP1 + consumoP2 + consumoP3;
+            
+            console.log('✓ Usando cfP (consumos):', {consumoP1, consumoP2, consumoP3, consumoTotal});
+            
+            // Valores de caP (solo para referencia/debug, NO se usan)
+            const caP1 = parseFloat(params['Consumo Ref P1'] || 0);
+            const caP2 = parseFloat(params['Consumo Ref P2'] || 0);
+            const caP3 = parseFloat(params['Consumo Ref P3'] || 0);
             
             const importeTotal = parseFloat(params['Importe Total (€)'] || 0);
             const importePotencia = parseFloat(params['Importe Potencia (€)'] || 0);
@@ -1047,11 +991,11 @@
                                 <strong style="color: var(--light);">Valores en la URL:</strong>
                             </div>
                             <div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1rem; color: var(--gray);">
-                                <span>caP (P1, P2, P3):</span>
-                                <span style="font-family: 'Space Mono', monospace; ${usingCaP ? 'color: var(--success); font-weight: 700;' : ''}">${caP1}, ${caP2}, ${caP3} ${usingCaP ? '← USADO ✓' : ''}</span>
+                                <span>cfP (consumos):</span>
+                                <span style="font-family: 'Space Mono', monospace; color: var(--success); font-weight: 700;">${consumoP1}, ${consumoP2}, ${consumoP3} kWh ← USADO ✓</span>
                                 
-                                <span>cfP (P1, P2, P3):</span>
-                                <span style="font-family: 'Space Mono', monospace; ${!usingCaP ? 'color: var(--success); font-weight: 700;' : ''}">${cfP1}, ${cfP2}, ${cfP3} ${!usingCaP ? '← USADO ✓' : ''}</span>
+                                <span>caP (referencia):</span>
+                                <span style="font-family: 'Space Mono', monospace; opacity: 0.5;">${caP1}, ${caP2}, ${caP3} (no usado)</span>
                             </div>
                         </div>
                     </div>

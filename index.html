@@ -5368,110 +5368,137 @@
             document.getElementById('new-annual-cost-display').textContent = eur(res.totalAnnual) + tr('/año');
             
             // 2. Desglose (Datos Extraídos)
-            let energyRows = '';
-            res.energyCosts.forEach(e => {
-                let label = `E${e.period}`;
-                if (tariffType === '2.0TD') {
-                    if (e.period === 1) label += ` (${tr('Punta')})`;
-                    if (e.period === 2) label += ` (${tr('Llano')})`;
-                    if (e.period === 3) label += ` (${tr('Valle')})`;
-                }
-                if(e.kwh > 0 || e.period <= config.periods) {
-                    energyRows += `<div class="flex justify-between text-xs mb-1"><span>${label}</span><span class="font-mono">${num(e.kwh, 0)} kWh</span></div>`;
-                }
-            });
-            const totalEnergy = res.energyCosts.reduce((sum, e) => sum + e.kwh, 0);
-
-            let powerRows = '';
-            res.powerCosts.forEach(p => {
-                if(p.kw > 0 || p.period <= config.powerPeriods) {
-                    powerRows += `<div class="flex justify-between text-xs mb-1"><span>P${p.period}</span><span class="font-mono">${num(p.kw, 2)} kW</span></div>`;
-                }
-            });
-
-            const consumptionHTML = `
-                <div class="grid grid-cols-2 gap-4">
-                    <div><p class="text-xs text-slate-500">${tr('Periodo')}</p><p class="font-bold text-slate-700">${res.dias_facturados} ${tr('días')}</p></div>
-                    <div><p class="text-xs text-slate-500">${tr('Fechas')}</p><p class="font-bold text-slate-700 text-xs">${res.fechas}</p></div>
-                    <div class="col-span-2 border-t pt-2 mt-2">
-                        <p class="font-bold ${brand.PRIMARY_TEXT} mb-2">${tr('Consumo por Periodo (kWh)')}</p>
-                        ${energyRows}
-                        <div class="flex justify-between font-bold ${brand.PRIMARY_TEXT} mt-1 border-t pt-1"><span>${tr('Total Consumo')}</span><span>${num(totalEnergy, 0)} kWh</span></div>  
-                    </div>
-                    <div class="col-span-2">
-                        <p class="font-bold ${brand.PRIMARY_TEXT} mb-2">${tr('Potencia Contratada (kW)')}</p>
-                        ${powerRows}
-                    </div>
-                </div>
-            `;
-
-            // 3. Desglose (Cálculo Oficial)
-            let powerBreakdown = '';
-            res.powerCosts.forEach(p => {
-                if (p.kw > 0 || p.period <= config.powerPeriods) {
-                    powerBreakdown += `<div class="flex justify-between"><span>P${p.period} (${num(p.kw, 2)} kW x ${numPriceFormula(p.priceDay)} €/día)</span><span>${num(p.cost, 2)} €</span></div>`;
-                }
-                });
-                
-            let energyBreakdown = '';
-            res.energyCosts.forEach(e => {
-                if (e.kwh > 0 || e.period <= config.periods) {
+            // CRÍTICO: Solo renderizar desglose si hay datos válidos (no es un placeholder sin ahorro)
+            let consumptionHTML = '';
+            
+            if (!res.isNegativeSavings && res.energyCosts && res.powerCosts && res.energyCosts.length > 0 && res.powerCosts.length > 0) {
+                let energyRows = '';
+                res.energyCosts.forEach(e => {
                     let label = `E${e.period}`;
                     if (tariffType === '2.0TD') {
                         if (e.period === 1) label += ` (${tr('Punta')})`;
                         if (e.period === 2) label += ` (${tr('Llano')})`;
                         if (e.period === 3) label += ` (${tr('Valle')})`;
                     }
-                    energyBreakdown += `<div class="flex justify-between"><span>${label} (${num(e.kwh, 0)} kWh x ${numPriceFormula(e.price)} €/kWh)</span><span>${num(e.cost, 2)} €</span></div>`;
-                }
+                    if(e.kwh > 0 || e.period <= config.periods) {
+                        energyRows += `<div class="flex justify-between text-xs mb-1"><span>${label}</span><span class="font-mono">${num(e.kwh, 0)} kWh</span></div>`;
+                    }
+                });
+                const totalEnergy = res.energyCosts.reduce((sum, e) => sum + e.kwh, 0);
+
+                let powerRows = '';
+                res.powerCosts.forEach(p => {
+                    if(p.kw > 0 || p.period <= config.powerPeriods) {
+                        powerRows += `<div class="flex justify-between text-xs mb-1"><span>P${p.period}</span><span class="font-mono">${num(p.kw, 2)} kW</span></div>`;
+                    }
                 });
 
-            let discountRowsHtml = res.discountAmount > 0 ? `
-                <div class="flex justify-between font-bold text-cta-red-500 mt-2">
-                    <span>Descuento Aplicado (${num(res.discountRate * 100, 0)}%)</span>
-                    <span>-${num(res.discountAmount, 2)} €</span>
-                </div>
-                <div class="flex justify-between font-bold text-slate-800 border-t border-dashed mt-1 pt-1">
-                    <span>Subtotal Energía (Neto)</span>
-                    <span>${num(res.subEnergyNet, 2)} €</span>
-                </div>
-            ` : '';
+                consumptionHTML = `
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><p class="text-xs text-slate-500">${tr('Periodo')}</p><p class="font-bold text-slate-700">${res.dias_facturados} ${tr('días')}</p></div>
+                        <div><p class="text-xs text-slate-500">${tr('Fechas')}</p><p class="font-bold text-slate-700 text-xs">${res.fechas}</p></div>
+                        <div class="col-span-2 border-t pt-2 mt-2">
+                            <p class="font-bold ${brand.PRIMARY_TEXT} mb-2">${tr('Consumo por Periodo (kWh)')}</p>
+                            ${energyRows}
+                            <div class="flex justify-between font-bold ${brand.PRIMARY_TEXT} mt-1 border-t pt-1"><span>${tr('Total Consumo')}</span><span>${num(totalEnergy, 0)} kWh</span></div>  
+                        </div>
+                        <div class="col-span-2">
+                            <p class="font-bold ${brand.PRIMARY_TEXT} mb-2">${tr('Potencia Contratada (kW)')}</p>
+                            ${powerRows}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Si no hay datos válidos, mostrar mensaje alternativo
+                consumptionHTML = `
+                    <div class="text-center py-4">
+                        <p class="text-slate-500 text-sm">${tr('Desglose no disponible para esta tarifa')}</p>
+                    </div>
+                `;
+            }
 
-            const breakdownHTML = `
-                <div class="bg-white p-6 font-mono text-xs md:text-sm text-slate-600 leading-relaxed">
-                    <div class="text-center border-b-2 border-dashed border-slate-300 pb-4 mb-4">
-                        <h4 class="font-bold text-lg text-slate-800 uppercase">${offer.name}</h4>
-                        <p>${tr('Simulación')} ${res.dias_facturados} ${tr('días')}</p>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <p class="font-bold text-slate-800 mb-1">${tr('POTENCIA')} (€/kW ${tr('Día')})</p>
-                        ${powerBreakdown}
-                        <div class="flex justify-between font-bold ${brand.SECONDARY_TEXT} border-t mt-1 pt-1"><span>${tr('Subtotal Potencia')}</span><span>${num(res.subPower, 2)} €</span></div>
-                    </div>
+            // 3. Desglose (Cálculo Oficial)
+            let powerBreakdown = '';
+            let energyBreakdown = '';
+            
+            if (!res.isNegativeSavings && res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
+                res.powerCosts.forEach(p => {
+                    if (p.kw > 0 || p.period <= config.powerPeriods) {
+                        powerBreakdown += `<div class="flex justify-between"><span>P${p.period} (${num(p.kw, 2)} kW x ${numPriceFormula(p.priceDay)} €/día)</span><span>${num(p.cost, 2)} €</span></div>`;
+                    }
+                });
+                
+                res.energyCosts.forEach(e => {
+                    if (e.kwh > 0 || e.period <= config.periods) {
+                        let label = `E${e.period}`;
+                        if (tariffType === '2.0TD') {
+                            if (e.period === 1) label += ` (${tr('Punta')})`;
+                            if (e.period === 2) label += ` (${tr('Llano')})`;
+                            if (e.period === 3) label += ` (${tr('Valle')})`;
+                        }
+                        energyBreakdown += `<div class="flex justify-between"><span>${label} (${num(e.kwh, 0)} kWh x ${numPriceFormula(e.price)} €/kWh)</span><span>${num(e.cost, 2)} €</span></div>`;
+                    }
+                });
+            }
 
-                    <div class="mb-4">
-                        <p class="font-bold text-slate-800 mb-1">${tr('ENERGÍA')} (€/kWh)</p>
-                        ${energyBreakdown}
-                        <div class="flex justify-between font-bold ${brand.SECONDARY_TEXT} border-t mt-1 pt-1"><span${tr("Subtotal Energía (Bruto)")}</span><span>${num(res.subEnergy, 2)} €</span></div>
-                        ${discountRowsHtml}
+            let discountRowsHtml = '';
+            let breakdownHTML = '';
+            
+            if (!res.isNegativeSavings && res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
+                discountRowsHtml = res.discountAmount > 0 ? `
+                    <div class="flex justify-between font-bold text-cta-red-500 mt-2">
+                        <span>Descuento Aplicado (${num(res.discountRate * 100, 0)}%)</span>
+                        <span>-${num(res.discountAmount, 2)} €</span>
                     </div>
+                    <div class="flex justify-between font-bold text-slate-800 border-t border-dashed mt-1 pt-1">
+                        <span>Subtotal Energía (Neto)</span>
+                        <span>${num(res.subEnergyNet, 2)} €</span>
+                    </div>
+                ` : '';
 
-                    <div class="border-t border-slate-200 pt-2 mb-2">
-                        <div class="flex justify-between font-bold text-slate-800"><span${tr("SUBTOTAL BASE (P+E)")}</span><span>${num(res.subBase, 2)} €</span></div>
-                        <div class="flex justify-between"><span>${tr('Imp. Eléc.')} (${num(res.ieRate * 100, 3)}%)</span><span>${num(res.costIE, 2)} €</span></div>
-                        <div class="flex justify-between font-bold text-lg border-t mt-1 pt-1"><span${tr("BASE IMPONIBLE")}</span><span>${num(res.baseImp, 2)} €</span></div>
-                        <div class="flex justify-between"><span>IVA (21%)</span><span>${num(res.costIVA, 2)} €</span></div>
+                breakdownHTML = `
+                    <div class="bg-white p-6 font-mono text-xs md:text-sm text-slate-600 leading-relaxed">
+                        <div class="text-center border-b-2 border-dashed border-slate-300 pb-4 mb-4">
+                            <h4 class="font-bold text-lg text-slate-800 uppercase">${offer.name}</h4>
+                            <p>${tr('Simulación')} ${res.dias_facturados} ${tr('días')}</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <p class="font-bold text-slate-800 mb-1">${tr('POTENCIA')} (€/kW ${tr('Día')})</p>
+                            ${powerBreakdown}
+                            <div class="flex justify-between font-bold ${brand.SECONDARY_TEXT} border-t mt-1 pt-1"><span>${tr('Subtotal Potencia')}</span><span>${num(res.subPower, 2)} €</span></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <p class="font-bold text-slate-800 mb-1">${tr('ENERGÍA')} (€/kWh)</p>
+                            ${energyBreakdown}
+                            <div class="flex justify-between font-bold ${brand.SECONDARY_TEXT} border-t mt-1 pt-1"><span${tr("Subtotal Energía (Bruto)")}</span><span>${num(res.subEnergy, 2)} €</span></div>
+                            ${discountRowsHtml}
+                        </div>
+
+                        <div class="border-t border-slate-200 pt-2 mb-2">
+                            <div class="flex justify-between font-bold text-slate-800"><span${tr("SUBTOTAL BASE (P+E)")}</span><span>${num(res.subBase, 2)} €</span></div>
+                            <div class="flex justify-between"><span>${tr('Imp. Eléc.')} (${num(res.ieRate * 100, 3)}%)</span><span>${num(res.costIE, 2)} €</span></div>
+                            <div class="flex justify-between font-bold text-lg border-t mt-1 pt-1"><span${tr("BASE IMPONIBLE")}</span><span>${num(res.baseImp, 2)} €</span></div>
+                            <div class="flex justify-between"><span>IVA (21%)</span><span>${num(res.costIVA, 2)} €</span></div>
+                        </div>
+                        
+                        <div class="bg-drk-900 text-white p-3 rounded-lg flex justify-between items-center text-md font-bold mb-1 mt-4"><span>${tr("TOTAL FACTURA")}</span><span>${eur(res.totalPeriod)}</span></div>
+                        <div class="text-center mt-2 ${brand.PRIMARY_TEXT} font-bold">${tr("Total Anual Estimado")}: ${eur(res.totalAnnual)}</div>
                     </div>
-                    
-                    <div class="bg-drk-900 text-white p-3 rounded-lg flex justify-between items-center text-md font-bold mb-1 mt-4"><span>${tr("TOTAL FACTURA")}</span><span>${eur(res.totalPeriod)}</span></div>
-                    <div class="text-center mt-2 ${brand.PRIMARY_TEXT} font-bold">${tr("Total Anual Estimado")}: ${eur(res.totalAnnual)}</div>
-                </div>
-            `;
+                `;
+            } else {
+                // Si no hay datos válidos para el desglose
+                breakdownHTML = `
+                    <div class="bg-white p-6 text-center">
+                        <p class="text-slate-500">${tr('Desglose no disponible')}</p>
+                    </div>
+                `;
+            }
             
             // NUEVO: Generar resumen de precios consolidados
             let preciosHTML = '';
-            if (offer.name !== 'Tu Tarifa Actual') {
+            if (offer.name !== 'Tu Tarifa Actual' && !res.isNegativeSavings && res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
                 const nombreCompleto = offer.isDrk 
                     ? ((offer.description?.length > offer.name?.length) ? offer.description : offer.name)
                     : offer.name;

@@ -765,6 +765,84 @@
                         </div>
                     </div>
 
+                    <!-- SECCIÓN ADICIONAL: Más Detalles de la Factura -->
+                    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid rgba(0, 212, 255, 0.3);">
+                        <h3 style="margin-bottom: 1rem; color: var(--primary);">📊 Información Adicional</h3>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px;">
+                            ${params.cp ? `
+                            <div>
+                                <div style="font-size: 0.85rem; color: var(--gray);">Código Postal</div>
+                                <div style="font-weight: 600; margin-top: 0.25rem;">${params.cp}</div>
+                            </div>` : ''}
+                            
+                            ${params.fFact ? `
+                            <div>
+                                <div style="font-size: 0.85rem; color: var(--gray);">Fecha Factura</div>
+                                <div style="font-weight: 600; margin-top: 0.25rem;">${params.fFact}</div>
+                            </div>` : ''}
+                            
+                            ${params.pmaxP1 ? `
+                            <div>
+                                <div style="font-size: 0.85rem; color: var(--gray);">Potencia Máx P1</div>
+                                <div style="font-weight: 600; margin-top: 0.25rem; color: var(--accent);">${params.pmaxP1} kW</div>
+                            </div>` : ''}
+                            
+                            ${params.pmaxP2 ? `
+                            <div>
+                                <div style="font-size: 0.85rem; color: var(--gray);">Potencia Máx P2</div>
+                                <div style="font-weight: 600; margin-top: 0.25rem; color: var(--accent);">${params.pmaxP2} kW</div>
+                            </div>` : ''}
+                            
+                            ${params.impOtrosSinIE ? `
+                            <div>
+                                <div style="font-size: 0.85rem; color: var(--gray);">Otros Importes</div>
+                                <div style="font-weight: 600; margin-top: 0.25rem;">${parseFloat(params.impOtrosSinIE).toFixed(2)} €</div>
+                            </div>` : ''}
+                            
+                            ${params.finBS ? `
+                            <div>
+                                <div style="font-size: 0.85rem; color: var(--gray);">Bono Social</div>
+                                <div style="font-weight: 600; margin-top: 0.25rem; color: var(--success);">${parseFloat(params.finBS).toFixed(2)} €</div>
+                            </div>` : ''}
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN: Precios Aplicados -->
+                    ${(params.prP1 || params.prP2 || params.prE1 || params.prE2 || params.prE3) ? `
+                    <div style="margin-top: 2rem;">
+                        <h3 style="margin-bottom: 1rem; color: var(--primary);">💶 Precios Aplicados</h3>
+                        <div style="background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px;">
+                            <table class="data-table">
+                                ${params.prP1 ? `
+                                <tr>
+                                    <th>Precio Potencia P1</th>
+                                    <td style="font-family: 'Space Mono', monospace; font-size: 0.9rem;">${parseFloat(params.prP1).toFixed(6)} €/kW/día</td>
+                                </tr>` : ''}
+                                ${params.prP2 ? `
+                                <tr>
+                                    <th>Precio Potencia P2</th>
+                                    <td style="font-family: 'Space Mono', monospace; font-size: 0.9rem;">${parseFloat(params.prP2).toFixed(6)} €/kW/día</td>
+                                </tr>` : ''}
+                                ${params.prE1 ? `
+                                <tr>
+                                    <th style="color: var(--primary);">Precio Energía P1</th>
+                                    <td style="color: var(--primary); font-weight: 700; font-family: 'Space Mono', monospace; font-size: 0.9rem;">${parseFloat(params.prE1).toFixed(6)} €/kWh</td>
+                                </tr>` : ''}
+                                ${params.prE2 ? `
+                                <tr>
+                                    <th style="color: var(--primary);">Precio Energía P2</th>
+                                    <td style="color: var(--primary); font-weight: 700; font-family: 'Space Mono', monospace; font-size: 0.9rem;">${parseFloat(params.prE2).toFixed(6)} €/kWh</td>
+                                </tr>` : ''}
+                                ${params.prE3 ? `
+                                <tr>
+                                    <th style="color: var(--primary);">Precio Energía P3</th>
+                                    <td style="color: var(--primary); font-weight: 700; font-family: 'Space Mono', monospace; font-size: 0.9rem;">${parseFloat(params.prE3).toFixed(6)} €/kWh</td>
+                                </tr>` : ''}
+                            </table>
+                        </div>
+                    </div>` : ''}
+
                     <div class="cnmc-link">
                         <strong>ENLACE ORIGINAL RAW:</strong><br>
                         <a href="${fullUrl}" target="_blank" style="color: inherit; text-decoration: none;">${fullUrl}</a>

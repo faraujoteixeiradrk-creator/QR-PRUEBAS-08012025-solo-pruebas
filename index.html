@@ -411,7 +411,8 @@
         const paramNames = {
             'cp': 'Código Postal',
             'pP1': 'Potencia P1 (kW)', 'pP2': 'Potencia P2 (kW)',
-            'caP1': 'Consumo P1', 'caP2': 'Consumo P2', 'caP3': 'Consumo P3',
+            'caP1': 'Consumo Anual P1', 'caP2': 'Consumo Anual P2', 'caP3': 'Consumo Anual P3',
+            'cfP1': 'Consumo Facturado P1', 'cfP2': 'Consumo Facturado P2', 'cfP3': 'Consumo Facturado P3',
             'imp': 'Importe Total',
             'iniF': 'Inicio Factura', 'finF': 'Fin Factura',
             'cups': 'CUPS',
@@ -582,17 +583,20 @@
             // Cálculos auxiliares
             const impTotal = parseFloat(params.imp || 0);
             
-            // Detectar si el consumo viene en Wh o kWh (CNMC a veces varía)
-            // Si los valores son muy altos (>1000 en suma), probablemente son Wh
-            let p1 = parseFloat(params.caP1 || 0);
-            let p2 = parseFloat(params.caP2 || 0);
-            let p3 = parseFloat(params.caP3 || 0);
+            // CORRECCIÓN: Prioridad a cfP (Consumo Facturado Periodo) vs caP (Consumo Anual)
+            // Muchos QR incluyen caP (Anual) y cfP (Periodo). Debemos usar cfP si existe.
+            let p1 = parseFloat(params.cfP1 || 0);
+            let p2 = parseFloat(params.cfP2 || 0);
+            let p3 = parseFloat(params.cfP3 || 0);
             
-            // A veces usan cfP1 en lugar de caP1 para consumo (casos raros)
+            let fuenteConsumo = 'Facturado (cfP)';
+
+            // Si no encontramos cfP, usamos caP (fallback)
             if (p1 === 0 && p2 === 0 && p3 === 0) {
-                 if (params.cfP1 > 100) p1 = parseFloat(params.cfP1 || 0);
-                 if (params.cfP2 > 100) p2 = parseFloat(params.cfP2 || 0);
-                 if (params.cfP3 > 100) p3 = parseFloat(params.cfP3 || 0);
+                 p1 = parseFloat(params.caP1 || 0);
+                 p2 = parseFloat(params.caP2 || 0);
+                 p3 = parseFloat(params.caP3 || 0);
+                 fuenteConsumo = 'Estimado/Anual (caP)';
             }
 
             const totalConsumo = p1 + p2 + p3;
@@ -624,9 +628,11 @@
                         <div class="stat-box">
                             <div class="stat-label">Consumo Total</div>
                             <div class="stat-value">${totalConsumo.toFixed(0)} <span style="font-size: 1rem;">kWh</span></div>
+                            <div style="font-size: 0.7rem; color: var(--gray); margin-top: 5px;">Fuente: ${fuenteConsumo}</div>
                         </div>
                         <div class="stat-box">
-                            <div class="stat-label">Precio Medio</div>
+                            <div class="stat-label">Precio Medio Real</div>
+                            <!-- Usamos precio medio de la factura total -->
                             <div class="stat-value">${totalConsumo > 0 ? (impTotal/totalConsumo).toFixed(3) : '0'} <span style="font-size: 1rem;">€/kWh</span></div>
                         </div>
                     </div>
@@ -678,8 +684,8 @@
                                     <td>${params.pP1 || 0} kW / ${params.pP2 || 0} kW</td>
                                 </tr>
                                 <tr>
-                                    <th>Importe Energía</th>
-                                    <td>${params.impEner || 0} €</td>
+                                    <th style="color: var(--primary);">Importe Energía</th>
+                                    <td style="color: var(--primary); font-weight: 700;">${params.impEner || 0} €</td>
                                 </tr>
                                 <tr>
                                     <th>Importe Potencia</th>

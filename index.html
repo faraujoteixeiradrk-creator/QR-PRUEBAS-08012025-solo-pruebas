@@ -15885,8 +15885,13 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // AUTO-INICIALIZACIÓN para versión 2.0TD directa
             // Cargar automáticamente las tarifas 2.0TD al iniciar
-            console.log('🚀 AUTO-INICIALIZACIÓN: Cargando tarifas 2.0TD...');
-            selectTariffType('2.0TD');
+            console.log('🚀 AUTO-INICIALIZACIÓN: Preparando carga de tarifas 2.0TD...');
+            
+            // Esperar un momento para que el DOM esté completamente listo
+            setTimeout(() => {
+                console.log('🚀 Cargando tarifas 2.0TD...');
+                selectTariffType('2.0TD');
+            }, 500); // Esperar 500ms
         });
         
         // FUNCIÓN MEJORADA: Preprocesar imagen para mejor detección de QR

@@ -393,7 +393,7 @@
             <div class="methods-badge">
                 <div class="badge"><span>🔗</span> Link Texto</div>
                 <div class="badge"><span>💎</span> Minería IMG</div>
-                <div class="badge"><span>🎯</span> Recorte QR</div>
+                <div class="badge"><span>🎯</span> Escaneo Multicapa</div>
             </div>
             
             <input type="file" id="fileInput" accept=".pdf, .jpg, .jpeg, .png">
@@ -477,15 +477,10 @@
             updateLog('Analizando foto (Modo Directo)...');
             let qrUrl = attemptQRScan(ctx, canvas.width, canvas.height, false);
             
-            // Intento 2: Filtros Forenses
+            // Intento 2: Barrido de Umbrales (Deep Scan)
             if (!qrUrl) {
-                updateLog('Aplicando filtros de mejora visual...');
-                qrUrl = attemptQRScan(ctx, canvas.width, canvas.height, true, 160);
-            }
-            
-            if (!qrUrl) {
-                updateLog('Probando modo de alto contraste oscuro...');
-                qrUrl = attemptQRScan(ctx, canvas.width, canvas.height, true, 100);
+                updateLog('Aplicando escaneo profundo de contraste...');
+                qrUrl = performDeepScan(ctx, canvas.width, canvas.height);
             }
 
             if (qrUrl) {
@@ -564,8 +559,14 @@
                     const commonObjs = page.objs;
                     
                     for (let j = 0; j < ops.fnArray.length; j++) {
-                        if (ops.fnArray[j] === pdfjsLib.OPS.paintImageXObject) {
+                        if (ops.fnArray[j] === pdfjsLib.OPS.paintImageXObject || ops.fnArray[j] === pdfjsLib.OPS.paintInlineImageXObject) {
                             const imgName = ops.argsArray[j][0];
+                            // Si es imagen inline, el objeto viene directo
+                            if (ops.fnArray[j] === pdfjsLib.OPS.paintInlineImageXObject) {
+                                // Soporte básico para inline (menos común pero existe)
+                                continue; 
+                            }
+
                             if (commonObjs.has(imgName)) {
                                 commonObjs.get(imgName, (imgData) => {
                                     if (imgData && imgData.width > 50) { 
@@ -575,6 +576,7 @@
                                         const ctx = tempCanvas.getContext('2d');
                                         
                                         const imageDataObj = ctx.createImageData(imgData.width, imgData.height);
+                                        // Copia simple de datos
                                         if (imgData.kind === 'RGB' || imgData.kind === 'RGBA') {
                                             for(let k=0; k<imgData.data.length; k++) imageDataObj.data[k] = imgData.data[k];
                                         } else if (imgData.data.length === imgData.width * imgData.height) { // Grayscale
@@ -588,10 +590,12 @@
                                         }
                                         
                                         ctx.putImageData(imageDataObj, 0, 0);
-                                        const code = jsQR(imageDataObj.data, imgData.width, imgData.height);
-                                        if (code && isCNMCData(code.data)) {
+                                        
+                                        // Escaneo Profundo sobre la imagen extraída
+                                        const rawCode = performDeepScan(ctx, imgData.width, imgData.height);
+                                        if (rawCode) {
                                             updateLog('¡QR detectado por Minería de Imágenes!');
-                                            processSuccess(code.data, 'Minería de Imágenes', i, tempCanvas);
+                                            processSuccess(rawCode, 'Minería de Imágenes', i, tempCanvas);
                                             return;
                                         }
                                     }
@@ -605,7 +609,7 @@
             await new Promise(r => setTimeout(r, 500));
             if (document.getElementById('results').classList.contains('active')) return;
 
-            // ESTRATEGIA 4: Búsqueda Visual Avanzada (Full Page + CUADRANTES)
+            // ESTRATEGIA 4: Búsqueda Visual Avanzada (Full Page + CUADRANTES INTELIGENTES)
             updateLog('Iniciando escaneo visual y recorte inteligente...');
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
@@ -615,9 +619,9 @@
                 let qrData = await scanPageWithCrop(page, 2.0);
                 if (qrData) { processSuccess(qrData, 'Escáner General', i); return; }
 
-                // 2. Escaneo por CUADRANTES
-                updateLog(`Página ${i}: Francotirador (Cuadrantes)...`);
-                qrData = await scanPageQuadrants(page, 3.0); 
+                // 2. Escaneo por CUADRANTES SOLAPADOS (Estrategia de Francotirador)
+                updateLog(`Página ${i}: Barrido de Zonas...`);
+                qrData = await scanPageQuadrants(page, 2.5); // Escala media-alta
                 if (qrData) { processSuccess(qrData, 'Escáner por Zonas', i); return; }
             }
 
@@ -625,6 +629,43 @@
         }
 
         // --- FUNCIONES AUXILIARES ---
+
+        // Función Maestra de Escaneo Profundo (Deep Scan)
+        // Prueba inversión de color y múltiples umbrales de contraste
+        function performDeepScan(ctx, width, height) {
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const originalData = imageData.data;
+
+            // 1. Intento Normal
+            let code = jsQR(originalData, width, height, { inversionAttempts: "dontInvert" });
+            if (code && isCNMCData(code.data)) return code.data;
+
+            // 2. Intento Invertido (QR blanco sobre negro)
+            code = jsQR(originalData, width, height, { inversionAttempts: "invertFirst" });
+            if (code && isCNMCData(code.data)) return code.data;
+
+            // 3. Barrido de Umbrales (Binarización Manual)
+            // Simulamos diferentes niveles de "exposición"
+            const thresholds = [100, 128, 160, 200, 80]; // Varios niveles de corte
+            
+            for (const threshold of thresholds) {
+                const binarizedData = new Uint8ClampedArray(originalData.length);
+                for (let i = 0; i < originalData.length; i += 4) {
+                    // Convertir a escala de grises (Luma)
+                    const luma = 0.299 * originalData[i] + 0.587 * originalData[i + 1] + 0.114 * originalData[i + 2];
+                    const val = luma < threshold ? 0 : 255;
+                    binarizedData[i] = val;
+                    binarizedData[i+1] = val;
+                    binarizedData[i+2] = val;
+                    binarizedData[i+3] = 255; // Alpha full
+                }
+                
+                code = jsQR(binarizedData, width, height, { inversionAttempts: "dontInvert" });
+                if (code && isCNMCData(code.data)) return code.data;
+            }
+
+            return null;
+        }
 
         async function scanPageQuadrants(page, scale) {
             const viewport = page.getViewport({ scale: scale });
@@ -635,18 +676,45 @@
             await page.render({ canvasContext: context, viewport: viewport }).promise;
 
             const w = canvas.width, h = canvas.height;
-            const quadrants = [
-                { name: "TL", x: 0, y: 0, w: w/2, h: h/2 },
-                { name: "TR", x: w/2, y: 0, w: w/2, h: h/2 },
-                { name: "BL", x: 0, y: h/2, w: w/2, h: h/2 },
-                { name: "BR", x: w/2, y: h/2, w: w/2, h: h/2 },
-                { name: "CT", x: w/4, y: h/4, w: w/2, h: h/2 }
+            
+            // Definimos cuadrantes con SOLAPAMIENTO (Overlap) para no cortar QRs en los bordes
+            // Dividimos la página en una cuadrícula 3x3 solapada
+            const stepX = w / 3;
+            const stepY = h / 3;
+            const boxW = w / 2; // Cajas de 50% ancho
+            const boxH = h / 2; // Cajas de 50% alto
+
+            const zones = [
+                // Esquinas
+                { x: 0, y: 0, w: w/2, h: h/2 }, // TL
+                { x: w/2, y: 0, w: w/2, h: h/2 }, // TR
+                { x: 0, y: h/2, w: w/2, h: h/2 }, // BL
+                { x: w/2, y: h/2, w: w/2, h: h/2 }, // BR
+                // Centro
+                { x: w/4, y: h/4, w: w/2, h: h/2 }, 
+                // Bordes medios (por si acaso)
+                { x: 0, y: h/4, w: w/2, h: h/2 }, // Mid-Left
+                { x: w/2, y: h/4, w: w/2, h: h/2 } // Mid-Right
             ];
 
-            for (let q of quadrants) {
-                const imgData = context.getImageData(q.x, q.y, q.w, q.h);
-                const code = jsQR(imgData.data, q.w, q.h, { inversionAttempts: "dontInvert" });
-                if (code && isCNMCData(code.data)) return code.data;
+            for (let z of zones) {
+                // Creamos un canvas temporal para el recorte (más limpio para jsQR)
+                const tempC = document.createElement('canvas');
+                tempC.width = z.w;
+                tempC.height = z.h;
+                const tempCtx = tempC.getContext('2d');
+                
+                // Dibujamos solo la parte recortada
+                tempCtx.drawImage(canvas, z.x, z.y, z.w, z.h, 0, 0, z.w, z.h);
+                
+                // Aplicamos escaneo profundo al recorte
+                const data = performDeepScan(tempCtx, z.w, z.h);
+                if (data) {
+                    updateLog('¡QR localizado en zona recortada!');
+                    // Devolvemos el canvas del recorte como evidencia visual
+                    processSuccess(data, 'Escáner Zonal (Recorte)', 0, tempC); 
+                    return data; 
+                }
             }
             return null;
         }
@@ -663,18 +731,12 @@
         }
 
         function attemptQRScan(context, width, height, enhanceContrast = false, threshold = 180) {
-            const imageData = context.getImageData(0, 0, width, height);
-            let data = imageData.data;
+            // Este método se mantiene por compatibilidad, pero redirige a performDeepScan si se requiere contraste
             if (enhanceContrast) {
-                const newData = new Uint8ClampedArray(data);
-                for (let i = 0; i < newData.length; i += 4) {
-                    const luma = 0.299 * newData[i] + 0.587 * newData[i + 1] + 0.114 * newData[i + 2];
-                    const val = luma < threshold ? 0 : 255;
-                    newData[i] = val; newData[i + 1] = val; newData[i + 2] = val; 
-                }
-                data = newData;
+                return performDeepScan(context, width, height);
             }
-            const code = jsQR(data, width, height, { inversionAttempts: "dontInvert" });
+            const imageData = context.getImageData(0, 0, width, height);
+            const code = jsQR(imageData.data, width, height, { inversionAttempts: "dontInvert" });
             if (code && isCNMCData(code.data)) return code.data;
             return null;
         }
@@ -686,14 +748,16 @@
             canvas.width = viewport.width;
             canvas.height = viewport.height;
             await page.render({ canvasContext: context, viewport: viewport }).promise;
-            return attemptQRScan(context, canvas.width, canvas.height, enhanceContrast, threshold);
+            return performDeepScan(context, canvas.width, canvas.height);
         }
 
         function processSuccess(dataStr, method, pageNum, evidenceCanvas = null) {
             loading.classList.remove('active');
+            
             try {
                 let params = {};
                 let displayUrl = dataStr;
+
                 if (dataStr.includes('comparador.cnmc.gob.es')) {
                     if (!dataStr.startsWith('http')) dataStr = 'https://' + dataStr;
                     displayUrl = dataStr;
@@ -712,6 +776,7 @@
                     });
                     displayUrl = 'https://comparador.cnmc.gob.es/comparador/QRE?' + dataStr;
                 }
+
                 renderResults(params, method, pageNum, displayUrl, evidenceCanvas);
             } catch (e) {
                 console.error(e);
@@ -721,16 +786,19 @@
 
         function renderResults(params, method, pageNum, fullUrl, evidenceCanvas) {
             const impTotal = parseFloat(params.imp || 0);
+            
             let p1 = parseFloat(params.cfP1 || 0);
             let p2 = parseFloat(params.cfP2 || 0);
             let p3 = parseFloat(params.cfP3 || 0);
             let fuenteConsumo = 'Facturado (cfP)';
+
             if (p1 === 0 && p2 === 0 && p3 === 0) {
                  p1 = parseFloat(params.caP1 || 0);
                  p2 = parseFloat(params.caP2 || 0);
                  p3 = parseFloat(params.caP3 || 0);
                  fuenteConsumo = 'Estimado/Anual (caP)';
             }
+
             const totalConsumo = p1 + p2 + p3;
             const fechaInicio = params.iniF || params.iniA || '-';
             const fechaFin = params.finF || '-';

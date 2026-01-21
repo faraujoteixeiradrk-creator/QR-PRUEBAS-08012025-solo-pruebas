@@ -391,9 +391,9 @@
             </div>
             
             <div class="methods-badge">
-                <div class="badge"><span>🔍</span> Escaneo OCR</div>
-                <div class="badge"><span>💎</span> Minería de Imágenes</div>
-                <div class="badge"><span>🎯</span> Recorte Inteligente</div>
+                <div class="badge"><span>🔗</span> Link Texto</div>
+                <div class="badge"><span>💎</span> Minería IMG</div>
+                <div class="badge"><span>🎯</span> Recorte QR</div>
             </div>
             
             <input type="file" id="fileInput" accept=".pdf, .jpg, .jpeg, .png">
@@ -437,31 +437,12 @@
         });
         fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
 
-        // Diccionario de parámetros CNMC
-        const paramNames = {
-            'cp': 'Código Postal',
-            'pP1': 'Potencia P1 (kW)', 'pP2': 'Potencia P2 (kW)',
-            'caP1': 'Consumo Anual P1', 'caP2': 'Consumo Anual P2', 'caP3': 'Consumo Anual P3',
-            'cfP1': 'Consumo Facturado P1', 'cfP2': 'Consumo Facturado P2', 'cfP3': 'Consumo Facturado P3',
-            'imp': 'Importe Total',
-            'iniF': 'Inicio Factura', 'finF': 'Fin Factura',
-            'cups': 'CUPS',
-            'com': 'Comercializadora',
-            'impPot': 'Importe Potencia',
-            'impEner': 'Importe Energía',
-            'impOtrosConIE': 'Otros con Impuestos',
-            'impOtrosSinIE': 'Otros sin Impuestos',
-            'prP1': 'Precio Potencia P1', 'prP2': 'Precio Potencia P2',
-            'prE1': 'Precio Energía P1', 'prE2': 'Precio Energía P2', 'prE3': 'Precio Energía P3'
-        };
-
         function updateLog(msg) {
             processLog.textContent = msg;
             console.log(`[System]: ${msg}`);
         }
 
         async function handleFile(file) {
-            // Reset UI
             hideError();
             results.classList.remove('active');
             loading.classList.add('active');
@@ -496,7 +477,7 @@
             updateLog('Analizando foto (Modo Directo)...');
             let qrUrl = attemptQRScan(ctx, canvas.width, canvas.height, false);
             
-            // Intento 2: Filtros Forenses (por si hay sombras o poco contraste)
+            // Intento 2: Filtros Forenses
             if (!qrUrl) {
                 updateLog('Aplicando filtros de mejora visual...');
                 qrUrl = attemptQRScan(ctx, canvas.width, canvas.height, true, 160);
@@ -520,7 +501,7 @@
             updateLog(`PDF cargado: ${pdf.numPages} páginas detectadas.`);
 
             // ESTRATEGIA 1: Buscar enlaces clicables y TOOLTIPS (Anotaciones)
-            updateLog('Buscando datos en metadatos y tooltips...');
+            updateLog('Buscando enlaces digitales y metadatos...');
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const annotations = await page.getAnnotations();
@@ -532,20 +513,52 @@
                         processSuccess(ann.url, 'Enlace Digital', i);
                         return;
                     }
-                    // Check Tooltips/Contents (Contenido oculto al pasar ratón)
+                    // Check Tooltips/Contents
                     if (ann.contents && isCNMCData(ann.contents)) {
                         updateLog('¡Datos encontrados en Tooltip (MouseOver)!');
-                        processSuccess(ann.contents, 'Tooltip/Metadato Oculto', i);
+                        processSuccess(ann.contents, 'Metadato Oculto', i);
                         return;
                     }
                 }
             }
 
-            // ESTRATEGIA 2: Minería de Imágenes (NATIVE IMAGE EXTRACTION)
+            // ESTRATEGIA 2: Escaneo de Texto en Bruto (REFORZADO)
+            updateLog('Analizando texto completo del documento (Estrategia Clásica)...');
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                
+                // 1. Texto Unido (Sin espacios) - Para enlaces cortados por formato
+                const rawText = textContent.items.map(item => item.str).join(''); 
+                if (isCNMCData(rawText)) {
+                     const startIdx = rawText.indexOf('comparador.cnmc.gob.es');
+                     if (startIdx !== -1) {
+                        let potentialUrl = rawText.substring(startIdx);
+                        const endMatch = potentialUrl.match(/[^a-zA-Z0-9\/\?=&%\.\-\_]/);
+                        if (endMatch) potentialUrl = potentialUrl.substring(0, endMatch.index);
+                        potentialUrl = 'https://' + potentialUrl;
+                        updateLog('URL extraída por Texto (Unido).');
+                        processSuccess(potentialUrl, 'Texto en PDF (Unido)', i);
+                        return;
+                     }
+                }
+
+                // 2. Texto Espaciado (Con espacios) - Para enlaces naturales
+                const spacedText = textContent.items.map(item => item.str).join(' ');
+                const match = spacedText.match(/(https?:\s*\/\/\s*)?comparador\.cnmc\.gob\.es\/[A-Za-z0-9\/\?=&%\.\-\_]+/i);
+                if (match) {
+                    let cleanUrl = match[0].replace(/\s/g, '');
+                    if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
+                    updateLog('URL reconstruida por Texto (Espaciado).');
+                    processSuccess(cleanUrl, 'Texto en PDF (Regex)', i);
+                    return;
+                }
+            }
+
+            // ESTRATEGIA 3: Minería de Imágenes (NATIVE IMAGE EXTRACTION)
             updateLog('Iniciando Minería de Imágenes Nativa...');
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
-                
                 try {
                     const ops = await page.getOperatorList();
                     const commonObjs = page.objs;
@@ -592,76 +605,48 @@
             await new Promise(r => setTimeout(r, 500));
             if (document.getElementById('results').classList.contains('active')) return;
 
-            // ESTRATEGIA 3: Escaneo de Texto en Bruto
-            updateLog('Analizando texto completo del documento...');
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                const rawText = textContent.items.map(item => item.str).join(''); 
-                
-                if (rawText.includes('comparador.cnmc.gob.es')) {
-                    const startIdx = rawText.indexOf('comparador.cnmc.gob.es');
-                    let potentialUrl = rawText.substring(startIdx);
-                    const endMatch = potentialUrl.match(/[^a-zA-Z0-9\/\?=&%\.\-\_]/);
-                    if (endMatch) potentialUrl = potentialUrl.substring(0, endMatch.index);
-                    potentialUrl = 'https://' + potentialUrl;
-                    processSuccess(potentialUrl, 'Extracción Profunda', i);
-                    return;
-                }
-            }
-
             // ESTRATEGIA 4: Búsqueda Visual Avanzada (Full Page + CUADRANTES)
             updateLog('Iniciando escaneo visual y recorte inteligente...');
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 
-                // 1. Escaneo Full Page (x2.0)
+                // 1. Escaneo Full Page
                 updateLog(`Página ${i}: Vista General...`);
                 let qrData = await scanPageWithCrop(page, 2.0);
                 if (qrData) { processSuccess(qrData, 'Escáner General', i); return; }
 
-                // 2. Escaneo por CUADRANTES (Recorte y Zoom x3.0)
-                // Esta es la "Localización y Recorte" que pedías.
-                // Dividimos la página en zonas y escaneamos cada una por separado.
-                updateLog(`Página ${i}: Activando Localización y Recorte (Cuadrantes)...`);
+                // 2. Escaneo por CUADRANTES
+                updateLog(`Página ${i}: Francotirador (Cuadrantes)...`);
                 qrData = await scanPageQuadrants(page, 3.0); 
-                if (qrData) { processSuccess(qrData, 'Escáner por Zonas (Recorte)', i); return; }
+                if (qrData) { processSuccess(qrData, 'Escáner por Zonas', i); return; }
             }
 
-            throw new Error("No se pudo encontrar ninguna referencia válida a la CNMC (QR o Enlace) en este documento.");
+            throw new Error("No se pudo encontrar ninguna referencia válida a la CNMC (Texto, QR o Enlace).");
         }
 
-        // Nueva función para escanear por cuadrantes (Localizar y Recortar)
+        // --- FUNCIONES AUXILIARES ---
+
         async function scanPageQuadrants(page, scale) {
             const viewport = page.getViewport({ scale: scale });
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
             canvas.width = viewport.width;
             canvas.height = viewport.height;
-
-            // Renderizamos la página a alta resolución
             await page.render({ canvasContext: context, viewport: viewport }).promise;
 
-            // Definimos los "Recortes" (Zonas de interés)
-            const w = canvas.width;
-            const h = canvas.height;
+            const w = canvas.width, h = canvas.height;
             const quadrants = [
-                { name: "Top-Left", x: 0, y: 0, w: w/2, h: h/2 },
-                { name: "Top-Right", x: w/2, y: 0, w: w/2, h: h/2 },
-                { name: "Bottom-Left", x: 0, y: h/2, w: w/2, h: h/2 },
-                { name: "Bottom-Right", x: w/2, y: h/2, w: w/2, h: h/2 },
-                { name: "Center", x: w/4, y: h/4, w: w/2, h: h/2 } // Zona central por si acaso
+                { name: "TL", x: 0, y: 0, w: w/2, h: h/2 },
+                { name: "TR", x: w/2, y: 0, w: w/2, h: h/2 },
+                { name: "BL", x: 0, y: h/2, w: w/2, h: h/2 },
+                { name: "BR", x: w/2, y: h/2, w: w/2, h: h/2 },
+                { name: "CT", x: w/4, y: h/4, w: w/2, h: h/2 }
             ];
 
             for (let q of quadrants) {
-                // Extraemos solo el cuadrante (Recorte)
                 const imgData = context.getImageData(q.x, q.y, q.w, q.h);
                 const code = jsQR(imgData.data, q.w, q.h, { inversionAttempts: "dontInvert" });
-                
-                if (code && isCNMCData(code.data)) {
-                    updateLog(`¡QR localizado en zona ${q.name}!`);
-                    return code.data;
-                }
+                if (code && isCNMCData(code.data)) return code.data;
             }
             return null;
         }
@@ -680,26 +665,17 @@
         function attemptQRScan(context, width, height, enhanceContrast = false, threshold = 180) {
             const imageData = context.getImageData(0, 0, width, height);
             let data = imageData.data;
-
             if (enhanceContrast) {
                 const newData = new Uint8ClampedArray(data);
                 for (let i = 0; i < newData.length; i += 4) {
                     const luma = 0.299 * newData[i] + 0.587 * newData[i + 1] + 0.114 * newData[i + 2];
                     const val = luma < threshold ? 0 : 255;
-                    newData[i] = val;     
-                    newData[i + 1] = val; 
-                    newData[i + 2] = val; 
+                    newData[i] = val; newData[i + 1] = val; newData[i + 2] = val; 
                 }
                 data = newData;
             }
-
-            const code = jsQR(data, width, height, {
-                inversionAttempts: "dontInvert",
-            });
-
-            if (code && isCNMCData(code.data)) {
-                return code.data;
-            }
+            const code = jsQR(data, width, height, { inversionAttempts: "dontInvert" });
+            if (code && isCNMCData(code.data)) return code.data;
             return null;
         }
 
@@ -709,18 +685,15 @@
             const context = canvas.getContext('2d');
             canvas.width = viewport.width;
             canvas.height = viewport.height;
-
             await page.render({ canvasContext: context, viewport: viewport }).promise;
             return attemptQRScan(context, canvas.width, canvas.height, enhanceContrast, threshold);
         }
 
         function processSuccess(dataStr, method, pageNum, evidenceCanvas = null) {
             loading.classList.remove('active');
-            
             try {
                 let params = {};
                 let displayUrl = dataStr;
-
                 if (dataStr.includes('comparador.cnmc.gob.es')) {
                     if (!dataStr.startsWith('http')) dataStr = 'https://' + dataStr;
                     displayUrl = dataStr;
@@ -739,7 +712,6 @@
                     });
                     displayUrl = 'https://comparador.cnmc.gob.es/comparador/QRE?' + dataStr;
                 }
-
                 renderResults(params, method, pageNum, displayUrl, evidenceCanvas);
             } catch (e) {
                 console.error(e);
@@ -749,19 +721,16 @@
 
         function renderResults(params, method, pageNum, fullUrl, evidenceCanvas) {
             const impTotal = parseFloat(params.imp || 0);
-            
             let p1 = parseFloat(params.cfP1 || 0);
             let p2 = parseFloat(params.cfP2 || 0);
             let p3 = parseFloat(params.cfP3 || 0);
             let fuenteConsumo = 'Facturado (cfP)';
-
             if (p1 === 0 && p2 === 0 && p3 === 0) {
                  p1 = parseFloat(params.caP1 || 0);
                  p2 = parseFloat(params.caP2 || 0);
                  p3 = parseFloat(params.caP3 || 0);
                  fuenteConsumo = 'Estimado/Anual (caP)';
             }
-
             const totalConsumo = p1 + p2 + p3;
             const fechaInicio = params.iniF || params.iniA || '-';
             const fechaFin = params.finF || '-';

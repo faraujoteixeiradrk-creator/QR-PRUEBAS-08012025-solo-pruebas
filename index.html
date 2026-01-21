@@ -675,13 +675,14 @@
             const fechaInicio = params.iniF || params.iniA || '-';
             const fechaFin = params.finF || '-';
             
+            // HTML del reporte
             results.innerHTML = `
                 <div class="result-card">
                     <div class="result-header">
                         <div>
-                            <h2 style="color: var(--primary);">⚡ Análisis Completado</h2>
+                            <h2 style="color: var(--primary);">Análisis Completado</h2>
                             <p style="color: var(--gray); font-size: 0.9rem; margin-top: 0.25rem;">
-                                ${params.com || 'Comercializadora desconocida'} • CUPS: ${params.cups || 'No detectado'}
+                                ${params.com || 'Comercializadora desconocida'} | CUPS: ${params.cups || 'No detectado'}
                             </p>
                         </div>
                         <div class="success-tag">
@@ -691,209 +692,81 @@
 
                     <div class="highlight-grid">
                         <div class="stat-box">
-                            <div class="stat-label">Importe Total</div>
+                            <div class="stat-label">Importe Factura</div>
                             <div class="stat-value total">${impTotal.toFixed(2)} €</div>
                         </div>
                         <div class="stat-box">
                             <div class="stat-label">Consumo Total</div>
                             <div class="stat-value">${totalConsumo.toFixed(0)} <span style="font-size: 1rem;">kWh</span></div>
-                            <div style="font-size: 0.7rem; color: var(--gray); margin-top: 5px;">${fuenteConsumo}</div>
+                            <div style="font-size: 0.7rem; color: var(--gray); margin-top: 5px;">Fuente: ${fuenteConsumo}</div>
                         </div>
                         <div class="stat-box">
-                            <div class="stat-label">Precio Medio</div>
-                            <div class="stat-value">${totalConsumo > 0 ? (impTotal/totalConsumo).toFixed(4) : '0'} <span style="font-size: 1rem;">€/kWh</span></div>
+                            <div class="stat-label">Precio Medio Real</div>
+                            <!-- Usamos precio medio de la factura total -->
+                            <div class="stat-value">${totalConsumo > 0 ? (impTotal/totalConsumo).toFixed(3) : '0'} <span style="font-size: 1rem;">€/kWh</span></div>
                         </div>
                     </div>
 
-                    <!-- INFORMACIÓN DEL CONTRATO -->
-                    <div style="background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem;">📋 Datos del Contrato</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                            ${params.cups ? `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div>
+                            <h3 style="margin-bottom: 1rem; color: var(--light);">Desglose de Consumo</h3>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                    <span style="font-size: 0.9rem; color: var(--gray);">Punta (P1)</span>
+                                    <span style="font-weight: 600;">${p1} kWh</span>
+                                </div>
+                                <div class="bar-container">
+                                    <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p1/totalConsumo)*100 : 0}%"></div>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                    <span style="font-size: 0.9rem; color: var(--gray);">Llano (P2)</span>
+                                    <span style="font-weight: 600;">${p2} kWh</span>
+                                </div>
+                                <div class="bar-container">
+                                    <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p2/totalConsumo)*100 : 0}%; opacity: 0.7;"></div>
+                                </div>
+                            </div>
+                            
                             <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">CUPS</div>
-                                <div style="font-weight: 600; font-family: 'Space Mono', monospace; font-size: 0.85rem;">${params.cups}</div>
-                            </div>` : ''}
-                            ${params.com ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Comercializadora</div>
-                                <div style="font-weight: 600;">${params.com}</div>
-                            </div>` : ''}
-                            ${params.cp ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Código Postal</div>
-                                <div style="font-weight: 600;">${params.cp}</div>
-                            </div>` : ''}
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                    <span style="font-size: 0.9rem; color: var(--gray);">Valle (P3)</span>
+                                    <span style="font-weight: 600;">${p3} kWh</span>
+                                </div>
+                                <div class="bar-container">
+                                    <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p3/totalConsumo)*100 : 0}%; opacity: 0.4;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 style="margin-bottom: 1rem; color: var(--light);">Detalles Técnicos</h3>
+                            <table class="data-table">
+                                <tr>
+                                    <th>Periodo</th>
+                                    <td>${fechaInicio} al ${fechaFin}</td>
+                                </tr>
+                                <tr>
+                                    <th>Potencia P1 / P2</th>
+                                    <td>${params.pP1 || 0} kW / ${params.pP2 || 0} kW</td>
+                                </tr>
+                                <tr>
+                                    <th style="color: var(--primary);">Importe Energía</th>
+                                    <td style="color: var(--primary); font-weight: 700;">${params.impEner || 0} €</td>
+                                </tr>
+                                <tr>
+                                    <th>Importe Potencia</th>
+                                    <td>${params.impPot || 0} €</td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
 
-                    <!-- PERÍODO DE FACTURACIÓN -->
-                    <div style="background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem;">📅 Período de Facturación</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Inicio</div>
-                                <div style="font-weight: 600;">${fechaInicio}</div>
-                            </div>
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Fin</div>
-                                <div style="font-weight: 600;">${fechaFin}</div>
-                            </div>
-                            ${fechaFactura !== '-' ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Fecha Factura</div>
-                                <div style="font-weight: 600;">${fechaFactura}</div>
-                            </div>` : ''}
-                            ${dias > 0 ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Días Facturados</div>
-                                <div style="font-weight: 600; color: var(--accent);">${dias} días</div>
-                            </div>` : ''}
-                        </div>
-                    </div>
-
-                    <!-- POTENCIA CONTRATADA -->
-                    ${(params.pP1 || params.pP2) ? `
-                    <div style="background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem;">⚡ Potencia Contratada</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
-                            ${params.pP1 ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Potencia P1</div>
-                                <div style="font-weight: 600;">${params.pP1} kW</div>
-                            </div>` : ''}
-                            ${params.pP2 ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Potencia P2</div>
-                                <div style="font-weight: 600;">${params.pP2} kW</div>
-                            </div>` : ''}
-                            ${params.pmaxP1 ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Potencia Máx P1</div>
-                                <div style="font-weight: 600; color: var(--accent);">${params.pmaxP1} kW</div>
-                            </div>` : ''}
-                            ${params.pmaxP2 ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Potencia Máx P2</div>
-                                <div style="font-weight: 600; color: var(--accent);">${params.pmaxP2} kW</div>
-                            </div>` : ''}
-                        </div>
-                    </div>` : ''}
-
-                    <!-- CONSUMOS DE ENERGÍA -->
-                    <div style="background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem;">📈 Consumos de Energía</h3>
-                        
-                        <div style="margin-bottom: 1rem;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.95rem; color: var(--gray);">Punta (P1)</span>
-                                <span style="font-weight: 700;">${p1} kWh</span>
-                            </div>
-                            <div class="bar-container">
-                                <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p1/totalConsumo)*100 : 0}%"></div>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-bottom: 1rem;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.95rem; color: var(--gray);">Llano (P2)</span>
-                                <span style="font-weight: 700;">${p2} kWh</span>
-                            </div>
-                            <div class="bar-container">
-                                <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p2/totalConsumo)*100 : 0}%; opacity: 0.7;"></div>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-bottom: 1rem;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.95rem; color: var(--gray);">Valle (P3)</span>
-                                <span style="font-weight: 700;">${p3} kWh</span>
-                            </div>
-                            <div class="bar-container">
-                                <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p3/totalConsumo)*100 : 0}%; opacity: 0.4;"></div>
-                            </div>
-                        </div>
-
-                        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid rgba(0, 212, 255, 0.3);">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span style="font-size: 1rem; color: var(--primary); font-weight: 700;">Consumo Total</span>
-                                <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">${totalConsumo.toFixed(0)} kWh</span>
-                            </div>
-                            ${dias > 0 ? `
-                            <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
-                                <span style="font-size: 0.9rem; color: var(--gray);">Consumo Medio Diario</span>
-                                <span style="font-weight: 600;">${consumoMedioDia} kWh/día</span>
-                            </div>` : ''}
-                        </div>
-                    </div>
-
-                    <!-- DESGLOSE DE IMPORTES -->
-                    <div style="background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem;">💰 Desglose de Importes</h3>
-                        <div style="display: grid; gap: 0.75rem;">
-                            ${importePotencia > 0 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Importe Potencia</span>
-                                <span style="font-weight: 700;">${importePotencia.toFixed(2)} €</span>
-                            </div>` : ''}
-                            ${importeEnergia > 0 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Importe Energía</span>
-                                <span style="font-weight: 700; color: var(--primary);">${importeEnergia.toFixed(2)} €</span>
-                            </div>` : ''}
-                            ${otrosImportes > 0 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Otros Importes</span>
-                                <span style="font-weight: 700;">${otrosImportes.toFixed(2)} €</span>
-                            </div>` : ''}
-                            ${bonoSocial > 0 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Bono Social</span>
-                                <span style="font-weight: 700; color: var(--success);">-${bonoSocial.toFixed(2)} €</span>
-                            </div>` : ''}
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; margin-top: 0.5rem; border-top: 2px solid rgba(0, 212, 255, 0.3);">
-                                <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">TOTAL</span>
-                                <span style="font-size: 1.3rem; font-weight: 700; color: var(--success);">${impTotal.toFixed(2)} €</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- PRECIOS APLICADOS -->
-                    ${(params.prP1 || params.prP2 || params.prE1) ? `
-                    <div style="background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem;">💵 Precios Aplicados</h3>
-                        <div style="display: grid; gap: 0.75rem;">
-                            ${params.prP1 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Precio Potencia P1</span>
-                                <span style="font-weight: 700; font-family: 'Space Mono', monospace; font-size: 0.9rem;">${parseFloat(params.prP1).toFixed(6)} €/kW/día</span>
-                            </div>` : ''}
-                            ${params.prP2 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Precio Potencia P2</span>
-                                <span style="font-weight: 700; font-family: 'Space Mono', monospace; font-size: 0.9rem;">${parseFloat(params.prP2).toFixed(6)} €/kW/día</span>
-                            </div>` : ''}
-                            ${params.prE1 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Precio Energía P1</span>
-                                <span style="font-weight: 700; font-family: 'Space Mono', monospace; font-size: 0.9rem; color: var(--primary);">${parseFloat(params.prE1).toFixed(6)} €/kWh</span>
-                            </div>` : ''}
-                            ${params.prE2 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Precio Energía P2</span>
-                                <span style="font-weight: 700; font-family: 'Space Mono', monospace; font-size: 0.9rem; color: var(--primary);">${parseFloat(params.prE2).toFixed(6)} €/kWh</span>
-                            </div>` : ''}
-                            ${params.prE3 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
-                                <span style="color: var(--gray);">Precio Energía P3</span>
-                                <span style="font-weight: 700; font-family: 'Space Mono', monospace; font-size: 0.9rem; color: var(--primary);">${parseFloat(params.prE3).toFixed(6)} €/kWh</span>
-                            </div>` : ''}
-                        </div>
-                    </div>` : ''}
-
-                    <!-- ENLACE CNMC -->
                     <div class="cnmc-link">
-                        <strong>🔗 ENLACE COMPARADOR CNMC:</strong><br>
+                        <strong>ENLACE ORIGINAL RAW:</strong><br>
                         <a href="${fullUrl}" target="_blank" style="color: inherit; text-decoration: none;">${fullUrl}</a>
                     </div>
                 </div>

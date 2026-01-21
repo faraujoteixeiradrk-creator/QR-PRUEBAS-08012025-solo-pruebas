@@ -3935,6 +3935,28 @@
                                 final.needsImprovementRequest = true;
                             } else {
                                 // No existe ninguna tarifa DRK, crear resultado placeholder
+                                // CRÍTICO: Preservar energyCosts y powerCosts del data original si existen
+                                const energyCostsFromData = [];
+                                const powerCostsFromData = [];
+                                
+                                // Intentar reconstruir energyCosts desde data
+                                if (data.consumo_punta !== undefined) {
+                                    energyCostsFromData.push({ period: 1, kwh: data.consumo_punta || 0, cost: 0, price: 0 });
+                                    energyCostsFromData.push({ period: 2, kwh: data.consumo_llano || 0, cost: 0, price: 0 });
+                                    energyCostsFromData.push({ period: 3, kwh: data.consumo_valle || 0, cost: 0, price: 0 });
+                                }
+                                
+                                // Intentar reconstruir powerCosts desde data
+                                if (data.potencia_p1_kw !== undefined) {
+                                    powerCostsFromData.push({ period: 1, kw: data.potencia_p1_kw || 0, cost: 0, priceDay: 0 });
+                                    powerCostsFromData.push({ period: 2, kw: data.potencia_p2_kw || 0, cost: 0, priceDay: 0 });
+                                }
+                                
+                                console.log('📊 Creando placeholder con datos reconstruidos:', {
+                                    energyCosts: energyCostsFromData,
+                                    powerCosts: powerCostsFromData
+                                });
+                                
                                 final = {
                                     ...data,
                                     offer: { 
@@ -3947,8 +3969,8 @@
                                     savings: 0,
                                     isNegativeSavings: true,
                                     needsImprovementRequest: true,
-                                    energyCosts: [],
-                                    powerCosts: []
+                                    energyCosts: energyCostsFromData,
+                                    powerCosts: powerCostsFromData
                                 };
                             }
                         }
@@ -3977,6 +3999,17 @@
                     final.isNegativeSavings = true;
                     final.savings = 0;
                     final.totalAnnual = final.originalBillAnnual;
+                    
+                    // CRÍTICO: Preservar energyCosts y powerCosts si existen
+                    // (pueden existir del cálculo original antes de detectar que no hay ahorro)
+                    const hasValidData = final.energyCosts && final.energyCosts.length > 0 && 
+                                        final.powerCosts && final.powerCosts.length > 0;
+                    
+                    console.log('🔍 Sin ahorro detectado. Preservando datos:', {
+                        hasValidData,
+                        energyCostsLength: final.energyCosts?.length || 0,
+                        powerCostsLength: final.powerCosts?.length || 0
+                    });
                     
                     // CRÍTICO: En modo DRK ÚNICAMENTE, NO cambiar la oferta a "Tu Tarifa Actual"
                     if (comparisonMode === 'drk_only') {

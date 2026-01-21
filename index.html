@@ -647,10 +647,36 @@
 
             const params = info.params;
             
-            // Calcular totales
-            const consumoP1 = parseFloat(params['Consumo P1 (kWh)'] || 0);
-            const consumoP2 = parseFloat(params['Consumo P2 (kWh)'] || 0);
-            const consumoP3 = parseFloat(params['Consumo P3 (kWh)'] || 0);
+            // Detectar consumos - pueden venir en cfP (Wh) o caP (kWh)
+            let consumoP1, consumoP2, consumoP3;
+            
+            // Si cfP tiene valores grandes (>100), probablemente sean consumos en Wh
+            const cfP1 = parseFloat(params['Coste Fijo P1 (€)'] || 0);
+            const cfP2 = parseFloat(params['Coste Fijo P2 (€)'] || 0);
+            const cfP3 = parseFloat(params['Coste Fijo P3 (€)'] || 0);
+            
+            const caP1 = parseFloat(params['Consumo P1 (kWh)'] || 0);
+            const caP2 = parseFloat(params['Consumo P2 (kWh)'] || 0);
+            const caP3 = parseFloat(params['Consumo P3 (kWh)'] || 0);
+            
+            // Lógica de detección: si cfP tiene valores grandes, son consumos en Wh
+            if (cfP1 > 100 || cfP2 > 100 || cfP3 > 100) {
+                // cfP son consumos en Wh, convertir a kWh
+                consumoP1 = cfP1;
+                consumoP2 = cfP2;
+                consumoP3 = cfP3;
+            } else if (caP1 > 0 || caP2 > 0 || caP3 > 0) {
+                // caP son consumos en kWh
+                consumoP1 = caP1;
+                consumoP2 = caP2;
+                consumoP3 = caP3;
+            } else {
+                // Por defecto, usar cfP
+                consumoP1 = cfP1;
+                consumoP2 = cfP2;
+                consumoP3 = cfP3;
+            }
+            
             const consumoTotal = consumoP1 + consumoP2 + consumoP3;
             
             const importeTotal = parseFloat(params['Importe Total (€)'] || 0);
@@ -779,7 +805,7 @@
                         </div>
                         <div class="info-item" style="margin-top: 1rem; padding-top: 1rem; border-top: 2px solid rgba(0, 212, 255, 0.3);">
                             <span class="info-label">Consumo Total</span>
-                            <span class="info-value" style="font-size: 1.2rem; color: var(--primary);">${consumoTotal.toFixed(2)} kWh</span>
+                            <span class="info-value" style="font-size: 1.2rem; color: var(--primary);">${consumoTotal.toFixed(0)} kWh</span>
                         </div>
                         ${dias > 0 ? `
                         <div class="info-item">

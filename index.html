@@ -270,7 +270,7 @@
             </div>
         </div>
 
-        <!-- PANTALLA INICIAL: Solo selector de servicio (OCULTO en versión 2.0TD directa) -->
+        <!-- PANTALLA INICIAL: Solo selector de servicio (OCULTO para versión 2.0TD directa) -->
         <div id="screen-inicio" class="screen" style="display: none;">
             <div class="fade-in flex flex-col items-center justify-center min-h-[40vh] py-8">
                 <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
@@ -315,10 +315,10 @@
             </div>
         </div>
 
-        <!-- PANTALLA 2: ELECTRICIDAD (landing-view OCULTO en versión 2.0TD directa) -->
+        <!-- PANTALLA 2: ELECTRICIDAD (landing-view original) -->
         <div id="screen-electricidad" class="screen active">
-        <!-- 1. Landing View (OCULTO) -->
-        <div id="landing-view" class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8" style="display: none;">
+        <!-- 1. Landing View -->
+        <div id="landing-view" class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500" id="landing-card">
                 <div id="landing-icon-bg" class="w-16 h-16 bg-drk-50 rounded-full flex items-center justify-center mx-auto mb-4 text-drk-600 shadow-inner">
                     <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none">
@@ -1126,14 +1126,14 @@
         </div>
 
         <!-- 3. Initial Input View (Scan/Manual) -->
-        <div id="initial-view" class="fade-in">
-            <button onclick="currentTariffType === 'MULTICUPS' ? showMultiCupsSagaView() : goBackFromInitialView()" class="mb-4 text-sm text-slate-500 hover:text-drk-600 flex items-center gap-1" style="display: none;">
+        <div id="initial-view" class="fade-in hidden">
+            <button onclick="currentTariffType === 'MULTICUPS' ? showMultiCupsSagaView() : goBackFromInitialView()" class="mb-4 text-sm text-slate-500 hover:text-drk-600 flex items-center gap-1">
                 &larr; Volver <span id="back-button-label">a selección</span>
             </button>
 
             <div id="initial-card" class="bg-white p-6 rounded-3xl shadow-xl text-center border-t-4 border-drk-500 relative">
                 <div id="tariff-badge" class="absolute top-4 right-4 bg-drk-500 px-2 py-1 rounded-full text-white text-xs font-bold shadow-md">
-                    <span id="current-tariff-label">2.0 TD - 611</span>
+                    <span id="current-tariff-label">2.0TD</span> - <span id="tariff-display-badge">0</span>
                 </div>
                 
                 <!-- VERSION -->
@@ -15882,16 +15882,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             if (initialModeInput) {
                 updateComparisonMode(initialModeInput.value);
             }
-            
-            // AUTO-INICIALIZACIÓN para versión 2.0TD directa
-            // Cargar automáticamente las tarifas 2.0TD al iniciar
-            console.log('🚀 AUTO-INICIALIZACIÓN: Preparando carga de tarifas 2.0TD...');
-            
-            // Esperar un momento para que el DOM esté completamente listo
-            setTimeout(() => {
-                console.log('🚀 Cargando tarifas 2.0TD...');
-                selectTariffType('2.0TD');
-            }, 500); // Esperar 500ms
         });
         
         // FUNCIÓN MEJORADA: Preprocesar imagen para mejor detección de QR
@@ -26627,5 +26617,18 @@ ${clientName}
                 });
             }
         }
+        
+        // AUTO-INICIALIZACIÓN PARA VERSIÓN 2.0TD DIRECTA
+        window.addEventListener('load', function() {
+            console.log('🚀 Iniciando versión 2.0TD directa...');
+            // Esperar a que todo esté listo
+            setTimeout(function() {
+                goToElectricidad();
+                setTimeout(function() {
+                    selectTariffType('2.0TD');
+                    console.log('✅ Versión 2.0TD cargada correctamente');
+                }, 300);
+            }, 500);
+        });
     </script>
 </body>

@@ -1305,6 +1305,9 @@
                                 <div><p class="text-2xl font-black text-drk-900" id="new-annual-cost-display">0,00 €/año</p></div>
                             </div>
                         </div>
+                        
+                        <!-- NUEVO: Sección para mostrar detalles cuando no hay ahorro -->
+                        <div id="no-savings-details-section" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -1467,6 +1470,12 @@
                 <button id="camera-capture-btn" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 flex items-center justify-center gap-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.125 3h3.75a2 2 0 011.664.89l.812 1.22a2 2 0 001.664.89H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     <span>Capturar Foto</span>
+                </button>
+                
+                <!-- Botón Subir desde Archivo -->
+                <button id="modal-upload-file-btn" class="w-full bg-drk-800 hover:bg-drk-900 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 flex items-center justify-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    <span>Subir desde Archivo</span>
                 </button>
                 
                 <button id="modal-paste-image-btn" class="w-full bg-drk-600 hover:bg-drk-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3">Pegar Imagen (CTRL+V)</button>
@@ -2695,7 +2704,12 @@
             const qrOptionsModal = document.getElementById('qr-options-modal');
             qrOptionsModal.querySelector('h3#modal-qr-title').className = `text-xl font-bold ${text800} mb-4`;
 
+            const uploadBtn = document.getElementById('modal-upload-file-btn');
             const pasteBtn = document.getElementById('modal-paste-image-btn');
+            
+            if (uploadBtn) {
+                uploadBtn.className = `w-full text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 flex items-center justify-center gap-2 transform transition active:scale-95 ${isDrk ? 'bg-drk-800 hover:bg-drk-900' : 'bg-powercup-800 hover:bg-powercup-900'}`;
+            }
             
             // El botón de drag & drop zone ya tiene sus propios estilos
 
@@ -4751,6 +4765,76 @@
                 oldCostPeriodEl.classList.add('text-cta-green-500');
                 oldCostAnnualEl.classList.remove('line-through');
                 oldCostAnnualEl.classList.add('text-cta-green-500');
+                
+                // NUEVO: Añadir detalles de consumo debajo del ahorro
+                const detailsSection = document.getElementById('no-savings-details-section');
+                if (detailsSection) {
+                    let detailsHTML = '<div class="mt-6 bg-white rounded-xl p-4 border-2 border-' + colorClass.replace('text-', '') + '-200 space-y-3">';
+                    detailsHTML += '<h4 class="font-bold text-lg mb-3 ' + colorClass + '">📊 Detalles de tu Factura</h4>';
+                    
+                    // Mostrar consumos por periodo
+                    if (res.energyCosts && res.energyCosts.length > 0) {
+                        detailsHTML += '<div class="bg-slate-50 rounded-lg p-3">';
+                        detailsHTML += '<p class="font-semibold text-sm mb-2 text-slate-700">Consumo por Periodo:</p>';
+                        let totalConsumo = 0;
+                        res.energyCosts.forEach(item => {
+                            if (item.kwh > 0) {
+                                totalConsumo += item.kwh;
+                                const periodoLabel = item.period === 1 ? 'Punta' : (item.period === 2 ? 'Llano' : 'Valle');
+                                detailsHTML += `<div class="flex justify-between text-xs mb-1">
+                                    <span>P${item.period} (${periodoLabel}):</span>
+                                    <span class="font-mono font-bold">${item.kwh.toFixed(0)} kWh</span>
+                                </div>`;
+                            }
+                        });
+                        detailsHTML += `<div class="flex justify-between text-sm mt-2 pt-2 border-t border-slate-300">
+                            <span class="font-bold">TOTAL:</span>
+                            <span class="font-mono font-bold ${colorClass}">${totalConsumo.toFixed(0)} kWh</span>
+                        </div>`;
+                        detailsHTML += '</div>';
+                    }
+                    
+                    // Mostrar potencias contratadas
+                    if (res.powerCosts && res.powerCosts.length > 0) {
+                        detailsHTML += '<div class="bg-slate-50 rounded-lg p-3">';
+                        detailsHTML += '<p class="font-semibold text-sm mb-2 text-slate-700">Potencias Contratadas:</p>';
+                        res.powerCosts.forEach(item => {
+                            if (item.kw > 0) {
+                                const periodoLabel = item.period === 1 ? 'Punta' : (item.period === 2 ? 'Valle' : `P${item.period}`);
+                                detailsHTML += `<div class="flex justify-between text-xs mb-1">
+                                    <span>P${item.period} (${periodoLabel}):</span>
+                                    <span class="font-mono font-bold">${item.kw} kW</span>
+                                </div>`;
+                            }
+                        });
+                        detailsHTML += '</div>';
+                    }
+                    
+                    // Información adicional
+                    detailsHTML += '<div class="bg-slate-50 rounded-lg p-3">';
+                    detailsHTML += '<p class="font-semibold text-sm mb-2 text-slate-700">Información del Contrato:</p>';
+                    detailsHTML += `<div class="flex justify-between text-xs mb-1">
+                        <span>Tarifa:</span>
+                        <span class="font-mono font-bold">${res.tariffType || 'N/A'}</span>
+                    </div>`;
+                    if (res.cups) {
+                        detailsHTML += `<div class="flex justify-between text-xs mb-1">
+                            <span>CUPS:</span>
+                            <span class="font-mono text-[10px] font-bold">${res.cups}</span>
+                        </div>`;
+                    }
+                    detailsHTML += `<div class="flex justify-between text-xs mb-1">
+                        <span>Periodo facturado:</span>
+                        <span class="font-mono font-bold">${res.dias_facturados || 0} días</span>
+                    </div>`;
+                    detailsHTML += '</div>';
+                    
+                    detailsHTML += '</div>';
+                    detailsSection.innerHTML = detailsHTML;
+                    detailsSection.style.display = 'block';
+                } else {
+                    console.warn('no-savings-details-section no encontrado');
+                }
             } else {
                 document.getElementById('savings-label').textContent = "TU AHORRO ANUAL ESTIMADO";
                 savingsEl.textContent = eur(res.savings);
@@ -4763,6 +4847,12 @@
                 
                 // Ocultar botón de solicitar mejora
                 document.getElementById('request-improvement-btn').style.display = 'none';
+                
+                // Ocultar sección de detalles
+                const detailsSection = document.getElementById('no-savings-details-section');
+                if (detailsSection) {
+                    detailsSection.style.display = 'none';
+                }
                 
                 newCostLabelEl.textContent = `${tr('TU NUEVO COSTE')} ${brand.NAME.includes('DRK') ? 'DRK' : 'POWER CUP'} ${tr('CONSOLIDADO')}`;
                 oldCostPeriodEl.classList.add('line-through', 'text-red-400', 'decoration-red-400/50');
@@ -15871,6 +15961,11 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     handleFile(e.target.files[0]);
                     e.target.value = '';
                 }
+            });
+            
+            // Botón "Subir desde archivo"
+            document.getElementById('modal-upload-file-btn').addEventListener('click', () => {
+                fileUploadInput.click();
             });
             
             // Botón pegar imagen mantiene funcionalidad original

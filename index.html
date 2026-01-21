@@ -3010,8 +3010,18 @@
                     finalOptimized = bestOptimized;
                     brand = finalOptimized.offer.isDrk ? BRANDS.DRK : BRANDS.POWER_CUP;
                 } else if (comparisonMode === 'drk_only') {
+                    // DRK ÚNICAMENTE: SIEMPRE usar DRK, nunca fallback a otras comercializadoras
                     finalActual = bestDrkActual || bestActual;
                     finalOptimized = bestDrkOptimized || bestOptimized;
+                    
+                    // Si no hay DRK con ahorro, marcar para solicitar mejora
+                    if (!bestDrkActual || bestDrkActual.totalAnnual >= bestDrkActual.originalBillAnnual) {
+                        if (finalActual) finalActual.needsImprovementRequest = true;
+                    }
+                    if (!bestDrkOptimized || bestDrkOptimized.totalAnnual >= bestDrkOptimized.originalBillAnnual) {
+                        if (finalOptimized) finalOptimized.needsImprovementRequest = true;
+                    }
+                    
                     brand = BRANDS.DRK;
                 } else if (comparisonMode === 'drk_prioritized') {
                     finalActual = (bestDrkActual && bestDrkActual.totalAnnual < bestDrkActual.originalBillAnnual) ? bestDrkActual : bestActual;
@@ -3849,7 +3859,35 @@
                 } else {
                     // Modos DRK (drk_only, drk_prioritized)
                     if (comparisonMode === 'drk_only') {
-                        final = bestDrk || bestOverall;
+                        // DRK ÚNICAMENTE: SIEMPRE usar DRK, NUNCA otra comercializadora
+                        if (bestDrk && bestDrk.totalAnnual < bestDrk.originalBillAnnual) {
+                            // Hay DRK con ahorro
+                            final = bestDrk;
+                        } else {
+                            // NO hay DRK con ahorro: usar DRK de todas formas y marcar para modal
+                            if (bestDrk) {
+                                final = bestDrk;
+                                final.isNegativeSavings = true;
+                                final.needsImprovementRequest = true;
+                            } else {
+                                // No existe ninguna tarifa DRK, crear resultado placeholder
+                                final = {
+                                    ...data,
+                                    offer: { 
+                                        name: "DRK Energía", 
+                                        description: "Solicita una oferta personalizada", 
+                                        isDrk: true 
+                                    },
+                                    totalAnnual: data.originalBillAnnual || (data.importe_total * 365 / (data.dias_facturados || 30)),
+                                    originalBillAnnual: data.originalBillAnnual || (data.importe_total * 365 / (data.dias_facturados || 30)),
+                                    savings: 0,
+                                    isNegativeSavings: true,
+                                    needsImprovementRequest: true,
+                                    energyCosts: [],
+                                    powerCosts: []
+                                };
+                            }
+                        }
                         // DRK ÚNICAMENTE: SIEMPRE mantener branding DRK (azul)
                         brand = BRANDS.DRK;
                     } else if (comparisonMode === 'drk_prioritized') {
@@ -3875,13 +3913,29 @@
                     final.isNegativeSavings = true;
                     final.savings = 0;
                     final.totalAnnual = final.originalBillAnnual;
-                    final.offer = { 
-                        name: "Tu Tarifa Actual", 
-                        description: "Es la mejor opción detectada", 
-                        isDrk: false 
-                    };
-                    // Mantener el branding según el modo seleccionado
-                    brand = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
+                    
+                    // CRÍTICO: En modo DRK ÚNICAMENTE, NO cambiar la oferta a "Tu Tarifa Actual"
+                    if (comparisonMode === 'drk_only') {
+                        // Mantener la oferta DRK y marcar para solicitar mejora
+                        if (!final.offer || !final.offer.isDrk) {
+                            final.offer = { 
+                                name: "DRK Energía", 
+                                description: "Solicita una oferta personalizada", 
+                                isDrk: true 
+                            };
+                        }
+                        final.needsImprovementRequest = true;
+                        brand = BRANDS.DRK;
+                    } else {
+                        // En otros modos, cambiar a "Tu Tarifa Actual"
+                        final.offer = { 
+                            name: "Tu Tarifa Actual", 
+                            description: "Es la mejor opción detectada", 
+                            isDrk: false 
+                        };
+                        // Mantener el branding según el modo seleccionado
+                        brand = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
+                    }
                 }
                 // Add originalTariffType for consistent logic in HTML generation
                 final.originalTariffType = tariffType;

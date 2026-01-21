@@ -501,7 +501,7 @@
                     if (ann.url && ann.url.includes('comparador.cnmc.gob.es')) {
                         updateLog('¡Enlace digital encontrado!');
                         const isValid = processSuccess(ann.url, 'Enlace Digital', i);
-                        if (isValid) return;
+                        if (isValid) return; // Solo detener si tiene parámetros
                     }
                 }
             }
@@ -523,7 +523,7 @@
                         if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
                         updateLog('URL reconstruida desde el texto.');
                         const isValid = processSuccess(cleanUrl, 'Reconstrucción de Texto', i);
-                        if (isValid) return;
+                        if (isValid) return; // Solo detener si tiene parámetros
                     }
                     
                     const startIdx = rawText.indexOf('comparador.cnmc.gob.es');
@@ -535,7 +535,7 @@
                     potentialUrl = 'https://' + potentialUrl;
                     updateLog('URL extraída por fuerza bruta.');
                     const isValid2 = processSuccess(potentialUrl, 'Extracción Profunda', i);
-                    if (isValid2) return;
+                    if (isValid2) return; // Solo detener si tiene parámetros
                 }
             }
 
@@ -548,60 +548,29 @@
                 // 1. Escaneo Rápido (x2.0)
                 updateLog(`Escaneando página ${i} (Modo Rápido)...`);
                 qrUrl = await scanPageForQR(page, 2.0);
-                if (qrUrl) { const isValid = processSuccess(qrUrl, 'Escáner Rápido', i); if (isValid) return; }
+                if (qrUrl) { processSuccess(qrUrl, 'Escáner Rápido', i); return; }
                 
                 // 2. Escaneo HD (x3.0)
                 updateLog(`Reintentando página ${i} (Modo HD)...`);
                 qrUrl = await scanPageForQR(page, 3.0);
-                if (qrUrl) { const isValid = processSuccess(qrUrl, 'Escáner HD', i); if (isValid) return; }
+                if (qrUrl) { processSuccess(qrUrl, 'Escáner HD', i); return; }
 
                 // 3. Escaneo FORENSE - Varios niveles de contraste
                 updateLog(`Activando Modo Forense x5 para pág ${i}...`);
                 
                 // Intento A: Zoom 5.0 + Contraste Estándar (160)
                 qrUrl = await scanPageForQR(page, 5.0, true, 160);
-                if (qrUrl) { const isValid = processSuccess(qrUrl, 'Forense (Std)', i); if (isValid) return; }
+                if (qrUrl) { processSuccess(qrUrl, 'Forense (Std)', i); return; }
 
                 // Intento B: Zoom 5.0 + Contraste Oscuro (100)
                 updateLog(`...Ajustando exposición (Dark)...`);
                 qrUrl = await scanPageForQR(page, 5.0, true, 100);
-                if (qrUrl) { const isValid = processSuccess(qrUrl, 'Forense (Dark)', i); if (isValid) return; }
+                if (qrUrl) { processSuccess(qrUrl, 'Forense (Dark)', i); return; }
 
                     // Intento C: Zoom 6.0 + Contraste Agresivo
                 updateLog(`...Activando Super-Zoom x6...`);
                 qrUrl = await scanPageForQR(page, 6.0, true, 180);
-                if (qrUrl) { const isValid = processSuccess(qrUrl, 'Super-Zoom x6', i); if (isValid) return; }
-            }
-
-            // FASE 4: MODO ANTI-FONDO (específico para QR con fondo verde/turquesa como Gana Energía)
-            updateLog('🎨 Activando eliminación de fondo de color...');
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                
-                // Escalas ultra agresivas con eliminación de fondo
-                const scales = [8.0, 10.0, 12.0, 15.0, 20.0];
-                
-                for (const scale of scales) {
-                    updateLog(`Eliminando fondo con escala x${scale} en pág ${i}...`);
-                    const qrUrl = await scanQRWithColorRemoval(page, scale);
-                    if (qrUrl) { 
-                        const isValid = processSuccess(qrUrl, `Anti-Fondo x${scale}`, i); 
-                        if (isValid) return; 
-                    }
-                }
-            }
-
-            // FASE 5: LOCALIZADOR VISUAL DE QR + ESCÁNER ENFOCADO
-            updateLog('🔍 Activando localizador visual de QR...');
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                
-                updateLog(`Buscando QR visualmente en página ${i}...`);
-                const qrUrl = await findAndScanQRByLocation(page);
-                if (qrUrl) { 
-                    const isValid = processSuccess(qrUrl, 'Localizador Visual', i); 
-                    if (isValid) return; 
-                }
+                if (qrUrl) { processSuccess(qrUrl, 'Super-Zoom x6', i); return; }
             }
 
             throw new Error("No se pudo encontrar ninguna referencia válida a la CNMC (QR o Enlace) en este documento.");
@@ -648,206 +617,7 @@
             return attemptQRScan(context, canvas.width, canvas.height, enhanceContrast, threshold);
         }
 
-        // NUEVA FUNCIÓN: Eliminar fondo de color (verde/turquesa) para Gana Energía
-        async function scanQRWithColorRemoval(page, scale) {
-            const viewport = page.getViewport({ scale: scale });
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-
-            await page.render({ canvasContext: context, viewport: viewport }).promise;
-            
-            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-            
-            // PASO 1: Eliminar fondo verde/turquesa (característico de Gana Energía)
-            for (let i = 0; i < data.length; i += 4) {
-                const r = data[i];
-                const g = data[i + 1];
-                const b = data[i + 2];
-                
-                // Detectar verde/turquesa: verde > rojo Y verde alto
-                const isGreenBackground = (g > r + 30) && (g > b) && (g > 120);
-                const isTurquoiseBackground = (g > r) && (b > r + 20) && (g + b > 220);
-                
-                if (isGreenBackground || isTurquoiseBackground) {
-                    // Convertir fondo a blanco puro
-                    data[i] = 255;
-                    data[i + 1] = 255;
-                    data[i + 2] = 255;
-                } else {
-                    // Binarización agresiva para el QR
-                    const luminancia = 0.299 * r + 0.587 * g + 0.114 * b;
-                    const valor = luminancia < 120 ? 0 : 255;
-                    data[i] = valor;
-                    data[i + 1] = valor;
-                    data[i + 2] = valor;
-                }
-            }
-            
-            // PASO 2: Intentar con los 3 modos de inversión
-            const modos = ["dontInvert", "onlyInvert", "attemptBoth"];
-            
-            for (const modo of modos) {
-                const code = jsQR(data, canvas.width, canvas.height, {
-                    inversionAttempts: modo,
-                });
-                
-                if (code && code.data.includes('comparador.cnmc.gob.es')) {
-                    console.log(`✓ QR detectado con eliminación de fondo + modo ${modo}`);
-                    return code.data;
-                }
-            }
-            
-            return null;
-        }
-
-        // FASE 5: LOCALIZADOR VISUAL DE QR + ESCÁNER ENFOCADO
-        async function findAndScanQRByLocation(page) {
-            // Renderizar a muy alta resolución
-            const viewport = page.getViewport({ scale: 4.0 });
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-
-            await page.render({ canvasContext: context, viewport: viewport }).promise;
-            
-            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-            
-            // Buscar regiones con patrón de QR
-            const possibleQRRegions = findQRLikeRegions(imageData);
-            
-            if (possibleQRRegions.length === 0) {
-                return null;
-            }
-            
-            // Para cada región candidata, recortar y escanear
-            for (const region of possibleQRRegions) {
-                const croppedData = cropImageData(imageData, region);
-                const enhancedData = enhanceQRRegion(croppedData);
-                
-                // Intentar decodificar
-                for (const invMode of ["attemptBoth", "dontInvert", "onlyInvert"]) {
-                    const code = jsQR(enhancedData.data, enhancedData.width, enhancedData.height, {
-                        inversionAttempts: invMode,
-                    });
-                    
-                    if (code && code.data.includes('comparador.cnmc.gob.es')) {
-                        console.log(`✓ QR encontrado en región: ${region.x},${region.y}`);
-                        return code.data;
-                    }
-                }
-            }
-            
-            return null;
-        }
-
-        // Buscar regiones con alta densidad de cambios (patrón QR)
-        function findQRLikeRegions(imageData) {
-            const regions = [];
-            const blockSize = 30;
-            const data = imageData.data;
-            const width = imageData.width;
-            const height = imageData.height;
-            
-            for (let y = 0; y < height - blockSize * 5; y += blockSize) {
-                for (let x = 0; x < width - blockSize * 5; x += blockSize) {
-                    
-                    let transitions = 0;
-                    let darkPixels = 0;
-                    
-                    for (let dy = 0; dy < blockSize * 5; dy += 3) {
-                        let prevBrightness = -1;
-                        for (let dx = 0; dx < blockSize * 5; dx += 3) {
-                            const idx = ((y + dy) * width + (x + dx)) * 4;
-                            const brightness = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
-                            
-                            if (brightness < 128) darkPixels++;
-                            
-                            if (prevBrightness !== -1) {
-                                if ((prevBrightness < 128 && brightness >= 128) || 
-                                    (prevBrightness >= 128 && brightness < 128)) {
-                                    transitions++;
-                                }
-                            }
-                            prevBrightness = brightness;
-                        }
-                    }
-                    
-                    const totalPixels = (blockSize * 5 / 3) * (blockSize * 5 / 3);
-                    const darkRatio = darkPixels / totalPixels;
-                    
-                    // QR tiene muchas transiciones y balance de oscuros
-                    if (transitions > 50 && darkRatio > 0.3 && darkRatio < 0.7) {
-                        regions.push({
-                            x: x,
-                            y: y,
-                            size: blockSize * 5,
-                            score: transitions
-                        });
-                    }
-                }
-            }
-            
-            regions.sort((a, b) => b.score - a.score);
-            return regions.slice(0, 5);
-        }
-
-        // Recortar región específica
-        function cropImageData(imageData, region) {
-            const data = imageData.data;
-            const width = imageData.width;
-            
-            const cropX = Math.max(0, region.x);
-            const cropY = Math.max(0, region.y);
-            const cropSize = Math.min(region.size, width - cropX, imageData.height - cropY);
-            
-            const croppedData = new Uint8ClampedArray(cropSize * cropSize * 4);
-            
-            for (let y = 0; y < cropSize; y++) {
-                for (let x = 0; x < cropSize; x++) {
-                    const srcIdx = ((cropY + y) * width + (cropX + x)) * 4;
-                    const dstIdx = (y * cropSize + x) * 4;
-                    
-                    croppedData[dstIdx] = data[srcIdx];
-                    croppedData[dstIdx + 1] = data[srcIdx + 1];
-                    croppedData[dstIdx + 2] = data[srcIdx + 2];
-                    croppedData[dstIdx + 3] = data[srcIdx + 3];
-                }
-            }
-            
-            return new ImageData(croppedData, cropSize, cropSize);
-        }
-
-        // Mejorar región del QR
-        function enhanceQRRegion(imageData) {
-            const data = new Uint8ClampedArray(imageData.data);
-            
-            for (let i = 0; i < data.length; i += 4) {
-                const r = data[i];
-                const g = data[i + 1];
-                const b = data[i + 2];
-                
-                // Eliminar fondos de color
-                const isColoredBg = (g > r + 25 || b > r + 25) && (g > 100 || b > 100);
-                
-                if (isColoredBg) {
-                    data[i] = data[i + 1] = data[i + 2] = 255;
-                } else {
-                    const luma = 0.299 * r + 0.587 * g + 0.114 * b;
-                    const val = luma < 128 ? 0 : 255;
-                    data[i] = data[i + 1] = data[i + 2] = val;
-                }
-            }
-            
-            return new ImageData(data, imageData.width, imageData.height);
-        }
-
         function processSuccess(url, method, pageNum) {
-            loading.classList.remove('active');
-            
             // Parsear URL
             try {
                 // Asegurar protocolo
@@ -865,20 +635,22 @@
                     params[key] = value;
                 });
 
-                // VALIDACIÓN: Verificar que la URL tiene parámetros reales
-                // Si solo es "https://comparador.cnmc.gob.es" sin parámetros, NO es válida
-                const hasRealParams = Object.keys(params).length > 0;
+                // VALIDACIÓN: Verificar que tiene parámetros reales (no solo el dominio)
+                const hasParams = Object.keys(params).length > 0;
                 
-                if (!hasRealParams) {
-                    console.log(`❌ URL encontrada pero sin parámetros: ${url} - Continuando búsqueda...`);
-                    return false; // Indicar que no es válida
+                if (!hasParams) {
+                    console.log(`⚠️ URL sin parámetros encontrada: ${url} - Continuando búsqueda...`);
+                    return false; // No es válida, continuar buscando
                 }
 
+                // URL válida con parámetros - procesar
+                loading.classList.remove('active');
                 renderResults(params, method, pageNum, url);
-                return true; // URL válida procesada
+                return true; // Éxito
+                
             } catch (e) {
-                console.log(`❌ URL corrupta: ${url} - Continuando búsqueda...`);
-                return false;
+                console.log(`⚠️ Error parseando URL: ${url} - Continuando búsqueda...`);
+                return false; // Error, continuar buscando
             }
         }
 
@@ -887,6 +659,7 @@
             const impTotal = parseFloat(params.imp || 0);
             
             // CORRECCIÓN: Prioridad a cfP (Consumo Facturado Periodo) vs caP (Consumo Anual)
+            // Muchos QR incluyen caP (Anual) y cfP (Periodo). Debemos usar cfP si existe.
             let p1 = parseFloat(params.cfP1 || 0);
             let p2 = parseFloat(params.cfP2 || 0);
             let p3 = parseFloat(params.cfP3 || 0);
@@ -903,35 +676,18 @@
 
             const totalConsumo = p1 + p2 + p3;
             
-            // Importes
-            const importePotencia = parseFloat(params.impPot || 0);
-            const importeEnergia = parseFloat(params.impEner || 0);
-            const otrosImportes = parseFloat(params.impOtrosSinIE || 0);
-            const bonoSocial = parseFloat(params.finBS || 0);
-            
             // Fechas
             const fechaInicio = params.iniF || params.iniA || '-';
             const fechaFin = params.finF || '-';
-            const fechaFactura = params.fFact || '-';
             
-            // Calcular días
-            let dias = 0;
-            if (params.iniF && params.finF) {
-                const inicio = new Date(params.iniF);
-                const fin = new Date(params.finF);
-                dias = Math.round((fin - inicio) / (1000 * 60 * 60 * 24));
-            }
-            
-            const consumoMedioDia = dias > 0 ? (totalConsumo / dias).toFixed(2) : '0';
-            
-            // HTML del reporte - VERSIÓN COMPLETA CON TODA LA INFORMACIÓN
+            // HTML del reporte
             results.innerHTML = `
                 <div class="result-card">
                     <div class="result-header">
                         <div>
-                            <h2 style="color: var(--primary);">⚡ Análisis Completado</h2>
+                            <h2 style="color: var(--primary);">Análisis Completado</h2>
                             <p style="color: var(--gray); font-size: 0.9rem; margin-top: 0.25rem;">
-                                ${params.com || 'Comercializadora desconocida'} • CUPS: ${params.cups || 'No detectado'}
+                                ${params.com || 'Comercializadora desconocida'} | CUPS: ${params.cups || 'No detectado'}
                             </p>
                         </div>
                         <div class="success-tag">
@@ -941,218 +697,82 @@
 
                     <div class="highlight-grid">
                         <div class="stat-box">
-                            <div class="stat-label">Importe Total</div>
+                            <div class="stat-label">Importe Factura</div>
                             <div class="stat-value total">${impTotal.toFixed(2)} €</div>
                         </div>
                         <div class="stat-box">
                             <div class="stat-label">Consumo Total</div>
                             <div class="stat-value">${totalConsumo.toFixed(0)} <span style="font-size: 1rem;">kWh</span></div>
-                            <div style="font-size: 0.7rem; color: var(--gray); margin-top: 5px;">${fuenteConsumo}</div>
+                            <div style="font-size: 0.7rem; color: var(--gray); margin-top: 5px;">Fuente: ${fuenteConsumo}</div>
                         </div>
                         <div class="stat-box">
-                            <div class="stat-label">Precio Medio</div>
-                            <div class="stat-value">${totalConsumo > 0 ? (impTotal/totalConsumo).toFixed(4) : '0'} <span style="font-size: 1rem;">€/kWh</span></div>
+                            <div class="stat-label">Precio Medio Real</div>
+                            <!-- Usamos precio medio de la factura total -->
+                            <div class="stat-value">${totalConsumo > 0 ? (impTotal/totalConsumo).toFixed(3) : '0'} <span style="font-size: 1rem;">€/kWh</span></div>
                         </div>
                     </div>
 
-                    <!-- INFORMACIÓN DEL CONTRATO -->
-                    <div style="background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem;">📋 Datos del Contrato</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                            ${params.cups ? `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div>
+                            <h3 style="margin-bottom: 1rem; color: var(--light);">Desglose de Consumo</h3>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                    <span style="font-size: 0.9rem; color: var(--gray);">Punta (P1)</span>
+                                    <span style="font-weight: 600;">${p1} kWh</span>
+                                </div>
+                                <div class="bar-container">
+                                    <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p1/totalConsumo)*100 : 0}%"></div>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                    <span style="font-size: 0.9rem; color: var(--gray);">Llano (P2)</span>
+                                    <span style="font-weight: 600;">${p2} kWh</span>
+                                </div>
+                                <div class="bar-container">
+                                    <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p2/totalConsumo)*100 : 0}%; opacity: 0.7;"></div>
+                                </div>
+                            </div>
+                            
                             <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">CUPS</div>
-                                <div style="font-weight: 600; font-family: 'Space Mono', monospace; font-size: 0.85rem;">${params.cups}</div>
-                            </div>` : ''}
-                            ${params.com ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Comercializadora</div>
-                                <div style="font-weight: 600;">${params.com}</div>
-                            </div>` : ''}
-                            ${params.cp ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Código Postal</div>
-                                <div style="font-weight: 600;">${params.cp}</div>
-                            </div>` : ''}
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                    <span style="font-size: 0.9rem; color: var(--gray);">Valle (P3)</span>
+                                    <span style="font-weight: 600;">${p3} kWh</span>
+                                </div>
+                                <div class="bar-container">
+                                    <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p3/totalConsumo)*100 : 0}%; opacity: 0.4;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 style="margin-bottom: 1rem; color: var(--light);">Detalles Técnicos</h3>
+                            <table class="data-table">
+                                <tr>
+                                    <th>Periodo</th>
+                                    <td>${fechaInicio} al ${fechaFin}</td>
+                                </tr>
+                                <tr>
+                                    <th>Potencia P1 / P2</th>
+                                    <td>${params.pP1 || 0} kW / ${params.pP2 || 0} kW</td>
+                                </tr>
+                                <tr>
+                                    <th style="color: var(--primary);">Importe Energía</th>
+                                    <td style="color: var(--primary); font-weight: 700;">${params.impEner || 0} €</td>
+                                </tr>
+                                <tr>
+                                    <th>Importe Potencia</th>
+                                    <td>${params.impPot || 0} €</td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
 
-                    <!-- PERÍODO DE FACTURACIÓN -->
-                    <div style="background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem;">📅 Período de Facturación</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Inicio</div>
-                                <div style="font-weight: 600;">${fechaInicio}</div>
-                            </div>
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Fin</div>
-                                <div style="font-weight: 600;">${fechaFin}</div>
-                            </div>
-                            ${fechaFactura !== '-' ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Fecha Factura</div>
-                                <div style="font-weight: 600;">${fechaFactura}</div>
-                            </div>` : ''}
-                            ${dias > 0 ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Días Facturados</div>
-                                <div style="font-weight: 600; color: var(--accent);">${dias} días</div>
-                            </div>` : ''}
-                        </div>
-                    </div>
-
-                    <!-- POTENCIA CONTRATADA -->
-                    ${(params.pP1 || params.pP2) ? `
-                    <div style="background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem;">⚡ Potencia Contratada</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
-                            ${params.pP1 ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Potencia P1</div>
-                                <div style="font-weight: 600;">${params.pP1} kW</div>
-                            </div>` : ''}
-                            ${params.pP2 ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Potencia P2</div>
-                                <div style="font-weight: 600;">${params.pP2} kW</div>
-                            </div>` : ''}
-                            ${params.pmaxP1 ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Potencia Máx P1</div>
-                                <div style="font-weight: 600; color: var(--accent);">${params.pmaxP1} kW</div>
-                            </div>` : ''}
-                            ${params.pmaxP2 ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.25rem;">Potencia Máx P2</div>
-                                <div style="font-weight: 600; color: var(--accent);">${params.pmaxP2} kW</div>
-                            </div>` : ''}
-                        </div>
-                    </div>` : ''}
-
-                    <!-- CONSUMOS DE ENERGÍA -->
-                    <div style="background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem;">📈 Consumos de Energía</h3>
-                        
-                        <div style="margin-bottom: 1rem;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.95rem; color: var(--gray);">Punta (P1)</span>
-                                <span style="font-weight: 700;">${p1} kWh</span>
-                            </div>
-                            <div class="bar-container">
-                                <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p1/totalConsumo)*100 : 0}%"></div>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-bottom: 1rem;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.95rem; color: var(--gray);">Llano (P2)</span>
-                                <span style="font-weight: 700;">${p2} kWh</span>
-                            </div>
-                            <div class="bar-container">
-                                <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p2/totalConsumo)*100 : 0}%; opacity: 0.7;"></div>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-bottom: 1rem;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.95rem; color: var(--gray);">Valle (P3)</span>
-                                <span style="font-weight: 700;">${p3} kWh</span>
-                            </div>
-                            <div class="bar-container">
-                                <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p3/totalConsumo)*100 : 0}%; opacity: 0.4;"></div>
-                            </div>
-                        </div>
-
-                        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid rgba(0, 212, 255, 0.3);">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span style="font-size: 1rem; color: var(--primary); font-weight: 700;">Consumo Total</span>
-                                <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">${totalConsumo.toFixed(0)} kWh</span>
-                            </div>
-                            ${dias > 0 ? `
-                            <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
-                                <span style="font-size: 0.9rem; color: var(--gray);">Consumo Medio Diario</span>
-                                <span style="font-weight: 600;">${consumoMedioDia} kWh/día</span>
-                            </div>` : ''}
-                        </div>
-                    </div>
-
-                    <!-- DESGLOSE DE IMPORTES -->
-                    <div style="background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem;">💰 Desglose de Importes</h3>
-                        <div style="display: grid; gap: 0.75rem;">
-                            ${importePotencia > 0 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Importe Potencia</span>
-                                <span style="font-weight: 700;">${importePotencia.toFixed(2)} €</span>
-                            </div>` : ''}
-                            ${importeEnergia > 0 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Importe Energía</span>
-                                <span style="font-weight: 700; color: var(--primary);">${importeEnergia.toFixed(2)} €</span>
-                            </div>` : ''}
-                            ${otrosImportes > 0 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Otros Importes</span>
-                                <span style="font-weight: 700;">${otrosImportes.toFixed(2)} €</span>
-                            </div>` : ''}
-                            ${bonoSocial > 0 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Bono Social</span>
-                                <span style="font-weight: 700; color: var(--success);">-${bonoSocial.toFixed(2)} €</span>
-                            </div>` : ''}
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; margin-top: 0.5rem; border-top: 2px solid rgba(0, 212, 255, 0.3);">
-                                <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">TOTAL</span>
-                                <span style="font-size: 1.3rem; font-weight: 700; color: var(--success);">${impTotal.toFixed(2)} €</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- PRECIOS APLICADOS -->
-                    ${(params.prP1 || params.prP2 || params.prE1) ? `
-                    <div style="background: rgba(15, 23, 42, 0.5); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
-                        <h3 style="color: var(--primary); margin-bottom: 1rem; font-size: 1.1rem;">💵 Precios Aplicados</h3>
-                        <div style="display: grid; gap: 0.75rem;">
-                            ${params.prP1 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Precio Potencia P1</span>
-                                <span style="font-weight: 700; font-family: 'Space Mono', monospace; font-size: 0.9rem;">${parseFloat(params.prP1).toFixed(6)} €/kW/día</span>
-                            </div>` : ''}
-                            ${params.prP2 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Precio Potencia P2</span>
-                                <span style="font-weight: 700; font-family: 'Space Mono', monospace; font-size: 0.9rem;">${parseFloat(params.prP2).toFixed(6)} €/kW/día</span>
-                            </div>` : ''}
-                            ${params.prE1 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Precio Energía P1</span>
-                                <span style="font-weight: 700; font-family: 'Space Mono', monospace; font-size: 0.9rem; color: var(--primary);">${parseFloat(params.prE1).toFixed(6)} €/kWh</span>
-                            </div>` : ''}
-                            ${params.prE2 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid rgba(100, 116, 139, 0.2);">
-                                <span style="color: var(--gray);">Precio Energía P2</span>
-                                <span style="font-weight: 700; font-family: 'Space Mono', monospace; font-size: 0.9rem; color: var(--primary);">${parseFloat(params.prE2).toFixed(6)} €/kWh</span>
-                            </div>` : ''}
-                            ${params.prE3 ? `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
-                                <span style="color: var(--gray);">Precio Energía P3</span>
-                                <span style="font-weight: 700; font-family: 'Space Mono', monospace; font-size: 0.9rem; color: var(--primary);">${parseFloat(params.prE3).toFixed(6)} €/kWh</span>
-                            </div>` : ''}
-                        </div>
-                    </div>` : ''}
-
-                    <!-- ENLACE CNMC -->
                     <div class="cnmc-link">
-                        <strong>🔗 ENLACE COMPARADOR CNMC:</strong><br>
+                        <strong>ENLACE ORIGINAL RAW:</strong><br>
                         <a href="${fullUrl}" target="_blank" style="color: inherit; text-decoration: none;">${fullUrl}</a>
-                    </div>
-                </div>
-            `;
-            
-            results.classList.add('active');
-        }
-
-        function showError(msg) {
                     </div>
                 </div>
             `;

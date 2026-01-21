@@ -5702,11 +5702,20 @@
             let navigationMenuHTML = '';
             
             if (tariffType === '2.0TD') {
-                // Calcular kWh por período
-                const puntaKwh = res.energyCosts[0]?.kwh || 0;
-                const llanoKwh = res.energyCosts[1]?.kwh || 0;
-                const valleKwh = res.energyCosts[2]?.kwh || 0;
+                // DEBUG: Ver qué datos tenemos
+                console.log('📊 Calculando distribución 2.0TD:', {
+                    energyCosts: res.energyCosts,
+                    isNegativeSavings: res.isNegativeSavings,
+                    hasEnergyCosts: res.energyCosts && res.energyCosts.length > 0
+                });
+                
+                // Calcular kWh por período - ASEGURAR que siempre obtenemos valores
+                const puntaKwh = (res.energyCosts && res.energyCosts[0]) ? (res.energyCosts[0].kwh || 0) : 0;
+                const llanoKwh = (res.energyCosts && res.energyCosts[1]) ? (res.energyCosts[1].kwh || 0) : 0;
+                const valleKwh = (res.energyCosts && res.energyCosts[2]) ? (res.energyCosts[2].kwh || 0) : 0;
                 const totalKwh = puntaKwh + llanoKwh + valleKwh;
+                
+                console.log('📊 Consumos calculados:', { puntaKwh, llanoKwh, valleKwh, totalKwh });
                 
                 const puntaPct = totalKwh > 0 ? (puntaKwh / totalKwh * 100).toFixed(1) : 0;
                 const llanoPct = totalKwh > 0 ? (llanoKwh / totalKwh * 100).toFixed(1) : 0;

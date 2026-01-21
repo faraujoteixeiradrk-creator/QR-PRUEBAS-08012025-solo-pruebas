@@ -393,7 +393,7 @@
             <div class="methods-badge">
                 <div class="badge"><span>🔍</span> Escaneo OCR</div>
                 <div class="badge"><span>💎</span> Minería de Imágenes</div>
-                <div class="badge"><span>🔗</span> Enlaces Ocultos</div>
+                <div class="badge"><span>🎯</span> Recorte Inteligente</div>
             </div>
             
             <input type="file" id="fileInput" accept=".pdf, .jpg, .jpeg, .png">
@@ -519,24 +519,29 @@
             const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
             updateLog(`PDF cargado: ${pdf.numPages} páginas detectadas.`);
 
-            // ESTRATEGIA 1: Buscar enlaces clicables (Annotations)
-            updateLog('Buscando enlaces digitales incrustados...');
+            // ESTRATEGIA 1: Buscar enlaces clicables y TOOLTIPS (Anotaciones)
+            updateLog('Buscando datos en metadatos y tooltips...');
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const annotations = await page.getAnnotations();
                 
                 for (const ann of annotations) {
+                    // Check URL
                     if (ann.url && isCNMCData(ann.url)) {
-                        updateLog('¡Datos digitales encontrados en enlace/anotación!');
+                        updateLog('¡Datos digitales encontrados en enlace!');
                         processSuccess(ann.url, 'Enlace Digital', i);
+                        return;
+                    }
+                    // Check Tooltips/Contents (Contenido oculto al pasar ratón)
+                    if (ann.contents && isCNMCData(ann.contents)) {
+                        updateLog('¡Datos encontrados en Tooltip (MouseOver)!');
+                        processSuccess(ann.contents, 'Tooltip/Metadato Oculto', i);
                         return;
                     }
                 }
             }
 
             // ESTRATEGIA 2: Minería de Imágenes (NATIVE IMAGE EXTRACTION)
-            // Extrae las imágenes incrustadas dentro del PDF (XObjects) sin renderizar la página completa.
-            // Esto es crucial para QRs que son imágenes pegadas en el PDF.
             updateLog('Iniciando Minería de Imágenes Nativa...');
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
@@ -545,48 +550,35 @@
                     const ops = await page.getOperatorList();
                     const commonObjs = page.objs;
                     
-                    // Buscamos operadores de pintar imagen (paintImageXObject)
                     for (let j = 0; j < ops.fnArray.length; j++) {
                         if (ops.fnArray[j] === pdfjsLib.OPS.paintImageXObject) {
                             const imgName = ops.argsArray[j][0];
-                            
-                            // Intentamos recuperar el objeto imagen
                             if (commonObjs.has(imgName)) {
                                 commonObjs.get(imgName, (imgData) => {
-                                    if (imgData && imgData.width > 50) { // Ignorar iconos pequeños
-                                        // Crear canvas temporal para esta imagen
+                                    if (imgData && imgData.width > 50) { 
                                         const tempCanvas = document.createElement('canvas');
                                         tempCanvas.width = imgData.width;
                                         tempCanvas.height = imgData.height;
                                         const ctx = tempCanvas.getContext('2d');
                                         
-                                        // Pintar la imagen cruda
                                         const imageDataObj = ctx.createImageData(imgData.width, imgData.height);
                                         if (imgData.kind === 'RGB' || imgData.kind === 'RGBA') {
-                                            // Copiar datos si es compatible
                                             for(let k=0; k<imgData.data.length; k++) imageDataObj.data[k] = imgData.data[k];
-                                        } else {
-                                            // Fallback para otros formatos (Grayscale, CMYK basic) - Simple fill
-                                            // En PDFs complejos esto puede requerir conversión manual, pero intentamos lo básico
-                                            // Para QR codes (blanco y negro), grayscale a RGB:
-                                            if (imgData.data.length === imgData.width * imgData.height) { // Grayscale
-                                                for(let k=0, p=0; k<imgData.data.length; k++, p+=4) {
-                                                    const val = imgData.data[k];
-                                                    imageDataObj.data[p] = val;
-                                                    imageDataObj.data[p+1] = val;
-                                                    imageDataObj.data[p+2] = val;
-                                                    imageDataObj.data[p+3] = 255;
-                                                }
+                                        } else if (imgData.data.length === imgData.width * imgData.height) { // Grayscale
+                                            for(let k=0, p=0; k<imgData.data.length; k++, p+=4) {
+                                                const val = imgData.data[k];
+                                                imageDataObj.data[p] = val;
+                                                imageDataObj.data[p+1] = val;
+                                                imageDataObj.data[p+2] = val;
+                                                imageDataObj.data[p+3] = 255;
                                             }
                                         }
                                         
                                         ctx.putImageData(imageDataObj, 0, 0);
-                                        
-                                        // Escanear esta imagen aislada
                                         const code = jsQR(imageDataObj.data, imgData.width, imgData.height);
                                         if (code && isCNMCData(code.data)) {
                                             updateLog('¡QR detectado por Minería de Imágenes!');
-                                            processSuccess(code.data, 'Minería de Imágenes (Extracción Directa)', i, tempCanvas);
+                                            processSuccess(code.data, 'Minería de Imágenes', i, tempCanvas);
                                             return;
                                         }
                                     }
@@ -594,12 +586,9 @@
                             }
                         }
                     }
-                } catch(e) {
-                    console.log("Error en minería de imágenes (no crítico):", e);
-                }
+                } catch(e) { console.log("Error minería imágenes:", e); }
             }
             
-            // Pausa breve para permitir que la minería asíncrona termine si encontró algo
             await new Promise(r => setTimeout(r, 500));
             if (document.getElementById('results').classList.contains('active')) return;
 
@@ -608,66 +597,75 @@
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
-                
                 const rawText = textContent.items.map(item => item.str).join(''); 
-                const spacedText = textContent.items.map(item => item.str).join(' ');
-
+                
                 if (rawText.includes('comparador.cnmc.gob.es')) {
-                    const match = spacedText.match(/(https?:\s*\/\/\s*)?comparador\.cnmc\.gob\.es\/[A-Za-z0-9\/\?=&%\.\-\_]+/i);
-                    
-                    if (match) {
-                        let cleanUrl = match[0].replace(/\s/g, '');
-                        if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
-                        updateLog('URL reconstruida desde el texto.');
-                        processSuccess(cleanUrl, 'Reconstrucción de Texto', i);
-                        return;
-                    }
-                    // Búsqueda profunda...
                     const startIdx = rawText.indexOf('comparador.cnmc.gob.es');
                     let potentialUrl = rawText.substring(startIdx);
                     const endMatch = potentialUrl.match(/[^a-zA-Z0-9\/\?=&%\.\-\_]/);
                     if (endMatch) potentialUrl = potentialUrl.substring(0, endMatch.index);
                     potentialUrl = 'https://' + potentialUrl;
-                    updateLog('URL extraída por fuerza bruta.');
                     processSuccess(potentialUrl, 'Extracción Profunda', i);
                     return;
                 }
             }
 
-            // ESTRATEGIA 4: Búsqueda Visual QR (Con Microscopio Digital)
-            updateLog('Iniciando escaneo visual de códigos QR...');
+            // ESTRATEGIA 4: Búsqueda Visual Avanzada (Full Page + CUADRANTES)
+            updateLog('Iniciando escaneo visual y recorte inteligente...');
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
-                let qrData = null;
-
-                // 1. Escaneo Rápido (x2.0)
-                updateLog(`Escaneando página ${i} (Modo Rápido)...`);
-                qrData = await scanPageForQR(page, 2.0);
-                if (qrData) { processSuccess(qrData, 'Escáner Rápido', i); return; }
                 
-                // 2. Escaneo HD (x3.0)
-                updateLog(`Reintentando página ${i} (Modo HD)...`);
-                qrData = await scanPageForQR(page, 3.0);
-                if (qrData) { processSuccess(qrData, 'Escáner HD', i); return; }
+                // 1. Escaneo Full Page (x2.0)
+                updateLog(`Página ${i}: Vista General...`);
+                let qrData = await scanPageWithCrop(page, 2.0);
+                if (qrData) { processSuccess(qrData, 'Escáner General', i); return; }
 
-                // 3. Escaneo FORENSE
-                updateLog(`Activando Modo Forense x5 para pág ${i}...`);
-                qrData = await scanPageForQR(page, 5.0, true, 160);
-                if (qrData) { processSuccess(qrData, 'Forense (Std)', i); return; }
-                
-                updateLog(`...Ajustando exposición (Dark)...`);
-                qrData = await scanPageForQR(page, 5.0, true, 100);
-                if (qrData) { processSuccess(qrData, 'Forense (Dark)', i); return; }
-
-                updateLog(`...Activando Super-Zoom x6...`);
-                qrData = await scanPageForQR(page, 6.0, true, 180);
-                if (qrData) { processSuccess(qrData, 'Super-Zoom x6', i); return; }
+                // 2. Escaneo por CUADRANTES (Recorte y Zoom x3.0)
+                // Esta es la "Localización y Recorte" que pedías.
+                // Dividimos la página en zonas y escaneamos cada una por separado.
+                updateLog(`Página ${i}: Activando Localización y Recorte (Cuadrantes)...`);
+                qrData = await scanPageQuadrants(page, 3.0); 
+                if (qrData) { processSuccess(qrData, 'Escáner por Zonas (Recorte)', i); return; }
             }
 
             throw new Error("No se pudo encontrar ninguna referencia válida a la CNMC (QR o Enlace) en este documento.");
         }
 
-        // Función auxiliar para detectar si una cadena parece datos de la CNMC
+        // Nueva función para escanear por cuadrantes (Localizar y Recortar)
+        async function scanPageQuadrants(page, scale) {
+            const viewport = page.getViewport({ scale: scale });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            // Renderizamos la página a alta resolución
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+            // Definimos los "Recortes" (Zonas de interés)
+            const w = canvas.width;
+            const h = canvas.height;
+            const quadrants = [
+                { name: "Top-Left", x: 0, y: 0, w: w/2, h: h/2 },
+                { name: "Top-Right", x: w/2, y: 0, w: w/2, h: h/2 },
+                { name: "Bottom-Left", x: 0, y: h/2, w: w/2, h: h/2 },
+                { name: "Bottom-Right", x: w/2, y: h/2, w: w/2, h: h/2 },
+                { name: "Center", x: w/4, y: h/4, w: w/2, h: h/2 } // Zona central por si acaso
+            ];
+
+            for (let q of quadrants) {
+                // Extraemos solo el cuadrante (Recorte)
+                const imgData = context.getImageData(q.x, q.y, q.w, q.h);
+                const code = jsQR(imgData.data, q.w, q.h, { inversionAttempts: "dontInvert" });
+                
+                if (code && isCNMCData(code.data)) {
+                    updateLog(`¡QR localizado en zona ${q.name}!`);
+                    return code.data;
+                }
+            }
+            return null;
+        }
+
         function isCNMCData(str) {
             if (!str) return false;
             if (str.includes('comparador.cnmc.gob.es')) return true;
@@ -705,7 +703,7 @@
             return null;
         }
 
-        async function scanPageForQR(page, scale, enhanceContrast = false, threshold = 180) {
+        async function scanPageWithCrop(page, scale, enhanceContrast = false, threshold = 180) {
             const viewport = page.getViewport({ scale: scale });
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
@@ -713,7 +711,6 @@
             canvas.height = viewport.height;
 
             await page.render({ canvasContext: context, viewport: viewport }).promise;
-            
             return attemptQRScan(context, canvas.width, canvas.height, enhanceContrast, threshold);
         }
 
@@ -857,7 +854,7 @@
 
         function showError(msg) {
             loading.classList.remove('active');
-            error.innerHTML = `<strong>Error de Lectura:</strong><br>${msg}`;
+            error.textContent = '❌ ' + msg;
             error.classList.add('active');
         }
 

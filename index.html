@@ -1127,7 +1127,7 @@
 
         <!-- 3. Initial Input View (Scan/Manual) -->
         <div id="initial-view" class="fade-in hidden">
-            <button onclick="currentTariffType === 'MULTICUPS' ? showMultiCupsSagaView() : goBackFromInitialView()" class="mb-4 text-sm text-slate-500 hover:text-drk-600 flex items-center gap-1">
+            <button onclick="currentTariffType === 'MULTICUPS' ? showMultiCupsSagaView() : goBackFromInitialView()" class="mb-4 text-sm text-slate-500 hover:text-drk-600 flex items-center gap-1" style="display: none;">
                 &larr; Volver <span id="back-button-label">a selección</span>
             </button>
 
@@ -17485,6 +17485,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             document.getElementById('screen-electricidad').classList.add('active');
             // Ocultar el modo de comparación (ya está seleccionado)
             document.getElementById('modo-comparacion-section').style.display = 'none';
+            
+            // MODIFICADO PARA VERSIÓN 2.0TD DIRECTA: Ocultar landing-view
+            document.getElementById('landing-view').classList.add('hidden');
         }
 
         function goToGas() {

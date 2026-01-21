@@ -248,13 +248,13 @@
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                 <p class="text-sm font-bold text-drk-800 mb-3 text-center uppercase tracking-wider">MODO DE COMPARACIÓN</p>
                 <div class="flex flex-wrap justify-center gap-2 text-sm">
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400">
-                        <input type="radio" name="comparison_mode" value="drk_only" class="hidden">
-                        <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
-                    </label>
                     <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-500 text-white bg-drk-500 hover:bg-drk-600">
-                        <input type="radio" name="comparison_mode" value="drk_prioritized" class="hidden" checked>
-                        <span class="font-semibold flex items-center justify-between w-full">DRK Prioritario<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
+                        <input type="radio" name="comparison_mode" value="drk_only" class="hidden" checked>
+                        <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
+                    </label>
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400">
+                        <input type="radio" name="comparison_mode" value="drk_prioritized" class="hidden">
+                        <span class="font-semibold flex items-center justify-between w-full">DRK Prioritario<svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
                     </label>
                     <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400">
                         <input type="radio" name="comparison_mode" value="overall_best" class="hidden">
@@ -2053,7 +2053,7 @@
         let currentTariffType = '2.0TD';
         let lastComparisonResult = null;
         let lastIndexedResult = null; // Para almacenar el resultado de tarifa indexada
-        let comparisonMode = 'drk_prioritized';
+        let comparisonMode = 'drk_only';
         let compareWithIndexed = false; // Control para comparación con tarifas indexadas
         let bestOptionTariffChoice = 'fija'; // NUEVO: Elección de tarifa para VER MEJOR OPCIÓN ('fija' o 'indexada')
         let isProcessingBestOption = false; // NUEVO: Bandera para prevenir llamadas concurrentes

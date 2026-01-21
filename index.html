@@ -1442,7 +1442,7 @@
             </div>
         </div>
 
-        <!-- 8. QR Options Modal (Upload/Paste) -->
+        <!-- 8. QR Options Modal (Upload/Paste) - CON DRAG & DROP -->
         <div id="qr-options-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
             <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full">
                 <h3 class="text-xl font-bold text-drk-800 mb-4" id="modal-qr-title">Seleccione Opción QR</h3>
@@ -1450,23 +1450,28 @@
                 <!-- Input oculto para captura de foto -->
                 <input type="file" id="camera-capture-input" accept="image/*" capture="environment" class="hidden">
                 
+                <!-- Input oculto para subir archivos (PDF o imagen) -->
+                <input type="file" id="file-upload-input" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" class="hidden">
+                
+                <!-- ZONA DE DRAG & DROP -->
+                <div id="drag-drop-zone" class="border-2 border-dashed border-drk-400 rounded-xl p-6 mb-4 text-center bg-drk-50 hover:bg-drk-100 transition-colors cursor-pointer">
+                    <svg class="w-16 h-16 mx-auto mb-3 text-drk-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p class="font-bold text-drk-800 mb-1">Arrastra tu factura aquí</p>
+                    <p class="text-xs text-slate-600">PDF, JPG, PNG</p>
+                    <p class="text-xs text-drk-600 mt-2 font-semibold">o haz clic para seleccionar</p>
+                </div>
+                
                 <!-- Botón Capturar Foto (primera opción) -->
                 <button id="camera-capture-btn" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 flex items-center justify-center gap-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.125 3h3.75a2 2 0 011.664.89l.812 1.22a2 2 0 001.664.89H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     <span>Capturar Foto</span>
                 </button>
                 
-                <button id="modal-upload-file-btn" class="w-full bg-drk-800 hover:bg-drk-900 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3">Subir Imagen</button>
                 <button id="modal-paste-image-btn" class="w-full bg-drk-600 hover:bg-drk-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3">Pegar Imagen (CTRL+V)</button>
                 
-                <!-- NUEVO: Subir Factura PDF -->
-                <button id="modal-upload-pdf-btn" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 flex items-center justify-center gap-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                    <span>Subir Factura PDF</span>
-                </button>
-                <input type="file" id="pdf-upload-input" accept=".pdf" class="hidden">
-                
-                <!-- NUEVO: 4ª Opción - Pegar Código Completo -->
+                <!-- Opción Pegar Código Completo -->
                 <button id="modal-paste-url-btn" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-4 flex items-center justify-center gap-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     <span>Pegar Código Completo</span>
@@ -1500,15 +1505,40 @@
             </div>
         </div>
 
-        <!-- NUEVO: Modal de Procesamiento de PDF -->
-        <div id="pdf-processing-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-            <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full">
-                <div class="text-center">
-                    <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-drk-500 mb-4"></div>
-                    <h3 class="text-xl font-bold text-drk-800 mb-2">Procesando Factura PDF...</h3>
-                    <p id="pdf-processing-log" class="text-sm text-slate-600 mb-4">Iniciando análisis del documento...</p>
-                    <div class="bg-slate-100 rounded-lg p-3 text-xs text-left font-mono text-slate-700" id="pdf-processing-details">
-                        <div>📄 Cargando PDF...</div>
+        <!-- NUEVO: Modal de Procesamiento Avanzado (PDF/Imagen) -->
+        <div id="advanced-processing-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+            <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-2xl shadow-2xl max-w-2xl w-full border border-drk-500">
+                <div class="text-center mb-6">
+                    <div class="inline-block animate-spin rounded-full h-20 w-20 border-b-4 border-drk-400 mb-4"></div>
+                    <h3 class="text-2xl font-bold text-white mb-2">🔍 Analizando Documento</h3>
+                    <p id="processing-status" class="text-drk-300 text-lg mb-4">Iniciando motor de análisis...</p>
+                </div>
+                
+                <!-- Barra de progreso -->
+                <div class="bg-slate-700 rounded-full h-3 mb-4 overflow-hidden">
+                    <div id="processing-progress-bar" class="bg-gradient-to-r from-drk-400 to-drk-600 h-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                
+                <!-- Log detallado con scroll -->
+                <div class="bg-slate-950 rounded-xl p-4 max-h-64 overflow-y-auto border border-slate-700">
+                    <div id="processing-log" class="text-xs font-mono text-drk-300 space-y-1">
+                        <div class="text-drk-400">█ Sistema iniciado...</div>
+                    </div>
+                </div>
+                
+                <!-- Información de estrategias -->
+                <div class="mt-4 grid grid-cols-3 gap-2 text-xs">
+                    <div id="strategy-1" class="bg-slate-800 p-2 rounded-lg text-center border border-slate-700">
+                        <div class="text-slate-400 mb-1">📡 Enlaces</div>
+                        <div class="text-slate-500 font-bold">Esperando...</div>
+                    </div>
+                    <div id="strategy-2" class="bg-slate-800 p-2 rounded-lg text-center border border-slate-700">
+                        <div class="text-slate-400 mb-1">📝 Texto</div>
+                        <div class="text-slate-500 font-bold">Esperando...</div>
+                    </div>
+                    <div id="strategy-3" class="bg-slate-800 p-2 rounded-lg text-center border border-slate-700">
+                        <div class="text-slate-400 mb-1">🔍 Visual</div>
+                        <div class="text-slate-500 font-bold">Esperando...</div>
                     </div>
                 </div>
             </div>
@@ -2665,12 +2695,9 @@
             const qrOptionsModal = document.getElementById('qr-options-modal');
             qrOptionsModal.querySelector('h3#modal-qr-title').className = `text-xl font-bold ${text800} mb-4`;
 
-            const uploadBtn = document.getElementById('modal-upload-file-btn');
             const pasteBtn = document.getElementById('modal-paste-image-btn');
             
-            if (uploadBtn) {
-                uploadBtn.className = `w-full text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 transform transition active:scale-95 ${isDrk ? 'bg-drk-800 hover:bg-drk-900' : 'bg-powercup-800 hover:bg-powercup-900'}`;
-            }
+            // El botón de drag & drop zone ya tiene sus propios estilos
 
             if (pasteBtn) {
                 pasteBtn.className = `w-full text-white font-bold py-3 px-6 rounded-xl shadow-md mb-4 transform transition active:scale-95 ${isDrk ? 'bg-drk-600 hover:bg-drk-800' : 'bg-powercup-600 hover:bg-powercup-800'}`;
@@ -15773,29 +15800,80 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // Botón de Finalizar MULTICUPS (en la nueva vista SAGA)
             document.getElementById('multicups-finalize-btn-saga').onclick = finalizeMultiCups;
 
-            // Botón para subir imagen
-            document.getElementById('modal-upload-file-btn').addEventListener('click', () => document.getElementById('image-file-input').click());
-            document.getElementById('image-file-input').addEventListener('change', (e) => {
-                document.getElementById('qr-options-modal').classList.add('hidden');
-                document.getElementById('qr-options-modal').classList.remove('flex');
-                if (e.target.files[0]) decodeQRFromImage(e.target.files[0]);
-                e.target.value = '';
+            // ========== EVENT LISTENERS PARA CARGA DE ARCHIVOS (DRAG & DROP Y BOTONES) ==========
+            
+            const dragDropZone = document.getElementById('drag-drop-zone');
+            const fileUploadInput = document.getElementById('file-upload-input');
+            
+            // Click en zona de drag & drop
+            dragDropZone.addEventListener('click', () => {
+                fileUploadInput.click();
             });
             
-            // NUEVO: Botón para subir PDF
-            document.getElementById('modal-upload-pdf-btn').addEventListener('click', () => {
-                document.getElementById('pdf-upload-input').click();
+            // Prevenir comportamiento por defecto en drag & drop
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dragDropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
             });
             
-            document.getElementById('pdf-upload-input').addEventListener('change', async (e) => {
-                document.getElementById('qr-options-modal').classList.add('hidden');
-                document.getElementById('qr-options-modal').classList.remove('flex');
-                if (e.target.files[0]) {
-                    await handlePDFFile(e.target.files[0]);
+            // Efectos visuales en drag & drop
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dragDropZone.addEventListener(eventName, () => {
+                    dragDropZone.classList.add('border-drk-600', 'bg-drk-200');
+                    dragDropZone.classList.remove('border-drk-400', 'bg-drk-50');
+                });
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dragDropZone.addEventListener(eventName, () => {
+                    dragDropZone.classList.remove('border-drk-600', 'bg-drk-200');
+                    dragDropZone.classList.add('border-drk-400', 'bg-drk-50');
+                });
+            });
+            
+            // Manejar drop de archivo
+            dragDropZone.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    // Cerrar modal de opciones
+                    document.getElementById('qr-options-modal').classList.add('hidden');
+                    document.getElementById('qr-options-modal').classList.remove('flex');
+                    // Procesar archivo
+                    handleFile(files[0]);
                 }
-                e.target.value = '';
             });
             
+            // Manejar selección de archivo desde input
+            fileUploadInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    // Cerrar modal de opciones
+                    document.getElementById('qr-options-modal').classList.add('hidden');
+                    document.getElementById('qr-options-modal').classList.remove('flex');
+                    // Procesar archivo
+                    handleFile(e.target.files[0]);
+                    e.target.value = ''; // Reset input
+                }
+            });
+            
+            // Botón para capturar foto (móviles)
+            document.getElementById('camera-capture-btn').addEventListener('click', () => {
+                document.getElementById('camera-capture-input').click();
+            });
+            
+            document.getElementById('camera-capture-input').addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    // Cerrar modal de opciones
+                    document.getElementById('qr-options-modal').classList.add('hidden');
+                    document.getElementById('qr-options-modal').classList.remove('flex');
+                    // Procesar como imagen
+                    handleFile(e.target.files[0]);
+                    e.target.value = '';
+                }
+            });
+            
+            // Botón pegar imagen mantiene funcionalidad original
             setupPasteCatcher(); // <-- Llamada ahora segura
 
             // === NUEVO: Event listeners para "Pegar Código Completo" ===
@@ -16601,162 +16679,401 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             img.src = url;
         }
         
-        // ========== FUNCIONES PARA PROCESAR PDFs ==========
+        // ==================== FUNCIONES DE PROCESAMIENTO DE ARCHIVOS ====================
         
         // Configurar PDF.js worker
         if (typeof pdfjsLib !== 'undefined') {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         }
         
-        function updatePDFLog(msg, detail = null) {
-            const logEl = document.getElementById('pdf-processing-log');
-            const detailsEl = document.getElementById('pdf-processing-details');
-            if (logEl) logEl.textContent = msg;
-            if (detailsEl && detail) {
-                const newLine = document.createElement('div');
-                newLine.textContent = detail;
-                detailsEl.appendChild(newLine);
-                // Auto-scroll
-                detailsEl.scrollTop = detailsEl.scrollHeight;
-            }
-            console.log(`[PDF]: ${msg}`);
-        }
-        
-        async function handlePDFFile(file) {
-            const modal = document.getElementById('pdf-processing-modal');
-            const detailsEl = document.getElementById('pdf-processing-details');
-            
-            // Mostrar modal
+        // Funciones de actualización del modal de procesamiento
+        function showProcessingModal() {
+            const modal = document.getElementById('advanced-processing-modal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            // Reset
+            document.getElementById('processing-progress-bar').style.width = '0%';
+            document.getElementById('processing-log').innerHTML = '<div class="text-drk-400">█ Sistema iniciado...</div>';
+            updateStrategyStatus(1, 'Esperando...', 'slate');
+            updateStrategyStatus(2, 'Esperando...', 'slate');
+            updateStrategyStatus(3, 'Esperando...', 'slate');
+        }
+        
+        function hideProcessingModal() {
+            const modal = document.getElementById('advanced-processing-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        
+        function updateProcessingStatus(message) {
+            document.getElementById('processing-status').textContent = message;
+        }
+        
+        function updateProcessingProgress(percent) {
+            document.getElementById('processing-progress-bar').style.width = percent + '%';
+        }
+        
+        function addProcessingLog(message, type = 'info') {
+            const logContainer = document.getElementById('processing-log');
+            const logEntry = document.createElement('div');
             
-            // Limpiar detalles
-            detailsEl.innerHTML = '<div>📄 Iniciando análisis...</div>';
+            const icons = {
+                'info': '█',
+                'success': '✓',
+                'error': '✗',
+                'working': '⚡'
+            };
+            
+            const colors = {
+                'info': 'text-drk-400',
+                'success': 'text-green-400',
+                'error': 'text-red-400',
+                'working': 'text-yellow-400'
+            };
+            
+            logEntry.className = colors[type] || colors['info'];
+            logEntry.textContent = `${icons[type]} ${message}`;
+            logContainer.appendChild(logEntry);
+            
+            // Auto scroll
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function updateStrategyStatus(strategyNum, status, color = 'blue') {
+            const element = document.getElementById(`strategy-${strategyNum}`);
+            if (!element) return;
+            
+            const colors = {
+                'slate': 'text-slate-500',
+                'blue': 'text-drk-400',
+                'yellow': 'text-yellow-400',
+                'green': 'text-green-400',
+                'red': 'text-red-400'
+            };
+            
+            const statusEl = element.querySelector('div:last-child');
+            statusEl.className = `${colors[color]} font-bold`;
+            statusEl.textContent = status;
+        }
+        
+        // Función principal para manejar archivos (PDF o imagen)
+        async function handleFile(file) {
+            console.log('📁 Archivo recibido:', file.name, file.type);
+            
+            showProcessingModal();
+            updateProcessingStatus('Detectando tipo de archivo...');
+            addProcessingLog(`Archivo: ${file.name}`, 'info');
+            addProcessingLog(`Tipo: ${file.type}`, 'info');
+            addProcessingLog(`Tamaño: ${(file.size / 1024).toFixed(2)} KB`, 'info');
+            updateProcessingProgress(5);
             
             try {
-                updatePDFLog('Cargando PDF...', '📂 Leyendo archivo...');
+                if (file.type === 'application/pdf') {
+                    await handlePDF(file);
+                } else if (file.type.startsWith('image/')) {
+                    await handleImageFile(file);
+                } else {
+                    throw new Error('Formato no soportado. Por favor sube PDF, JPG o PNG.');
+                }
+            } catch (err) {
+                console.error('❌ Error procesando archivo:', err);
+                hideProcessingModal();
+                window.showErrorModal(`❌ Error al procesar el archivo:\n\n${err.message}`);
+            }
+        }
+        
+        // Procesar archivos PDF
+        async function handlePDF(file) {
+            updateProcessingStatus('Cargando PDF...');
+            addProcessingLog('📄 Iniciando análisis de PDF...', 'working');
+            updateProcessingProgress(10);
+            
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+            
+            addProcessingLog(`✓ PDF cargado: ${pdf.numPages} página(s)`, 'success');
+            updateProcessingProgress(15);
+            
+            // ESTRATEGIA 1: Buscar enlaces digitales incrustados
+            updateProcessingStatus('Buscando enlaces digitales...');
+            updateStrategyStatus(1, 'Analizando...', 'yellow');
+            addProcessingLog('🔍 Estrategia 1: Enlaces incrustados', 'working');
+            updateProcessingProgress(20);
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const annotations = await page.getAnnotations();
                 
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-                updatePDFLog(`PDF cargado: ${pdf.numPages} páginas`, `✓ ${pdf.numPages} página(s) detectada(s)`);
+                addProcessingLog(`  Página ${i}/${pdf.numPages}: ${annotations.length} anotación(es)`, 'info');
                 
-                // ESTRATEGIA 1: Buscar enlaces digitales incrustados
-                updatePDFLog('Buscando enlaces digitales...', '🔍 Estrategia 1: Enlaces incrustados');
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const annotations = await page.getAnnotations();
-                    
-                    for (const ann of annotations) {
-                        if (ann.url && ann.url.includes('comparador.cnmc.gob.es')) {
-                            updatePDFLog('¡Enlace digital encontrado!', `✓ Página ${i}: Enlace detectado`);
-                            modal.classList.add('hidden');
-                            modal.classList.remove('flex');
+                for (const ann of annotations) {
+                    if (ann.url && ann.url.includes('comparador.cnmc.gob.es')) {
+                        addProcessingLog(`✓ ¡Enlace encontrado en página ${i}!`, 'success');
+                        updateStrategyStatus(1, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
                             handleQRRead(ann.url);
-                            return;
-                        }
+                        }, 800);
+                        return;
                     }
                 }
-                updatePDFLog('Sin enlaces digitales', '⊘ No se encontraron enlaces');
+            }
+            
+            updateStrategyStatus(1, 'Sin resultados', 'slate');
+            addProcessingLog('⊘ No se encontraron enlaces digitales', 'info');
+            updateProcessingProgress(30);
+            
+            // ESTRATEGIA 2: Análisis de texto completo
+            updateProcessingStatus('Analizando texto del documento...');
+            updateStrategyStatus(2, 'Analizando...', 'yellow');
+            addProcessingLog('🔍 Estrategia 2: Extracción de texto', 'working');
+            updateProcessingProgress(35);
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
                 
-                // ESTRATEGIA 2: Análisis de texto completo
-                updatePDFLog('Analizando texto del documento...', '🔍 Estrategia 2: Extracción de texto');
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    updatePDFLog(`Analizando página ${i}/${pdf.numPages}...`);
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
+                const rawText = textContent.items.map(item => item.str).join('');
+                const spacedText = textContent.items.map(item => item.str).join(' ');
+                
+                addProcessingLog(`  Página ${i}/${pdf.numPages}: ${textContent.items.length} elementos de texto`, 'info');
+                
+                if (rawText.includes('comparador.cnmc.gob.es')) {
+                    addProcessingLog(`✓ URL detectada en texto (página ${i})`, 'success');
                     
-                    const rawText = textContent.items.map(item => item.str).join('');
-                    const spacedText = textContent.items.map(item => item.str).join(' ');
-                    
-                    if (rawText.includes('comparador.cnmc.gob.es')) {
-                        updatePDFLog('URL detectada en texto', `✓ Página ${i}: Reconstruyendo URL`);
+                    // Intentar reconstruir URL desde texto espaciado
+                    const match = spacedText.match(/(https?:\s*\/\/\s*)?comparador\.cnmc\.gob\.es\/[A-Za-z0-9\/\?=&%\.\-\_]+/i);
+                    if (match) {
+                        let cleanUrl = match[0].replace(/\s/g, '');
+                        if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
                         
-                        // Intentar reconstruir URL desde texto espaciado
-                        const match = spacedText.match(/(https?:\s*\/\/\s*)?comparador\.cnmc\.gob\.es\/[A-Za-z0-9\/\?=&%\.\-\_]+/i);
-                        if (match) {
-                            let cleanUrl = match[0].replace(/\s/g, '');
-                            if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
-                            updatePDFLog('URL reconstruida', `✓ URL válida encontrada`);
-                            modal.classList.add('hidden');
-                            modal.classList.remove('flex');
+                        addProcessingLog('✓ URL reconstruida correctamente', 'success');
+                        updateStrategyStatus(2, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
                             handleQRRead(cleanUrl);
-                            return;
-                        }
-                        
-                        // Extracción por fuerza bruta
-                        const startIdx = rawText.indexOf('comparador.cnmc.gob.es');
-                        let potentialUrl = rawText.substring(startIdx);
-                        const endMatch = potentialUrl.match(/[^a-zA-Z0-9\/\?=&%\.\-\_]/);
-                        if (endMatch) potentialUrl = potentialUrl.substring(0, endMatch.index);
-                        potentialUrl = 'https://' + potentialUrl;
-                        updatePDFLog('URL extraída por análisis profundo', `✓ Extracción completa`);
-                        modal.classList.add('hidden');
-                        modal.classList.remove('flex');
+                        }, 800);
+                        return;
+                    }
+                    
+                    // Extracción por fuerza bruta
+                    const startIdx = rawText.indexOf('comparador.cnmc.gob.es');
+                    let potentialUrl = rawText.substring(startIdx);
+                    const endMatch = potentialUrl.match(/[^a-zA-Z0-9\/\?=&%\.\-\_]/);
+                    if (endMatch) potentialUrl = potentialUrl.substring(0, endMatch.index);
+                    potentialUrl = 'https://' + potentialUrl;
+                    
+                    addProcessingLog('✓ URL extraída por análisis profundo', 'success');
+                    updateStrategyStatus(2, '¡Éxito!', 'green');
+                    updateProcessingProgress(100);
+                    
+                    setTimeout(() => {
+                        hideProcessingModal();
                         handleQRRead(potentialUrl);
-                        return;
-                    }
+                    }, 800);
+                    return;
                 }
-                updatePDFLog('Sin texto de URL detectado', '⊘ No se encontró texto CNMC');
+            }
+            
+            updateStrategyStatus(2, 'Sin resultados', 'slate');
+            addProcessingLog('⊘ No se encontró texto de URL CNMC', 'info');
+            updateProcessingProgress(50);
+            
+            // ESTRATEGIA 3: Escaneo visual de códigos QR
+            updateProcessingStatus('Iniciando escaneo visual de QR...');
+            updateStrategyStatus(3, 'Analizando...', 'yellow');
+            addProcessingLog('🔍 Estrategia 3: Detección visual de QR', 'working');
+            updateProcessingProgress(55);
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const progressBase = 55 + (i - 1) * (40 / pdf.numPages);
                 
-                // ESTRATEGIA 3: Escaneo visual de códigos QR
-                updatePDFLog('Iniciando escaneo visual...', '🔍 Estrategia 3: Análisis de imágenes');
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    updatePDFLog(`Escaneando página ${i}/${pdf.numPages}...`);
-                    const page = await pdf.getPage(i);
+                // Intento 1: Escala 2.0 (rápido)
+                addProcessingLog(`  Página ${i}: Escaneo rápido (2.0x)`, 'working');
+                updateProcessingProgress(progressBase);
+                let qrUrl = await scanPDFPageForQR(page, 2.0);
+                if (qrUrl) {
+                    addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                    updateStrategyStatus(3, '¡Éxito!', 'green');
+                    updateProcessingProgress(100);
                     
-                    // Intento rápido (escala 2.0)
-                    updatePDFLog(`Página ${i}: Modo rápido...`, `⚡ Escala 2.0x`);
-                    let qrUrl = await scanPDFPageForQR(page, 2.0);
-                    if (qrUrl) {
-                        updatePDFLog('¡QR detectado!', `✓ Página ${i}: Modo Rápido`);
-                        modal.classList.add('hidden');
-                        modal.classList.remove('flex');
+                    setTimeout(() => {
+                        hideProcessingModal();
                         handleQRRead(qrUrl);
-                        return;
-                    }
-                    
-                    // Intento HD (escala 3.0)
-                    updatePDFLog(`Página ${i}: Modo HD...`, `🔬 Escala 3.0x`);
-                    qrUrl = await scanPDFPageForQR(page, 3.0);
-                    if (qrUrl) {
-                        updatePDFLog('¡QR detectado!', `✓ Página ${i}: Modo HD`);
-                        modal.classList.add('hidden');
-                        modal.classList.remove('flex');
-                        handleQRRead(qrUrl);
-                        return;
-                    }
-                    
-                    // Intento Forense (escala 5.0 con filtros)
-                    updatePDFLog(`Página ${i}: Modo forense...`, `🔍 Escala 5.0x + Filtros`);
-                    qrUrl = await scanPDFPageForQR(page, 5.0, true, 160);
-                    if (qrUrl) {
-                        updatePDFLog('¡QR detectado!', `✓ Página ${i}: Modo Forense`);
-                        modal.classList.add('hidden');
-                        modal.classList.remove('flex');
-                        handleQRRead(qrUrl);
-                        return;
-                    }
+                    }, 800);
+                    return;
                 }
                 
-                // No se encontró nada
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
+                // Intento 2: Escala 3.0 (HD)
+                addProcessingLog(`  Página ${i}: Escaneo HD (3.0x)`, 'working');
+                updateProcessingProgress(progressBase + 5);
+                qrUrl = await scanPDFPageForQR(page, 3.0);
+                if (qrUrl) {
+                    addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                    updateStrategyStatus(3, '¡Éxito!', 'green');
+                    updateProcessingProgress(100);
+                    
+                    setTimeout(() => {
+                        hideProcessingModal();
+                        handleQRRead(qrUrl);
+                    }, 800);
+                    return;
+                }
+                
+                // Intento 3: Escala 5.0 con filtros (Forense)
+                addProcessingLog(`  Página ${i}: Modo forense (5.0x + filtros)`, 'working');
+                updateProcessingProgress(progressBase + 10);
+                qrUrl = await scanPDFPageForQR(page, 5.0, true, 160);
+                if (qrUrl) {
+                    addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                    updateStrategyStatus(3, '¡Éxito!', 'green');
+                    updateProcessingProgress(100);
+                    
+                    setTimeout(() => {
+                        hideProcessingModal();
+                        handleQRRead(qrUrl);
+                    }, 800);
+                    return;
+                }
+                
+                // Intento 4: Escala 5.0 con filtro oscuro
+                addProcessingLog(`  Página ${i}: Filtro oscuro (5.0x)`, 'working');
+                qrUrl = await scanPDFPageForQR(page, 5.0, true, 100);
+                if (qrUrl) {
+                    addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                    updateStrategyStatus(3, '¡Éxito!', 'green');
+                    updateProcessingProgress(100);
+                    
+                    setTimeout(() => {
+                        hideProcessingModal();
+                        handleQRRead(qrUrl);
+                    }, 800);
+                    return;
+                }
+                
+                // Intento 5: Super-zoom 6.0
+                addProcessingLog(`  Página ${i}: Super-zoom (6.0x)`, 'working');
+                qrUrl = await scanPDFPageForQR(page, 6.0, true, 180);
+                if (qrUrl) {
+                    addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                    updateStrategyStatus(3, '¡Éxito!', 'green');
+                    updateProcessingProgress(100);
+                    
+                    setTimeout(() => {
+                        hideProcessingModal();
+                        handleQRRead(qrUrl);
+                    }, 800);
+                    return;
+                }
+            }
+            
+            updateStrategyStatus(3, 'Sin resultados', 'red');
+            addProcessingLog('✗ No se detectó código QR en ninguna página', 'error');
+            updateProcessingProgress(100);
+            
+            // No se encontró nada
+            setTimeout(() => {
+                hideProcessingModal();
                 window.showErrorModal(
                     "❌ No se detectó código QR de CNMC\n\n" +
                     "💡 Sugerencias:\n" +
                     "• Verifica que el PDF contenga el QR de la CNMC\n" +
-                    "• Intenta con una imagen del QR en lugar de PDF\n" +
+                    "• El QR debe ser visible y legible\n" +
+                    "• Intenta con una imagen clara del QR\n" +
                     "• Usa la opción 'Pegar Código Completo' si tienes la URL"
                 );
-                
-            } catch (err) {
-                console.error('Error procesando PDF:', err);
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-                window.showErrorModal(`❌ Error al procesar el PDF:\n${err.message}`);
-            }
+            }, 1500);
         }
         
+        // Procesar archivos de imagen
+        async function handleImageFile(file) {
+            updateProcessingStatus('Cargando imagen...');
+            updateStrategyStatus(3, 'Analizando...', 'yellow');
+            addProcessingLog('📸 Iniciando análisis de imagen...', 'working');
+            updateProcessingProgress(15);
+            
+            const bitmap = await createImageBitmap(file);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = bitmap.width;
+            canvas.height = bitmap.height;
+            ctx.drawImage(bitmap, 0, 0);
+            
+            addProcessingLog(`✓ Imagen cargada: ${canvas.width}x${canvas.height}`, 'success');
+            updateProcessingProgress(25);
+            
+            // Intento 1: Escaneo directo
+            addProcessingLog('🔍 Intento 1: Escaneo directo', 'working');
+            updateProcessingProgress(30);
+            let qrUrl = attemptQRScanFromCanvas(ctx, canvas.width, canvas.height, false);
+            if (qrUrl) {
+                addProcessingLog('✓ ¡QR detectado en modo directo!', 'success');
+                updateStrategyStatus(3, '¡Éxito!', 'green');
+                updateProcessingProgress(100);
+                
+                setTimeout(() => {
+                    hideProcessingModal();
+                    handleQRRead(qrUrl);
+                }, 800);
+                return;
+            }
+            
+            // Intento 2: Con filtro estándar
+            addProcessingLog('🔍 Intento 2: Filtro de contraste estándar', 'working');
+            updateProcessingProgress(50);
+            qrUrl = attemptQRScanFromCanvas(ctx, canvas.width, canvas.height, true, 160);
+            if (qrUrl) {
+                addProcessingLog('✓ ¡QR detectado con filtro estándar!', 'success');
+                updateStrategyStatus(3, '¡Éxito!', 'green');
+                updateProcessingProgress(100);
+                
+                setTimeout(() => {
+                    hideProcessingModal();
+                    handleQRRead(qrUrl);
+                }, 800);
+                return;
+            }
+            
+            // Intento 3: Con filtro oscuro
+            addProcessingLog('🔍 Intento 3: Filtro oscuro', 'working');
+            updateProcessingProgress(75);
+            qrUrl = attemptQRScanFromCanvas(ctx, canvas.width, canvas.height, true, 100);
+            if (qrUrl) {
+                addProcessingLog('✓ ¡QR detectado con filtro oscuro!', 'success');
+                updateStrategyStatus(3, '¡Éxito!', 'green');
+                updateProcessingProgress(100);
+                
+                setTimeout(() => {
+                    hideProcessingModal();
+                    handleQRRead(qrUrl);
+                }, 800);
+                return;
+            }
+            
+            // No detectado
+            updateStrategyStatus(3, 'Sin resultados', 'red');
+            addProcessingLog('✗ No se detectó código QR en la imagen', 'error');
+            updateProcessingProgress(100);
+            
+            setTimeout(() => {
+                hideProcessingModal();
+                window.showErrorModal(
+                    "❌ No se detectó el código QR\n\n" +
+                    "💡 Sugerencias:\n" +
+                    "• Asegúrate de que el QR sea visible y legible\n" +
+                    "• Intenta con mejor iluminación\n" +
+                    "• Haz una foto más cercana del QR\n" +
+                    "• Usa el escáner en vivo para mejores resultados"
+                );
+            }, 1500);
+        }
+        
+        // Escanear página de PDF en busca de QR
         async function scanPDFPageForQR(page, scale, enhanceContrast = false, threshold = 180) {
             const viewport = page.getViewport({ scale: scale });
             const canvas = document.createElement('canvas');
@@ -16769,6 +17086,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             return attemptQRScanFromCanvas(context, canvas.width, canvas.height, enhanceContrast, threshold);
         }
         
+        // Intentar escanear QR desde canvas
         function attemptQRScanFromCanvas(context, width, height, enhanceContrast = false, threshold = 180) {
             const imageData = context.getImageData(0, 0, width, height);
             let data = imageData.data;
@@ -16796,7 +17114,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             return null;
         }
         
-        // ========== FIN FUNCIONES PDF ==========
+        // ==================== FIN FUNCIONES DE PROCESAMIENTO ====================
         
         function startScanner() {
             // Use multiCupsAddType for the check if we are in MultiCups mode

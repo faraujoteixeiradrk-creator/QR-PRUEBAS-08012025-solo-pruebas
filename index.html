@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extractor de QR - Facturas Eléctricas</title>
+    <title>Extractor Universal - Facturas Eléctricas</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap');
         
@@ -20,10 +20,11 @@
             --accent: #fbbf24;
             --dark: #0f172a;
             --dark-lighter: #1e293b;
-            --gray: #64748b;
+            --gray: #94a3b8;
             --light: #f8fafc;
             --success: #10b981;
             --error: #ef4444;
+            --surface: rgba(30, 41, 59, 0.7);
         }
         
         body {
@@ -36,6 +37,7 @@
             overflow-x: hidden;
         }
         
+        /* Fondo animado sutil */
         body::before {
             content: '';
             position: fixed;
@@ -43,9 +45,10 @@
             right: -50%;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
-            animation: pulse 4s ease-in-out infinite;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.08) 0%, transparent 70%);
+            animation: pulse 8s ease-in-out infinite;
             pointer-events: none;
+            z-index: 0;
         }
         
         @keyframes pulse {
@@ -67,14 +70,8 @@
         }
         
         @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         h1 {
@@ -83,7 +80,6 @@
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
             margin-bottom: 0.5rem;
             letter-spacing: -0.02em;
         }
@@ -97,160 +93,123 @@
         }
         
         .upload-zone {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(10px);
+            background: var(--surface);
+            backdrop-filter: blur(12px);
             border: 2px dashed var(--primary);
-            border-radius: 20px;
-            padding: 3rem;
+            border-radius: 24px;
+            padding: 4rem 2rem;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 2rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 3rem;
             position: relative;
             overflow: hidden;
-            animation: fadeIn 0.6s ease-out 0.2s both;
-        }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .upload-zone::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
-            transition: left 0.5s ease;
-        }
-        
-        .upload-zone:hover::before {
-            left: 100%;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         
         .upload-zone:hover {
             border-color: var(--accent);
-            background: rgba(30, 41, 59, 0.8);
+            background: rgba(30, 41, 59, 0.9);
             transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.15);
         }
         
         .upload-zone.dragover {
             border-color: var(--success);
             background: rgba(16, 185, 129, 0.1);
+            transform: scale(1.02);
         }
         
         .upload-icon {
             font-size: 4rem;
-            margin-bottom: 1rem;
-            display: block;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.3));
         }
         
         .upload-text {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
             font-weight: 600;
         }
         
         .upload-hint {
             color: var(--gray);
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-family: 'Space Mono', monospace;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
         }
         
-        input[type="file"] {
-            display: none;
+        .methods-badge {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
         }
         
-        .btn {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: var(--dark);
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Sora', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        .badge {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 1rem;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            color: var(--primary);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
+
+        input[type="file"] { display: none; }
         
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0, 212, 255, 0.5);
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
+        /* Loading State */
         .loading {
             display: none;
             text-align: center;
             padding: 2rem;
             animation: fadeIn 0.3s ease-out;
         }
-        
-        .loading.active {
-            display: block;
-        }
+        .loading.active { display: block; }
         
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(0, 212, 255, 0.2);
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0, 212, 255, 0.1);
             border-top-color: var(--primary);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
+            animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            margin: 0 auto 1.5rem;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        /* Logs de proceso para que el usuario vea qué pasa */
+        .process-log {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 1rem;
+            height: 1.5em;
+            overflow: hidden;
         }
-        
+
+        /* Resultados */
         .results {
             display: none;
-            animation: fadeIn 0.6s ease-out;
-        }
-        
-        .results.active {
-            display: block;
-        }
-        
-        .result-card {
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(0, 212, 255, 0.2);
             animation: slideUp 0.6s ease-out;
         }
+        .results.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
         
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .result-card {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
         
         .result-header {
@@ -258,696 +217,492 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .result-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .result-badge {
-            background: var(--success);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-family: 'Space Mono', monospace;
-        }
-        
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .info-section {
-            background: rgba(15, 23, 42, 0.5);
-            padding: 1.5rem;
+        .success-tag {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            padding: 0.5rem 1rem;
             border-radius: 12px;
-            border-left: 4px solid var(--primary);
-        }
-        
-        .section-title {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--primary);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid rgba(100, 116, 139, 0.2);
-        }
-        
-        .info-item:last-child {
-            border-bottom: none;
-        }
-        
-        .info-label {
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-        
-        .info-value {
             font-weight: 600;
-            color: var(--light);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .highlight-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.2s;
+        }
+        
+        .stat-box:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
             font-family: 'Space Mono', monospace;
         }
         
-        .highlight-box {
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
-            border: 2px solid var(--primary);
-            border-radius: 12px;
-            padding: 2rem;
-            text-align: center;
-            margin: 2rem 0;
-        }
-        
-        .highlight-label {
-            font-size: 0.9rem;
-            color: var(--gray);
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-        
-        .highlight-value {
-            font-size: 3rem;
+        .stat-value {
+            font-size: 1.8rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: var(--light);
+        }
+        
+        .stat-value.total {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
         }
         
-        .error {
-            background: rgba(239, 68, 68, 0.1);
-            border: 2px solid var(--error);
-            border-radius: 12px;
-            padding: 1.5rem;
-            color: var(--error);
-            text-align: center;
-            display: none;
-            animation: shake 0.5s ease-out;
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-        
-        .error.active {
-            display: block;
-        }
-        
-        .consumption-chart {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-        
-        .chart-bar {
-            background: rgba(15, 23, 42, 0.5);
-            border-radius: 8px;
+        .data-table th, .data-table td {
+            text-align: left;
             padding: 1rem;
-            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
         
-        .chart-bar-label {
-            font-size: 0.8rem;
+        .data-table th {
             color: var(--gray);
-            margin-bottom: 0.5rem;
             font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            text-transform: uppercase;
         }
         
-        .chart-bar-visual {
-            height: 100px;
-            background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+        .data-table td {
+            font-weight: 500;
+        }
+
+        /* Barras de consumo */
+        .bar-container {
+            margin-top: 0.5rem;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
-            margin-bottom: 0.5rem;
-            position: relative;
             overflow: hidden;
         }
         
-        .chart-bar-visual::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 30%;
-            background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, transparent 100%);
+        .bar-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 1s ease-out;
         }
-        
-        .chart-bar-value {
-            font-weight: 700;
-            color: var(--light);
-        }
-        
-        footer {
+
+        .error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--error);
+            border-radius: 16px;
+            padding: 1.5rem;
+            color: #fca5a5;
             text-align: center;
-            margin-top: 4rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(100, 116, 139, 0.2);
-            color: var(--gray);
-            font-size: 0.85rem;
+            display: none;
+            margin-top: 2rem;
         }
         
-        @media (max-width: 768px) {
-            body {
-                padding: 1rem;
-            }
-            
-            .upload-zone {
-                padding: 2rem 1rem;
-            }
-            
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .consumption-chart {
-                grid-template-columns: 1fr;
-            }
-            
-            .result-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
+        .error.active { display: block; animation: shake 0.5s ease-out; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .cnmc-link {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 12px;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--primary);
+            word-break: break-all;
+            margin-top: 2rem;
+            border: 1px dashed rgba(0, 212, 255, 0.3);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>⚡ Extractor de QR</h1>
-            <p class="subtitle">Facturas Eléctricas • Comparador CNMC</p>
+            <h1>⚡ Extractor Inteligente</h1>
+            <p class="subtitle">Analizador de Facturas Eléctricas CNMC</p>
         </header>
 
         <div class="upload-zone" id="uploadZone">
             <span class="upload-icon">📄</span>
             <div class="upload-text">Arrastra tu factura PDF aquí</div>
-            <div class="upload-hint">Detecta código QR o enlace del comparador CNMC</div>
+            <div class="upload-hint">
+                Nuestro sistema busca automáticamente el <strong>Código QR</strong> o el <strong>Enlace Oculto</strong> 
+                de la CNMC para obtener los datos precisos de tu consumo.
+            </div>
+            
+            <div class="methods-badge">
+                <div class="badge"><span>🔍</span> Escaneo OCR</div>
+                <div class="badge"><span>📱</span> Lector QR HD</div>
+                <div class="badge"><span>🔗</span> Extracción de Enlaces</div>
+            </div>
+            
             <input type="file" id="fileInput" accept=".pdf">
-        </div>
-
-        <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap; animation: fadeIn 0.6s ease-out 0.4s both;">
-            <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--gray); font-size: 0.85rem;">
-                <span style="font-size: 1.5rem;">📱</span>
-                <span>Detección por QR</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--gray); font-size: 0.85rem;">
-                <span style="font-size: 1.5rem;">🔗</span>
-                <span>Extracción por enlace</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--primary); font-size: 0.85rem; font-weight: 600;">
-                <span style="font-size: 1.5rem;">✓</span>
-                <span>Doble protección</span>
-            </div>
         </div>
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Procesando PDF...</p>
-            <p style="font-size: 0.9rem; color: var(--gray); margin-top: 0.5rem;">Buscando código QR y enlaces del comparador CNMC</p>
+            <h3>Analizando Documento...</h3>
+            <div class="process-log" id="processLog">Iniciando motor de análisis...</div>
         </div>
 
         <div class="error" id="error"></div>
 
         <div class="results" id="results"></div>
-
-        <footer>
-            <p>Extractor de QR para Facturas Eléctricas • Comparador CNMC</p>
-        </footer>
     </div>
 
-    <!-- PDF.js -->
+    <!-- PDF.js & jsQR Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    
-    <!-- jsQR -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
     <script>
-        // Configurar PDF.js
+        // Configuración de Workers
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+        // Elementos DOM
         const uploadZone = document.getElementById('uploadZone');
         const fileInput = document.getElementById('fileInput');
         const loading = document.getElementById('loading');
+        const processLog = document.getElementById('processLog');
         const error = document.getElementById('error');
         const results = document.getElementById('results');
 
-        // Manejo de drag & drop
+        // Event Listeners Drag & Drop
         uploadZone.addEventListener('click', () => fileInput.click());
-        
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.classList.add('dragover');
-        });
-        
-        uploadZone.addEventListener('dragleave', () => {
-            uploadZone.classList.remove('dragover');
-        });
-        
+        uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
         uploadZone.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadZone.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0 && files[0].type === 'application/pdf') {
-                handleFile(files[0]);
-            } else {
-                showError('Por favor, sube un archivo PDF válido');
-            }
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
         });
-        
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFile(e.target.files[0]);
-            }
-        });
+        fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
 
-        // Mapeo de parámetros CNMC
+        // Diccionario de parámetros CNMC
         const paramNames = {
             'cp': 'Código Postal',
-            'pP1': 'Potencia P1 (kW)',
-            'pP2': 'Potencia P2 (kW)',
-            'caP1': 'Consumo P1 (kWh)',
-            'caP2': 'Consumo P2 (kWh)',
-            'caP3': 'Consumo P3 (kWh)',
-            'iniA': 'Inicio Alta',
-            'tc': 'Tarifa Código',
-            'finContrato': 'Fin Contrato',
-            'tf': 'Tipo Facturación',
-            'imp': 'Importe Total (€)',
-            'cfP1': 'Coste Fijo P1 (€)',
-            'cfP2': 'Coste Fijo P2 (€)',
-            'cfP3': 'Coste Fijo P3 (€)',
-            'iniF': 'Inicio Factura',
-            'finF': 'Fin Factura',
-            'impOtrosSinIE': 'Otros Importes (€)',
-            'com': 'Comercializadora',
+            'pP1': 'Potencia P1 (kW)', 'pP2': 'Potencia P2 (kW)',
+            'caP1': 'Consumo P1', 'caP2': 'Consumo P2', 'caP3': 'Consumo P3',
+            'imp': 'Importe Total',
+            'iniF': 'Inicio Factura', 'finF': 'Fin Factura',
             'cups': 'CUPS',
-            'pmaxP1': 'Potencia Máxima P1',
-            'pmaxP2': 'Potencia Máxima P2',
-            'fFact': 'Fecha Factura',
-            'finBS': 'Bono Social (€)',
-            'ajuste': 'Ajuste (€)',
-            'impPot': 'Importe Potencia (€)',
-            'impEner': 'Importe Energía (€)',
-            'prP1': 'Precio Potencia P1 (€/kW/día)',
-            'prP2': 'Precio Potencia P2 (€/kW/día)',
-            'prE1': 'Precio Energía P1 (€/kWh)',
-            'cambio': 'Cambio',
-            'rev': 'Revisión'
+            'com': 'Comercializadora',
+            'impPot': 'Importe Potencia',
+            'impEner': 'Importe Energía',
+            'impOtrosConIE': 'Otros con Impuestos',
+            'impOtrosSinIE': 'Otros sin Impuestos',
+            'prP1': 'Precio Potencia P1', 'prP2': 'Precio Potencia P2',
+            'prE1': 'Precio Energía P1', 'prE2': 'Precio Energía P2', 'prE3': 'Precio Energía P3'
         };
 
+        function updateLog(msg) {
+            processLog.textContent = msg;
+            console.log(`[System]: ${msg}`);
+        }
+
         async function handleFile(file) {
+            if (file.type !== 'application/pdf') {
+                return showError('El archivo debe ser un PDF.');
+            }
+
+            // Reset UI
             hideError();
             results.classList.remove('active');
             loading.classList.add('active');
-
+            
             try {
                 const arrayBuffer = await file.arrayBuffer();
                 const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-                
-                let qrFound = false;
-                let urlFound = false;
-                
-                // MÉTODO 1: Buscar QR en cada página
-                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                    const page = await pdf.getPage(pageNum);
-                    const viewport = page.getViewport({ scale: 2.0 });
+                updateLog(`PDF cargado: ${pdf.numPages} páginas detectadas.`);
+
+                // ESTRATEGIA 1: Buscar enlaces clicables (Annotations) - La más rápida y fiable
+                updateLog('Buscando enlaces digitales incrustados...');
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const annotations = await page.getAnnotations();
                     
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-                    
-                    await page.render({
-                        canvasContext: context,
-                        viewport: viewport
-                    }).promise;
-                    
-                    // Obtener datos de imagen
-                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                    
-                    // Buscar QR
-                    const code = jsQR(imageData.data, imageData.width, imageData.height);
-                    
-                    if (code) {
-                        qrFound = true;
-                        const qrData = code.data;
-                        
-                        // Verificar si es del comparador CNMC
-                        if (qrData.includes('comparador.cnmc.gob.es')) {
-                            const info = parseCNMCUrl(qrData);
-                            displayResults(info, pageNum, 'QR Code');
-                            loading.classList.remove('active');
+                    for (const ann of annotations) {
+                        if (ann.url && ann.url.includes('comparador.cnmc.gob.es')) {
+                            updateLog('¡Enlace digital encontrado!');
+                            processSuccess(ann.url, 'Enlace Digital', i);
                             return;
                         }
                     }
                 }
-                
-                // MÉTODO 2: Si no se encontró QR, buscar URL en el texto
-                if (!qrFound) {
-                    console.log('QR no encontrado, buscando URL en el texto...');
+
+                // ESTRATEGIA 2: Escaneo de Texto en Bruto (Stitching)
+                // A veces el texto está partido: "comparador.cnmc." + "gob.es"
+                updateLog('Analizando texto completo del documento...');
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
                     
-                    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                        const page = await pdf.getPage(pageNum);
-                        const textContent = await page.getTextContent();
+                    // Unimos todo el texto sin espacios para encontrar patrones rotos
+                    const rawText = textContent.items.map(item => item.str).join(''); 
+                    // Unimos con espacios para lectura normal
+                    const spacedText = textContent.items.map(item => item.str).join(' ');
+
+                    // Buscamos el patrón base
+                    if (rawText.includes('comparador.cnmc.gob.es')) {
+                        // Si encontramos la base, intentamos extraer la URL completa usando Regex sobre el texto espaciado pero limpiando espacios internos en la URL
+                        // Esta Regex busca la estructura de la URL permitiendo espacios accidentales
+                        const match = spacedText.match(/(https?:\s*\/\/\s*)?comparador\.cnmc\.gob\.es\/[A-Za-z0-9\/\?=&%\.\-\_]+/i);
                         
-                        // Unir todo el texto de la página, eliminar espacios múltiples
-                        let pageText = textContent.items.map(item => item.str).join(' ');
-                        pageText = pageText.replace(/\s+/g, ' '); // Normalizar espacios
-                        
-                        // Buscar URL del comparador CNMC con varios patrones
-                        const urlPatterns = [
-                            /https?:\/\/comparador\.cnmc\.gob\.es\/comparador\/[^\s\)\]]+/gi,
-                            /comparador\.cnmc\.gob\.es\/comparador\/[^\s\)\]]+/gi,
-                            /https?:\/\/comparador\.cnmc\.gob\.es[^\s\)\]]+/gi
-                        ];
-                        
-                        for (const pattern of urlPatterns) {
-                            const matches = pageText.match(pattern);
+                        if (match) {
+                            // Limpiamos la URL encontrada de espacios
+                            let cleanUrl = match[0].replace(/\s/g, '');
+                            if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
                             
-                            if (matches && matches.length > 0) {
-                                urlFound = true;
-                                let url = matches[0];
-                                
-                                // Asegurar que tiene protocolo
-                                if (!url.startsWith('http')) {
-                                    url = 'https://' + url;
-                                }
-                                
-                                console.log('URL encontrada en texto:', url);
-                                
-                                const info = parseCNMCUrl(url);
-                                displayResults(info, pageNum, 'Enlace de texto');
-                                loading.classList.remove('active');
-                                return;
-                            }
+                            updateLog('URL reconstruida desde el texto.');
+                            processSuccess(cleanUrl, 'Reconstrucción de Texto', i);
+                            return;
                         }
+                        
+                        // Si la regex falla, intentamos una búsqueda más agresiva en el rawText
+                        const startIdx = rawText.indexOf('comparador.cnmc.gob.es');
+                        // Tomamos un trozo largo a partir del inicio y cortamos en el primer caracter no válido
+                        let potentialUrl = rawText.substring(startIdx);
+                        // Cortar cuando encontremos algo que no sea url safe (simplificado)
+                        const endMatch = potentialUrl.match(/[^a-zA-Z0-9\/\?=&%\.\-\_]/);
+                        if (endMatch) {
+                            potentialUrl = potentialUrl.substring(0, endMatch.index);
+                        }
+                        potentialUrl = 'https://' + potentialUrl;
+                        updateLog('URL extraída por fuerza bruta.');
+                        processSuccess(potentialUrl, 'Extracción Profunda', i);
+                        return;
                     }
                 }
-                
-                // Si no se encontró ni QR ni URL
-                if (!qrFound && !urlFound) {
-                    showError('No se encontró código QR ni enlace del comparador CNMC en el PDF. Asegúrate de que el PDF contiene la información de la factura eléctrica.');
+
+                // ESTRATEGIA 3: Búsqueda Visual QR (Con Zoom Dinámico)
+                updateLog('Iniciando escaneo visual de códigos QR...');
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    
+                    // Intentamos primero con escala 2.0 (Equilibrado)
+                    let qrUrl = await scanPageForQR(page, 2.0);
+                    if (!qrUrl) {
+                        updateLog(`Reintentando pág ${i} con Alta Resolución...`);
+                        // Si falla, intentamos con escala 3.0 (HD)
+                        qrUrl = await scanPageForQR(page, 3.0);
+                    }
+
+                    if (qrUrl) {
+                        processSuccess(qrUrl, 'Escáner QR HD', i);
+                        return;
+                    }
                 }
-                
+
+                throw new Error("No se pudo encontrar ninguna referencia válida a la CNMC (QR o Enlace) en este documento.");
+
             } catch (err) {
-                showError('Error al procesar el PDF: ' + err.message);
+                console.error(err);
+                showError(err.message);
             } finally {
                 loading.classList.remove('active');
             }
         }
 
-        function parseCNMCUrl(url) {
+        async function scanPageForQR(page, scale) {
+            const viewport = page.getViewport({ scale: scale });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "dontInvert",
+            });
+
+            if (code && code.data.includes('comparador.cnmc.gob.es')) {
+                return code.data;
+            }
+            return null;
+        }
+
+        function processSuccess(url, method, pageNum) {
+            loading.classList.remove('active');
+            
+            // Parsear URL
             try {
+                // Asegurar protocolo
+                if (!url.startsWith('http')) url = 'https://' + url;
+                
                 const urlObj = new URL(url);
                 const params = {};
                 
+                // Extraer parámetros
                 urlObj.searchParams.forEach((value, key) => {
-                    const readableName = paramNames[key] || key;
-                    params[readableName] = value;
+                    // Manejo especial para números con signo al final (ej: "2.99-")
+                    if (value.endsWith('-')) {
+                        value = '-' + value.slice(0, -1);
+                    }
+                    params[key] = value;
                 });
-                
-                return {
-                    url: url,
-                    params: params
-                };
-            } catch (err) {
-                console.error('Error parsing URL:', err);
-                return null;
+
+                renderResults(params, method, pageNum, url);
+            } catch (e) {
+                showError("Enlace encontrado pero corrupto: " + url);
             }
         }
 
-        function displayResults(info, pageNum, detectionMethod) {
-            if (!info || !info.params) {
-                showError('No se pudo parsear la información del QR');
-                return;
+        function renderResults(params, method, pageNum, fullUrl) {
+            // Cálculos auxiliares
+            const impTotal = parseFloat(params.imp || 0);
+            
+            // Detectar si el consumo viene en Wh o kWh (CNMC a veces varía)
+            // Si los valores son muy altos (>1000 en suma), probablemente son Wh
+            let p1 = parseFloat(params.caP1 || 0);
+            let p2 = parseFloat(params.caP2 || 0);
+            let p3 = parseFloat(params.caP3 || 0);
+            
+            // A veces usan cfP1 en lugar de caP1 para consumo (casos raros)
+            if (p1 === 0 && p2 === 0 && p3 === 0) {
+                 if (params.cfP1 > 100) p1 = parseFloat(params.cfP1 || 0);
+                 if (params.cfP2 > 100) p2 = parseFloat(params.cfP2 || 0);
+                 if (params.cfP3 > 100) p3 = parseFloat(params.cfP3 || 0);
             }
 
-            const params = info.params;
+            const totalConsumo = p1 + p2 + p3;
             
-            // Detectar consumos - pueden venir en cfP (Wh) o caP (kWh)
-            let consumoP1, consumoP2, consumoP3;
+            // Fechas
+            const fechaInicio = params.iniF || params.iniA || '-';
+            const fechaFin = params.finF || '-';
             
-            // Si cfP tiene valores grandes (>100), probablemente sean consumos en Wh
-            const cfP1 = parseFloat(params['Coste Fijo P1 (€)'] || 0);
-            const cfP2 = parseFloat(params['Coste Fijo P2 (€)'] || 0);
-            const cfP3 = parseFloat(params['Coste Fijo P3 (€)'] || 0);
-            
-            const caP1 = parseFloat(params['Consumo P1 (kWh)'] || 0);
-            const caP2 = parseFloat(params['Consumo P2 (kWh)'] || 0);
-            const caP3 = parseFloat(params['Consumo P3 (kWh)'] || 0);
-            
-            // Lógica de detección: si cfP tiene valores grandes, son consumos en Wh
-            if (cfP1 > 100 || cfP2 > 100 || cfP3 > 100) {
-                // cfP son consumos en Wh, convertir a kWh
-                consumoP1 = cfP1;
-                consumoP2 = cfP2;
-                consumoP3 = cfP3;
-            } else if (caP1 > 0 || caP2 > 0 || caP3 > 0) {
-                // caP son consumos en kWh
-                consumoP1 = caP1;
-                consumoP2 = caP2;
-                consumoP3 = caP3;
-            } else {
-                // Por defecto, usar cfP
-                consumoP1 = cfP1;
-                consumoP2 = cfP2;
-                consumoP3 = cfP3;
-            }
-            
-            const consumoTotal = consumoP1 + consumoP2 + consumoP3;
-            
-            const importeTotal = parseFloat(params['Importe Total (€)'] || 0);
-            const importePotencia = parseFloat(params['Importe Potencia (€)'] || 0);
-            const importeEnergia = parseFloat(params['Importe Energía (€)'] || 0);
-            
-            const precioMedio = consumoTotal > 0 ? (importeTotal / consumoTotal).toFixed(4) : '0';
-            
-            // Calcular días
-            let dias = 0;
-            if (params['Inicio Factura'] && params['Fin Factura']) {
-                const inicio = new Date(params['Inicio Factura']);
-                const fin = new Date(params['Fin Factura']);
-                dias = Math.round((fin - inicio) / (1000 * 60 * 60 * 24));
-            }
-            
-            const consumoMedioDia = dias > 0 ? (consumoTotal / dias).toFixed(2) : '0';
-
+            // HTML del reporte
             results.innerHTML = `
                 <div class="result-card">
                     <div class="result-header">
-                        <div class="result-title">
-                            <span>⚡</span>
-                            Información de Factura
+                        <div>
+                            <h2 style="color: var(--primary);">Análisis Completado</h2>
+                            <p style="color: var(--gray); font-size: 0.9rem; margin-top: 0.25rem;">
+                                ${params.com || 'Comercializadora desconocida'} | CUPS: ${params.cups || 'No detectado'}
+                            </p>
                         </div>
-                        <div class="result-badge">Página ${pageNum} • ${detectionMethod}</div>
-                    </div>
-
-                    <div class="highlight-box">
-                        <div class="highlight-label">Importe Total</div>
-                        <div class="highlight-value">${importeTotal.toFixed(2)}€</div>
-                    </div>
-
-                    <div class="info-grid">
-                        <div class="info-section">
-                            <div class="section-title">
-                                <span>📋</span>
-                                Datos del Contrato
-                            </div>
-                            ${params['CUPS'] ? `
-                            <div class="info-item">
-                                <span class="info-label">CUPS</span>
-                                <span class="info-value">${params['CUPS']}</span>
-                            </div>` : ''}
-                            ${params['Comercializadora'] ? `
-                            <div class="info-item">
-                                <span class="info-label">Comercializadora</span>
-                                <span class="info-value">${params['Comercializadora']}</span>
-                            </div>` : ''}
-                            ${params['Código Postal'] ? `
-                            <div class="info-item">
-                                <span class="info-label">Código Postal</span>
-                                <span class="info-value">${params['Código Postal']}</span>
-                            </div>` : ''}
-                        </div>
-
-                        <div class="info-section">
-                            <div class="section-title">
-                                <span>📅</span>
-                                Período de Facturación
-                            </div>
-                            ${params['Inicio Factura'] ? `
-                            <div class="info-item">
-                                <span class="info-label">Inicio</span>
-                                <span class="info-value">${params['Inicio Factura']}</span>
-                            </div>` : ''}
-                            ${params['Fin Factura'] ? `
-                            <div class="info-item">
-                                <span class="info-label">Fin</span>
-                                <span class="info-value">${params['Fin Factura']}</span>
-                            </div>` : ''}
-                            ${params['Fecha Factura'] ? `
-                            <div class="info-item">
-                                <span class="info-label">Fecha Factura</span>
-                                <span class="info-value">${params['Fecha Factura']}</span>
-                            </div>` : ''}
-                            ${dias > 0 ? `
-                            <div class="info-item">
-                                <span class="info-label">Días</span>
-                                <span class="info-value">${dias}</span>
-                            </div>` : ''}
-                        </div>
-
-                        <div class="info-section">
-                            <div class="section-title">
-                                <span>⚡</span>
-                                Potencia Contratada
-                            </div>
-                            ${params['Potencia P1 (kW)'] ? `
-                            <div class="info-item">
-                                <span class="info-label">Potencia P1</span>
-                                <span class="info-value">${params['Potencia P1 (kW)']} kW</span>
-                            </div>` : ''}
-                            ${params['Potencia P2 (kW)'] ? `
-                            <div class="info-item">
-                                <span class="info-label">Potencia P2</span>
-                                <span class="info-value">${params['Potencia P2 (kW)']} kW</span>
-                            </div>` : ''}
+                        <div class="success-tag">
+                            <span>✓</span> ${method} (Pág ${pageNum})
                         </div>
                     </div>
 
-                    <div class="info-section">
-                        <div class="section-title">
-                            <span>📈</span>
-                            Consumos de Energía
+                    <div class="highlight-grid">
+                        <div class="stat-box">
+                            <div class="stat-label">Importe Factura</div>
+                            <div class="stat-value total">${impTotal.toFixed(2)} €</div>
                         </div>
-                        <div class="consumption-chart">
-                            ${consumoP1 > 0 ? `
-                            <div class="chart-bar">
-                                <div class="chart-bar-label">Período 1</div>
-                                <div class="chart-bar-visual" style="height: ${Math.min(100, (consumoP1 / consumoTotal * 100))}px"></div>
-                                <div class="chart-bar-value">${consumoP1.toFixed(0)} kWh</div>
-                            </div>` : ''}
-                            ${consumoP2 > 0 ? `
-                            <div class="chart-bar">
-                                <div class="chart-bar-label">Período 2</div>
-                                <div class="chart-bar-visual" style="height: ${Math.min(100, (consumoP2 / consumoTotal * 100))}px"></div>
-                                <div class="chart-bar-value">${consumoP2.toFixed(0)} kWh</div>
-                            </div>` : ''}
-                            ${consumoP3 > 0 ? `
-                            <div class="chart-bar">
-                                <div class="chart-bar-label">Período 3</div>
-                                <div class="chart-bar-visual" style="height: ${Math.min(100, (consumoP3 / consumoTotal * 100))}px"></div>
-                                <div class="chart-bar-value">${consumoP3.toFixed(0)} kWh</div>
-                            </div>` : ''}
+                        <div class="stat-box">
+                            <div class="stat-label">Consumo Total</div>
+                            <div class="stat-value">${totalConsumo.toFixed(0)} <span style="font-size: 1rem;">kWh</span></div>
                         </div>
-                        <div class="info-item" style="margin-top: 1rem; padding-top: 1rem; border-top: 2px solid rgba(0, 212, 255, 0.3);">
-                            <span class="info-label">Consumo Total</span>
-                            <span class="info-value" style="font-size: 1.2rem; color: var(--primary);">${consumoTotal.toFixed(0)} kWh</span>
-                        </div>
-                        ${dias > 0 ? `
-                        <div class="info-item">
-                            <span class="info-label">Consumo Medio Diario</span>
-                            <span class="info-value">${consumoMedioDia} kWh/día</span>
-                        </div>` : ''}
-                    </div>
-
-                    <div class="info-grid" style="margin-top: 2rem;">
-                        <div class="info-section">
-                            <div class="section-title">
-                                <span>💰</span>
-                                Desglose de Importes
-                            </div>
-                            ${importePotencia > 0 ? `
-                            <div class="info-item">
-                                <span class="info-label">Importe Potencia</span>
-                                <span class="info-value">${importePotencia.toFixed(2)} €</span>
-                            </div>` : ''}
-                            ${importeEnergia > 0 ? `
-                            <div class="info-item">
-                                <span class="info-label">Importe Energía</span>
-                                <span class="info-value">${importeEnergia.toFixed(2)} €</span>
-                            </div>` : ''}
-                            ${params['Otros Importes (€)'] ? `
-                            <div class="info-item">
-                                <span class="info-label">Otros Importes</span>
-                                <span class="info-value">${params['Otros Importes (€)']} €</span>
-                            </div>` : ''}
-                            ${params['Bono Social (€)'] ? `
-                            <div class="info-item">
-                                <span class="info-label">Bono Social</span>
-                                <span class="info-value" style="color: var(--success);">${params['Bono Social (€)']} €</span>
-                            </div>` : ''}
-                        </div>
-
-                        <div class="info-section">
-                            <div class="section-title">
-                                <span>💵</span>
-                                Precios Aplicados
-                            </div>
-                            ${params['Precio Potencia P1 (€/kW/día)'] ? `
-                            <div class="info-item">
-                                <span class="info-label">Precio Potencia P1</span>
-                                <span class="info-value">${parseFloat(params['Precio Potencia P1 (€/kW/día)']).toFixed(5)} €/kW/día</span>
-                            </div>` : ''}
-                            ${params['Precio Potencia P2 (€/kW/día)'] ? `
-                            <div class="info-item">
-                                <span class="info-label">Precio Potencia P2</span>
-                                <span class="info-value">${parseFloat(params['Precio Potencia P2 (€/kW/día)']).toFixed(5)} €/kW/día</span>
-                            </div>` : ''}
-                            ${params['Precio Energía P1 (€/kWh)'] ? `
-                            <div class="info-item">
-                                <span class="info-label">Precio Energía P1</span>
-                                <span class="info-value">${parseFloat(params['Precio Energía P1 (€/kWh)']).toFixed(6)} €/kWh</span>
-                            </div>` : ''}
-                            <div class="info-item" style="border-top: 2px solid rgba(0, 212, 255, 0.3); padding-top: 1rem; margin-top: 0.5rem;">
-                                <span class="info-label">Precio Medio</span>
-                                <span class="info-value" style="font-size: 1.1rem; color: var(--accent);">${precioMedio} €/kWh</span>
-                            </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Precio Medio</div>
+                            <div class="stat-value">${totalConsumo > 0 ? (impTotal/totalConsumo).toFixed(3) : '0'} <span style="font-size: 1rem;">€/kWh</span></div>
                         </div>
                     </div>
 
-                    <div style="margin-top: 2rem; padding: 1rem; background: rgba(15, 23, 42, 0.5); border-radius: 8px;">
-                        <div style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.5rem;">🔗 URL del Comparador CNMC:</div>
-                        <div style="font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--primary); word-break: break-all;">
-                            <a href="${info.url}" target="_blank" style="color: var(--primary); text-decoration: none;">${info.url}</a>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div>
+                            <h3 style="margin-bottom: 1rem; color: var(--light);">Desglose de Consumo</h3>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                    <span style="font-size: 0.9rem; color: var(--gray);">Punta (P1)</span>
+                                    <span style="font-weight: 600;">${p1} kWh</span>
+                                </div>
+                                <div class="bar-container">
+                                    <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p1/totalConsumo)*100 : 0}%"></div>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                    <span style="font-size: 0.9rem; color: var(--gray);">Llano (P2)</span>
+                                    <span style="font-weight: 600;">${p2} kWh</span>
+                                </div>
+                                <div class="bar-container">
+                                    <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p2/totalConsumo)*100 : 0}%; opacity: 0.7;"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                    <span style="font-size: 0.9rem; color: var(--gray);">Valle (P3)</span>
+                                    <span style="font-weight: 600;">${p3} kWh</span>
+                                </div>
+                                <div class="bar-container">
+                                    <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p3/totalConsumo)*100 : 0}%; opacity: 0.4;"></div>
+                                </div>
+                            </div>
                         </div>
+
+                        <div>
+                            <h3 style="margin-bottom: 1rem; color: var(--light);">Detalles Técnicos</h3>
+                            <table class="data-table">
+                                <tr>
+                                    <th>Periodo</th>
+                                    <td>${fechaInicio} al ${fechaFin}</td>
+                                </tr>
+                                <tr>
+                                    <th>Potencia P1 / P2</th>
+                                    <td>${params.pP1 || 0} kW / ${params.pP2 || 0} kW</td>
+                                </tr>
+                                <tr>
+                                    <th>Importe Energía</th>
+                                    <td>${params.impEner || 0} €</td>
+                                </tr>
+                                <tr>
+                                    <th>Importe Potencia</th>
+                                    <td>${params.impPot || 0} €</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="cnmc-link">
+                        <strong>ENLACE ORIGINAL RAW:</strong><br>
+                        <a href="${fullUrl}" target="_blank" style="color: inherit; text-decoration: none;">${fullUrl}</a>
                     </div>
                 </div>
             `;
-
+            
             results.classList.add('active');
         }
 
-        function showError(message) {
-            error.textContent = '❌ ' + message;
+        function showError(msg) {
+            loading.classList.remove('active');
+            error.innerHTML = `<strong>Error de Lectura:</strong><br>${msg}`;
             error.classList.add('active');
-            setTimeout(() => {
-                error.classList.remove('active');
-            }, 5000);
         }
 
         function hideError() {

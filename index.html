@@ -15589,6 +15589,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('results-view').classList.remove('hidden');
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
                 
+                // CRÍTICO: Si el resultado tiene needsImprovementRequest, abrir automáticamente el modal
+                if (result.needsImprovementRequest && comparisonMode === 'drk_only') {
+                    console.log('🔔 DRK ÚNICAMENTE sin ahorro detectado - Abriendo modal de solicitud de mejora automáticamente');
+                    setTimeout(() => {
+                        const improvementModal = document.getElementById('request-improvement-modal');
+                        if (improvementModal) {
+                            improvementModal.classList.remove('hidden');
+                            improvementModal.classList.add('flex');
+                        }
+                    }, 500); // Pequeño delay para que se muestre primero la pantalla de resultados
+                }
+                
                 console.log('Done showing results');
             }
         }
@@ -17081,7 +17093,39 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 } else {
                     // Modos DRK (drk_only, drk_prioritized)
                     if (comparisonMode === 'drk_only') {
-                        finalIndividualResult = bestDrk || bestOverall;
+                        // DRK ÚNICAMENTE: SIEMPRE usar DRK, NUNCA otra comercializadora
+                        // Si no hay DRK con ahorro, marcar para abrir modal de solicitud de mejora
+                        if (bestDrk && bestDrk.totalAnnual < bestDrk.originalBillAnnual) {
+                            // Hay DRK con ahorro
+                            finalIndividualResult = bestDrk;
+                        } else {
+                            // NO hay DRK con ahorro: usar DRK de todas formas y marcar para modal
+                            // Si existe bestDrk pero sin ahorro, usarlo; si no existe, crear uno nuevo
+                            if (bestDrk) {
+                                finalIndividualResult = bestDrk;
+                                finalIndividualResult.isNegativeSavings = true;
+                                finalIndividualResult.needsImprovementRequest = true;
+                            } else {
+                                // No existe ninguna tarifa DRK, crear resultado placeholder
+                                finalIndividualResult = {
+                                    offer: { 
+                                        name: "DRK Energía", 
+                                        description: "Solicita una oferta personalizada", 
+                                        isDrk: true 
+                                    },
+                                    totalAnnual: dataForCalc.originalBillAnnual || 0,
+                                    originalBillAnnual: dataForCalc.originalBillAnnual || 0,
+                                    importe_total: dataForCalc.importe_total || 0,
+                                    dias_facturados: dataForCalc.dias_facturados || 30,
+                                    cups: dataForCalc.cups || '',
+                                    savings: 0,
+                                    isNegativeSavings: true,
+                                    needsImprovementRequest: true,
+                                    energyCosts: [],
+                                    powerCosts: []
+                                };
+                            }
+                        }
                         // DRK ÚNICAMENTE: SIEMPRE mantener branding DRK (azul)
                         brand = BRANDS.DRK;
                     } else if (comparisonMode === 'drk_prioritized') {

@@ -17152,13 +17152,30 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 finalIndividualResult.isNegativeSavings = true;
                 finalIndividualResult.savings = 0;
                 finalIndividualResult.totalAnnual = finalIndividualResult.originalBillAnnual;
-                finalIndividualResult.offer = { 
-                    name: "Tu Tarifa Actual", 
-                    description: "Es la mejor opción detectada", 
-                    isDrk: false 
-                };
-                // Mantener el branding según el modo seleccionado
-                brand = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
+                
+                // CRÍTICO: En modo DRK ÚNICAMENTE, NO cambiar la oferta a "Tu Tarifa Actual"
+                // Mantener la oferta DRK y marcar para solicitar mejora
+                if (comparisonMode === 'drk_only') {
+                    // Mantener la oferta DRK existente y marcar para modal
+                    if (!finalIndividualResult.offer || !finalIndividualResult.offer.isDrk) {
+                        finalIndividualResult.offer = { 
+                            name: "DRK Energía", 
+                            description: "Solicita una oferta personalizada", 
+                            isDrk: true 
+                        };
+                    }
+                    finalIndividualResult.needsImprovementRequest = true;
+                    brand = BRANDS.DRK;
+                } else {
+                    // En otros modos, cambiar a "Tu Tarifa Actual"
+                    finalIndividualResult.offer = { 
+                        name: "Tu Tarifa Actual", 
+                        description: "Es la mejor opción detectada", 
+                        isDrk: false 
+                    };
+                    // Mantener el branding según el modo seleccionado
+                    brand = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
+                }
             }
 
             // Apply branding here just for consistency before saving/showing modal

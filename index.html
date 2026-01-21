@@ -465,13 +465,29 @@
         <div class="upload-zone" id="uploadZone">
             <span class="upload-icon">📄</span>
             <div class="upload-text">Arrastra tu factura PDF aquí</div>
-            <div class="upload-hint">o haz clic para seleccionar el archivo</div>
+            <div class="upload-hint">Detecta código QR o enlace del comparador CNMC</div>
             <input type="file" id="fileInput" accept=".pdf">
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap; animation: fadeIn 0.6s ease-out 0.4s both;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--gray); font-size: 0.85rem;">
+                <span style="font-size: 1.5rem;">📱</span>
+                <span>Detección por QR</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--gray); font-size: 0.85rem;">
+                <span style="font-size: 1.5rem;">🔗</span>
+                <span>Extracción por enlace</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--primary); font-size: 0.85rem; font-weight: 600;">
+                <span style="font-size: 1.5rem;">✓</span>
+                <span>Doble protección</span>
+            </div>
         </div>
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Procesando PDF y buscando códigos QR...</p>
+            <p>Procesando PDF...</p>
+            <p style="font-size: 0.9rem; color: var(--gray); margin-top: 0.5rem;">Buscando código QR y enlaces del comparador CNMC</p>
         </div>
 
         <div class="error" id="error"></div>
@@ -573,8 +589,9 @@
                 const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
                 
                 let qrFound = false;
+                let urlFound = false;
                 
-                // Procesar cada página
+                // MÉTODO 1: Buscar QR en cada página
                 for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                     const page = await pdf.getPage(pageNum);
                     const viewport = page.getViewport({ scale: 2.0 });
@@ -602,14 +619,58 @@
                         // Verificar si es del comparador CNMC
                         if (qrData.includes('comparador.cnmc.gob.es')) {
                             const info = parseCNMCUrl(qrData);
-                            displayResults(info, pageNum);
-                            break;
+                            displayResults(info, pageNum, 'QR Code');
+                            loading.classList.remove('active');
+                            return;
                         }
                     }
                 }
                 
+                // MÉTODO 2: Si no se encontró QR, buscar URL en el texto
                 if (!qrFound) {
-                    showError('No se encontraron códigos QR en el PDF. Asegúrate de que el PDF contiene un código QR visible.');
+                    console.log('QR no encontrado, buscando URL en el texto...');
+                    
+                    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                        const page = await pdf.getPage(pageNum);
+                        const textContent = await page.getTextContent();
+                        
+                        // Unir todo el texto de la página, eliminar espacios múltiples
+                        let pageText = textContent.items.map(item => item.str).join(' ');
+                        pageText = pageText.replace(/\s+/g, ' '); // Normalizar espacios
+                        
+                        // Buscar URL del comparador CNMC con varios patrones
+                        const urlPatterns = [
+                            /https?:\/\/comparador\.cnmc\.gob\.es\/comparador\/[^\s\)\]]+/gi,
+                            /comparador\.cnmc\.gob\.es\/comparador\/[^\s\)\]]+/gi,
+                            /https?:\/\/comparador\.cnmc\.gob\.es[^\s\)\]]+/gi
+                        ];
+                        
+                        for (const pattern of urlPatterns) {
+                            const matches = pageText.match(pattern);
+                            
+                            if (matches && matches.length > 0) {
+                                urlFound = true;
+                                let url = matches[0];
+                                
+                                // Asegurar que tiene protocolo
+                                if (!url.startsWith('http')) {
+                                    url = 'https://' + url;
+                                }
+                                
+                                console.log('URL encontrada en texto:', url);
+                                
+                                const info = parseCNMCUrl(url);
+                                displayResults(info, pageNum, 'Enlace de texto');
+                                loading.classList.remove('active');
+                                return;
+                            }
+                        }
+                    }
+                }
+                
+                // Si no se encontró ni QR ni URL
+                if (!qrFound && !urlFound) {
+                    showError('No se encontró código QR ni enlace del comparador CNMC en el PDF. Asegúrate de que el PDF contiene la información de la factura eléctrica.');
                 }
                 
             } catch (err) {
@@ -639,7 +700,7 @@
             }
         }
 
-        function displayResults(info, pageNum) {
+        function displayResults(info, pageNum, detectionMethod) {
             if (!info || !info.params) {
                 showError('No se pudo parsear la información del QR');
                 return;
@@ -702,7 +763,7 @@
                             <span>⚡</span>
                             Información de Factura
                         </div>
-                        <div class="result-badge">Página ${pageNum}</div>
+                        <div class="result-badge">Página ${pageNum} • ${detectionMethod}</div>
                     </div>
 
                     <div class="highlight-box">

@@ -1613,8 +1613,8 @@
                     </div>
                     
                     <div class="flex flex-col gap-4">
-                        <!-- Opción 1: Mejor Opción (CON SELECTOR PARA DRK) -->
-                        <div class="rounded-xl border-2 border-slate-300 bg-white overflow-hidden">
+                        <!-- Opción 1: Mejor Opción (OCULTA EN VERSIÓN B) -->
+                        <div class="rounded-xl border-2 border-slate-300 bg-white overflow-hidden" style="display: none;">
                             <!-- Cabecera clickeable -->
                             <button onclick="handleBestOptionClick()" class="w-full text-left p-6 hover:bg-drk-50 transition group">
                                 <div class="flex items-start gap-4">
@@ -1672,8 +1672,8 @@
                             </div>
                         </div>
                         
-                        <!-- Opción 2: Elegir Manual (OCULTA EN VERSIÓN A) -->
-                        <button onclick="selectFromResults()" class="text-left p-6 rounded-xl border-2 border-slate-300 bg-white hover:border-drk-500 hover:bg-drk-50 transition group" style="display: none;">
+                        <!-- Opción 2: Elegir Manual -->
+                        <button onclick="selectFromResults()" class="text-left p-6 rounded-xl border-2 border-slate-300 bg-white hover:border-drk-500 hover:bg-drk-50 transition group">
                             <div class="flex items-start gap-4">
                                 <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200">
                                     📋
@@ -1687,7 +1687,7 @@
                         </button>
                     </div>
                     
-                    <!-- Info adicional (OCULTA EN VERSIÓN A) -->
+                    <!-- Info adicional (OCULTA EN VERSIÓN B) -->
                     <div class="mt-6 p-4 bg-slate-50 rounded-lg" style="display: none;">
                         <p id="advice-text" class="text-xs text-slate-600">
                             💡 <strong id="advice-label">Consejo:</strong> <span id="advice-content">Si quieres ver rápidamente la mejor oferta, elige la primera opción. Si necesitas comparar varias opciones o el cliente tiene preferencias específicas, elige la segunda.</span>

@@ -5508,10 +5508,10 @@
             document.getElementById('new-annual-cost-display').textContent = eur(res.totalAnnual) + tr('/año');
             
             // 2. Desglose (Datos Extraídos)
-            // CRÍTICO: Solo renderizar desglose si hay datos válidos (no es un placeholder sin ahorro)
+            // CAMBIO: Mostrar siempre si hay datos, independientemente de si hay ahorro
             let consumptionHTML = '';
             
-            if (!res.isNegativeSavings && res.energyCosts && res.powerCosts && res.energyCosts.length > 0 && res.powerCosts.length > 0) {
+            if (res.energyCosts && res.powerCosts && res.energyCosts.length > 0 && res.powerCosts.length > 0) {
                 let energyRows = '';
                 res.energyCosts.forEach(e => {
                     let label = `E${e.period}`;
@@ -5561,7 +5561,8 @@
             let powerBreakdown = '';
             let energyBreakdown = '';
             
-            if (!res.isNegativeSavings && res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
+            // CAMBIO: Mostrar siempre si hay datos
+            if (res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
                 res.powerCosts.forEach(p => {
                     if (p.kw > 0 || p.period <= config.powerPeriods) {
                         powerBreakdown += `<div class="flex justify-between"><span>P${p.period} (${num(p.kw, 2)} kW x ${numPriceFormula(p.priceDay)} €/día)</span><span>${num(p.cost, 2)} €</span></div>`;
@@ -5584,7 +5585,8 @@
             let discountRowsHtml = '';
             let breakdownHTML = '';
             
-            if (!res.isNegativeSavings && res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
+            // CAMBIO: Mostrar siempre si hay datos
+            if (res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
                 discountRowsHtml = res.discountAmount > 0 ? `
                     <div class="flex justify-between font-bold text-cta-red-500 mt-2">
                         <span>Descuento Aplicado (${num(res.discountRate * 100, 0)}%)</span>
@@ -5638,7 +5640,8 @@
             
             // NUEVO: Generar resumen de precios consolidados
             let preciosHTML = '';
-            if (offer.name !== 'Tu Tarifa Actual' && !res.isNegativeSavings && res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
+            // CAMBIO: Mostrar precios siempre si hay datos (excepto para "Tu Tarifa Actual")
+            if (offer.name !== 'Tu Tarifa Actual' && res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
                 const nombreCompleto = offer.isDrk 
                     ? ((offer.description?.length > offer.name?.length) ? offer.description : offer.name)
                     : offer.name;

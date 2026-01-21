@@ -2801,14 +2801,14 @@
             document.querySelectorAll('.hidden-period').forEach(el => el.style.display = 'none');
             document.getElementById('tariff-display-badge').textContent = '0';
             
-            // FINALMENTE: Mostrar pantalla inicial y selector de modo
-            document.getElementById('screen-inicio')?.classList.add('active');
-            const modoComparacionSection = document.getElementById('modo-comparacion-section');
-            if (modoComparacionSection) {
-                modoComparacionSection.style.display = 'block';
-            }
-            
-            console.log('✅ resetToLanding completada - screen-inicio activa');
+            // MODIFICADO PARA VERSIÓN 2.0TD DIRECTA:
+            // En lugar de mostrar screen-inicio, ir directamente a electricidad 2.0TD
+            console.log('🔄 Reiniciando a 2.0TD directamente...');
+            goToElectricidad();
+            setTimeout(function() {
+                selectTariffType('2.0TD');
+                console.log('✅ resetToLanding completada - Volviendo a 2.0TD');
+            }, 200);
         };
         
         // NUEVA FUNCIÓN: Volver desde initial-view SIN hacer reset completo

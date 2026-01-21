@@ -16774,7 +16774,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             img.src = url;
         }
         
-        // ==================== FUNCIONES DE PROCESAMIENTO DE ARCHIVOS ====================
+        // ==================== FUNCIONES COMPLETAS DE PROCESAMIENTO ====================
         
         // Configurar PDF.js worker
         if (typeof pdfjsLib !== 'undefined') {
@@ -16851,6 +16851,47 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             statusEl.textContent = status;
         }
         
+        // Función para validar y procesar la URL encontrada
+        function processFoundUrl(url, method, pageNum) {
+            try {
+                // Asegurar protocolo
+                if (!url.startsWith('http')) url = 'https://' + url;
+                
+                console.log(`🔍 Validando URL encontrada: ${url.substring(0, 100)}...`);
+                
+                const urlObj = new URL(url);
+                const params = {};
+                
+                // Extraer parámetros
+                urlObj.searchParams.forEach((value, key) => {
+                    // Manejo especial para números con signo al final (ej: "2.99-")
+                    if (value.endsWith('-')) {
+                        value = '-' + value.slice(0, -1);
+                    }
+                    params[key] = value;
+                });
+                
+                // VALIDACIÓN CRÍTICA: Solo aceptar si tiene parámetros reales
+                if (Object.keys(params).length === 0) {
+                    console.log('⚠️ URL sin parámetros, continuando búsqueda...');
+                    addProcessingLog(`URL sin parámetros válidos`, 'info');
+                    return false; // Continuar buscando
+                }
+                
+                console.log(`✅ URL válida con ${Object.keys(params).length} parámetros`);
+                addProcessingLog(`✓ URL válida con ${Object.keys(params).length} parámetros`, 'success');
+                addProcessingLog(`Método: ${method} (Página ${pageNum})`, 'success');
+                
+                // URL válida, procesar
+                return url; // Retornar la URL limpia
+                
+            } catch (e) {
+                console.error('❌ Error al validar URL:', e);
+                addProcessingLog(`Error al validar URL: ${e.message}`, 'error');
+                return false; // Continuar buscando
+            }
+        }
+        
         // Función principal para manejar archivos (PDF o imagen)
         async function handleFile(file) {
             console.log('📁 Archivo recibido:', file.name, file.type);
@@ -16864,9 +16905,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             try {
                 if (file.type === 'application/pdf') {
-                    await handlePDF(file);
+                    await handlePDFComplete(file);
                 } else if (file.type.startsWith('image/')) {
-                    await handleImageFile(file);
+                    await handleImageComplete(file);
                 } else {
                     throw new Error('Formato no soportado. Por favor sube PDF, JPG o PNG.');
                 }
@@ -16877,8 +16918,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             }
         }
         
-        // Procesar archivos PDF
-        async function handlePDF(file) {
+        // Procesar PDF con TODAS las estrategias del código original
+        async function handlePDFComplete(file) {
             updateProcessingStatus('Cargando PDF...');
             addProcessingLog('📄 Iniciando análisis de PDF...', 'working');
             updateProcessingProgress(10);
@@ -16889,10 +16930,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             addProcessingLog(`✓ PDF cargado: ${pdf.numPages} página(s)`, 'success');
             updateProcessingProgress(15);
             
-            // ESTRATEGIA 1: Buscar enlaces digitales incrustados
-            updateProcessingStatus('Buscando enlaces digitales...');
+            // ========== ESTRATEGIA 1: Enlaces Digitales Incrustados ==========
+            updateProcessingStatus('Buscando enlaces digitales incrustados...');
             updateStrategyStatus(1, 'Analizando...', 'yellow');
-            addProcessingLog('🔍 Estrategia 1: Enlaces incrustados', 'working');
+            addProcessingLog('🔍 ESTRATEGIA 1: Enlaces incrustados', 'working');
             updateProcessingProgress(20);
             
             for (let i = 1; i <= pdf.numPages; i++) {
@@ -16904,26 +16945,30 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 for (const ann of annotations) {
                     if (ann.url && ann.url.includes('comparador.cnmc.gob.es')) {
                         addProcessingLog(`✓ ¡Enlace encontrado en página ${i}!`, 'success');
-                        updateStrategyStatus(1, '¡Éxito!', 'green');
-                        updateProcessingProgress(100);
                         
-                        setTimeout(() => {
-                            hideProcessingModal();
-                            handleQRRead(ann.url);
-                        }, 800);
-                        return;
+                        const validUrl = processFoundUrl(ann.url, 'Enlace Digital', i);
+                        if (validUrl) {
+                            updateStrategyStatus(1, '¡Éxito!', 'green');
+                            updateProcessingProgress(100);
+                            
+                            setTimeout(() => {
+                                hideProcessingModal();
+                                handleQRRead(validUrl);
+                            }, 800);
+                            return;
+                        }
                     }
                 }
             }
             
             updateStrategyStatus(1, 'Sin resultados', 'slate');
-            addProcessingLog('⊘ No se encontraron enlaces digitales', 'info');
+            addProcessingLog('⊘ No se encontraron enlaces digitales válidos', 'info');
             updateProcessingProgress(30);
             
-            // ESTRATEGIA 2: Análisis de texto completo
-            updateProcessingStatus('Analizando texto del documento...');
+            // ========== ESTRATEGIA 2: Escaneo de Texto en Bruto ==========
+            updateProcessingStatus('Analizando texto completo del documento...');
             updateStrategyStatus(2, 'Analizando...', 'yellow');
-            addProcessingLog('🔍 Estrategia 2: Extracción de texto', 'working');
+            addProcessingLog('🔍 ESTRATEGIA 2: Extracción de texto', 'working');
             updateProcessingProgress(35);
             
             for (let i = 1; i <= pdf.numPages; i++) {
@@ -16936,142 +16981,170 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 addProcessingLog(`  Página ${i}/${pdf.numPages}: ${textContent.items.length} elementos de texto`, 'info');
                 
                 if (rawText.includes('comparador.cnmc.gob.es')) {
-                    addProcessingLog(`✓ URL detectada en texto (página ${i})`, 'success');
+                    addProcessingLog(`✓ Texto CNMC detectado en página ${i}`, 'success');
                     
-                    // Intentar reconstruir URL desde texto espaciado
+                    // MÉTODO 2A: Reconstrucción desde texto espaciado
                     const match = spacedText.match(/(https?:\s*\/\/\s*)?comparador\.cnmc\.gob\.es\/[A-Za-z0-9\/\?=&%\.\-\_]+/i);
                     if (match) {
                         let cleanUrl = match[0].replace(/\s/g, '');
                         if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
                         
-                        addProcessingLog('✓ URL reconstruida correctamente', 'success');
+                        addProcessingLog('✓ URL reconstruida desde texto', 'success');
+                        
+                        const validUrl = processFoundUrl(cleanUrl, 'Reconstrucción de Texto', i);
+                        if (validUrl) {
+                            updateStrategyStatus(2, '¡Éxito!', 'green');
+                            updateProcessingProgress(100);
+                            
+                            setTimeout(() => {
+                                hideProcessingModal();
+                                handleQRRead(validUrl);
+                            }, 800);
+                            return;
+                        }
+                    }
+                    
+                    // MÉTODO 2B: Extracción por fuerza bruta
+                    addProcessingLog('Intentando extracción por fuerza bruta...', 'working');
+                    const startIdx = rawText.indexOf('comparador.cnmc.gob.es');
+                    let potentialUrl = rawText.substring(startIdx);
+                    const endMatch = potentialUrl.match(/[^a-zA-Z0-9\/\?=&%\.\-\_]/);
+                    if (endMatch) {
+                        potentialUrl = potentialUrl.substring(0, endMatch.index);
+                    }
+                    potentialUrl = 'https://' + potentialUrl;
+                    
+                    addProcessingLog('✓ URL extraída por análisis profundo', 'success');
+                    
+                    const validUrl = processFoundUrl(potentialUrl, 'Extracción Profunda', i);
+                    if (validUrl) {
                         updateStrategyStatus(2, '¡Éxito!', 'green');
                         updateProcessingProgress(100);
                         
                         setTimeout(() => {
                             hideProcessingModal();
-                            handleQRRead(cleanUrl);
+                            handleQRRead(validUrl);
                         }, 800);
                         return;
                     }
-                    
-                    // Extracción por fuerza bruta
-                    const startIdx = rawText.indexOf('comparador.cnmc.gob.es');
-                    let potentialUrl = rawText.substring(startIdx);
-                    const endMatch = potentialUrl.match(/[^a-zA-Z0-9\/\?=&%\.\-\_]/);
-                    if (endMatch) potentialUrl = potentialUrl.substring(0, endMatch.index);
-                    potentialUrl = 'https://' + potentialUrl;
-                    
-                    addProcessingLog('✓ URL extraída por análisis profundo', 'success');
-                    updateStrategyStatus(2, '¡Éxito!', 'green');
-                    updateProcessingProgress(100);
-                    
-                    setTimeout(() => {
-                        hideProcessingModal();
-                        handleQRRead(potentialUrl);
-                    }, 800);
-                    return;
                 }
             }
             
             updateStrategyStatus(2, 'Sin resultados', 'slate');
-            addProcessingLog('⊘ No se encontró texto de URL CNMC', 'info');
+            addProcessingLog('⊘ No se encontró texto de URL CNMC válido', 'info');
             updateProcessingProgress(50);
             
-            // ESTRATEGIA 3: Escaneo visual de códigos QR
+            // ========== ESTRATEGIA 3: Búsqueda Visual QR (Microscopio Digital) ==========
             updateProcessingStatus('Iniciando escaneo visual de QR...');
             updateStrategyStatus(3, 'Analizando...', 'yellow');
-            addProcessingLog('🔍 Estrategia 3: Detección visual de QR', 'working');
+            addProcessingLog('🔍 ESTRATEGIA 3: Detección visual de QR', 'working');
             updateProcessingProgress(55);
             
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const progressBase = 55 + (i - 1) * (40 / pdf.numPages);
                 
-                // Intento 1: Escala 2.0 (rápido)
+                // Intento 1: Escala 2.0 (Rápido)
                 addProcessingLog(`  Página ${i}: Escaneo rápido (2.0x)`, 'working');
                 updateProcessingProgress(progressBase);
                 let qrUrl = await scanPDFPageForQR(page, 2.0);
                 if (qrUrl) {
-                    addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
-                    updateStrategyStatus(3, '¡Éxito!', 'green');
-                    updateProcessingProgress(100);
-                    
-                    setTimeout(() => {
-                        hideProcessingModal();
-                        handleQRRead(qrUrl);
-                    }, 800);
-                    return;
+                    const validUrl = processFoundUrl(qrUrl, 'Escáner Rápido', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
                 }
                 
                 // Intento 2: Escala 3.0 (HD)
                 addProcessingLog(`  Página ${i}: Escaneo HD (3.0x)`, 'working');
-                updateProcessingProgress(progressBase + 5);
+                updateProcessingProgress(progressBase + 3);
                 qrUrl = await scanPDFPageForQR(page, 3.0);
                 if (qrUrl) {
-                    addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
-                    updateStrategyStatus(3, '¡Éxito!', 'green');
-                    updateProcessingProgress(100);
-                    
-                    setTimeout(() => {
-                        hideProcessingModal();
-                        handleQRRead(qrUrl);
-                    }, 800);
-                    return;
+                    const validUrl = processFoundUrl(qrUrl, 'Escáner HD', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
                 }
                 
-                // Intento 3: Escala 5.0 con filtros (Forense)
-                addProcessingLog(`  Página ${i}: Modo forense (5.0x + filtros)`, 'working');
-                updateProcessingProgress(progressBase + 10);
+                // Intento 3: Escala 5.0 con filtro estándar (Forense)
+                addProcessingLog(`  Página ${i}: Modo forense (5.0x + filtro std)`, 'working');
+                updateProcessingProgress(progressBase + 6);
                 qrUrl = await scanPDFPageForQR(page, 5.0, true, 160);
                 if (qrUrl) {
-                    addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
-                    updateStrategyStatus(3, '¡Éxito!', 'green');
-                    updateProcessingProgress(100);
-                    
-                    setTimeout(() => {
-                        hideProcessingModal();
-                        handleQRRead(qrUrl);
-                    }, 800);
-                    return;
+                    const validUrl = processFoundUrl(qrUrl, 'Forense (Std)', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
                 }
                 
                 // Intento 4: Escala 5.0 con filtro oscuro
                 addProcessingLog(`  Página ${i}: Filtro oscuro (5.0x)`, 'working');
+                updateProcessingProgress(progressBase + 8);
                 qrUrl = await scanPDFPageForQR(page, 5.0, true, 100);
                 if (qrUrl) {
-                    addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
-                    updateStrategyStatus(3, '¡Éxito!', 'green');
-                    updateProcessingProgress(100);
-                    
-                    setTimeout(() => {
-                        hideProcessingModal();
-                        handleQRRead(qrUrl);
-                    }, 800);
-                    return;
+                    const validUrl = processFoundUrl(qrUrl, 'Forense (Dark)', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
                 }
                 
                 // Intento 5: Super-zoom 6.0
-                addProcessingLog(`  Página ${i}: Super-zoom (6.0x)`, 'working');
+                addProcessingLog(`  Página ${i}: Super-zoom (6.0x + filtro agresivo)`, 'working');
+                updateProcessingProgress(progressBase + 10);
                 qrUrl = await scanPDFPageForQR(page, 6.0, true, 180);
                 if (qrUrl) {
-                    addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
-                    updateStrategyStatus(3, '¡Éxito!', 'green');
-                    updateProcessingProgress(100);
-                    
-                    setTimeout(() => {
-                        hideProcessingModal();
-                        handleQRRead(qrUrl);
-                    }, 800);
-                    return;
+                    const validUrl = processFoundUrl(qrUrl, 'Super-Zoom x6', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
                 }
             }
             
             updateStrategyStatus(3, 'Sin resultados', 'red');
-            addProcessingLog('✗ No se detectó código QR en ninguna página', 'error');
+            addProcessingLog('✗ No se detectó código QR válido en ninguna página', 'error');
             updateProcessingProgress(100);
             
-            // No se encontró nada
+            // No se encontró nada válido
             setTimeout(() => {
                 hideProcessingModal();
                 window.showErrorModal(
@@ -17079,6 +17152,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     "💡 Sugerencias:\n" +
                     "• Verifica que el PDF contenga el QR de la CNMC\n" +
                     "• El QR debe ser visible y legible\n" +
+                    "• Asegúrate de que el QR tenga datos válidos\n" +
                     "• Intenta con una imagen clara del QR\n" +
                     "• Usa la opción 'Pegar Código Completo' si tienes la URL"
                 );
@@ -17086,7 +17160,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         }
         
         // Procesar archivos de imagen
-        async function handleImageFile(file) {
+        async function handleImageComplete(file) {
             updateProcessingStatus('Cargando imagen...');
             updateStrategyStatus(3, 'Analizando...', 'yellow');
             addProcessingLog('📸 Iniciando análisis de imagen...', 'working');
@@ -17107,15 +17181,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             updateProcessingProgress(30);
             let qrUrl = attemptQRScanFromCanvas(ctx, canvas.width, canvas.height, false);
             if (qrUrl) {
-                addProcessingLog('✓ ¡QR detectado en modo directo!', 'success');
-                updateStrategyStatus(3, '¡Éxito!', 'green');
-                updateProcessingProgress(100);
-                
-                setTimeout(() => {
-                    hideProcessingModal();
-                    handleQRRead(qrUrl);
-                }, 800);
-                return;
+                const validUrl = processFoundUrl(qrUrl, 'Modo Directo', 1);
+                if (validUrl) {
+                    addProcessingLog('✓ ¡QR detectado en modo directo!', 'success');
+                    updateStrategyStatus(3, '¡Éxito!', 'green');
+                    updateProcessingProgress(100);
+                    
+                    setTimeout(() => {
+                        hideProcessingModal();
+                        handleQRRead(validUrl);
+                    }, 800);
+                    return;
+                }
             }
             
             // Intento 2: Con filtro estándar
@@ -17123,15 +17200,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             updateProcessingProgress(50);
             qrUrl = attemptQRScanFromCanvas(ctx, canvas.width, canvas.height, true, 160);
             if (qrUrl) {
-                addProcessingLog('✓ ¡QR detectado con filtro estándar!', 'success');
-                updateStrategyStatus(3, '¡Éxito!', 'green');
-                updateProcessingProgress(100);
-                
-                setTimeout(() => {
-                    hideProcessingModal();
-                    handleQRRead(qrUrl);
-                }, 800);
-                return;
+                const validUrl = processFoundUrl(qrUrl, 'Filtro Estándar', 1);
+                if (validUrl) {
+                    addProcessingLog('✓ ¡QR detectado con filtro estándar!', 'success');
+                    updateStrategyStatus(3, '¡Éxito!', 'green');
+                    updateProcessingProgress(100);
+                    
+                    setTimeout(() => {
+                        hideProcessingModal();
+                        handleQRRead(validUrl);
+                    }, 800);
+                    return;
+                }
             }
             
             // Intento 3: Con filtro oscuro
@@ -17139,20 +17219,23 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             updateProcessingProgress(75);
             qrUrl = attemptQRScanFromCanvas(ctx, canvas.width, canvas.height, true, 100);
             if (qrUrl) {
-                addProcessingLog('✓ ¡QR detectado con filtro oscuro!', 'success');
-                updateStrategyStatus(3, '¡Éxito!', 'green');
-                updateProcessingProgress(100);
-                
-                setTimeout(() => {
-                    hideProcessingModal();
-                    handleQRRead(qrUrl);
-                }, 800);
-                return;
+                const validUrl = processFoundUrl(qrUrl, 'Filtro Oscuro', 1);
+                if (validUrl) {
+                    addProcessingLog('✓ ¡QR detectado con filtro oscuro!', 'success');
+                    updateStrategyStatus(3, '¡Éxito!', 'green');
+                    updateProcessingProgress(100);
+                    
+                    setTimeout(() => {
+                        hideProcessingModal();
+                        handleQRRead(validUrl);
+                    }, 800);
+                    return;
+                }
             }
             
             // No detectado
             updateStrategyStatus(3, 'Sin resultados', 'red');
-            addProcessingLog('✗ No se detectó código QR en la imagen', 'error');
+            addProcessingLog('✗ No se detectó código QR válido en la imagen', 'error');
             updateProcessingProgress(100);
             
             setTimeout(() => {
@@ -17209,7 +17292,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             return null;
         }
         
-        // ==================== FIN FUNCIONES DE PROCESAMIENTO ====================
+        // ==================== FIN FUNCIONES COMPLETAS ====================
+        
         
         function startScanner() {
             // Use multiCupsAddType for the check if we are in MultiCups mode

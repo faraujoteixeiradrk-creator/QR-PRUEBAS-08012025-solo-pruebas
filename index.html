@@ -343,6 +343,36 @@
             margin-top: 2rem;
             border: 1px dashed rgba(0, 212, 255, 0.3);
         }
+        
+        .qr-debug-view {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border: 1px dashed var(--gray);
+            display: none;
+        }
+        
+        .qr-debug-view.active { display: block; }
+        
+        .qr-debug-title {
+            color: var(--accent);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            font-family: 'Space Mono', monospace;
+        }
+        
+        .qr-canvas-container {
+            overflow: auto;
+            max-height: 200px;
+            text-align: center;
+        }
+        
+        .qr-canvas-container canvas {
+            max-width: 100%;
+            border: 2px solid var(--success);
+        }
     </style>
 </head>
 <body>
@@ -362,8 +392,8 @@
             
             <div class="methods-badge">
                 <div class="badge"><span>🔍</span> Escaneo OCR</div>
-                <div class="badge"><span>📱</span> Lector Foto/PDF</div>
-                <div class="badge"><span>🔗</span> Extracción de Enlaces</div>
+                <div class="badge"><span>💎</span> Minería de Imágenes</div>
+                <div class="badge"><span>🔗</span> Enlaces Ocultos</div>
             </div>
             
             <input type="file" id="fileInput" accept=".pdf, .jpg, .jpeg, .png">
@@ -469,13 +499,11 @@
             // Intento 2: Filtros Forenses (por si hay sombras o poco contraste)
             if (!qrUrl) {
                 updateLog('Aplicando filtros de mejora visual...');
-                // Intento con umbral estándar
                 qrUrl = attemptQRScan(ctx, canvas.width, canvas.height, true, 160);
             }
             
             if (!qrUrl) {
                 updateLog('Probando modo de alto contraste oscuro...');
-                // Intento con umbral oscuro
                 qrUrl = attemptQRScan(ctx, canvas.width, canvas.height, true, 100);
             }
 
@@ -492,23 +520,90 @@
             updateLog(`PDF cargado: ${pdf.numPages} páginas detectadas.`);
 
             // ESTRATEGIA 1: Buscar enlaces clicables (Annotations)
-            // MEJORA: Buscar también anotaciones que NO son URL CNMC pero contienen los datos RAW (tooltip, data URI, etc.)
             updateLog('Buscando enlaces digitales incrustados...');
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const annotations = await page.getAnnotations();
                 
                 for (const ann of annotations) {
-                    // Checkeamos si la URL es válida O si contiene los datos en crudo
                     if (ann.url && isCNMCData(ann.url)) {
                         updateLog('¡Datos digitales encontrados en enlace/anotación!');
-                        processSuccess(ann.url, 'Enlace/Datos Digitales', i);
+                        processSuccess(ann.url, 'Enlace Digital', i);
                         return;
                     }
                 }
             }
 
-            // ESTRATEGIA 2: Escaneo de Texto en Bruto
+            // ESTRATEGIA 2: Minería de Imágenes (NATIVE IMAGE EXTRACTION)
+            // Extrae las imágenes incrustadas dentro del PDF (XObjects) sin renderizar la página completa.
+            // Esto es crucial para QRs que son imágenes pegadas en el PDF.
+            updateLog('Iniciando Minería de Imágenes Nativa...');
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                
+                try {
+                    const ops = await page.getOperatorList();
+                    const commonObjs = page.objs;
+                    
+                    // Buscamos operadores de pintar imagen (paintImageXObject)
+                    for (let j = 0; j < ops.fnArray.length; j++) {
+                        if (ops.fnArray[j] === pdfjsLib.OPS.paintImageXObject) {
+                            const imgName = ops.argsArray[j][0];
+                            
+                            // Intentamos recuperar el objeto imagen
+                            if (commonObjs.has(imgName)) {
+                                commonObjs.get(imgName, (imgData) => {
+                                    if (imgData && imgData.width > 50) { // Ignorar iconos pequeños
+                                        // Crear canvas temporal para esta imagen
+                                        const tempCanvas = document.createElement('canvas');
+                                        tempCanvas.width = imgData.width;
+                                        tempCanvas.height = imgData.height;
+                                        const ctx = tempCanvas.getContext('2d');
+                                        
+                                        // Pintar la imagen cruda
+                                        const imageDataObj = ctx.createImageData(imgData.width, imgData.height);
+                                        if (imgData.kind === 'RGB' || imgData.kind === 'RGBA') {
+                                            // Copiar datos si es compatible
+                                            for(let k=0; k<imgData.data.length; k++) imageDataObj.data[k] = imgData.data[k];
+                                        } else {
+                                            // Fallback para otros formatos (Grayscale, CMYK basic) - Simple fill
+                                            // En PDFs complejos esto puede requerir conversión manual, pero intentamos lo básico
+                                            // Para QR codes (blanco y negro), grayscale a RGB:
+                                            if (imgData.data.length === imgData.width * imgData.height) { // Grayscale
+                                                for(let k=0, p=0; k<imgData.data.length; k++, p+=4) {
+                                                    const val = imgData.data[k];
+                                                    imageDataObj.data[p] = val;
+                                                    imageDataObj.data[p+1] = val;
+                                                    imageDataObj.data[p+2] = val;
+                                                    imageDataObj.data[p+3] = 255;
+                                                }
+                                            }
+                                        }
+                                        
+                                        ctx.putImageData(imageDataObj, 0, 0);
+                                        
+                                        // Escanear esta imagen aislada
+                                        const code = jsQR(imageDataObj.data, imgData.width, imgData.height);
+                                        if (code && isCNMCData(code.data)) {
+                                            updateLog('¡QR detectado por Minería de Imágenes!');
+                                            processSuccess(code.data, 'Minería de Imágenes (Extracción Directa)', i, tempCanvas);
+                                            return;
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                } catch(e) {
+                    console.log("Error en minería de imágenes (no crítico):", e);
+                }
+            }
+            
+            // Pausa breve para permitir que la minería asíncrona termine si encontró algo
+            await new Promise(r => setTimeout(r, 500));
+            if (document.getElementById('results').classList.contains('active')) return;
+
+            // ESTRATEGIA 3: Escaneo de Texto en Bruto
             updateLog('Analizando texto completo del documento...');
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
@@ -527,13 +622,11 @@
                         processSuccess(cleanUrl, 'Reconstrucción de Texto', i);
                         return;
                     }
-                    
+                    // Búsqueda profunda...
                     const startIdx = rawText.indexOf('comparador.cnmc.gob.es');
                     let potentialUrl = rawText.substring(startIdx);
                     const endMatch = potentialUrl.match(/[^a-zA-Z0-9\/\?=&%\.\-\_]/);
-                    if (endMatch) {
-                        potentialUrl = potentialUrl.substring(0, endMatch.index);
-                    }
+                    if (endMatch) potentialUrl = potentialUrl.substring(0, endMatch.index);
                     potentialUrl = 'https://' + potentialUrl;
                     updateLog('URL extraída por fuerza bruta.');
                     processSuccess(potentialUrl, 'Extracción Profunda', i);
@@ -541,7 +634,7 @@
                 }
             }
 
-            // ESTRATEGIA 3: Búsqueda Visual QR (Con Microscopio Digital)
+            // ESTRATEGIA 4: Búsqueda Visual QR (Con Microscopio Digital)
             updateLog('Iniciando escaneo visual de códigos QR...');
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
@@ -557,19 +650,15 @@
                 qrData = await scanPageForQR(page, 3.0);
                 if (qrData) { processSuccess(qrData, 'Escáner HD', i); return; }
 
-                // 3. Escaneo FORENSE - Varios niveles de contraste
+                // 3. Escaneo FORENSE
                 updateLog(`Activando Modo Forense x5 para pág ${i}...`);
-                
-                // Intento A: Zoom 5.0 + Contraste Estándar (160)
                 qrData = await scanPageForQR(page, 5.0, true, 160);
                 if (qrData) { processSuccess(qrData, 'Forense (Std)', i); return; }
-
-                // Intento B: Zoom 5.0 + Contraste Oscuro (100)
+                
                 updateLog(`...Ajustando exposición (Dark)...`);
                 qrData = await scanPageForQR(page, 5.0, true, 100);
                 if (qrData) { processSuccess(qrData, 'Forense (Dark)', i); return; }
 
-                // Intento C: Zoom 6.0 + Contraste Agresivo
                 updateLog(`...Activando Super-Zoom x6...`);
                 qrData = await scanPageForQR(page, 6.0, true, 180);
                 if (qrData) { processSuccess(qrData, 'Super-Zoom x6', i); return; }
@@ -579,12 +668,9 @@
         }
 
         // Función auxiliar para detectar si una cadena parece datos de la CNMC
-        // Acepta URLs completas O cadenas de parámetros crudos (ej: "cups=ES...&imp=...")
         function isCNMCData(str) {
             if (!str) return false;
-            // Caso 1: URL estándar
             if (str.includes('comparador.cnmc.gob.es')) return true;
-            // Caso 2: Datos crudos (debe tener CUPS y algún dato clave como Importe o CP)
             if (str.includes('cups=') || str.includes('CUPS=')) {
                 if (str.includes('imp=') || str.includes('IMP=') || str.includes('cp=') || str.includes('CP=')) {
                     return true;
@@ -593,12 +679,10 @@
             return false;
         }
 
-        // Función unificada de escaneo de Canvas/Contexto
         function attemptQRScan(context, width, height, enhanceContrast = false, threshold = 180) {
             const imageData = context.getImageData(0, 0, width, height);
             let data = imageData.data;
 
-            // Filtro de Alto Contraste (Binarización) configurable
             if (enhanceContrast) {
                 const newData = new Uint8ClampedArray(data);
                 for (let i = 0; i < newData.length; i += 4) {
@@ -615,7 +699,6 @@
                 inversionAttempts: "dontInvert",
             });
 
-            // Usamos la nueva función validadora más flexible
             if (code && isCNMCData(code.data)) {
                 return code.data;
             }
@@ -634,63 +717,47 @@
             return attemptQRScan(context, canvas.width, canvas.height, enhanceContrast, threshold);
         }
 
-        function processSuccess(dataStr, method, pageNum) {
+        function processSuccess(dataStr, method, pageNum, evidenceCanvas = null) {
             loading.classList.remove('active');
             
             try {
                 let params = {};
                 let displayUrl = dataStr;
 
-                // Lógica de Parseo Robusta (URL vs Raw Data)
-                // Si contiene el dominio, intentamos parsear como URL estándar
                 if (dataStr.includes('comparador.cnmc.gob.es')) {
                     if (!dataStr.startsWith('http')) dataStr = 'https://' + dataStr;
                     displayUrl = dataStr;
-                    
                     const urlObj = new URL(dataStr);
                     urlObj.searchParams.forEach((value, key) => {
                         if (value.endsWith('-')) value = '-' + value.slice(0, -1);
                         params[key] = value;
                     });
-                } 
-                // Si NO contiene dominio pero parece tener parámetros (raw query string)
-                else {
-                    // Limpiamos la cadena si empieza por '?' o similar
+                } else {
                     if (dataStr.startsWith('?')) dataStr = dataStr.substring(1);
-                    
-                    // Construimos una URL ficticia para aprovechar el parser del navegador
                     const dummyUrl = 'https://dummy.com/?' + dataStr;
                     const urlObj = new URL(dummyUrl);
-                    
                     urlObj.searchParams.forEach((value, key) => {
                         if (value.endsWith('-')) value = '-' + value.slice(0, -1);
                         params[key] = value;
                     });
-
-                    // Reconstruimos la URL de la CNMC correcta para que el usuario la tenga
                     displayUrl = 'https://comparador.cnmc.gob.es/comparador/QRE?' + dataStr;
                 }
 
-                renderResults(params, method, pageNum, displayUrl);
+                renderResults(params, method, pageNum, displayUrl, evidenceCanvas);
             } catch (e) {
                 console.error(e);
-                showError("Datos encontrados pero formato desconocido: " + dataStr.substring(0, 50) + "...");
+                showError("Datos encontrados pero formato desconocido.");
             }
         }
 
-        function renderResults(params, method, pageNum, fullUrl) {
-            // Cálculos auxiliares
+        function renderResults(params, method, pageNum, fullUrl, evidenceCanvas) {
             const impTotal = parseFloat(params.imp || 0);
             
-            // CORRECCIÓN: Prioridad a cfP (Consumo Facturado Periodo) vs caP (Consumo Anual)
-            // Muchos QR incluyen caP (Anual) y cfP (Periodo). Debemos usar cfP si existe.
             let p1 = parseFloat(params.cfP1 || 0);
             let p2 = parseFloat(params.cfP2 || 0);
             let p3 = parseFloat(params.cfP3 || 0);
-            
             let fuenteConsumo = 'Facturado (cfP)';
 
-            // Si no encontramos cfP, usamos caP (fallback)
             if (p1 === 0 && p2 === 0 && p3 === 0) {
                  p1 = parseFloat(params.caP1 || 0);
                  p2 = parseFloat(params.caP2 || 0);
@@ -699,12 +766,9 @@
             }
 
             const totalConsumo = p1 + p2 + p3;
-            
-            // Fechas
             const fechaInicio = params.iniF || params.iniA || '-';
             const fechaFin = params.finF || '-';
             
-            // HTML del reporte
             results.innerHTML = `
                 <div class="result-card">
                     <div class="result-header">
@@ -731,65 +795,49 @@
                         </div>
                         <div class="stat-box">
                             <div class="stat-label">Precio Medio Real</div>
-                            <!-- Usamos precio medio de la factura total -->
                             <div class="stat-value">${totalConsumo > 0 ? (impTotal/totalConsumo).toFixed(3) : '0'} <span style="font-size: 1rem;">€/kWh</span></div>
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    ${evidenceCanvas ? `
+                    <div class="qr-debug-view active">
+                        <div class="qr-debug-title">👁️ Visor Interno: QR Capturado</div>
+                        <div class="qr-canvas-container" id="evidenceContainer"></div>
+                    </div>` : ''}
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem;">
                         <div>
                             <h3 style="margin-bottom: 1rem; color: var(--light);">Desglose de Consumo</h3>
-                            
                             <div style="margin-bottom: 1rem;">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
                                     <span style="font-size: 0.9rem; color: var(--gray);">Punta (P1)</span>
                                     <span style="font-weight: 600;">${p1} kWh</span>
                                 </div>
-                                <div class="bar-container">
-                                    <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p1/totalConsumo)*100 : 0}%"></div>
-                                </div>
+                                <div class="bar-container"><div class="bar-fill" style="width: ${totalConsumo > 0 ? (p1/totalConsumo)*100 : 0}%"></div></div>
                             </div>
-                            
                             <div style="margin-bottom: 1rem;">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
                                     <span style="font-size: 0.9rem; color: var(--gray);">Llano (P2)</span>
                                     <span style="font-weight: 600;">${p2} kWh</span>
                                 </div>
-                                <div class="bar-container">
-                                    <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p2/totalConsumo)*100 : 0}%; opacity: 0.7;"></div>
-                                </div>
+                                <div class="bar-container"><div class="bar-fill" style="width: ${totalConsumo > 0 ? (p2/totalConsumo)*100 : 0}%; opacity: 0.7;"></div></div>
                             </div>
-                            
                             <div>
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
                                     <span style="font-size: 0.9rem; color: var(--gray);">Valle (P3)</span>
                                     <span style="font-weight: 600;">${p3} kWh</span>
                                 </div>
-                                <div class="bar-container">
-                                    <div class="bar-fill" style="width: ${totalConsumo > 0 ? (p3/totalConsumo)*100 : 0}%; opacity: 0.4;"></div>
-                                </div>
+                                <div class="bar-container"><div class="bar-fill" style="width: ${totalConsumo > 0 ? (p3/totalConsumo)*100 : 0}%; opacity: 0.4;"></div></div>
                             </div>
                         </div>
 
                         <div>
                             <h3 style="margin-bottom: 1rem; color: var(--light);">Detalles Técnicos</h3>
                             <table class="data-table">
-                                <tr>
-                                    <th>Periodo</th>
-                                    <td>${fechaInicio} al ${fechaFin}</td>
-                                </tr>
-                                <tr>
-                                    <th>Potencia P1 / P2</th>
-                                    <td>${params.pP1 || 0} kW / ${params.pP2 || 0} kW</td>
-                                </tr>
-                                <tr>
-                                    <th style="color: var(--primary);">Importe Energía</th>
-                                    <td style="color: var(--primary); font-weight: 700;">${params.impEner || 0} €</td>
-                                </tr>
-                                <tr>
-                                    <th>Importe Potencia</th>
-                                    <td>${params.impPot || 0} €</td>
-                                </tr>
+                                <tr><th>Periodo</th><td>${fechaInicio} al ${fechaFin}</td></tr>
+                                <tr><th>Potencia P1 / P2</th><td>${params.pP1 || 0} kW / ${params.pP2 || 0} kW</td></tr>
+                                <tr><th style="color: var(--primary);">Importe Energía</th><td style="color: var(--primary); font-weight: 700;">${params.impEner || 0} €</td></tr>
+                                <tr><th>Importe Potencia</th><td>${params.impPot || 0} €</td></tr>
                             </table>
                         </div>
                     </div>
@@ -801,6 +849,9 @@
                 </div>
             `;
             
+            if (evidenceCanvas) {
+                document.getElementById('evidenceContainer').appendChild(evidenceCanvas);
+            }
             results.classList.add('active');
         }
 

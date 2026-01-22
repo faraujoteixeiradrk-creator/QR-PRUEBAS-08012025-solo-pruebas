@@ -237,7 +237,8 @@
                         </svg>
                     </div>
                 </div>
-                <span class="text-xs bg-drk-800 px-2 py-1 rounded text-drk-100" id="app-subtitle">Selector</span>
+                <!-- OCULTO: Subtítulo Selector -->
+                <span class="text-xs bg-drk-800 px-2 py-1 rounded text-drk-100" id="app-subtitle" style="display: none;">Selector</span>
             </div>
         </div>
     </div>
@@ -245,8 +246,8 @@
     <!-- Main Content Area -->
     <div id="app" class="w-full max-w-lg mx-auto p-4 md:p-6 flex-grow">
 
-        <!-- MODO DE COMPARACIÓN (Siempre visible al inicio) -->
-        <div id="modo-comparacion-section" class="fade-in mb-6">
+        <!-- MODO DE COMPARACIÓN (Oculto - siempre en modo drk_only) -->
+        <div id="modo-comparacion-section" class="fade-in mb-6" style="display: none;">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                 <p class="text-sm font-bold text-drk-800 mb-3 text-center uppercase tracking-wider">MODO DE COMPARACIÓN</p>
                 <div class="flex flex-wrap justify-center gap-2 text-sm">
@@ -272,7 +273,7 @@
         </div>
 
         <!-- PANTALLA INICIAL: Solo selector de servicio -->
-        <div id="screen-inicio" class="screen active">
+        <div id="screen-inicio" class="screen" style="display: none;">
             <div class="fade-in flex flex-col items-center justify-center min-h-[40vh] py-8">
                 <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                     <div class="w-16 h-16 bg-drk-50 rounded-full flex items-center justify-center mx-auto mb-4 text-drk-600 shadow-inner">
@@ -317,7 +318,7 @@
         </div>
 
         <!-- PANTALLA 2: ELECTRICIDAD (landing-view original) -->
-        <div id="screen-electricidad" class="screen">
+        <div id="screen-electricidad" class="screen active">
         <!-- 1. Landing View -->
         <div id="landing-view" class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500" id="landing-card">
@@ -335,7 +336,8 @@
                 
                 <!-- Tariff Selection Buttons -->
                 <div class="w-full space-y-4">
-                    <button onclick="selectTariffType('MULTICUPS')" class="tariff-select-btn group">
+                    <!-- OCULTO: MULTICUPS -->
+                    <button onclick="selectTariffType('MULTICUPS')" class="tariff-select-btn group" style="display: none;">
                         <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg>
                         </div>
@@ -357,7 +359,8 @@
                         <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
                     </button>
 
-                    <button onclick="selectTariffType('3.0TD')" class="tariff-select-btn group">
+                    <!-- OCULTO: 3.0TD -->
+                    <button onclick="selectTariffType('3.0TD')" class="tariff-select-btn group" style="display: none;">
                         <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.18a2 2 0 0 0 1.51-.72L11 1l2 2h3.18a2 2 0 0 1 1.51.72L20 5h1.18a2 2 0 0 1 2 2z"></path><path d="M14 9H8v8h8V9z"></path></svg>
                         </div>
@@ -2860,20 +2863,27 @@
             document.getElementById('multicups-finalize-btn-main')?.classList.add('hidden');
             document.getElementById('manual-tariff-selector-wrapper')?.classList.add('hidden');
             
-            // IMPORTANTE: Mostrar landing-view para que esté visible al volver a Electricidad/Gas
+            // IMPORTANTE: Mostrar landing-view para que esté visible
             document.getElementById('landing-view')?.classList.remove('hidden');
             
             document.querySelectorAll('.hidden-period').forEach(el => el.style.display = 'none');
-            document.getElementById('tariff-display-badge').textContent = '0';
             
-            // FINALMENTE: Mostrar pantalla inicial y selector de modo
-            document.getElementById('screen-inicio')?.classList.add('active');
+            // IR DIRECTO A 2.0TD (no mostrar screen-inicio)
+            document.getElementById('screen-inicio')?.classList.remove('active');
+            currentTariffType = '2.0TD';
+            document.getElementById('screen-electricidad')?.classList.add('active');
+            
+            // Actualizar badge de tarifas 2.0TD
+            const count = currentTariffs['2.0TD']?.length || 0;
+            document.getElementById('tariff-display-badge').textContent = count;
+            
+            // Ocultar selector de modo (ya está en drk_only)
             const modoComparacionSection = document.getElementById('modo-comparacion-section');
             if (modoComparacionSection) {
-                modoComparacionSection.style.display = 'block';
+                modoComparacionSection.style.display = 'none';
             }
             
-            console.log('✅ resetToLanding completada - screen-inicio activa');
+            console.log('✅ resetToLanding completada - Directo a 2.0TD en modo DRK Únicamente');
         };
         
         // NUEVA FUNCIÓN: Volver desde initial-view SIN hacer reset completo
@@ -2899,13 +2909,16 @@
             document.querySelector('input[name="comparison_mode"][value="drk_only"]').checked = true;
             applyBrandStyles(BRANDS.DRK);
             
-            // Solo ocultar multicups-saga-view
+            // Ocultar multicups-saga-view
             document.getElementById('multicups-saga-view')?.classList.add('hidden');
             
-            // Mostrar la pantalla de selección de tarifa (landing-view)
+            // IR DIRECTO A 2.0TD (mostrar landing-view que está dentro de screen-electricidad)
+            hideAllScreens();
+            currentTariffType = '2.0TD';
+            document.getElementById('screen-electricidad')?.classList.add('active');
             document.getElementById('landing-view')?.classList.remove('hidden');
             
-            console.log('✅ Vuelto a landing-view desde MultiCups en modo DRK ÚNICAMENTE');
+            console.log('✅ Vuelto a 2.0TD desde MultiCups en modo DRK ÚNICAMENTE');
         };
 
         function toggleMultiCupsInputPeriods(tariffType, prefix = 'input') {
@@ -18243,10 +18256,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             comparisonMode = 'drk_only';
             document.querySelector('input[name="comparison_mode"][value="drk_only"]').checked = true;
             
+            // IR DIRECTO A 2.0TD (no mostrar pantalla de inicio)
             hideAllScreens();
-            document.getElementById('screen-inicio').classList.add('active');
-            // Mostrar el modo de comparación
-            document.getElementById('modo-comparacion-section').style.display = 'block';
+            currentTariffType = '2.0TD';
+            document.getElementById('screen-electricidad').classList.add('active');
+            
+            // Ocultar el modo de comparación (ya está seleccionado drk_only)
+            document.getElementById('modo-comparacion-section').style.display = 'none';
+            
+            console.log('✅ goToInicio → Directo a 2.0TD');
         }
 
         function goToElectricidad() {
@@ -27363,6 +27381,32 @@ ${clientName}
             window.addEventListener('DOMContentLoaded', () => {
                 const savedLang = localStorage.getItem('appLanguage') || 'es';
                 window.LANG.change(savedLang, true); // skipReload = true para carga inicial
+                
+                // INICIALIZACIÓN DIRECTA A 2.0TD
+                setTimeout(() => {
+                    // Forzar modo DRK Únicamente
+                    comparisonMode = 'drk_only';
+                    
+                    // Ocultar pantalla de inicio
+                    document.getElementById('screen-inicio')?.classList.remove('active');
+                    
+                    // Ir directo a electricidad 2.0TD
+                    currentTariffType = '2.0TD';
+                    document.getElementById('screen-electricidad')?.classList.add('active');
+                    
+                    // Ocultar selector de modo de comparación
+                    document.getElementById('modo-comparacion-section').style.display = 'none';
+                    
+                    // Aplicar branding DRK
+                    applyBrandStyles(BRANDS.DRK);
+                    
+                    // Actualizar badge de tarifas
+                    const count = currentTariffs['2.0TD']?.length || 0;
+                    const badge = document.getElementById('tariff-display-badge');
+                    if (badge) badge.textContent = count;
+                    
+                    console.log('✅ Inicializado directamente en 2.0TD - Modo DRK Únicamente');
+                }, 100);
             });
 
             window.addEventListener('load', () => {

@@ -1280,33 +1280,67 @@
                 </div>
             </div>
 
-            <!-- NUEVO: Tus Datos (del QR) -->
+            <!-- NUEVO: Tus Datos (del QR) - Ampliado -->
             <div class="mb-8">
-                <h3 class="text-2xl font-black text-slate-800 mb-4">📋 Tus Datos</h3>
+                <h3 class="text-2xl font-black text-slate-800 mb-4 flex items-center gap-2">
+                    📋 Tus Datos
+                    <span class="text-sm font-normal text-slate-500">(extraídos de tu factura)</span>
+                </h3>
+                
+                <!-- Primera fila: CUPS y Período -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="bg-white rounded-xl p-5 shadow-md border-2 border-slate-200">
+                        <p class="text-slate-500 text-xs font-bold uppercase mb-2">📍 CUPS</p>
+                        <p id="cups-value-display" class="text-slate-900 font-mono text-base break-all">-</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-5 shadow-md border-2 border-slate-200">
+                        <p class="text-slate-500 text-xs font-bold uppercase mb-2">📅 PERÍODO FACTURADO</p>
+                        <p id="period-display" class="text-slate-900 font-semibold text-base">-</p>
+                        <p id="period-days" class="text-slate-600 text-sm mt-1">-</p>
+                    </div>
+                </div>
+
+                <!-- Segunda fila: Consumo y Distribución -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 shadow-md border-2 border-blue-200">
+                        <p class="text-blue-700 text-xs font-bold uppercase mb-2">⚡ CONSUMO TOTAL</p>
+                        <p id="consumption-display" class="text-blue-900 font-black text-3xl">- kWh</p>
+                        <div class="mt-3 space-y-1 text-sm">
+                            <p class="text-blue-700"><span class="text-red-600">●</span> Punta: <span id="consumption-punta" class="font-bold">-</span></p>
+                            <p class="text-blue-700"><span class="text-yellow-500">●</span> Llano: <span id="consumption-llano" class="font-bold">-</span></p>
+                            <p class="text-blue-700"><span class="text-green-600">●</span> Valle: <span id="consumption-valle" class="font-bold">-</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-5 shadow-md border-2 border-red-200">
+                        <p class="text-red-700 text-xs font-bold uppercase mb-2">💰 IMPORTE ACTUAL</p>
+                        <p id="current-cost-display" class="text-red-700 font-black text-3xl">- €</p>
+                        <div class="mt-3 space-y-1 text-sm">
+                            <p class="text-red-700">Energía: <span id="energy-cost" class="font-bold">-</span></p>
+                            <p class="text-red-700">Potencia: <span id="power-cost" class="font-bold">-</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5 shadow-md border-2 border-purple-200">
+                        <p class="text-purple-700 text-xs font-bold uppercase mb-2">📊 PRECIO MEDIO</p>
+                        <p id="avg-price-display" class="text-purple-900 font-black text-3xl">- €/kWh</p>
+                        <div class="mt-3 space-y-1 text-sm">
+                            <p class="text-purple-700">Con impuestos</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tercera fila: Potencias -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-white rounded-xl p-4 shadow-md border border-slate-200">
-                        <p class="text-slate-500 text-xs font-bold uppercase mb-1">CUPS</p>
-                        <p id="cups-value-display" class="text-slate-900 font-mono text-sm">-</p>
+                    <div class="bg-white rounded-xl p-5 shadow-md border-2 border-slate-200">
+                        <p class="text-slate-500 text-xs font-bold uppercase mb-2">🔌 POTENCIA CONTRATADA</p>
+                        <p id="power-display" class="text-slate-900 font-bold text-xl">- kW / - kW</p>
+                        <p class="text-slate-600 text-sm mt-1">P1 (Punta) / P2 (Valle)</p>
                     </div>
-                    <div class="bg-white rounded-xl p-4 shadow-md border border-slate-200">
-                        <p class="text-slate-500 text-xs font-bold uppercase mb-1">Período Facturado</p>
-                        <p id="period-display" class="text-slate-900 font-semibold">-</p>
-                    </div>
-                    <div class="bg-white rounded-xl p-4 shadow-md border border-slate-200">
-                        <p class="text-slate-500 text-xs font-bold uppercase mb-1">Consumo Total</p>
-                        <p id="consumption-display" class="text-slate-900 font-bold text-2xl">- kWh</p>
-                    </div>
-                    <div class="bg-white rounded-xl p-4 shadow-md border border-slate-200">
-                        <p class="text-slate-500 text-xs font-bold uppercase mb-1">Importe Actual</p>
-                        <p id="current-cost-display" class="text-red-600 font-bold text-2xl">- €</p>
-                    </div>
-                    <div class="bg-white rounded-xl p-4 shadow-md border border-slate-200">
-                        <p class="text-slate-500 text-xs font-bold uppercase mb-1">Potencia P1 / P2</p>
-                        <p id="power-display" class="text-slate-900 font-semibold">- kW / - kW</p>
-                    </div>
-                    <div class="bg-white rounded-xl p-4 shadow-md border border-slate-200">
-                        <p class="text-slate-500 text-xs font-bold uppercase mb-1">Precio Medio Real</p>
-                        <p id="avg-price-display" class="text-slate-900 font-bold text-2xl">- €/kWh</p>
+                    <div class="bg-white rounded-xl p-5 shadow-md border-2 border-slate-200">
+                        <p class="text-slate-500 text-xs font-bold uppercase mb-2">📈 POTENCIA MÁXIMA</p>
+                        <p id="power-max-display" class="text-slate-900 font-bold text-xl">- kW / - kW</p>
+                        <p class="text-slate-600 text-sm mt-1">Máxima demandada en el período</p>
                     </div>
                 </div>
             </div>
@@ -5543,16 +5577,31 @@
             
             // NUEVO: Poblar campos visuales del header y datos
             document.getElementById('savings-estimate-big').textContent = eur(res.savings || 0);
-            document.getElementById('cups-value-display').textContent = res.cups || '-';
-            document.getElementById('period-display').textContent = `${res.fecha_inicio || '-'} a ${res.fecha_fin || '-'}`;
             
+            // CUPS y Período
+            document.getElementById('cups-value-display').textContent = res.cups || '-';
+            document.getElementById('period-display').textContent = `${res.fecha_inicio || '-'} al ${res.fecha_fin || '-'}`;
+            document.getElementById('period-days').textContent = `${res.dias_facturados || '-'} días`;
+            
+            // Consumo Total y Desglose
             const totalConsumption = (res.consumo_punta || 0) + (res.consumo_llano || 0) + (res.consumo_valle || 0);
             document.getElementById('consumption-display').textContent = num(totalConsumption, 0) + ' kWh';
-            document.getElementById('current-cost-display').textContent = eur(res.importe_total || 0);
-            document.getElementById('power-display').textContent = `${num(res.potencia_p1_kw || 0, 2)} kW / ${num(res.potencia_p2_kw || 0, 2)} kW`;
+            document.getElementById('consumption-punta').textContent = `${num(res.consumo_punta || 0, 0)} kWh`;
+            document.getElementById('consumption-llano').textContent = `${num(res.consumo_llano || 0, 0)} kWh`;
+            document.getElementById('consumption-valle').textContent = `${num(res.consumo_valle || 0, 0)} kWh`;
             
+            // Importe Actual y Desglose
+            document.getElementById('current-cost-display').textContent = eur(res.importe_total || 0);
+            document.getElementById('energy-cost').textContent = eur(res.importe_energia || 0);
+            document.getElementById('power-cost').textContent = eur(res.importe_potencia || 0);
+            
+            // Potencias
+            document.getElementById('power-display').textContent = `${num(res.potencia_p1_kw || 0, 2)} kW / ${num(res.potencia_p2_kw || 0, 2)} kW`;
+            document.getElementById('power-max-display').textContent = `${num(res.potencia_maxima_p1 || 0, 2)} kW / ${num(res.potencia_maxima_p2 || 0, 2)} kW`;
+            
+            // Precio Medio Real
             const avgPrice = totalConsumption > 0 ? ((res.importe_energia || 0) / totalConsumption) : 0;
-            document.getElementById('avg-price-display').textContent = num(avgPrice, 3) + ' €/kWh';
+            document.getElementById('avg-price-display').textContent = num(avgPrice, 3);
             
             // MODIFICACIÓN: Mostrar Comercializadora - Tarifa
             document.getElementById('best-offer-name').textContent = `${offer.name || ''}`;

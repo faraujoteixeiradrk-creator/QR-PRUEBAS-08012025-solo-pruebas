@@ -354,13 +354,10 @@
                 </div>
             </div>
 
-            <!-- Drop Zone Principal CON FUNCIONALIDAD -->
+            <!-- Drop Zone Principal - ABRE MODAL -->
             <div class="w-full max-w-5xl">
-                <!-- Input file oculto -->
-                <input type="file" id="extractor-file-input" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" class="hidden">
-                
-                <div id="extractor-drop-zone" class="bg-slate-800/50 backdrop-blur rounded-3xl p-16 border-4 border-dashed border-slate-600 hover:border-blue-500 transition cursor-pointer">
-                    <div class="text-center pointer-events-none">
+                <div onclick="showQRModal()" class="bg-slate-800/50 backdrop-blur rounded-3xl p-16 border-4 border-dashed border-slate-600 hover:border-blue-500 transition cursor-pointer">
+                    <div class="text-center">
                         <!-- Iconos PDF y Cámara -->
                         <div class="flex items-center justify-center gap-8 mb-8">
                             <svg class="w-24 h-24 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
@@ -378,7 +375,7 @@
                             Aceptamos <span class="text-blue-400 font-semibold">PDF, JPG</span> o <span class="text-blue-400 font-semibold">PNG</span>. Buscamos el código QR o el enlace oculto para extraer los datos.
                         </p>
                         <p class="text-blue-400 text-xl font-bold">
-                            o haz clic para seleccionar
+                            Haz clic para comenzar
                         </p>
                     </div>
                 </div>
@@ -27594,9 +27591,6 @@ ${clientName}
                         
                         // Cargar tarifas 2.0TD en background
                         loadTariffs('2.0TD');
-                        
-                        // Activar drag & drop en extractor-view
-                        setupExtractorDragAndDrop();
                     }, 300);
                 }, 100);
             });
@@ -27652,73 +27646,6 @@ Gracias.`;
 
             const mailtoLink = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             window.location.href = mailtoLink;
-        }
-        
-        // ==========================================
-        // DRAG & DROP PARA EXTRACTOR VIEW
-        // ==========================================
-        function setupExtractorDragAndDrop() {
-            const dropZone = document.getElementById('extractor-drop-zone');
-            const fileInput = document.getElementById('extractor-file-input');
-            
-            if (!dropZone || !fileInput) return;
-            
-            // Click para abrir selector
-            dropZone.addEventListener('click', (e) => {
-                if (!e.target.closest('button')) {
-                    fileInput.click();
-                }
-            });
-            
-            // Drag over
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                dropZone.classList.add('border-blue-400', 'bg-slate-700/30');
-            });
-            
-            // Drag leave
-            dropZone.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                dropZone.classList.remove('border-blue-400', 'bg-slate-700/30');
-            });
-            
-            // Drop
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                dropZone.classList.remove('border-blue-400', 'bg-slate-700/30');
-                
-                const file = e.dataTransfer.files[0];
-                if (file) {
-                    handleExtractorFile(file);
-                }
-            });
-            
-            // File input change
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    handleExtractorFile(file);
-                }
-            });
-        }
-        
-        function handleExtractorFile(file) {
-            console.log('📁 Archivo recibido:', file.name, file.type);
-            
-            // Verificar tipo de archivo
-            const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-            const isImage = file.type.startsWith('image/') || /\.(jpg|jpeg|png)$/i.test(file.name);
-            
-            if (!isPDF && !isImage) {
-                alert('Por favor, sube un archivo PDF o imagen (JPG, PNG)');
-                return;
-            }
-            
-            // Usar la función existente del sistema
-            decodeQRFromImage(file);
         }
     </script>
 </body>

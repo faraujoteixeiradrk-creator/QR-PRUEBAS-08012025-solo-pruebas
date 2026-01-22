@@ -3,891 +3,560 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extractor Universal - Facturas Eléctricas</title>
+    <title>Calcula tu Ahorro Energético | DRK</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    
+    <!-- Tesseract.js OCR -->
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js'></script>
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        :root {
-            --primary: #00d4ff;
-            --primary-dark: #0099cc;
-            --secondary: #7c3aed;
-            --accent: #fbbf24;
-            --dark: #0f172a;
-            --dark-lighter: #1e293b;
-            --gray: #94a3b8;
-            --light: #f8fafc;
-            --success: #10b981;
-            --error: #ef4444;
-            --surface: rgba(30, 41, 59, 0.7);
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Sora', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: var(--light);
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 2rem;
-            position: relative;
             overflow-x: hidden;
         }
-        
-        /* Fondo animado sutil */
-        body::before {
-            content: '';
+
+        /* Fondo Animado */
+        .animated-bg {
             position: fixed;
-            top: -50%;
-            right: -50%;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle, rgba(0, 212, 255, 0.08) 0%, transparent 70%);
-            animation: pulse 8s ease-in-out infinite;
-            pointer-events: none;
-            z-index: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 0.8; }
+        .animated-bg::before,
+        .animated-bg::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+            animation: float 15s infinite ease-in-out;
         }
         
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
+        .animated-bg::before {
+            top: -20%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: #3b82f6;
+            animation-delay: 0s;
         }
         
-        header {
-            text-align: center;
-            margin-bottom: 3rem;
-            animation: slideDown 0.6s ease-out;
+        .animated-bg::after {
+            bottom: -20%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: #8b5cf6;
+            animation-delay: 7s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -50px) rotate(5deg); }
+            66% { transform: translate(-20px, 20px) rotate(-5deg); }
         }
         
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-30px); }
+        /* Animaciones */
+        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        h1 {
-            font-size: clamp(2rem, 5vw, 3.5rem);
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.02em;
-        }
-        
-        .subtitle {
-            font-family: 'Space Mono', monospace;
-            color: var(--gray);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
-        }
-        
-        .upload-zone {
-            background: var(--surface);
-            backdrop-filter: blur(12px);
-            border: 2px dashed var(--primary);
-            border-radius: 24px;
-            padding: 4rem 2rem;
-            text-align: center;
-            cursor: pointer;
+
+        /* Drag & Drop */
+        .drop-zone {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-bottom: 3rem;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 3px dashed #cbd5e1;
+            cursor: pointer;
         }
         
-        .upload-zone:hover {
-            border-color: var(--accent);
-            background: rgba(30, 41, 59, 0.9);
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.15);
-        }
-        
-        .upload-zone.dragover {
-            border-color: var(--success);
-            background: rgba(16, 185, 129, 0.1);
+        .drop-zone:hover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
             transform: scale(1.02);
         }
         
-        .upload-icon {
-            font-size: 4rem;
-            margin-bottom: 1.5rem;
-            display: inline-block;
-            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.3));
-        }
-        
-        .upload-text {
-            font-size: 1.5rem;
-            margin-bottom: 0.75rem;
-            font-weight: 600;
-        }
-        
-        .upload-hint {
-            color: var(--gray);
-            font-size: 0.95rem;
-            font-family: 'Space Mono', monospace;
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-        
-        .methods-badge {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-top: 2rem;
-            flex-wrap: wrap;
-        }
-        
-        .badge {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 0.5rem 1rem;
-            border-radius: 99px;
-            font-size: 0.8rem;
-            color: var(--primary);
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .drop-zone.drag-active {
+            border-color: #3b82f6 !important;
+            background-color: #dbeafe !important;
+            transform: scale(1.05);
         }
 
+        /* Botón Principal */
+        .btn-primary {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(220, 38, 38, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px -5px rgba(220, 38, 38, 0.5);
+            filter: brightness(1.1);
+        }
+
+        /* Loading */
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Ocultar input file */
         input[type="file"] { display: none; }
         
-        /* Loading State */
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 2rem;
-            animation: fadeIn 0.3s ease-out;
-        }
-        .loading.active { display: block; }
-        
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(0, 212, 255, 0.1);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-            margin: 0 auto 1.5rem;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        /* Logs de proceso para que el usuario vea qué pasa */
-        .process-log {
-            font-family: 'Space Mono', monospace;
-            font-size: 0.8rem;
-            color: var(--gray);
-            margin-top: 1rem;
-            height: 1.5em;
-            overflow: hidden;
-        }
-
         /* Resultados */
-        .results {
-            display: none;
-            animation: slideUp 0.6s ease-out;
-        }
-        .results.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
-        
         .result-card {
-            background: var(--surface);
-            backdrop-filter: blur(12px);
-            border-radius: 24px;
-            padding: 2.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
         
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .success-tag {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--success);
-            padding: 0.5rem 1rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .highlight-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2.5rem;
-        }
-
-        .stat-box {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
-            padding: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: transform 0.2s;
-        }
-        
-        .stat-box:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.05);
-        }
-        
-        .stat-label {
-            color: var(--gray);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 0.5rem;
-            font-family: 'Space Mono', monospace;
-        }
-        
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--light);
-        }
-        
-        .stat-value.total {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--success) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-        
-        .data-table th, .data-table td {
-            text-align: left;
-            padding: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .data-table th {
-            color: var(--gray);
-            font-family: 'Space Mono', monospace;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-        }
-        
-        .data-table td {
-            font-weight: 500;
-        }
-
-        /* Barras de consumo */
-        .bar-container {
-            margin-top: 0.5rem;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .bar-fill {
-            height: 100%;
-            background: var(--primary);
-            border-radius: 4px;
-            width: 0%;
-            transition: width 1s ease-out;
-        }
-
-        .error {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid var(--error);
-            border-radius: 16px;
-            padding: 1.5rem;
-            color: #fca5a5;
-            text-align: center;
-            display: none;
-            margin-top: 2rem;
-        }
-        
-        .error.active { display: block; animation: shake 0.5s ease-out; }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        .cnmc-link {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 1rem;
-            border-radius: 12px;
-            font-family: 'Space Mono', monospace;
-            font-size: 0.75rem;
-            color: var(--primary);
-            word-break: break-all;
-            margin-top: 2rem;
-            border: 1px dashed rgba(0, 212, 255, 0.3);
-        }
-        
-        .qr-debug-view {
-            margin-top: 2rem;
-            padding: 1rem;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            border: 1px dashed var(--gray);
-            display: none;
-        }
-        
-        .qr-debug-view.active { display: block; }
-        
-        .qr-debug-title {
-            color: var(--accent);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            margin-bottom: 0.5rem;
-            font-family: 'Space Mono', monospace;
-        }
-        
-        .qr-canvas-container {
-            overflow: auto;
-            max-height: 200px;
-            text-align: center;
-        }
-        
-        .qr-canvas-container canvas {
-            max-width: 100%;
-            border: 2px solid var(--success);
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>⚡ Extractor Inteligente</h1>
-            <p class="subtitle">Analizador de Facturas Eléctricas CNMC</p>
-        </header>
+<body class="flex items-center justify-center p-4">
 
-        <div class="upload-zone" id="uploadZone">
-            <span class="upload-icon">📄 📷</span>
-            <div class="upload-text">Arrastra PDF o Foto de Factura</div>
-            <div class="upload-hint">
-                Aceptamos <strong>PDF</strong>, <strong>JPG</strong> o <strong>PNG</strong>. Buscamos el código QR 
-                o el enlace oculto para extraer los datos.
-            </div>
+    <!-- Fondo Animado -->
+    <div class="animated-bg"></div>
+
+    <!-- Contenedor Principal -->
+    <div class="w-full max-w-3xl">
+        
+        <!-- PASO 1: SUBIR FACTURA -->
+        <div id="upload-screen" class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden fade-in">
             
-            <div class="methods-badge">
-                <div class="badge"><span>🔗</span> Link Texto</div>
-                <div class="badge"><span>💎</span> Minería IMG</div>
-                <div class="badge"><span>🎯</span> Recorte 3x3</div>
-            </div>
-            
-            <input type="file" id="fileInput" accept=".pdf, .jpg, .jpeg, .png">
-        </div>
-
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <h3>Analizando Documento...</h3>
-            <div class="process-log" id="processLog">Iniciando motor de análisis...</div>
-        </div>
-
-        <div class="error" id="error"></div>
-
-        <div class="results" id="results"></div>
-    </div>
-
-    <!-- PDF.js & jsQR Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-
-    <script>
-        // Configuración de Workers
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-        // Elementos DOM
-        const uploadZone = document.getElementById('uploadZone');
-        const fileInput = document.getElementById('fileInput');
-        const loading = document.getElementById('loading');
-        const processLog = document.getElementById('processLog');
-        const error = document.getElementById('error');
-        const results = document.getElementById('results');
-
-        // Event Listeners Drag & Drop
-        uploadZone.addEventListener('click', () => fileInput.click());
-        uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
-        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-        });
-        fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
-
-        function updateLog(msg) {
-            processLog.textContent = msg;
-            console.log(`[System]: ${msg}`);
-        }
-
-        async function handleFile(file) {
-            hideError();
-            results.classList.remove('active');
-            loading.classList.add('active');
-            processLog.textContent = "Detectando tipo de archivo...";
-
-            try {
-                if (file.type === 'application/pdf') {
-                    await handlePdf(file);
-                } else if (file.type.startsWith('image/')) {
-                    await handleImage(file);
-                } else {
-                    throw new Error('Formato no soportado. Por favor sube PDF, JPG o PNG.');
-                }
-            } catch (err) {
-                console.error(err);
-                showError(err.message);
-            } finally {
-                loading.classList.remove('active');
-            }
-        }
-
-        async function handleImage(file) {
-            updateLog('Cargando imagen...');
-            const bitmap = await createImageBitmap(file);
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = bitmap.width;
-            canvas.height = bitmap.height;
-            ctx.drawImage(bitmap, 0, 0);
-
-            // Intento 1: Escaneo Directo
-            updateLog('Analizando foto (Modo Directo)...');
-            let qrUrl = attemptQRScan(ctx, canvas.width, canvas.height, false);
-            
-            // Intento 2: Barrido de Umbrales (Deep Scan)
-            if (!qrUrl) {
-                updateLog('Aplicando escaneo profundo de contraste...');
-                qrUrl = performDeepScan(ctx, canvas.width, canvas.height);
-            }
-
-            if (qrUrl) {
-                processSuccess(qrUrl, 'Escáner de Foto', 1);
-            } else {
-                throw new Error("No se detectó ningún código QR de la CNMC en la imagen. Intenta mejorar la iluminación o enfocar mejor el QR.");
-            }
-        }
-
-        async function handlePdf(file) {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-            updateLog(`PDF cargado: ${pdf.numPages} páginas detectadas.`);
-
-            // ESTRATEGIA 1: Buscar enlaces clicables y TOOLTIPS (Anotaciones)
-            // CRÍTICO: Buscar tooltips/popups donde suele estar el código en facturas digitales
-            updateLog('Buscando enlaces digitales y tooltips...');
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const annotations = await page.getAnnotations();
+            <!-- Header -->
+            <div class="bg-gradient-to-br from-slate-900 to-slate-800 px-8 py-10 text-center relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 20px 20px;"></div>
                 
-                for (const ann of annotations) {
-                    // Check URL (Link normal)
-                    if (ann.url && isCNMCData(ann.url)) {
-                        updateLog('¡Datos digitales encontrados en enlace!');
-                        processSuccess(ann.url, 'Enlace Digital', i);
-                        return;
-                    }
-                    // Check Tooltips/Contents (Contenido oculto al pasar ratón)
-                    // A veces el contenido está en 'contents', otras veces en 'richContents'
-                    if (ann.contents && isCNMCData(ann.contents)) {
-                        updateLog('¡Datos encontrados en Tooltip (MouseOver)!');
-                        processSuccess(ann.contents, 'Tooltip Oculto (Ratón)', i);
-                        return;
-                    }
-                }
-            }
+                <div class="relative z-10">
+                    <div class="inline-flex p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg mb-6">
+                        <i data-lucide="zap" class="w-10 h-10 text-white"></i>
+                    </div>
+                    <h1 class="text-4xl md:text-5xl font-black text-white mb-4">
+                        ¿Cuánto puedes <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">ahorrar</span>?
+                    </h1>
+                    <p class="text-slate-300 text-lg font-medium max-w-lg mx-auto">
+                        Descubre tu ahorro real en <strong>segundos</strong>. Solo necesitas tu factura de luz.
+                    </p>
+                </div>
+            </div>
 
-            // ESTRATEGIA 2: Escaneo de Texto en Bruto (REFORZADO)
-            updateLog('Analizando texto completo del documento...');
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
+            <!-- Contenido -->
+            <div class="p-8 md:p-12">
                 
-                // 1. Texto Unido (Sin espacios) - Para enlaces cortados por formato
-                const rawText = textContent.items.map(item => item.str).join(''); 
-                if (isCNMCData(rawText)) {
-                     const startIdx = rawText.indexOf('comparador.cnmc.gob.es');
-                     if (startIdx !== -1) {
-                        let potentialUrl = rawText.substring(startIdx);
-                        const endMatch = potentialUrl.match(/[^a-zA-Z0-9\/\?=&%\.\-\_]/);
-                        if (endMatch) potentialUrl = potentialUrl.substring(0, endMatch.index);
-                        potentialUrl = 'https://' + potentialUrl;
-                        updateLog('URL extraída por Texto (Unido).');
-                        processSuccess(potentialUrl, 'Texto en PDF (Unido)', i);
-                        return;
-                     }
-                }
-
-                // 2. Texto Espaciado (Con espacios) - Para enlaces naturales
-                const spacedText = textContent.items.map(item => item.str).join(' ');
-                const match = spacedText.match(/(https?:\s*\/\/\s*)?comparador\.cnmc\.gob\.es\/[A-Za-z0-9\/\?=&%\.\-\_]+/i);
-                if (match) {
-                    let cleanUrl = match[0].replace(/\s/g, '');
-                    if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
-                    updateLog('URL reconstruida por Texto (Espaciado).');
-                    processSuccess(cleanUrl, 'Texto en PDF (Regex)', i);
-                    return;
-                }
-            }
-
-            // ESTRATEGIA 3: Minería de Imágenes (NATIVE IMAGE EXTRACTION)
-            updateLog('Iniciando Minería de Imágenes Nativa...');
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                try {
-                    const ops = await page.getOperatorList();
-                    const commonObjs = page.objs;
+                <!-- Drop Zone -->
+                <div id="dropZone" class="drop-zone bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl p-12 text-center mb-6">
+                    <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" />
                     
-                    for (let j = 0; j < ops.fnArray.length; j++) {
-                        if (ops.fnArray[j] === pdfjsLib.OPS.paintImageXObject || ops.fnArray[j] === pdfjsLib.OPS.paintInlineImageXObject) {
-                            const imgName = ops.argsArray[j][0];
-                            if (ops.fnArray[j] === pdfjsLib.OPS.paintInlineImageXObject) continue;
-
-                            if (commonObjs.has(imgName)) {
-                                commonObjs.get(imgName, (imgData) => {
-                                    if (imgData && imgData.width > 50) { 
-                                        const tempCanvas = document.createElement('canvas');
-                                        tempCanvas.width = imgData.width;
-                                        tempCanvas.height = imgData.height;
-                                        const ctx = tempCanvas.getContext('2d');
-                                        
-                                        const imageDataObj = ctx.createImageData(imgData.width, imgData.height);
-                                        if (imgData.kind === 'RGB' || imgData.kind === 'RGBA') {
-                                            for(let k=0; k<imgData.data.length; k++) imageDataObj.data[k] = imgData.data[k];
-                                        } else if (imgData.data.length === imgData.width * imgData.height) { // Grayscale
-                                            for(let k=0, p=0; k<imgData.data.length; k++, p+=4) {
-                                                const val = imgData.data[k];
-                                                imageDataObj.data[p] = val;
-                                                imageDataObj.data[p+1] = val;
-                                                imageDataObj.data[p+2] = val;
-                                                imageDataObj.data[p+3] = 255;
-                                            }
-                                        }
-                                        
-                                        ctx.putImageData(imageDataObj, 0, 0);
-                                        
-                                        // Escaneo Profundo sobre la imagen extraída
-                                        const rawCode = performDeepScan(ctx, imgData.width, imgData.height);
-                                        if (rawCode) {
-                                            updateLog('¡QR detectado por Minería de Imágenes!');
-                                            processSuccess(rawCode, 'Minería de Imágenes', i, tempCanvas);
-                                            return;
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    }
-                } catch(e) { console.log("Error minería imágenes:", e); }
-            }
-            
-            await new Promise(r => setTimeout(r, 500));
-            if (document.getElementById('results').classList.contains('active')) return;
-
-            // ESTRATEGIA 4: Búsqueda Visual "FRANCOTIRADOR" (Full Page + GRID 3x3)
-            updateLog('Iniciando modo Francotirador (Visual)...');
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                
-                // 1. Escaneo Full Page (Zoom 2.0)
-                updateLog(`Página ${i}: Vista General...`);
-                let qrData = await scanPageWithCrop(page, 2.0);
-                if (qrData) { processSuccess(qrData, 'Escáner General', i); return; }
-
-                // 2. Escaneo por CUADRÍCULA 3x3 SOLAPADA (Francotirador)
-                // Aumentamos zoom a 4.0 para cazar QRs diminutos
-                updateLog(`Página ${i}: Escaneo Profundo por Zonas (3x3)...`);
-                qrData = await scanPageQuadrants(page, 4.0); 
-                if (qrData) { processSuccess(qrData, 'Escáner Zonal 3x3', i); return; }
-            }
-
-            throw new Error("No se pudo encontrar ninguna referencia válida a la CNMC (Texto, QR o Enlace).");
-        }
-
-        // --- FUNCIONES AUXILIARES ---
-
-        // Función Maestra de Escaneo Profundo (Deep Scan)
-        // Prueba inversión de color y múltiples umbrales de contraste
-        function performDeepScan(ctx, width, height) {
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const originalData = imageData.data;
-
-            // 1. Intento Normal
-            let code = jsQR(originalData, width, height, { inversionAttempts: "dontInvert" });
-            if (code && isCNMCData(code.data)) return code.data;
-
-            // 2. Intento Invertido
-            code = jsQR(originalData, width, height, { inversionAttempts: "invertFirst" });
-            if (code && isCNMCData(code.data)) return code.data;
-
-            // 3. Barrido de Umbrales (Simulación de Auto-Exposición)
-            const thresholds = [80, 120, 160, 200]; // Oscuro -> Claro
-            
-            for (const threshold of thresholds) {
-                const binarizedData = new Uint8ClampedArray(originalData.length);
-                for (let i = 0; i < originalData.length; i += 4) {
-                    const luma = 0.299 * originalData[i] + 0.587 * originalData[i + 1] + 0.114 * originalData[i + 2];
-                    const val = luma < threshold ? 0 : 255;
-                    binarizedData[i] = val;
-                    binarizedData[i+1] = val;
-                    binarizedData[i+2] = val;
-                    binarizedData[i+3] = 255; 
-                }
-                
-                code = jsQR(binarizedData, width, height, { inversionAttempts: "dontInvert" });
-                if (code && isCNMCData(code.data)) return code.data;
-            }
-
-            return null;
-        }
-
-        // Escaneo por Cuadrantes Avanzado (3x3 Grid con Solapamiento)
-        async function scanPageQuadrants(page, scale) {
-            const viewport = page.getViewport({ scale: scale });
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            await page.render({ canvasContext: context, viewport: viewport }).promise;
-
-            const w = canvas.width, h = canvas.height;
-            
-            // Creamos 9 zonas solapadas (3 columnas x 3 filas)
-            // Cada zona cubre el 50% del ancho/alto, moviéndose un 25% cada paso
-            // Esto asegura que ningún QR se corte por la mitad
-            const zones = [
-                // Fila Superior
-                { x: 0, y: 0, w: w/2, h: h/2 },
-                { x: w/4, y: 0, w: w/2, h: h/2 },
-                { x: w/2, y: 0, w: w/2, h: h/2 },
-                // Fila Media
-                { x: 0, y: h/4, w: w/2, h: h/2 },
-                { x: w/4, y: h/4, w: w/2, h: h/2 }, // Centro puro
-                { x: w/2, y: h/4, w: w/2, h: h/2 },
-                // Fila Inferior
-                { x: 0, y: h/2, w: w/2, h: h/2 },
-                { x: w/4, y: h/2, w: w/2, h: h/2 },
-                { x: w/2, y: h/2, w: w/2, h: h/2 }
-            ];
-
-            for (let z of zones) {
-                const tempC = document.createElement('canvas');
-                tempC.width = z.w;
-                tempC.height = z.h;
-                const tempCtx = tempC.getContext('2d');
-                tempCtx.drawImage(canvas, z.x, z.y, z.w, z.h, 0, 0, z.w, z.h);
-                
-                const data = performDeepScan(tempCtx, z.w, z.h);
-                if (data) {
-                    updateLog('¡QR localizado en zona recortada (Grid 3x3)!');
-                    processSuccess(data, 'Escáner Zonal (Recorte)', 0, tempC); 
-                    return data; 
-                }
-            }
-            return null;
-        }
-
-        function isCNMCData(str) {
-            if (!str) return false;
-            if (str.includes('comparador.cnmc.gob.es')) return true;
-            // Detección laxa para datos en crudo (RAW)
-            if (str.includes('cups=') || str.includes('CUPS=')) {
-                if (str.includes('imp=') || str.includes('IMP=') || str.includes('cp=') || str.includes('CP=')) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        function attemptQRScan(context, width, height, enhanceContrast = false, threshold = 180) {
-            if (enhanceContrast) {
-                return performDeepScan(context, width, height);
-            }
-            const imageData = context.getImageData(0, 0, width, height);
-            const code = jsQR(imageData.data, width, height, { inversionAttempts: "dontInvert" });
-            if (code && isCNMCData(code.data)) return code.data;
-            return null;
-        }
-
-        async function scanPageWithCrop(page, scale, enhanceContrast = false, threshold = 180) {
-            const viewport = page.getViewport({ scale: scale });
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            await page.render({ canvasContext: context, viewport: viewport }).promise;
-            return performDeepScan(context, canvas.width, canvas.height);
-        }
-
-        function processSuccess(dataStr, method, pageNum, evidenceCanvas = null) {
-            loading.classList.remove('active');
-            
-            try {
-                let params = {};
-                let displayUrl = dataStr;
-
-                if (dataStr.includes('comparador.cnmc.gob.es')) {
-                    if (!dataStr.startsWith('http')) dataStr = 'https://' + dataStr;
-                    displayUrl = dataStr;
-                    const urlObj = new URL(dataStr);
-                    urlObj.searchParams.forEach((value, key) => {
-                        if (value.endsWith('-')) value = '-' + value.slice(0, -1);
-                        params[key] = value;
-                    });
-                } else {
-                    if (dataStr.startsWith('?')) dataStr = dataStr.substring(1);
-                    const dummyUrl = 'https://dummy.com/?' + dataStr;
-                    const urlObj = new URL(dummyUrl);
-                    urlObj.searchParams.forEach((value, key) => {
-                        if (value.endsWith('-')) value = '-' + value.slice(0, -1);
-                        params[key] = value;
-                    });
-                    displayUrl = 'https://comparador.cnmc.gob.es/comparador/QRE?' + dataStr;
-                }
-
-                renderResults(params, method, pageNum, displayUrl, evidenceCanvas);
-            } catch (e) {
-                console.error(e);
-                showError("Datos encontrados pero formato desconocido.");
-            }
-        }
-
-        function renderResults(params, method, pageNum, fullUrl, evidenceCanvas) {
-            const impTotal = parseFloat(params.imp || 0);
-            
-            let p1 = parseFloat(params.cfP1 || 0);
-            let p2 = parseFloat(params.cfP2 || 0);
-            let p3 = parseFloat(params.cfP3 || 0);
-            let fuenteConsumo = 'Facturado (cfP)';
-
-            if (p1 === 0 && p2 === 0 && p3 === 0) {
-                 p1 = parseFloat(params.caP1 || 0);
-                 p2 = parseFloat(params.caP2 || 0);
-                 p3 = parseFloat(params.caP3 || 0);
-                 fuenteConsumo = 'Estimado/Anual (caP)';
-            }
-
-            const totalConsumo = p1 + p2 + p3;
-            const fechaInicio = params.iniF || params.iniA || '-';
-            const fechaFin = params.finF || '-';
-            
-            results.innerHTML = `
-                <div class="result-card">
-                    <div class="result-header">
-                        <div>
-                            <h2 style="color: var(--primary);">Análisis Completado</h2>
-                            <p style="color: var(--gray); font-size: 0.9rem; margin-top: 0.25rem;">
-                                ${params.com || 'Comercializadora desconocida'} | CUPS: ${params.cups || 'No detectado'}
-                            </p>
+                    <div class="mb-6">
+                        <div class="inline-flex p-6 rounded-full bg-blue-100 mb-4">
+                            <i data-lucide="upload-cloud" class="w-12 h-12 text-blue-600"></i>
                         </div>
-                        <div class="success-tag">
-                            <span>✓</span> ${method} (Pág ${pageNum})
-                        </div>
-                    </div>
-
-                    <div class="highlight-grid">
-                        <div class="stat-box">
-                            <div class="stat-label">Importe Factura</div>
-                            <div class="stat-value total">${impTotal.toFixed(2)} €</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Consumo Total</div>
-                            <div class="stat-value">${totalConsumo.toFixed(0)} <span style="font-size: 1rem;">kWh</span></div>
-                            <div style="font-size: 0.7rem; color: var(--gray); margin-top: 5px;">Fuente: ${fuenteConsumo}</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Precio Medio Real</div>
-                            <div class="stat-value">${totalConsumo > 0 ? (impTotal/totalConsumo).toFixed(3) : '0'} <span style="font-size: 1rem;">€/kWh</span></div>
-                        </div>
-                    </div>
-
-                    ${evidenceCanvas ? `
-                    <div class="qr-debug-view active">
-                        <div class="qr-debug-title">👁️ Visor Interno: QR Capturado</div>
-                        <div class="qr-canvas-container" id="evidenceContainer"></div>
-                    </div>` : ''}
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem;">
-                        <div>
-                            <h3 style="margin-bottom: 1rem; color: var(--light);">Desglose de Consumo</h3>
-                            <div style="margin-bottom: 1rem;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-                                    <span style="font-size: 0.9rem; color: var(--gray);">Punta (P1)</span>
-                                    <span style="font-weight: 600;">${p1} kWh</span>
-                                </div>
-                                <div class="bar-container"><div class="bar-fill" style="width: ${totalConsumo > 0 ? (p1/totalConsumo)*100 : 0}%"></div></div>
-                            </div>
-                            <div style="margin-bottom: 1rem;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-                                    <span style="font-size: 0.9rem; color: var(--gray);">Llano (P2)</span>
-                                    <span style="font-weight: 600;">${p2} kWh</span>
-                                </div>
-                                <div class="bar-container"><div class="bar-fill" style="width: ${totalConsumo > 0 ? (p2/totalConsumo)*100 : 0}%; opacity: 0.7;"></div></div>
-                            </div>
-                            <div>
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-                                    <span style="font-size: 0.9rem; color: var(--gray);">Valle (P3)</span>
-                                    <span style="font-weight: 600;">${p3} kWh</span>
-                                </div>
-                                <div class="bar-container"><div class="bar-fill" style="width: ${totalConsumo > 0 ? (p3/totalConsumo)*100 : 0}%; opacity: 0.4;"></div></div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h3 style="margin-bottom: 1rem; color: var(--light);">Detalles Técnicos</h3>
-                            <table class="data-table">
-                                <tr><th>Periodo</th><td>${fechaInicio} al ${fechaFin}</td></tr>
-                                <tr><th>Potencia P1 / P2</th><td>${params.pP1 || 0} kW / ${params.pP2 || 0} kW</td></tr>
-                                <tr><th style="color: var(--primary);">Importe Energía</th><td style="color: var(--primary); font-weight: 700;">${params.impEner || 0} €</td></tr>
-                                <tr><th>Importe Potencia</th><td>${params.impPot || 0} €</td></tr>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="cnmc-link">
-                        <strong>ENLACE ORIGINAL GENERADO:</strong><br>
-                        <a href="${fullUrl}" target="_blank" style="color: inherit; text-decoration: none;">${fullUrl}</a>
+                        <h3 class="text-2xl font-bold text-slate-800 mb-2">Arrastra tu factura aquí</h3>
+                        <p class="text-slate-600 mb-4">PDF, JPG, PNG</p>
+                        <button onclick="document.getElementById('fileInput').click()" 
+                                class="text-blue-600 hover:text-blue-700 font-semibold underline decoration-2 underline-offset-4">
+                            o haz clic para seleccionar
+                        </button>
                     </div>
                 </div>
-            `;
+
+                <!-- Features -->
+                <div class="grid md:grid-cols-3 gap-4 text-center">
+                    <div class="p-4 bg-green-50 rounded-xl">
+                        <i data-lucide="shield-check" class="w-8 h-8 text-green-600 mx-auto mb-2"></i>
+                        <p class="text-sm font-semibold text-green-900">100% Seguro</p>
+                    </div>
+                    <div class="p-4 bg-blue-50 rounded-xl">
+                        <i data-lucide="clock" class="w-8 h-8 text-blue-600 mx-auto mb-2"></i>
+                        <p class="text-sm font-semibold text-blue-900">En segundos</p>
+                    </div>
+                    <div class="p-4 bg-purple-50 rounded-xl">
+                        <i data-lucide="gift" class="w-8 h-8 text-purple-600 mx-auto mb-2"></i>
+                        <p class="text-sm font-semibold text-purple-900">Gratis</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PASO 2: LOADING -->
+        <div id="loading-screen" class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden fade-in hidden">
+            <div class="p-16 text-center">
+                <div class="spinner mx-auto mb-6"></div>
+                <h3 class="text-2xl font-bold text-slate-800 mb-2">Analizando tu factura...</h3>
+                <p class="text-slate-600">Calculando tu ahorro personalizado</p>
+            </div>
+        </div>
+
+        <!-- PASO 3: RESULTADOS -->
+        <div id="results-screen" class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden result-card hidden">
             
-            if (evidenceCanvas) {
-                document.getElementById('evidenceContainer').appendChild(evidenceCanvas);
+            <!-- Header Resultado -->
+            <div class="bg-gradient-to-br from-green-600 to-emerald-600 px-8 py-8 text-center text-white">
+                <div class="flex items-center justify-center gap-2 mb-3">
+                    <i data-lucide="check-circle" class="w-6 h-6"></i>
+                    <span class="text-sm font-bold uppercase tracking-wider">Análisis Completado</span>
+                </div>
+                <h2 class="text-3xl font-black">Resultado del Estudio</h2>
+                <p class="text-green-100 text-sm mt-1">CUPS: <span id="result-cups" class="font-mono">-</span></p>
+            </div>
+
+            <!-- Tarjeta Oferta -->
+            <div class="p-8">
+                <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 mb-6 text-white text-center shadow-xl">
+                    <h3 class="text-3xl font-black mb-2" id="result-offer-name">DRK</h3>
+                    <p class="text-blue-100 text-lg font-semibold mb-6" id="result-offer-desc">DRK PLAN AMIGO</p>
+                    
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6">
+                        <p class="text-blue-100 text-sm uppercase tracking-wider mb-2">TU AHORRO ANUAL ESTIMADO</p>
+                        <p class="text-6xl font-black mb-1" id="result-savings">0,00 €</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 text-left">
+                        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                            <p class="text-red-200 text-lg font-bold mb-1" id="result-current-cost">0,00 €</p>
+                            <p class="text-xs text-blue-100">Total Periodo (<span id="result-days">60</span> días)</p>
+                            <p class="text-sm font-semibold text-white mt-2" id="result-current-annual">0,00 €/año</p>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                            <p class="text-blue-100 text-sm uppercase mb-1">Tu Nuevo Coste DRK</p>
+                            <p class="text-2xl font-black text-white" id="result-new-monthly">0,00 €/mes</p>
+                            <p class="text-xl font-bold text-blue-100 mt-1" id="result-new-annual">0,00 €/año</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón LO QUIERO -->
+                <button onclick="sendEmail()" class="btn-primary w-full py-5 rounded-xl text-white text-xl font-black uppercase tracking-wide flex items-center justify-center gap-3 mb-4">
+                    <i data-lucide="mail" class="w-6 h-6"></i>
+                    LO QUIERO
+                </button>
+
+                <!-- Info adicional -->
+                <p class="text-center text-sm text-slate-500">
+                    Al hacer clic, se abrirá tu cliente de correo con un mensaje preconfigurado
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // CONFIGURACIÓN
+        // ==========================================
+        const SHEET_ID = '1kLfQOZnTsBJ8lRXA0ab5RXk-QM3VeSRkDQsatL3-tVk';
+        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+        
+        let currentTariff = null;
+        let extractedData = null;
+
+        // ==========================================
+        // INICIALIZACIÓN
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            setupDragAndDrop();
+            loadTariff();
+        });
+
+        // ==========================================
+        // DRAG & DROP
+        // ==========================================
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+
+            dropZone.addEventListener('click', () => fileInput.click());
+            
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-active');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('drag-active');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-active');
+                const file = e.dataTransfer.files[0];
+                if (file) handleFile(file);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) handleFile(file);
+            });
+        }
+
+        // ==========================================
+        // CARGAR TARIFA DESDE GOOGLE SHEETS
+        // ==========================================
+        async function loadTariff() {
+            try {
+                console.log('📥 Cargando tarifa Plan Amigo...');
+                const response = await fetch(SHEET_URL);
+                const text = await response.text();
+                const json = JSON.parse(text.substring(47).slice(0, -2));
+                
+                const rows = json.table.rows;
+                if (rows.length < 2) {
+                    throw new Error('No se encontró la tarifa en la hoja');
+                }
+
+                const dataRow = rows[1].c;
+                currentTariff = {
+                    name: dataRow[0]?.v || 'DRK',
+                    description: dataRow[1]?.v || 'DRK PLAN AMIGO',
+                    p1_price: parseFloat(dataRow[2]?.v || 0),
+                    p2_price: parseFloat(dataRow[3]?.v || 0),
+                    p3_price: parseFloat(dataRow[4]?.v || 0),
+                    p_potencia_1: parseFloat(dataRow[5]?.v || 0),
+                    p_potencia_2: parseFloat(dataRow[6]?.v || 0),
+                    descuento: parseFloat(dataRow[7]?.v || 0)
+                };
+
+                console.log('✅ Tarifa cargada:', currentTariff);
+            } catch (error) {
+                console.error('❌ Error cargando tarifa:', error);
+                alert('Error al cargar la tarifa. Por favor, recarga la página.');
             }
-            results.classList.add('active');
         }
 
-        function showError(msg) {
-            loading.classList.remove('active');
-            error.textContent = '❌ ' + msg;
-            error.classList.add('active');
+        // ==========================================
+        // PROCESAR ARCHIVO
+        // ==========================================
+        async function handleFile(file) {
+            if (!currentTariff) {
+                alert('Espera un momento, estamos cargando la tarifa...');
+                return;
+            }
+
+            showScreen('loading');
+
+            try {
+                let data;
+                if (file.type === 'application/pdf') {
+                    data = await extractFromPDF(file);
+                } else {
+                    data = await extractFromImage(file);
+                }
+
+                if (data) {
+                    extractedData = data;
+                    calculateSavings(data);
+                } else {
+                    throw new Error('No se pudo extraer información de la factura');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('No pudimos leer tu factura. Por favor, intenta con otra imagen más clara o un PDF.');
+                showScreen('upload');
+            }
         }
 
-        function hideError() {
-            error.classList.remove('active');
+        // ==========================================
+        // EXTRACCIÓN PDF (SIMPLIFICADO)
+        // ==========================================
+        async function extractFromPDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const page = await pdf.getPage(1);
+            const textContent = await page.getTextContent();
+            const text = textContent.items.map(item => item.str).join(' ');
+            
+            return parseInvoiceText(text);
+        }
+
+        // ==========================================
+        // EXTRACCIÓN IMAGEN (SIMPLIFICADO)
+        // ==========================================
+        async function extractFromImage(file) {
+            const { data: { text } } = await Tesseract.recognize(file, 'spa');
+            return parseInvoiceText(text);
+        }
+
+        // ==========================================
+        // PARSEAR TEXTO DE FACTURA
+        // ==========================================
+        function parseInvoiceText(text) {
+            const data = {
+                cups: '',
+                consumo_punta: 0,
+                consumo_llano: 0,
+                consumo_valle: 0,
+                potencia_p1_kw: 0,
+                potencia_p2_kw: 0,
+                dias_facturados: 60,
+                importe_total: 0
+            };
+
+            // Buscar CUPS
+            const cupsMatch = text.match(/ES\d{16}[A-Z0-9]{2}[0-9A-Z]/i);
+            if (cupsMatch) data.cups = cupsMatch[0];
+
+            // Buscar consumos (ejemplo simplificado)
+            const puntaMatch = text.match(/punta[^\d]*(\d+)/i);
+            const llanoMatch = text.match(/llano[^\d]*(\d+)/i);
+            const valleMatch = text.match(/valle[^\d]*(\d+)/i);
+
+            if (puntaMatch) data.consumo_punta = parseInt(puntaMatch[1]);
+            if (llanoMatch) data.consumo_llano = parseInt(llanoMatch[1]);
+            if (valleMatch) data.consumo_valle = parseInt(valleMatch[1]);
+
+            // Buscar potencias
+            const pot1Match = text.match(/potencia.*?(\d+[\.,]\d+)/i);
+            if (pot1Match) {
+                data.potencia_p1_kw = parseFloat(pot1Match[1].replace(',', '.'));
+                data.potencia_p2_kw = data.potencia_p1_kw;
+            }
+
+            // Buscar importe total
+            const importeMatch = text.match(/total.*?(\d+[\.,]\d+)/i);
+            if (importeMatch) data.importe_total = parseFloat(importeMatch[1].replace(',', '.'));
+
+            return data;
+        }
+
+        // ==========================================
+        // CALCULAR AHORRO
+        // ==========================================
+        function calculateSavings(data) {
+            const DIAS_ANO = 365;
+            const IVA = 0.21;
+            const IE = 0.05113;
+
+            // Calcular coste actual (estimado)
+            const currentAnnual = (data.importe_total / data.dias_facturados) * DIAS_ANO;
+
+            // Calcular coste con Plan Amigo
+            const energyCostDay = (
+                data.consumo_punta * currentTariff.p1_price +
+                data.consumo_llano * currentTariff.p2_price +
+                data.consumo_valle * currentTariff.p3_price
+            ) / data.dias_facturados;
+
+            const powerCostDay = 
+                data.potencia_p1_kw * (currentTariff.p_potencia_1 / 365) +
+                data.potencia_p2_kw * (currentTariff.p_potencia_2 / 365);
+
+            const baseCostDay = energyCostDay + powerCostDay;
+            const baseCostPeriod = baseCostDay * data.dias_facturados;
+
+            // Aplicar descuento
+            const discountAmount = baseCostPeriod * (currentTariff.descuento / 100);
+            const afterDiscount = baseCostPeriod - discountAmount;
+
+            // Aplicar IE
+            const withIE = afterDiscount * (1 + IE);
+
+            // Aplicar IVA
+            const totalPeriod = withIE * (1 + IVA);
+            const totalAnnual = (totalPeriod / data.dias_facturados) * DIAS_ANO;
+
+            // Calcular ahorro
+            const savings = currentAnnual - totalAnnual;
+
+            // Mostrar resultados
+            showResults({
+                cups: data.cups || 'No detectado',
+                days: data.dias_facturados,
+                currentCost: data.importe_total,
+                currentAnnual: currentAnnual,
+                newMonthly: totalAnnual / 12,
+                newAnnual: totalAnnual,
+                savings: savings
+            });
+        }
+
+        // ==========================================
+        // MOSTRAR RESULTADOS
+        // ==========================================
+        function showResults(results) {
+            document.getElementById('result-cups').textContent = results.cups;
+            document.getElementById('result-days').textContent = results.days;
+            document.getElementById('result-current-cost').textContent = results.currentCost.toFixed(2) + ' €';
+            document.getElementById('result-current-annual').textContent = results.currentAnnual.toFixed(2) + ' €/año';
+            document.getElementById('result-new-monthly').textContent = results.newMonthly.toFixed(2) + ' €/mes';
+            document.getElementById('result-new-annual').textContent = results.newAnnual.toFixed(2) + ' €/año';
+            document.getElementById('result-savings').textContent = results.savings.toFixed(2) + ' €';
+
+            showScreen('results');
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // ENVIAR EMAIL
+        // ==========================================
+        function sendEmail() {
+            const to = 'f.araujo@drk.es,rguerra@drk.es,s.caballero@drk.es';
+            const subject = 'Estimado DRK: Estoy interesado en los precios de la oferta';
+            const body = `Estimado DRK,
+
+Estoy interesado en los precios de la oferta. Adjunto la siguiente información para la contratación:
+
+- Foto DNI
+- Email de validación de contrato
+- Teléfono de validación de contrato
+- Número de cuenta bancaria
+- Factura eléctrica (no puede ser más antigua de 3 meses desde la fecha actual)
+
+CUPS: ${extractedData?.cups || 'Pendiente de adjuntar'}
+
+Gracias.`;
+
+            const mailtoLink = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = mailtoLink;
+        }
+
+        // ==========================================
+        // NAVEGACIÓN PANTALLAS
+        // ==========================================
+        function showScreen(screen) {
+            document.getElementById('upload-screen').classList.add('hidden');
+            document.getElementById('loading-screen').classList.add('hidden');
+            document.getElementById('results-screen').classList.add('hidden');
+
+            document.getElementById(screen + '-screen').classList.remove('hidden');
         }
     </script>
+
 </body>
 </html>

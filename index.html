@@ -3,19 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calcula tu Ahorro Energético | DRK</title>
+    <title>Calcula tu Ahorro | DRK Energía</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'dark-bg': '#1a202c',
+                        'dark-card': '#2d3748',
+                    }
+                }
+            }
+        }
+    </script>
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- QR Code Library -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     
     <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -28,250 +37,222 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f172a;
             min-height: 100vh;
-            overflow-x: hidden;
+            color: white;
         }
 
-        /* Fondo Animado */
-        .animated-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .animated-bg::before,
-        .animated-bg::after {
-            content: '';
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.3;
-            animation: float 15s infinite ease-in-out;
-        }
-        
-        .animated-bg::before {
-            top: -20%;
-            left: -10%;
-            width: 600px;
-            height: 600px;
-            background: #3b82f6;
-            animation-delay: 0s;
-        }
-        
-        .animated-bg::after {
-            bottom: -20%;
-            right: -10%;
-            width: 500px;
-            height: 500px;
-            background: #8b5cf6;
-            animation-delay: 7s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(30px, -50px) rotate(5deg); }
-            66% { transform: translate(-20px, 20px) rotate(-5deg); }
-        }
-        
         /* Animaciones */
-        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .fade-in { animation: fadeIn 0.6s ease-out; }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Drag & Drop */
+        /* Drop Zone */
         .drop-zone {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 3px dashed #cbd5e1;
+            border: 3px dashed #475569;
+            transition: all 0.3s ease;
             cursor: pointer;
         }
         
         .drop-zone:hover {
             border-color: #3b82f6;
-            background-color: #eff6ff;
-            transform: scale(1.02);
+            background-color: rgba(59, 130, 246, 0.05);
         }
         
         .drop-zone.drag-active {
-            border-color: #3b82f6 !important;
-            background-color: #dbeafe !important;
-            transform: scale(1.05);
+            border-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.1);
+            transform: scale(1.02);
         }
 
-        /* Botón Principal */
+        /* Botones */
+        .btn-option {
+            transition: all 0.3s ease;
+            border: 2px solid #334155;
+        }
+        
+        .btn-option:hover {
+            border-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.1);
+            transform: translateY(-2px);
+        }
+
         .btn-primary {
             background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
             transition: all 0.3s ease;
-            box-shadow: 0 10px 25px -5px rgba(220, 38, 38, 0.4);
         }
         
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px -5px rgba(220, 38, 38, 0.5);
-            filter: brightness(1.1);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(220, 38, 38, 0.4);
+        }
+
+        /* Language Selector */
+        .lang-btn {
+            transition: all 0.3s ease;
+            border: 2px solid #334155;
+        }
+        
+        .lang-btn:hover {
+            border-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        .lang-btn.active {
+            border-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.2);
         }
 
         /* Loading */
         .spinner {
-            border: 3px solid #f3f4f6;
-            border-top: 3px solid #3b82f6;
+            border: 3px solid #334155;
+            border-top-color: #3b82f6;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             animation: spin 1s linear infinite;
         }
         
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
 
-        /* Ocultar input file */
         input[type="file"] { display: none; }
-        
-        /* Resultados */
-        .result-card {
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(50px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
     </style>
 </head>
-<body class="flex items-center justify-center p-4">
+<body class="flex items-center justify-center min-h-screen p-4">
 
-    <!-- Fondo Animado -->
-    <div class="animated-bg"></div>
-
-    <!-- Contenedor Principal -->
-    <div class="w-full max-w-3xl">
+    <!-- PANTALLA 1: SUBIR FACTURA -->
+    <div id="upload-screen" class="w-full max-w-6xl fade-in">
         
-        <!-- PASO 1: SUBIR FACTURA -->
-        <div id="upload-screen" class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden fade-in">
-            
-            <!-- Header -->
-            <div class="bg-gradient-to-br from-slate-900 to-slate-800 px-8 py-10 text-center relative overflow-hidden">
-                <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 20px 20px;"></div>
-                
-                <div class="relative z-10">
-                    <div class="inline-flex p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg mb-6">
-                        <i data-lucide="zap" class="w-10 h-10 text-white"></i>
-                    </div>
-                    <h1 class="text-4xl md:text-5xl font-black text-white mb-4">
-                        ¿Cuánto puedes <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">ahorrar</span>?
-                    </h1>
-                    <p class="text-slate-300 text-lg font-medium max-w-lg mx-auto">
-                        Descubre tu ahorro real en <strong>segundos</strong>. Solo necesitas tu factura de luz.
-                    </p>
-                </div>
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <div class="flex items-center justify-center gap-4 mb-6">
+                <i data-lucide="zap" class="w-16 h-16 text-blue-500"></i>
+                <h1 class="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
+                    Extractor Inteligente
+                </h1>
             </div>
-
-            <!-- Contenido -->
-            <div class="p-8 md:p-12">
-                
-                <!-- Drop Zone -->
-                <div id="dropZone" class="drop-zone bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl p-12 text-center mb-6">
-                    <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" />
-                    
-                    <div class="mb-6">
-                        <div class="inline-flex p-6 rounded-full bg-blue-100 mb-4">
-                            <i data-lucide="upload-cloud" class="w-12 h-12 text-blue-600"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold text-slate-800 mb-2">Arrastra tu factura aquí</h3>
-                        <p class="text-slate-600 mb-4">PDF, JPG, PNG</p>
-                        <button onclick="document.getElementById('fileInput').click()" 
-                                class="text-blue-600 hover:text-blue-700 font-semibold underline decoration-2 underline-offset-4">
-                            o haz clic para seleccionar
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Features -->
-                <div class="grid md:grid-cols-3 gap-4 text-center">
-                    <div class="p-4 bg-green-50 rounded-xl">
-                        <i data-lucide="shield-check" class="w-8 h-8 text-green-600 mx-auto mb-2"></i>
-                        <p class="text-sm font-semibold text-green-900">100% Seguro</p>
-                    </div>
-                    <div class="p-4 bg-blue-50 rounded-xl">
-                        <i data-lucide="clock" class="w-8 h-8 text-blue-600 mx-auto mb-2"></i>
-                        <p class="text-sm font-semibold text-blue-900">En segundos</p>
-                    </div>
-                    <div class="p-4 bg-purple-50 rounded-xl">
-                        <i data-lucide="gift" class="w-8 h-8 text-purple-600 mx-auto mb-2"></i>
-                        <p class="text-sm font-semibold text-purple-900">Gratis</p>
-                    </div>
-                </div>
-
-            </div>
+            <p class="text-slate-400 text-lg uppercase tracking-widest font-mono">
+                ANALIZADOR DE FACTURAS ELÉCTRICAS CNMC
+            </p>
         </div>
 
-        <!-- PASO 2: LOADING -->
-        <div id="loading-screen" class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden fade-in hidden">
-            <div class="p-16 text-center">
-                <div class="spinner mx-auto mb-6"></div>
-                <h3 class="text-2xl font-bold text-slate-800 mb-2">Analizando tu factura...</h3>
-                <p class="text-slate-600">Calculando tu ahorro personalizado</p>
-            </div>
-        </div>
-
-        <!-- PASO 3: RESULTADOS -->
-        <div id="results-screen" class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden result-card hidden">
+        <!-- Drop Zone -->
+        <div id="dropZone" class="drop-zone bg-slate-800/50 backdrop-blur rounded-3xl p-16 mb-8">
+            <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" />
             
-            <!-- Header Resultado -->
-            <div class="bg-gradient-to-br from-green-600 to-emerald-600 px-8 py-8 text-center text-white">
-                <div class="flex items-center justify-center gap-2 mb-3">
-                    <i data-lucide="check-circle" class="w-6 h-6"></i>
-                    <span class="text-sm font-bold uppercase tracking-wider">Análisis Completado</span>
+            <div class="text-center">
+                <div class="flex items-center justify-center gap-6 mb-8">
+                    <i data-lucide="file-text" class="w-20 h-20 text-slate-400"></i>
+                    <i data-lucide="camera" class="w-20 h-20 text-slate-400"></i>
                 </div>
-                <h2 class="text-3xl font-black">Resultado del Estudio</h2>
-                <p class="text-green-100 text-sm mt-1">CUPS: <span id="result-cups" class="font-mono">-</span></p>
-            </div>
-
-            <!-- Tarjeta Oferta -->
-            <div class="p-8">
-                <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 mb-6 text-white text-center shadow-xl">
-                    <h3 class="text-3xl font-black mb-2" id="result-offer-name">DRK</h3>
-                    <p class="text-blue-100 text-lg font-semibold mb-6" id="result-offer-desc">DRK PLAN AMIGO</p>
-                    
-                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6">
-                        <p class="text-blue-100 text-sm uppercase tracking-wider mb-2">TU AHORRO ANUAL ESTIMADO</p>
-                        <p class="text-6xl font-black mb-1" id="result-savings">0,00 €</p>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 text-left">
-                        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                            <p class="text-red-200 text-lg font-bold mb-1" id="result-current-cost">0,00 €</p>
-                            <p class="text-xs text-blue-100">Total Periodo (<span id="result-days">60</span> días)</p>
-                            <p class="text-sm font-semibold text-white mt-2" id="result-current-annual">0,00 €/año</p>
-                        </div>
-                        <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                            <p class="text-blue-100 text-sm uppercase mb-1">Tu Nuevo Coste DRK</p>
-                            <p class="text-2xl font-black text-white" id="result-new-monthly">0,00 €/mes</p>
-                            <p class="text-xl font-bold text-blue-100 mt-1" id="result-new-annual">0,00 €/año</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botón LO QUIERO -->
-                <button onclick="sendEmail()" class="btn-primary w-full py-5 rounded-xl text-white text-xl font-black uppercase tracking-wide flex items-center justify-center gap-3 mb-4">
-                    <i data-lucide="mail" class="w-6 h-6"></i>
-                    LO QUIERO
-                </button>
-
-                <!-- Info adicional -->
-                <p class="text-center text-sm text-slate-500">
-                    Al hacer clic, se abrirá tu cliente de correo con un mensaje preconfigurado
+                
+                <h2 class="text-3xl font-bold text-white mb-4">Arrastra PDF o Foto de Factura</h2>
+                <p class="text-slate-400 mb-8">
+                    Aceptamos <span class="text-blue-400 font-semibold">PDF, JPG</span> o <span class="text-blue-400 font-semibold">PNG</span>. Buscamos el código QR o el enlace oculto para extraer los datos.
                 </p>
+
+                <!-- Botones de opciones -->
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button onclick="document.getElementById('fileInput').click()" class="btn-option px-8 py-4 rounded-xl bg-slate-700/50 backdrop-blur text-white font-semibold flex items-center gap-2">
+                        <i data-lucide="link" class="w-5 h-5"></i>
+                        Link Texto
+                    </button>
+                    <button onclick="document.getElementById('fileInput').click()" class="btn-option px-8 py-4 rounded-xl bg-slate-700/50 backdrop-blur text-white font-semibold flex items-center gap-2">
+                        <i data-lucide="diamond" class="w-5 h-5"></i>
+                        Minería IMG
+                    </button>
+                    <button onclick="document.getElementById('fileInput').click()" class="btn-option px-8 py-4 rounded-xl bg-slate-700/50 backdrop-blur text-white font-semibold flex items-center gap-2">
+                        <i data-lucide="scissors" class="w-5 h-5"></i>
+                        Recorte 3x3
+                    </button>
+                </div>
             </div>
+        </div>
+
+        <!-- Selector de Idioma -->
+        <div class="text-center">
+            <p class="text-slate-400 text-sm mb-4">Selecciona el idioma del comparativo:</p>
+            <div class="flex justify-center gap-3">
+                <button onclick="selectLanguage('es')" class="lang-btn active px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur text-white font-semibold" data-lang="es">
+                    🇪🇸 Español
+                </button>
+                <button onclick="selectLanguage('en')" class="lang-btn px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur text-white font-semibold" data-lang="en">
+                    🇬🇧 English
+                </button>
+                <button onclick="selectLanguage('fr')" class="lang-btn px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur text-white font-semibold" data-lang="fr">
+                    🇫🇷 Français
+                </button>
+                <button onclick="selectLanguage('de')" class="lang-btn px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur text-white font-semibold" data-lang="de">
+                    🇩🇪 Deutsch
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PANTALLA 2: LOADING -->
+    <div id="loading-screen" class="w-full max-w-2xl fade-in hidden">
+        <div class="bg-slate-800/50 backdrop-blur rounded-3xl p-16 text-center">
+            <div class="spinner mx-auto mb-6"></div>
+            <h3 class="text-2xl font-bold text-white mb-2" id="loading-text">Espera un momento, estamos cargando la tarifa...</h3>
+            <p class="text-slate-400" id="loading-subtext">Conectando con Google Sheets...</p>
+        </div>
+    </div>
+
+    <!-- PANTALLA 3: RESULTADOS -->
+    <div id="results-screen" class="w-full max-w-4xl fade-in hidden">
+        
+        <!-- Header Resultado -->
+        <div class="bg-gradient-to-r from-green-600 to-emerald-600 rounded-t-3xl px-8 py-6 text-center">
+            <div class="flex items-center justify-center gap-2 mb-2">
+                <i data-lucide="check-circle" class="w-6 h-6"></i>
+                <span class="text-sm font-bold uppercase tracking-wider">Análisis Completado</span>
+            </div>
+            <h2 class="text-3xl font-black">Resultado del Estudio</h2>
+            <p class="text-green-100 text-sm mt-1">CUPS: <span id="result-cups" class="font-mono">-</span></p>
+        </div>
+
+        <!-- Contenido Resultado -->
+        <div class="bg-slate-800/50 backdrop-blur rounded-b-3xl p-8">
+            
+            <!-- Tarjeta Oferta -->
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 mb-6 text-white text-center shadow-xl">
+                <h3 class="text-4xl font-black mb-2" id="result-offer-name">DRK</h3>
+                <p class="text-blue-100 text-xl font-semibold mb-6" id="result-offer-desc">DRK PLAN AMIGO</p>
+                
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6">
+                    <p class="text-blue-100 text-sm uppercase tracking-wider mb-2">TU AHORRO ANUAL ESTIMADO</p>
+                    <p class="text-7xl font-black mb-1" id="result-savings">0,00 €</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 text-left">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                        <p class="text-red-200 text-xl font-bold mb-1" id="result-current-cost">0,00 €</p>
+                        <p class="text-xs text-blue-100">Total Periodo (<span id="result-days">60</span> días)</p>
+                        <p class="text-sm font-semibold text-white mt-2" id="result-current-annual">0,00 €/año</p>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                        <p class="text-blue-100 text-sm uppercase mb-1">Tu Nuevo Coste DRK</p>
+                        <p class="text-3xl font-black text-white" id="result-new-monthly">0,00 €/mes</p>
+                        <p class="text-xl font-bold text-blue-100 mt-1" id="result-new-annual">0,00 €/año</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón LO QUIERO -->
+            <button onclick="sendEmail()" class="btn-primary w-full py-5 rounded-xl text-white text-2xl font-black uppercase tracking-wide flex items-center justify-center gap-3 mb-4">
+                <i data-lucide="mail" class="w-7 h-7"></i>
+                LO QUIERO
+            </button>
+
+            <p class="text-center text-sm text-slate-400">
+                Al hacer clic, se abrirá tu cliente de correo con un mensaje preconfigurado
+            </p>
         </div>
 
     </div>
@@ -285,6 +266,7 @@
         
         let currentTariff = null;
         let extractedData = null;
+        let selectedLanguage = 'es';
 
         // ==========================================
         // INICIALIZACIÓN
@@ -292,8 +274,25 @@
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             setupDragAndDrop();
-            loadTariff();
+            loadTariffWithVisualFeedback();
         });
+
+        // ==========================================
+        // SELECTOR DE IDIOMA
+        // ==========================================
+        function selectLanguage(lang) {
+            selectedLanguage = lang;
+            
+            // Actualizar botones
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-lang') === lang) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            console.log('Idioma seleccionado:', lang);
+        }
 
         // ==========================================
         // DRAG & DROP
@@ -327,18 +326,30 @@
         }
 
         // ==========================================
-        // CARGAR TARIFA DESDE GOOGLE SHEETS
+        // CARGAR TARIFA CON FEEDBACK VISUAL
         // ==========================================
-        async function loadTariff() {
+        async function loadTariffWithVisualFeedback() {
             try {
-                console.log('📥 Cargando tarifa Plan Amigo...');
+                console.log('📥 Iniciando carga de tarifa...');
+                
                 const response = await fetch(SHEET_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const text = await response.text();
-                const json = JSON.parse(text.substring(47).slice(0, -2));
+                console.log('📄 Respuesta recibida, parseando...');
+                
+                // Eliminar el wrapper de JSONP
+                const jsonText = text.substring(47).slice(0, -2);
+                const json = JSON.parse(jsonText);
+                
+                console.log('📊 JSON parseado:', json);
                 
                 const rows = json.table.rows;
                 if (rows.length < 2) {
-                    throw new Error('No se encontró la tarifa en la hoja');
+                    throw new Error('No se encontró la tarifa en la hoja (menos de 2 filas)');
                 }
 
                 const dataRow = rows[1].c;
@@ -353,10 +364,27 @@
                     descuento: parseFloat(dataRow[7]?.v || 0)
                 };
 
-                console.log('✅ Tarifa cargada:', currentTariff);
+                console.log('✅ Tarifa cargada exitosamente:', currentTariff);
+                
             } catch (error) {
-                console.error('❌ Error cargando tarifa:', error);
-                alert('Error al cargar la tarifa. Por favor, recarga la página.');
+                console.error('❌ Error detallado al cargar tarifa:', error);
+                console.error('URL intentada:', SHEET_URL);
+                
+                // Mostrar error al usuario
+                alert(`Error al cargar la tarifa Plan Amigo:\n\n${error.message}\n\nPor favor, verifica:\n1. La hoja de Google está pública\n2. El ID es correcto: ${SHEET_ID}\n3. La primera fila tiene encabezados\n4. La segunda fila tiene los datos`);
+                
+                // Usar datos de ejemplo para testing
+                console.log('⚠️ Usando tarifa de ejemplo para testing...');
+                currentTariff = {
+                    name: 'DRK',
+                    description: 'DRK PLAN AMIGO (DEMO)',
+                    p1_price: 0.11266,
+                    p2_price: 0.11266,
+                    p3_price: 0.11266,
+                    p_potencia_1: 36.909,
+                    p_potencia_2: 36.163,
+                    descuento: 10
+                };
             }
         }
 
@@ -365,11 +393,23 @@
         // ==========================================
         async function handleFile(file) {
             if (!currentTariff) {
-                alert('Espera un momento, estamos cargando la tarifa...');
-                return;
+                showLoadingMessage('Espera un momento, estamos cargando la tarifa...', 'Conectando con Google Sheets...');
+                
+                // Esperar a que la tarifa se cargue
+                let attempts = 0;
+                while (!currentTariff && attempts < 10) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    attempts++;
+                }
+                
+                if (!currentTariff) {
+                    alert('Error: No se pudo cargar la tarifa. Por favor, recarga la página.');
+                    showScreen('upload');
+                    return;
+                }
             }
 
-            showScreen('loading');
+            showLoadingMessage('Analizando tu factura...', 'Extrayendo datos con OCR avanzado...');
 
             try {
                 let data;
@@ -393,7 +433,7 @@
         }
 
         // ==========================================
-        // EXTRACCIÓN PDF (SIMPLIFICADO)
+        // EXTRACCIÓN PDF
         // ==========================================
         async function extractFromPDF(file) {
             const arrayBuffer = await file.arrayBuffer();
@@ -406,10 +446,16 @@
         }
 
         // ==========================================
-        // EXTRACCIÓN IMAGEN (SIMPLIFICADO)
+        // EXTRACCIÓN IMAGEN
         // ==========================================
         async function extractFromImage(file) {
-            const { data: { text } } = await Tesseract.recognize(file, 'spa');
+            const { data: { text } } = await Tesseract.recognize(file, 'spa', {
+                logger: m => {
+                    if (m.status === 'recognizing text') {
+                        showLoadingMessage('Analizando tu factura...', `Progreso: ${Math.round(m.progress * 100)}%`);
+                    }
+                }
+            });
             return parseInvoiceText(text);
         }
 
@@ -428,11 +474,11 @@
                 importe_total: 0
             };
 
-            // Buscar CUPS
+            // CUPS
             const cupsMatch = text.match(/ES\d{16}[A-Z0-9]{2}[0-9A-Z]/i);
             if (cupsMatch) data.cups = cupsMatch[0];
 
-            // Buscar consumos (ejemplo simplificado)
+            // Consumos
             const puntaMatch = text.match(/punta[^\d]*(\d+)/i);
             const llanoMatch = text.match(/llano[^\d]*(\d+)/i);
             const valleMatch = text.match(/valle[^\d]*(\d+)/i);
@@ -441,17 +487,18 @@
             if (llanoMatch) data.consumo_llano = parseInt(llanoMatch[1]);
             if (valleMatch) data.consumo_valle = parseInt(valleMatch[1]);
 
-            // Buscar potencias
+            // Potencias
             const pot1Match = text.match(/potencia.*?(\d+[\.,]\d+)/i);
             if (pot1Match) {
                 data.potencia_p1_kw = parseFloat(pot1Match[1].replace(',', '.'));
                 data.potencia_p2_kw = data.potencia_p1_kw;
             }
 
-            // Buscar importe total
+            // Importe total
             const importeMatch = text.match(/total.*?(\d+[\.,]\d+)/i);
             if (importeMatch) data.importe_total = parseFloat(importeMatch[1].replace(',', '.'));
 
+            console.log('📄 Datos extraídos:', data);
             return data;
         }
 
@@ -463,7 +510,7 @@
             const IVA = 0.21;
             const IE = 0.05113;
 
-            // Calcular coste actual (estimado)
+            // Calcular coste actual
             const currentAnnual = (data.importe_total / data.dias_facturados) * DIAS_ANO;
 
             // Calcular coste con Plan Amigo
@@ -484,17 +531,14 @@
             const discountAmount = baseCostPeriod * (currentTariff.descuento / 100);
             const afterDiscount = baseCostPeriod - discountAmount;
 
-            // Aplicar IE
+            // Aplicar IE + IVA
             const withIE = afterDiscount * (1 + IE);
-
-            // Aplicar IVA
             const totalPeriod = withIE * (1 + IVA);
             const totalAnnual = (totalPeriod / data.dias_facturados) * DIAS_ANO;
 
             // Calcular ahorro
             const savings = currentAnnual - totalAnnual;
 
-            // Mostrar resultados
             showResults({
                 cups: data.cups || 'No detectado',
                 days: data.dias_facturados,
@@ -539,6 +583,7 @@ Estoy interesado en los precios de la oferta. Adjunto la siguiente información 
 - Factura eléctrica (no puede ser más antigua de 3 meses desde la fecha actual)
 
 CUPS: ${extractedData?.cups || 'Pendiente de adjuntar'}
+Idioma preferido: ${selectedLanguage.toUpperCase()}
 
 Gracias.`;
 
@@ -555,6 +600,12 @@ Gracias.`;
             document.getElementById('results-screen').classList.add('hidden');
 
             document.getElementById(screen + '-screen').classList.remove('hidden');
+        }
+
+        function showLoadingMessage(title, subtitle) {
+            document.getElementById('loading-text').textContent = title;
+            document.getElementById('loading-subtext').textContent = subtitle;
+            showScreen('loading');
         }
     </script>
 

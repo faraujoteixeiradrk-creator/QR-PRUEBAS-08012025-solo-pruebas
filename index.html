@@ -60,7 +60,7 @@
         .screen.active { display: block; }
         
         /* Estilos base y animaciones */
-        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         #interactive.viewport { position: relative; width: 100%; height: auto; overflow: hidden; border-radius: 1rem; }
         #interactive.viewport > video { width: 100%; height: 100%; object-fit: cover; }
         .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
@@ -320,55 +320,72 @@
         <!-- PANTALLA 2: ELECTRICIDAD (landing-view original) -->
         <div id="screen-electricidad" class="screen active">
         <!-- 1. Landing View -->
-        <div id="landing-view" class="fade-in flex flex-col items-center justify-center min-h-[80vh] py-12">
-            <!-- Header Extractor Inteligente -->
-            <div class="w-full max-w-4xl mb-8 text-center">
-                <div class="flex items-center justify-center gap-4 mb-6">
-                    <svg class="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        <div id="landing-view" class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8">
+            <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500" id="landing-card">
+                <div id="landing-icon-bg" class="w-16 h-16 bg-drk-50 rounded-full flex items-center justify-center mx-auto mb-4 text-drk-600 shadow-inner">
+                    <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none">
+                        <style>.drk-ring{fill:none;stroke-width:10;stroke-linecap:round;}</style>
+                        <circle class="drk-ring" cx="45" cy="45" r="35" stroke="#E50000"/>
+                        <circle class="drk-ring" cx="55" cy="55" r="35" stroke="#FFCC00"/>
+                        <circle class="drk-ring" cx="45" cy="55" r="35" stroke="#0079C1"/>
+                        <circle class="drk-ring" cx="55" cy="45" r="35" stroke="#00A859"/>
                     </svg>
-                    <h1 class="text-5xl md:text-6xl font-black text-blue-400">Extractor Inteligente</h1>
                 </div>
-                <p class="text-slate-400 text-lg uppercase tracking-widest font-mono">
-                    ANALIZADOR DE FACTURAS ELÉCTRICAS CNMC
-                </p>
-            </div>
-            
-            <!-- Inputs ocultos (del modal original) -->
-            <input type="file" id="camera-capture-input" accept="image/*" capture="environment" class="hidden">
-            <input type="file" id="file-upload-input" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" class="hidden">
-            
-            <!-- Zona de Drag & Drop (copiada del modal que funciona) -->
-            <div class="w-full max-w-5xl">
-                <div id="drag-drop-zone" class="bg-slate-800/50 backdrop-blur rounded-3xl p-16 border-4 border-dashed border-slate-600 hover:border-blue-500 transition-colors cursor-pointer">
-                    <div class="text-center">
-                        <!-- Iconos -->
-                        <div class="flex items-center justify-center gap-8 mb-8">
-                            <svg class="w-24 h-24 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
-                                <path d="M14 2v6h6M10 13h4M10 17h4M10 9h1"/>
-                            </svg>
-                            <svg class="w-24 h-24 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
+                <h2 id="landing-title" class="text-3xl font-black text-drk-900 mb-2 text-center">DRK COMPARADOR</h2>
+                <p class="text-slate-500 mb-6 text-center">Selecciona la tarifa que deseas analizar.</p>
+                
+                <!-- Tariff Selection Buttons -->
+                <div class="w-full space-y-4">
+                    <!-- OCULTO: MULTICUPS -->
+                    <button onclick="selectTariffType('MULTICUPS')" class="tariff-select-btn group" style="display: none;">
+                        <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg>
                         </div>
-                        
-                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Arrastra PDF o Foto de Factura</h2>
-                        <p class="text-slate-400 text-lg mb-4">
-                            Aceptamos <span class="text-blue-400 font-semibold">PDF, JPG</span> o <span class="text-blue-400 font-semibold">PNG</span>. Buscamos el código QR o el enlace oculto para extraer los datos.
-                        </p>
-                        <p class="text-blue-400 text-base font-semibold">
-                            o haz clic para seleccionar
-                        </p>
-                    </div>
+                        <div class="text-left">
+                            <span class="text-lg font-bold text-drk-900">MULTICUPS</span>
+                            <span class="block text-xs text-slate-500">Gestor de múltiples contratos (2.0TD + 3.0TD)</span>
+                        </div>
+                        <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
+                    </button>
+
+                    <button onclick="selectTariffType('2.0TD')" class="tariff-select-btn group">
+                        <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                        </div>
+                        <div class="text-left">
+                            <span class="text-lg font-bold text-drk-900">2.0 TD</span>
+                            <span class="block text-xs text-slate-500">Hogar / Pequeño Negocio (Individual)</span>
+                        </div>
+                        <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
+                    </button>
+
+                    <!-- OCULTO: 3.0TD -->
+                    <button onclick="selectTariffType('3.0TD')" class="tariff-select-btn group" style="display: none;">
+                        <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.18a2 2 0 0 0 1.51-.72L11 1l2 2h3.18a2 2 0 0 1 1.51.72L20 5h1.18a2 2 0 0 1 2 2z"></path><path d="M14 9H8v8h8V9z"></path></svg>
+                        </div>
+                        <div class="text-left">
+                            <span class="text-lg font-bold text-drk-900">3.0 TD</span>
+                            <span class="block text-xs text-slate-500">Industria / Gran Consumo (Individual)</span>
+                        </div>
+                        <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
+                    </button>
                 </div>
                 
-                <!-- Botón Subir desde Archivo (SOLO ESTE) -->
-                <button id="modal-upload-file-btn" class="w-full mt-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 px-6 rounded-xl shadow-2xl flex items-center justify-center gap-3 text-lg">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                    <span>Subir desde Archivo</span>
-                </button>
+                <!-- QR Link Section -->
+                <div id="pwa-install-section" class="mt-8 pt-4 border-t border-slate-200 text-center">
+                    <label class="flex items-center justify-center cursor-pointer mb-3 text-drk-800 hover:text-drk-900 transition">
+                        <input type="checkbox" id="qr-toggle-checkbox" class="h-4 w-4 text-drk-500 border-gray-300 rounded focus:ring-drk-500 mr-2">
+                        <span class="text-xs font-bold uppercase tracking-wider underline decoration-drk-500 decoration-2 underline-offset-4">Abrir en el Movil</span>
+                    </label>
+                    <div id="qr-content-wrapper" class="opacity-0 max-h-0">
+                        <div id="qr-visual-container" class="mx-auto w-44 h-44 p-2">
+                            <div id="qr-code-container"></div>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-3">Haz una foto del QR y ábrelo en tu móvil.</p>
+                    </div>
+                </div>
+
             </div>
         </div>
         </div> <!-- Cierre screen-electricidad -->
@@ -16001,11 +16018,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // Botón "Subir desde archivo"
             document.getElementById('modal-upload-file-btn').addEventListener('click', () => {
-                // Auto-seleccionar 2.0TD si no está seleccionado
-                if (!currentTariffType) {
-                    currentTariffType = '2.0TD';
-                    loadTariffs('2.0TD');
-                }
                 fileUploadInput.click();
             });
             
@@ -27400,37 +27412,11 @@ ${clientName}
             window.addEventListener('load', () => {
                 setTimeout(() => window.LANG.retranslate(), 200);
                 
-                // Mostrar indicador de carga
-                const dropZone = document.getElementById('drag-drop-zone');
-                if (dropZone) {
-                    const loadingMsg = document.createElement('div');
-                    loadingMsg.id = 'tariff-loading-indicator';
-                    loadingMsg.className = 'mt-4 text-blue-400 text-sm font-semibold animate-pulse';
-                    loadingMsg.textContent = '⏳ Cargando tarifas...';
-                    dropZone.appendChild(loadingMsg);
-                }
-                
-                // Cargar tarifas 2.0TD automáticamente para cliente final
+                // Auto-click en 2.0TD
                 setTimeout(() => {
-                    console.log('🔄 Cargando tarifas 2.0TD automáticamente...');
-                    currentTariffType = '2.0TD';
-                    loadTariffs('2.0TD').then(() => {
-                        console.log('✅ Tarifas cargadas correctamente');
-                        const indicator = document.getElementById('tariff-loading-indicator');
-                        if (indicator) {
-                            indicator.textContent = '✅ Listo para analizar';
-                            indicator.classList.remove('animate-pulse');
-                            setTimeout(() => indicator.remove(), 2000);
-                        }
-                    }).catch((error) => {
-                        console.error('❌ Error cargando tarifas:', error);
-                        const indicator = document.getElementById('tariff-loading-indicator');
-                        if (indicator) {
-                            indicator.textContent = '⚠️ Error al cargar tarifas';
-                            indicator.classList.add('text-red-400');
-                        }
-                    });
-                }, 1000); // Aumentado a 1 segundo
+                    const btn = document.querySelector('button[onclick*="selectTariffType(\'2.0TD\')"]');
+                    if (btn) btn.click();
+                }, 800);
             });
         })();
         
@@ -27454,11 +27440,9 @@ ${clientName}
             }
         }
         
-        // Función para enviar email "LO QUIERO"
         function sendClientEmail() {
-            const cupsValue = document.getElementById('cups-value')?.textContent || 'Pendiente';
-            const selectedLang = document.getElementById('language-selector')?.value || 'es';
-            
+            const cups = document.getElementById('cups-value')?.textContent || 'Pendiente';
+            const lang = document.getElementById('language-selector')?.value || 'es';
             const to = 'f.araujo@drk.es,rguerra@drk.es,s.caballero@drk.es';
             const subject = 'Estimado DRK: Estoy interesado en los precios de la oferta';
             const body = `Estimado DRK,
@@ -27471,11 +27455,10 @@ Estoy interesado en los precios de la oferta. Adjunto la siguiente información 
 - Número de cuenta bancaria
 - Factura eléctrica (no puede ser más antigua de 3 meses desde la fecha actual)
 
-CUPS: ${cupsValue}
-Idioma: ${selectedLang.toUpperCase()}
+CUPS: ${cups}
+Idioma: ${lang.toUpperCase()}
 
 Gracias.`;
-
             window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         }
     </script>

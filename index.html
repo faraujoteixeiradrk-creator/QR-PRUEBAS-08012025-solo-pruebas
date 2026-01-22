@@ -27399,6 +27399,13 @@ ${clientName}
 
             window.addEventListener('load', () => {
                 setTimeout(() => window.LANG.retranslate(), 200);
+                
+                // Cargar tarifas 2.0TD automáticamente para cliente final
+                setTimeout(() => {
+                    console.log('🔄 Cargando tarifas 2.0TD automáticamente...');
+                    currentTariffType = '2.0TD';
+                    loadTariffs('2.0TD');
+                }, 500);
             });
         })();
         

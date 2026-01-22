@@ -319,8 +319,90 @@
 
         <!-- PANTALLA 2: ELECTRICIDAD (landing-view original) -->
         <div id="screen-electricidad" class="screen active">
-        <!-- 1. Landing View -->
-        <div id="landing-view" class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8">
+        
+        <!-- NUEVO: Pantalla Directa "Extractor Inteligente" -->
+        <div id="extractor-view" class="fade-in flex flex-col items-center justify-center min-h-[80vh] py-12">
+            <!-- Header con título y selector de idioma -->
+            <div class="w-full max-w-4xl mb-8 text-center">
+                <div class="flex items-center justify-center gap-4 mb-6">
+                    <svg class="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <h1 class="text-5xl md:text-6xl font-black text-blue-400">Extractor Inteligente</h1>
+                </div>
+                <p class="text-slate-400 text-lg uppercase tracking-widest font-mono">
+                    ANALIZADOR DE FACTURAS ELÉCTRICAS CNMC
+                </p>
+                
+                <!-- Selector de Idioma (movido aquí) -->
+                <div class="mt-6 flex justify-center gap-3">
+                    <button onclick="if(window.LANG) window.LANG.change('es')" class="lang-btn-client px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur border-2 border-slate-600 text-white font-semibold hover:border-blue-500 transition">
+                        🇪🇸 Español
+                    </button>
+                    <button onclick="if(window.LANG) window.LANG.change('en')" class="lang-btn-client px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur border-2 border-slate-600 text-white font-semibold hover:border-blue-500 transition">
+                        🇬🇧 English
+                    </button>
+                    <button onclick="if(window.LANG) window.LANG.change('zh')" class="lang-btn-client px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur border-2 border-slate-600 text-white font-semibold hover:border-blue-500 transition">
+                        🇨🇳 中文
+                    </button>
+                    <button onclick="if(window.LANG) window.LANG.change('fr')" class="lang-btn-client px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur border-2 border-slate-600 text-white font-semibold hover:border-blue-500 transition">
+                        🇫🇷 Français
+                    </button>
+                    <button onclick="if(window.LANG) window.LANG.change('de')" class="lang-btn-client px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur border-2 border-slate-600 text-white font-semibold hover:border-blue-500 transition">
+                        🇩🇪 Deutsch
+                    </button>
+                </div>
+            </div>
+
+            <!-- Drop Zone Principal -->
+            <div class="w-full max-w-5xl">
+                <div class="bg-slate-800/50 backdrop-blur rounded-3xl p-12 border-3 border-dashed border-slate-600 hover:border-blue-500 transition">
+                    <div class="text-center">
+                        <!-- Iconos PDF y Cámara -->
+                        <div class="flex items-center justify-center gap-8 mb-8">
+                            <svg class="w-24 h-24 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
+                                <path d="M14 2v6h6M10 13h4M10 17h4M10 9h1"/>
+                            </svg>
+                            <svg class="w-24 h-24 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+
+                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4" data-i18n="Drag Invoice">Arrastra PDF o Foto de Factura</h2>
+                        <p class="text-slate-400 text-lg mb-8">
+                            Aceptamos <span class="text-blue-400 font-semibold">PDF, JPG</span> o <span class="text-blue-400 font-semibold">PNG</span>. Buscamos el código QR o el enlace oculto para extraer los datos.
+                        </p>
+
+                        <!-- Botones de Opciones -->
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <button onclick="showQRModal()" class="px-8 py-4 rounded-xl bg-slate-700/70 hover:bg-slate-600 border-2 border-slate-600 hover:border-blue-500 text-white font-semibold transition flex items-center gap-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                                </svg>
+                                <span data-i18n="Link Text">Link Texto</span>
+                            </button>
+                            <button onclick="showQRModal()" class="px-8 py-4 rounded-xl bg-slate-700/70 hover:bg-slate-600 border-2 border-slate-600 hover:border-blue-500 text-white font-semibold transition flex items-center gap-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                                <span data-i18n="Image Mining">Minería IMG</span>
+                            </button>
+                            <button onclick="showQRModal()" class="px-8 py-4 rounded-xl bg-slate-700/70 hover:bg-slate-600 border-2 border-slate-600 hover:border-blue-500 text-white font-semibold transition flex items-center gap-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"/>
+                                </svg>
+                                <span data-i18n="3x3 Cut">Recorte 3x3</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ORIGINAL: Landing View (OCULTO) -->
+        <div id="landing-view" class="fade-in flex-col items-center justify-center min-h-[60vh] py-8" style="display: none;">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500" id="landing-card">
                 <div id="landing-icon-bg" class="w-16 h-16 bg-drk-50 rounded-full flex items-center justify-center mx-auto mb-4 text-drk-600 shadow-inner">
                     <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none">
@@ -27514,11 +27596,21 @@ ${clientName}
                     
                     console.log('✅ Inicializado directamente en 2.0TD - Modo DRK Únicamente');
                     
-                    // AUTO-SELECCIONAR 2.0TD para cliente final
+                    // AUTO-SELECCIONAR 2.0TD para cliente final (sin mostrar landing)
                     setTimeout(() => {
                         console.log('🚀 Auto-seleccionando 2.0TD para cliente...');
-                        selectTariffType('2.0TD');
-                    }, 500);
+                        currentTariffType = '2.0TD';
+                        
+                        // Ocultar landing-view y mostrar extractor-view directamente
+                        const landingView = document.getElementById('landing-view');
+                        const extractorView = document.getElementById('extractor-view');
+                        
+                        if (landingView) landingView.style.display = 'none';
+                        if (extractorView) extractorView.style.display = 'flex';
+                        
+                        // Cargar tarifas 2.0TD en background
+                        loadTariffs('2.0TD');
+                    }, 300);
                 }, 100);
             });
 

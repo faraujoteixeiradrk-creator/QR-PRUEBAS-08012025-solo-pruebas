@@ -254,11 +254,13 @@
                         <input type="radio" name="comparison_mode" value="drk_only" class="hidden" checked>
                         <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
                     </label>
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400">
+                    <!-- OCULTO: DRK Prioritario -->
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400" style="display: none;">
                         <input type="radio" name="comparison_mode" value="drk_prioritized" class="hidden">
                         <span class="font-semibold flex items-center justify-between w-full">DRK Prioritario<svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
                     </label>
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400">
+                    <!-- OCULTO: POWER CUP -->
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400" style="display: none;">
                         <input type="radio" name="comparison_mode" value="overall_best" class="hidden">
                         <span class="font-black flex flex-col items-center justify-center w-full leading-tight">
                             <span class="text-base">POWER CUP</span><span class="text-xs font-semibold -mt-0.5">Global</span>
@@ -2835,15 +2837,17 @@
                 fijaRadio.checked = true;
             }
             
-            // Restaurar la marca activa según el modo de comparación
-            const brandToApply = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
-            applyBrandStyles(brandToApply);  
+            // FORZAR modo DRK ÚNICAMENTE
+            comparisonMode = 'drk_only';
             
-            // Asegurarse de que el radio button correcto esté checked
-            const selectorInput = document.querySelector(`input[name="comparison_mode"][value="${comparisonMode}"]`);
+            // Restaurar la marca activa (siempre DRK)
+            applyBrandStyles(BRANDS.DRK);  
+            
+            // Asegurarse de que el radio button de drk_only esté checked
+            const selectorInput = document.querySelector('input[name="comparison_mode"][value="drk_only"]');
             if (selectorInput) {
                 selectorInput.checked = true;
-                updateComparisonMode(comparisonMode);
+                updateComparisonMode('drk_only');
             }
 
             // Ocultar vistas adicionales del flujo normal
@@ -2890,13 +2894,18 @@
         window.goBackFromMultiCupsSagaView = function() {
             console.log('🔙 goBackFromMultiCupsSagaView llamada');
             
+            // FORZAR modo DRK ÚNICAMENTE
+            comparisonMode = 'drk_only';
+            document.querySelector('input[name="comparison_mode"][value="drk_only"]').checked = true;
+            applyBrandStyles(BRANDS.DRK);
+            
             // Solo ocultar multicups-saga-view
             document.getElementById('multicups-saga-view')?.classList.add('hidden');
             
             // Mostrar la pantalla de selección de tarifa (landing-view)
             document.getElementById('landing-view')?.classList.remove('hidden');
             
-            console.log('✅ Vuelto a landing-view desde MultiCups');
+            console.log('✅ Vuelto a landing-view desde MultiCups en modo DRK ÚNICAMENTE');
         };
 
         function toggleMultiCupsInputPeriods(tariffType, prefix = 'input') {
@@ -18229,6 +18238,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         function goToInicio() {
             // Limpiar flag de modo DUAL
             window.dualMode = false;
+            
+            // FORZAR modo DRK ÚNICAMENTE
+            comparisonMode = 'drk_only';
+            document.querySelector('input[name="comparison_mode"][value="drk_only"]').checked = true;
             
             hideAllScreens();
             document.getElementById('screen-inicio').classList.add('active');

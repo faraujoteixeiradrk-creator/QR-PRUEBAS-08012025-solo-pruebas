@@ -1266,8 +1266,53 @@
 
         <!-- 5. Results View -->
         <div id="results-view" class="hidden animate-fade-in-up">
-            <!-- Banner de Empresa -->
-            <div id="company-banner" class="mb-8 rounded-2xl overflow-hidden shadow-lg">
+            
+            <!-- NUEVO: Header Impactante con Ahorro -->
+            <div class="mb-8 text-center">
+                <div class="bg-gradient-to-r from-green-600 to-emerald-600 rounded-3xl p-8 shadow-2xl">
+                    <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur text-white px-4 py-2 rounded-full text-sm font-bold mb-4">
+                        <span class="w-3 h-3 bg-white rounded-full animate-pulse"></span> Análisis Completado
+                    </div>
+                    <h2 class="text-white text-4xl md:text-5xl font-black mb-2">¡Buenas Noticias!</h2>
+                    <p class="text-green-100 text-lg mb-6">Puedes ahorrar hasta</p>
+                    <p id="savings-estimate-big" class="text-white text-7xl md:text-8xl font-black tracking-tight mb-2">- €</p>
+                    <p class="text-green-100 text-xl font-semibold">al año con DRK PLAN AMIGO</p>
+                </div>
+            </div>
+
+            <!-- NUEVO: Tus Datos (del QR) -->
+            <div class="mb-8">
+                <h3 class="text-2xl font-black text-slate-800 mb-4">📋 Tus Datos</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white rounded-xl p-4 shadow-md border border-slate-200">
+                        <p class="text-slate-500 text-xs font-bold uppercase mb-1">CUPS</p>
+                        <p id="cups-value-display" class="text-slate-900 font-mono text-sm">-</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-md border border-slate-200">
+                        <p class="text-slate-500 text-xs font-bold uppercase mb-1">Período Facturado</p>
+                        <p id="period-display" class="text-slate-900 font-semibold">-</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-md border border-slate-200">
+                        <p class="text-slate-500 text-xs font-bold uppercase mb-1">Consumo Total</p>
+                        <p id="consumption-display" class="text-slate-900 font-bold text-2xl">- kWh</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-md border border-slate-200">
+                        <p class="text-slate-500 text-xs font-bold uppercase mb-1">Importe Actual</p>
+                        <p id="current-cost-display" class="text-red-600 font-bold text-2xl">- €</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-md border border-slate-200">
+                        <p class="text-slate-500 text-xs font-bold uppercase mb-1">Potencia P1 / P2</p>
+                        <p id="power-display" class="text-slate-900 font-semibold">- kW / - kW</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-md border border-slate-200">
+                        <p class="text-slate-500 text-xs font-bold uppercase mb-1">Precio Medio Real</p>
+                        <p id="avg-price-display" class="text-slate-900 font-bold text-2xl">- €/kWh</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banner de Empresa (oculto por ahora, se puede reactivar) -->
+            <div id="company-banner" class="mb-8 rounded-2xl overflow-hidden shadow-lg" style="display: none;">
                 <!-- El contenido del banner se generará dinámicamente según la marca activa -->
             </div>
             
@@ -5495,6 +5540,19 @@
             document.getElementById('results-cups-list').innerHTML = `
                 CUPS: <span class="font-mono text-slate-700" id="cups-value">${res.cups}</span>
             `;
+            
+            // NUEVO: Poblar campos visuales del header y datos
+            document.getElementById('savings-estimate-big').textContent = eur(res.savings || 0);
+            document.getElementById('cups-value-display').textContent = res.cups || '-';
+            document.getElementById('period-display').textContent = `${res.fecha_inicio || '-'} a ${res.fecha_fin || '-'}`;
+            
+            const totalConsumption = (res.consumo_punta || 0) + (res.consumo_llano || 0) + (res.consumo_valle || 0);
+            document.getElementById('consumption-display').textContent = num(totalConsumption, 0) + ' kWh';
+            document.getElementById('current-cost-display').textContent = eur(res.importe_total || 0);
+            document.getElementById('power-display').textContent = `${num(res.potencia_p1_kw || 0, 2)} kW / ${num(res.potencia_p2_kw || 0, 2)} kW`;
+            
+            const avgPrice = totalConsumption > 0 ? ((res.importe_energia || 0) / totalConsumption) : 0;
+            document.getElementById('avg-price-display').textContent = num(avgPrice, 3) + ' €/kWh';
             
             // MODIFICACIÓN: Mostrar Comercializadora - Tarifa
             document.getElementById('best-offer-name').textContent = `${offer.name || ''}`;

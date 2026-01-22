@@ -4006,7 +4006,11 @@
                             tariffName: final.offer.name,
                             costeDRK: final.totalAnnual,
                             costeActual: final.originalBillAnnual,
-                            diferencia: final.totalAnnual - final.originalBillAnnual
+                            diferencia: final.totalAnnual - final.originalBillAnnual,
+                            energyCostsLength: final.energyCosts?.length || 0,
+                            powerCostsLength: final.powerCosts?.length || 0,
+                            energyCosts: final.energyCosts,
+                            powerCosts: final.powerCosts
                         });
                     } else {
                         // En otros modos, cambiar a "Tu Tarifa Actual"

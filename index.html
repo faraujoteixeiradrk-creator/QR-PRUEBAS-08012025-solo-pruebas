@@ -60,7 +60,7 @@
         .screen.active { display: block; }
         
         /* Estilos base y animaciones */
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #1e293b; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
         #interactive.viewport { position: relative; width: 100%; height: auto; overflow: hidden; border-radius: 1rem; }
         #interactive.viewport > video { width: 100%; height: 100%; object-fit: cover; }
         .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
@@ -320,7 +320,7 @@
         <!-- PANTALLA 2: ELECTRICIDAD (landing-view original) -->
         <div id="screen-electricidad" class="screen active">
         
-        <!-- NUEVO: Pantalla Directa "Extractor Inteligente" -->
+        <!-- NUEVO: Pantalla Directa "Extractor Inteligente" con Drag & Drop -->
         <div id="extractor-view" class="fade-in flex flex-col items-center justify-center min-h-[80vh] py-12">
             <!-- Header con título y selector de idioma -->
             <div class="w-full max-w-4xl mb-8 text-center">
@@ -334,8 +334,8 @@
                     ANALIZADOR DE FACTURAS ELÉCTRICAS CNMC
                 </p>
                 
-                <!-- Selector de Idioma (movido aquí) -->
-                <div class="mt-6 flex justify-center gap-3">
+                <!-- Selector de Idioma -->
+                <div class="mt-6 flex flex-wrap justify-center gap-3">
                     <button onclick="if(window.LANG) window.LANG.change('es')" class="lang-btn-client px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur border-2 border-slate-600 text-white font-semibold hover:border-blue-500 transition">
                         🇪🇸 Español
                     </button>
@@ -354,9 +354,12 @@
                 </div>
             </div>
 
-            <!-- Drop Zone Principal -->
+            <!-- Drop Zone Principal CON FUNCIONALIDAD -->
             <div class="w-full max-w-5xl">
-                <div class="bg-slate-800/50 backdrop-blur rounded-3xl p-12 border-3 border-dashed border-slate-600 hover:border-blue-500 transition">
+                <!-- Input file oculto -->
+                <input type="file" id="extractor-file-input" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" class="hidden">
+                
+                <div id="extractor-drop-zone" class="bg-slate-800/50 backdrop-blur rounded-3xl p-12 border-4 border-dashed border-slate-600 hover:border-blue-500 transition cursor-pointer">
                     <div class="text-center">
                         <!-- Iconos PDF y Cámara -->
                         <div class="flex items-center justify-center gap-8 mb-8">
@@ -371,25 +374,28 @@
                         </div>
 
                         <h2 class="text-3xl md:text-4xl font-bold text-white mb-4" data-i18n="Drag Invoice">Arrastra PDF o Foto de Factura</h2>
-                        <p class="text-slate-400 text-lg mb-8">
+                        <p class="text-slate-400 text-lg mb-4">
                             Aceptamos <span class="text-blue-400 font-semibold">PDF, JPG</span> o <span class="text-blue-400 font-semibold">PNG</span>. Buscamos el código QR o el enlace oculto para extraer los datos.
+                        </p>
+                        <p class="text-blue-400 text-base font-semibold">
+                            o haz clic para seleccionar
                         </p>
 
                         <!-- Botones de Opciones -->
-                        <div class="flex flex-wrap justify-center gap-4">
-                            <button onclick="showQRModal()" class="px-8 py-4 rounded-xl bg-slate-700/70 hover:bg-slate-600 border-2 border-slate-600 hover:border-blue-500 text-white font-semibold transition flex items-center gap-3">
+                        <div class="flex flex-wrap justify-center gap-4 mt-8">
+                            <button onclick="event.stopPropagation(); showQRModal();" class="px-8 py-4 rounded-xl bg-slate-700/70 hover:bg-slate-600 border-2 border-slate-600 hover:border-blue-500 text-white font-semibold transition flex items-center gap-3">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
                                 </svg>
                                 <span data-i18n="Link Text">Link Texto</span>
                             </button>
-                            <button onclick="showQRModal()" class="px-8 py-4 rounded-xl bg-slate-700/70 hover:bg-slate-600 border-2 border-slate-600 hover:border-blue-500 text-white font-semibold transition flex items-center gap-3">
+                            <button onclick="event.stopPropagation(); showQRModal();" class="px-8 py-4 rounded-xl bg-slate-700/70 hover:bg-slate-600 border-2 border-slate-600 hover:border-blue-500 text-white font-semibold transition flex items-center gap-3">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                 </svg>
                                 <span data-i18n="Image Mining">Minería IMG</span>
                             </button>
-                            <button onclick="showQRModal()" class="px-8 py-4 rounded-xl bg-slate-700/70 hover:bg-slate-600 border-2 border-slate-600 hover:border-blue-500 text-white font-semibold transition flex items-center gap-3">
+                            <button onclick="event.stopPropagation(); showQRModal();" class="px-8 py-4 rounded-xl bg-slate-700/70 hover:bg-slate-600 border-2 border-slate-600 hover:border-blue-500 text-white font-semibold transition flex items-center gap-3">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"/>
                                 </svg>
@@ -27610,6 +27616,9 @@ ${clientName}
                         
                         // Cargar tarifas 2.0TD en background
                         loadTariffs('2.0TD');
+                        
+                        // Activar drag & drop en extractor-view
+                        setupExtractorDragAndDrop();
                     }, 300);
                 }, 100);
             });
@@ -27665,6 +27674,77 @@ Gracias.`;
 
             const mailtoLink = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             window.location.href = mailtoLink;
+        }
+        
+        // ==========================================
+        // DRAG & DROP PARA EXTRACTOR VIEW
+        // ==========================================
+        function setupExtractorDragAndDrop() {
+            const dropZone = document.getElementById('extractor-drop-zone');
+            const fileInput = document.getElementById('extractor-file-input');
+            
+            if (!dropZone || !fileInput) return;
+            
+            // Click para abrir selector
+            dropZone.addEventListener('click', (e) => {
+                if (!e.target.closest('button')) {
+                    fileInput.click();
+                }
+            });
+            
+            // Drag over
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add('border-blue-400', 'bg-slate-700/30');
+            });
+            
+            // Drag leave
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('border-blue-400', 'bg-slate-700/30');
+            });
+            
+            // Drop
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove('border-blue-400', 'bg-slate-700/30');
+                
+                const file = e.dataTransfer.files[0];
+                if (file) {
+                    handleExtractorFile(file);
+                }
+            });
+            
+            // File input change
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    handleExtractorFile(file);
+                }
+            });
+        }
+        
+        function handleExtractorFile(file) {
+            console.log('📁 Archivo recibido:', file.name, file.type);
+            
+            // Verificar tipo de archivo
+            const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+            const isImage = file.type.startsWith('image/') || /\.(jpg|jpeg|png)$/i.test(file.name);
+            
+            if (!isPDF && !isImage) {
+                alert('Por favor, sube un archivo PDF o imagen (JPG, PNG)');
+                return;
+            }
+            
+            // Procesar según tipo
+            if (isImage) {
+                decodeQRFromImage(file);
+            } else if (isPDF) {
+                decodeQRFromPDF(file);
+            }
         }
     </script>
 </body>

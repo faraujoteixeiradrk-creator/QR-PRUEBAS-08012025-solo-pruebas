@@ -4008,9 +4008,17 @@
                             costeActual: final.originalBillAnnual,
                             diferencia: final.totalAnnual - final.originalBillAnnual,
                             energyCostsLength: final.energyCosts?.length || 0,
-                            powerCostsLength: final.powerCosts?.length || 0,
-                            energyCosts: final.energyCosts,
-                            powerCosts: final.powerCosts
+                            powerCostsLength: final.powerCosts?.length || 0
+                        });
+                        
+                        console.log('🔍 DETALLES energyCosts:');
+                        final.energyCosts?.forEach((ec, i) => {
+                            console.log(`  P${ec.period}: ${ec.kwh} kWh × ${ec.price} €/kWh = ${ec.cost} €`);
+                        });
+                        
+                        console.log('🔍 DETALLES powerCosts:');
+                        final.powerCosts?.forEach((pc, i) => {
+                            console.log(`  P${pc.period}: ${pc.kw} kW × ${pc.priceDay} €/día = ${pc.cost} €`);
                         });
                     } else {
                         // En otros modos, cambiar a "Tu Tarifa Actual"

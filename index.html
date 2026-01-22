@@ -60,7 +60,7 @@
         .screen.active { display: block; }
         
         /* Estilos base y animaciones */
-        body { font-family: 'Inter', sans-serif; background-color: #1e293b; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         #interactive.viewport { position: relative; width: 100%; height: auto; overflow: hidden; border-radius: 1rem; }
         #interactive.viewport > video { width: 100%; height: 100%; object-fit: cover; }
         .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
@@ -319,71 +319,8 @@
 
         <!-- PANTALLA 2: ELECTRICIDAD (landing-view original) -->
         <div id="screen-electricidad" class="screen active">
-        
-        <!-- NUEVO: Pantalla Directa "Extractor Inteligente" con Drag & Drop -->
-        <div id="extractor-view" class="fade-in flex flex-col items-center justify-center min-h-[80vh] py-12">
-            <!-- Header con título y selector de idioma -->
-            <div class="w-full max-w-4xl mb-8 text-center">
-                <div class="flex items-center justify-center gap-4 mb-6">
-                    <svg class="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                    <h1 class="text-5xl md:text-6xl font-black text-blue-400">Extractor Inteligente</h1>
-                </div>
-                <p class="text-slate-400 text-lg uppercase tracking-widest font-mono">
-                    ANALIZADOR DE FACTURAS ELÉCTRICAS CNMC
-                </p>
-                
-                <!-- Selector de Idioma -->
-                <div class="mt-6 flex flex-wrap justify-center gap-3">
-                    <button onclick="if(window.LANG) window.LANG.change('es')" class="lang-btn-client px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur border-2 border-slate-600 text-white font-semibold hover:border-blue-500 transition">
-                        🇪🇸 Español
-                    </button>
-                    <button onclick="if(window.LANG) window.LANG.change('en')" class="lang-btn-client px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur border-2 border-slate-600 text-white font-semibold hover:border-blue-500 transition">
-                        🇬🇧 English
-                    </button>
-                    <button onclick="if(window.LANG) window.LANG.change('zh')" class="lang-btn-client px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur border-2 border-slate-600 text-white font-semibold hover:border-blue-500 transition">
-                        🇨🇳 中文
-                    </button>
-                    <button onclick="if(window.LANG) window.LANG.change('fr')" class="lang-btn-client px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur border-2 border-slate-600 text-white font-semibold hover:border-blue-500 transition">
-                        🇫🇷 Français
-                    </button>
-                    <button onclick="if(window.LANG) window.LANG.change('de')" class="lang-btn-client px-6 py-3 rounded-lg bg-slate-700/50 backdrop-blur border-2 border-slate-600 text-white font-semibold hover:border-blue-500 transition">
-                        🇩🇪 Deutsch
-                    </button>
-                </div>
-            </div>
-
-            <!-- Drop Zone Principal - ABRE MODAL -->
-            <div class="w-full max-w-5xl">
-                <div onclick="showQRModal()" class="bg-slate-800/50 backdrop-blur rounded-3xl p-16 border-4 border-dashed border-slate-600 hover:border-blue-500 transition cursor-pointer">
-                    <div class="text-center">
-                        <!-- Iconos PDF y Cámara -->
-                        <div class="flex items-center justify-center gap-8 mb-8">
-                            <svg class="w-24 h-24 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
-                                <path d="M14 2v6h6M10 13h4M10 17h4M10 9h1"/>
-                            </svg>
-                            <svg class="w-24 h-24 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                        </div>
-
-                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4" data-i18n="Drag Invoice">Arrastra PDF o Foto de Factura</h2>
-                        <p class="text-slate-400 text-lg mb-4">
-                            Aceptamos <span class="text-blue-400 font-semibold">PDF, JPG</span> o <span class="text-blue-400 font-semibold">PNG</span>. Buscamos el código QR o el enlace oculto para extraer los datos.
-                        </p>
-                        <p class="text-blue-400 text-xl font-bold">
-                            Haz clic para comenzar
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- ORIGINAL: Landing View (OCULTO) -->
-        <div id="landing-view" class="fade-in flex-col items-center justify-center min-h-[60vh] py-8" style="display: none;">
+        <!-- 1. Landing View -->
+        <div id="landing-view" class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500" id="landing-card">
                 <div id="landing-icon-bg" class="w-16 h-16 bg-drk-50 rounded-full flex items-center justify-center mx-auto mb-4 text-drk-600 shadow-inner">
                     <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none">
@@ -1329,87 +1266,8 @@
 
         <!-- 5. Results View -->
         <div id="results-view" class="hidden animate-fade-in-up">
-            
-            <!-- NUEVO: Header Impactante con Ahorro -->
-            <div class="mb-8 text-center">
-                <div class="bg-gradient-to-r from-green-600 to-emerald-600 rounded-3xl p-8 shadow-2xl">
-                    <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur text-white px-4 py-2 rounded-full text-sm font-bold mb-4">
-                        <span class="w-3 h-3 bg-white rounded-full animate-pulse"></span> Análisis Completado
-                    </div>
-                    <h2 class="text-white text-4xl md:text-5xl font-black mb-2">¡Buenas Noticias!</h2>
-                    <p class="text-green-100 text-lg mb-6">Puedes ahorrar hasta</p>
-                    <p id="savings-estimate-big" class="text-white text-7xl md:text-8xl font-black tracking-tight mb-2">- €</p>
-                    <p class="text-green-100 text-xl font-semibold">al año con DRK PLAN AMIGO</p>
-                </div>
-            </div>
-
-            <!-- NUEVO: Tus Datos (del QR) - Ampliado -->
-            <div class="mb-8">
-                <h3 class="text-2xl font-black text-slate-800 mb-4 flex items-center gap-2">
-                    📋 Tus Datos
-                    <span class="text-sm font-normal text-slate-500">(extraídos de tu factura)</span>
-                </h3>
-                
-                <!-- Primera fila: CUPS y Período -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div class="bg-white rounded-xl p-5 shadow-md border-2 border-slate-200">
-                        <p class="text-slate-500 text-xs font-bold uppercase mb-2">📍 CUPS</p>
-                        <p id="cups-value-display" class="text-slate-900 font-mono text-base break-all">-</p>
-                    </div>
-                    <div class="bg-white rounded-xl p-5 shadow-md border-2 border-slate-200">
-                        <p class="text-slate-500 text-xs font-bold uppercase mb-2">📅 PERÍODO FACTURADO</p>
-                        <p id="period-display" class="text-slate-900 font-semibold text-base">-</p>
-                        <p id="period-days" class="text-slate-600 text-sm mt-1">-</p>
-                    </div>
-                </div>
-
-                <!-- Segunda fila: Consumo y Distribución -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 shadow-md border-2 border-blue-200">
-                        <p class="text-blue-700 text-xs font-bold uppercase mb-2">⚡ CONSUMO TOTAL</p>
-                        <p id="consumption-display" class="text-blue-900 font-black text-3xl">- kWh</p>
-                        <div class="mt-3 space-y-1 text-sm">
-                            <p class="text-blue-700"><span class="text-red-600">●</span> Punta: <span id="consumption-punta" class="font-bold">-</span></p>
-                            <p class="text-blue-700"><span class="text-yellow-500">●</span> Llano: <span id="consumption-llano" class="font-bold">-</span></p>
-                            <p class="text-blue-700"><span class="text-green-600">●</span> Valle: <span id="consumption-valle" class="font-bold">-</span></p>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-5 shadow-md border-2 border-red-200">
-                        <p class="text-red-700 text-xs font-bold uppercase mb-2">💰 IMPORTE ACTUAL</p>
-                        <p id="current-cost-display" class="text-red-700 font-black text-3xl">- €</p>
-                        <div class="mt-3 space-y-1 text-sm">
-                            <p class="text-red-700">Energía: <span id="energy-cost" class="font-bold">-</span></p>
-                            <p class="text-red-700">Potencia: <span id="power-cost" class="font-bold">-</span></p>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5 shadow-md border-2 border-purple-200">
-                        <p class="text-purple-700 text-xs font-bold uppercase mb-2">📊 PRECIO MEDIO</p>
-                        <p id="avg-price-display" class="text-purple-900 font-black text-3xl">- €/kWh</p>
-                        <div class="mt-3 space-y-1 text-sm">
-                            <p class="text-purple-700">Con impuestos</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tercera fila: Potencias -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-white rounded-xl p-5 shadow-md border-2 border-slate-200">
-                        <p class="text-slate-500 text-xs font-bold uppercase mb-2">🔌 POTENCIA CONTRATADA</p>
-                        <p id="power-display" class="text-slate-900 font-bold text-xl">- kW / - kW</p>
-                        <p class="text-slate-600 text-sm mt-1">P1 (Punta) / P2 (Valle)</p>
-                    </div>
-                    <div class="bg-white rounded-xl p-5 shadow-md border-2 border-slate-200">
-                        <p class="text-slate-500 text-xs font-bold uppercase mb-2">📈 POTENCIA MÁXIMA</p>
-                        <p id="power-max-display" class="text-slate-900 font-bold text-xl">- kW / - kW</p>
-                        <p class="text-slate-600 text-sm mt-1">Máxima demandada en el período</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Banner de Empresa (oculto por ahora, se puede reactivar) -->
-            <div id="company-banner" class="mb-8 rounded-2xl overflow-hidden shadow-lg" style="display: none;">
+            <!-- Banner de Empresa -->
+            <div id="company-banner" class="mb-8 rounded-2xl overflow-hidden shadow-lg">
                 <!-- El contenido del banner se generará dinámicamente según la marca activa -->
             </div>
             
@@ -1466,7 +1324,7 @@
                     <span>AÑADIR A DUAL</span>
                 </button>
                 
-                <button id="send-offer-btn" onclick="sendInterestEmail()" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-5 px-6 rounded-xl shadow-2xl transform transition active:scale-95 flex items-center justify-center gap-3 mb-3 text-xl">
+                <button onclick="sendClientEmail()" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-5 px-6 rounded-xl shadow-2xl transform transition active:scale-95 flex items-center justify-center gap-3 mb-3 text-xl">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     <span>LO QUIERO</span>
                 </button>
@@ -5637,34 +5495,6 @@
             document.getElementById('results-cups-list').innerHTML = `
                 CUPS: <span class="font-mono text-slate-700" id="cups-value">${res.cups}</span>
             `;
-            
-            // NUEVO: Poblar campos visuales del header y datos
-            document.getElementById('savings-estimate-big').textContent = eur(res.savings || 0);
-            
-            // CUPS y Período
-            document.getElementById('cups-value-display').textContent = res.cups || '-';
-            document.getElementById('period-display').textContent = `${res.fecha_inicio || '-'} al ${res.fecha_fin || '-'}`;
-            document.getElementById('period-days').textContent = `${res.dias_facturados || '-'} días`;
-            
-            // Consumo Total y Desglose
-            const totalConsumption = (res.consumo_punta || 0) + (res.consumo_llano || 0) + (res.consumo_valle || 0);
-            document.getElementById('consumption-display').textContent = num(totalConsumption, 0) + ' kWh';
-            document.getElementById('consumption-punta').textContent = `${num(res.consumo_punta || 0, 0)} kWh`;
-            document.getElementById('consumption-llano').textContent = `${num(res.consumo_llano || 0, 0)} kWh`;
-            document.getElementById('consumption-valle').textContent = `${num(res.consumo_valle || 0, 0)} kWh`;
-            
-            // Importe Actual y Desglose
-            document.getElementById('current-cost-display').textContent = eur(res.importe_total || 0);
-            document.getElementById('energy-cost').textContent = eur(res.importe_energia || 0);
-            document.getElementById('power-cost').textContent = eur(res.importe_potencia || 0);
-            
-            // Potencias
-            document.getElementById('power-display').textContent = `${num(res.potencia_p1_kw || 0, 2)} kW / ${num(res.potencia_p2_kw || 0, 2)} kW`;
-            document.getElementById('power-max-display').textContent = `${num(res.potencia_maxima_p1 || 0, 2)} kW / ${num(res.potencia_maxima_p2 || 0, 2)} kW`;
-            
-            // Precio Medio Real
-            const avgPrice = totalConsumption > 0 ? ((res.importe_energia || 0) / totalConsumption) : 0;
-            document.getElementById('avg-price-display').textContent = num(avgPrice, 3);
             
             // MODIFICACIÓN: Mostrar Comercializadora - Tarifa
             document.getElementById('best-offer-name').textContent = `${offer.name || ''}`;
@@ -27576,27 +27406,17 @@ ${clientName}
                     if (badge) badge.textContent = count;
                     
                     console.log('✅ Inicializado directamente en 2.0TD - Modo DRK Únicamente');
-                    
-                    // AUTO-SELECCIONAR 2.0TD para cliente final (sin mostrar landing)
-                    setTimeout(() => {
-                        console.log('🚀 Auto-seleccionando 2.0TD para cliente...');
-                        currentTariffType = '2.0TD';
-                        
-                        // Ocultar landing-view y mostrar extractor-view directamente
-                        const landingView = document.getElementById('landing-view');
-                        const extractorView = document.getElementById('extractor-view');
-                        
-                        if (landingView) landingView.style.display = 'none';
-                        if (extractorView) extractorView.style.display = 'flex';
-                        
-                        // Cargar tarifas 2.0TD en background
-                        loadTariffs('2.0TD');
-                    }, 300);
                 }, 100);
             });
 
             window.addEventListener('load', () => {
                 setTimeout(() => window.LANG.retranslate(), 200);
+                
+                // Auto-seleccionar 2.0TD para cliente final
+                setTimeout(() => {
+                    const btn2TD = document.querySelector('button[onclick="selectTariffType(\'2.0TD\')"]');
+                    if (btn2TD) btn2TD.click();
+                }, 500);
             });
         })();
         
@@ -27620,11 +27440,9 @@ ${clientName}
             }
         }
         
-        // ==========================================
-        // FUNCIÓN ENVIAR EMAIL "LO QUIERO"
-        // ==========================================
-        function sendInterestEmail() {
-            const cupsValue = document.getElementById('cups-value')?.textContent || 'Pendiente de adjuntar';
+        // Función para enviar email "LO QUIERO"
+        function sendClientEmail() {
+            const cupsValue = document.getElementById('cups-value')?.textContent || 'Pendiente';
             const selectedLang = document.getElementById('language-selector')?.value || 'es';
             
             const to = 'f.araujo@drk.es,rguerra@drk.es,s.caballero@drk.es';
@@ -27640,12 +27458,11 @@ Estoy interesado en los precios de la oferta. Adjunto la siguiente información 
 - Factura eléctrica (no puede ser más antigua de 3 meses desde la fecha actual)
 
 CUPS: ${cupsValue}
-Idioma preferido para el comparativo: ${selectedLang.toUpperCase()}
+Idioma: ${selectedLang.toUpperCase()}
 
 Gracias.`;
 
-            const mailtoLink = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            window.location.href = mailtoLink;
+            window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         }
     </script>
 </body>

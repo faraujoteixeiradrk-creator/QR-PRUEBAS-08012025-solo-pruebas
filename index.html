@@ -3813,12 +3813,22 @@
                 ieRate: IE_RATE
             };
             
-            // Si el ahorro es negativo, forzar la tarifa actual como mejor
+            // Si el ahorro es negativo, marcar pero NO cambiar la oferta
+            // MANTENER los datos de la tarifa calculada (DRK) para que se vean sus precios
             if (result.savings <= 0) {
                 result.isNegativeSavings = true;
                 result.savings = 0;
-                result.totalAnnual = result.originalBillAnnual;  
-                result.offer = { name: "Tu Tarifa Actual", description: "Es la mejor opción detectada", isDrk: false };
+                // NO cambiar result.totalAnnual - mantener el cálculo de la tarifa
+                // NO cambiar result.offer - mantener el nombre de la tarifa DRK
+                // De esta forma, el comercial verá los PRECIOS de DRK y entenderá por qué no hay ahorro
+                
+                console.log('⚠️ Sin ahorro. Mostrando tarifa calculada:', {
+                    tariffName: result.offer.name,
+                    totalAnnualDRK: result.totalAnnual,
+                    originalBillAnnual: result.originalBillAnnual,
+                    difference: result.totalAnnual - result.originalBillAnnual,
+                    message: 'DRK costaría ' + (result.totalAnnual - result.originalBillAnnual).toFixed(2) + '€ más al año'
+                });
             }
             
             return result;
@@ -3928,146 +3938,28 @@
                             // Hay DRK con ahorro
                             final = bestDrk;
                         } else {
-                            // NO hay DRK con ahorro: buscar la MEJOR tarifa DRK (aunque sea más cara)
-                            // Primero verificar si bestDrk existe (pero sin ahorro)
+                            // NO hay DRK con ahorro: usar DRK de todas formas y marcar para modal
                             if (bestDrk) {
-                                // Existe tarifa DRK sin ahorro - usarla
                                 final = bestDrk;
                                 final.isNegativeSavings = true;
                                 final.needsImprovementRequest = true;
-                                
-                                console.log('✅ Usando bestDrk (sin ahorro):', {
-                                    name: bestDrk.offer.name,
-                                    totalAnnual: bestDrk.totalAnnual,
-                                    originalBillAnnual: bestDrk.originalBillAnnual
-                                });
                             } else {
-                                // No hay bestDrk: buscar TODAS las tarifas DRK calculadas
-                                const allDrkTariffs = results.filter(r => r.offer.isDrk && r.offer.name !== 'Tu Tarifa Actual');
-                                
-                                if (allDrkTariffs.length > 0) {
-                                    // Ordenar por costo anual y tomar la más barata
-                                    allDrkTariffs.sort((a, b) => a.totalAnnual - b.totalAnnual);
-                                    final = allDrkTariffs[0];
-                                    final.isNegativeSavings = true;
-                                    final.needsImprovementRequest = true;
-                                    
-                                    console.log('✅ Usando la mejor tarifa DRK de', allDrkTariffs.length, 'disponibles:', {
-                                        name: final.offer.name,
-                                        totalAnnual: final.totalAnnual,
-                                        originalBillAnnual: final.originalBillAnnual,
-                                        costeExtra: final.totalAnnual - final.originalBillAnnual
-                                    });
-                                } else {
-                                    // NO hay tarifas DRK en absoluto - crear placeholder con tarifa actual
-                                    console.log('⚠️ NO hay tarifas DRK disponibles en el catálogo');
                                 // No existe ninguna tarifa DRK, crear resultado placeholder
-                                // CRÍTICO: Usar precios REALES del QR para calcular costes
-                                const energyCostsFromData = [];
-                                const powerCostsFromData = [];
-                                
-                                // Calcular costes de energía con precios reales del QR
-                                if (data.consumo_punta !== undefined) {
-                                    const priceE1 = data.prE1 || 0; // Precio energía P1 del QR
-                                    const priceE2 = data.prE2 || 0; // Precio energía P2 del QR
-                                    const priceE3 = data.prE3 || 0; // Precio energía P3 del QR
-                                    
-                                    const kwhP1 = data.consumo_punta || 0;
-                                    const kwhP2 = data.consumo_llano || 0;
-                                    const kwhP3 = data.consumo_valle || 0;
-                                    
-                                    energyCostsFromData.push({ 
-                                        period: 1, 
-                                        kwh: kwhP1, 
-                                        price: priceE1,
-                                        cost: kwhP1 * priceE1
-                                    });
-                                    energyCostsFromData.push({ 
-                                        period: 2, 
-                                        kwh: kwhP2, 
-                                        price: priceE2,
-                                        cost: kwhP2 * priceE2
-                                    });
-                                    energyCostsFromData.push({ 
-                                        period: 3, 
-                                        kwh: kwhP3, 
-                                        price: priceE3,
-                                        cost: kwhP3 * priceE3
-                                    });
-                                }
-                                
-                                // Calcular costes de potencia con precios reales del QR
-                                if (data.potencia_p1_kw !== undefined) {
-                                    const pricePowerP1Annual = data.prP1 || 0; // Precio potencia P1 del QR (€/kW/día)
-                                    const pricePowerP2Annual = data.prP2 || 0; // Precio potencia P2 del QR (€/kW/día)
-                                    
-                                    const kwP1 = data.potencia_p1_kw || 0;
-                                    const kwP2 = data.potencia_p2_kw || 0;
-                                    const dias = data.dias_facturados || 30;
-                                    
-                                    powerCostsFromData.push({ 
-                                        period: 1, 
-                                        kw: kwP1,
-                                        priceDay: pricePowerP1Annual,
-                                        priceAnnual: pricePowerP1Annual * 365,
-                                        cost: kwP1 * dias * pricePowerP1Annual
-                                    });
-                                    powerCostsFromData.push({ 
-                                        period: 2, 
-                                        kw: kwP2,
-                                        priceDay: pricePowerP2Annual,
-                                        priceAnnual: pricePowerP2Annual * 365,
-                                        cost: kwP2 * dias * pricePowerP2Annual
-                                    });
-                                }
-                                
-                                // Calcular subtotales
-                                const subEnergy = energyCostsFromData.reduce((sum, e) => sum + e.cost, 0);
-                                const subPower = powerCostsFromData.reduce((sum, p) => sum + p.cost, 0);
-                                const subBase = subPower + subEnergy;
-                                const costIE = subBase * 0.05113;
-                                const baseImp = subBase + costIE;
-                                const costIVA = baseImp * 0.21;
-                                const totalPeriod = baseImp + costIVA;
-                                const factorAnual = 365 / (data.dias_facturados || 30);
-                                const totalAnnual = totalPeriod * factorAnual;
-                                
-                                console.log('📊 Creando placeholder con datos y PRECIOS REALES del QR:', {
-                                    energyCosts: energyCostsFromData,
-                                    powerCosts: powerCostsFromData,
-                                    subEnergy,
-                                    subPower,
-                                    totalPeriod,
-                                    totalAnnual
-                                });
-                                
                                 final = {
                                     ...data,
                                     offer: { 
-                                        name: "Tu Tarifa Actual", 
-                                        description: "Es la mejor opción detectada", 
-                                        isDrk: false 
+                                        name: "DRK Energía", 
+                                        description: "Solicita una oferta personalizada", 
+                                        isDrk: true 
                                     },
-                                    energyCosts: energyCostsFromData,
-                                    powerCosts: powerCostsFromData,
-                                    subPower,
-                                    subEnergy,
-                                    subEnergyNet: subEnergy,
-                                    discountRate: 0,
-                                    discountAmount: 0,
-                                    subBase,
-                                    costIE,
-                                    baseImp,
-                                    costIVA,
-                                    totalPeriod,
-                                    totalAnnual: data.originalBillAnnual || totalAnnual,
+                                    totalAnnual: data.originalBillAnnual || (data.importe_total * 365 / (data.dias_facturados || 30)),
                                     originalBillAnnual: data.originalBillAnnual || (data.importe_total * 365 / (data.dias_facturados || 30)),
                                     savings: 0,
                                     isNegativeSavings: true,
-                                    needsImprovementRequest: false, // NO necesita mejora, ya está en la mejor
-                                    ieRate: 0.05113
+                                    needsImprovementRequest: true,
+                                    energyCosts: [],
+                                    powerCosts: []
                                 };
-                                }
                             }
                         }
                         // DRK ÚNICAMENTE: SIEMPRE mantener branding DRK (azul)
@@ -4094,21 +3986,11 @@
                 if (final.savings <= 0) {
                     final.isNegativeSavings = true;
                     final.savings = 0;
-                    final.totalAnnual = final.originalBillAnnual;
                     
-                    // CRÍTICO: Preservar energyCosts y powerCosts si existen
-                    // (pueden existir del cálculo original antes de detectar que no hay ahorro)
-                    const hasValidData = final.energyCosts && final.energyCosts.length > 0 && 
-                                        final.powerCosts && final.powerCosts.length > 0;
-                    
-                    console.log('🔍 Sin ahorro detectado. Preservando datos:', {
-                        hasValidData,
-                        energyCostsLength: final.energyCosts?.length || 0,
-                        powerCostsLength: final.powerCosts?.length || 0
-                    });
-                    
-                    // CRÍTICO: En modo DRK ÚNICAMENTE, NO cambiar la oferta a "Tu Tarifa Actual"
+                    // CRÍTICO: En modo DRK ÚNICAMENTE, NO cambiar totalAnnual ni la oferta
+                    // para que se vean los cálculos reales de DRK
                     if (comparisonMode === 'drk_only') {
+                        // NO cambiar final.totalAnnual - mantener el coste calculado de DRK
                         // Mantener la oferta DRK y marcar para solicitar mejora
                         if (!final.offer || !final.offer.isDrk) {
                             final.offer = { 
@@ -4119,8 +4001,16 @@
                         }
                         final.needsImprovementRequest = true;
                         brand = BRANDS.DRK;
+                        
+                        console.log('💰 Modo DRK sin ahorro - Mostrando cálculos de DRK:', {
+                            tariffName: final.offer.name,
+                            costeDRK: final.totalAnnual,
+                            costeActual: final.originalBillAnnual,
+                            diferencia: final.totalAnnual - final.originalBillAnnual
+                        });
                     } else {
                         // En otros modos, cambiar a "Tu Tarifa Actual"
+                        final.totalAnnual = final.originalBillAnnual;
                         final.offer = { 
                             name: "Tu Tarifa Actual", 
                             description: "Es la mejor opción detectada", 
@@ -5637,10 +5527,10 @@
             document.getElementById('new-annual-cost-display').textContent = eur(res.totalAnnual) + tr('/año');
             
             // 2. Desglose (Datos Extraídos)
-            // CAMBIO: Mostrar siempre si hay datos, independientemente de si hay ahorro
+            // CRÍTICO: Solo renderizar desglose si hay datos válidos (no es un placeholder sin ahorro)
             let consumptionHTML = '';
             
-            if (res.energyCosts && res.powerCosts && res.energyCosts.length > 0 && res.powerCosts.length > 0) {
+            if (!res.isNegativeSavings && res.energyCosts && res.powerCosts && res.energyCosts.length > 0 && res.powerCosts.length > 0) {
                 let energyRows = '';
                 res.energyCosts.forEach(e => {
                     let label = `E${e.period}`;
@@ -5690,8 +5580,7 @@
             let powerBreakdown = '';
             let energyBreakdown = '';
             
-            // CAMBIO: Mostrar siempre si hay datos
-            if (res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
+            if (!res.isNegativeSavings && res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
                 res.powerCosts.forEach(p => {
                     if (p.kw > 0 || p.period <= config.powerPeriods) {
                         powerBreakdown += `<div class="flex justify-between"><span>P${p.period} (${num(p.kw, 2)} kW x ${numPriceFormula(p.priceDay)} €/día)</span><span>${num(p.cost, 2)} €</span></div>`;
@@ -5714,8 +5603,7 @@
             let discountRowsHtml = '';
             let breakdownHTML = '';
             
-            // CAMBIO: Mostrar siempre si hay datos
-            if (res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
+            if (!res.isNegativeSavings && res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
                 discountRowsHtml = res.discountAmount > 0 ? `
                     <div class="flex justify-between font-bold text-cta-red-500 mt-2">
                         <span>Descuento Aplicado (${num(res.discountRate * 100, 0)}%)</span>
@@ -5769,8 +5657,7 @@
             
             // NUEVO: Generar resumen de precios consolidados
             let preciosHTML = '';
-            // CAMBIO: Mostrar precios siempre si hay datos (excepto para "Tu Tarifa Actual")
-            if (offer.name !== 'Tu Tarifa Actual' && res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
+            if (offer.name !== 'Tu Tarifa Actual' && !res.isNegativeSavings && res.powerCosts && res.energyCosts && res.powerCosts.length > 0 && res.energyCosts.length > 0) {
                 const nombreCompleto = offer.isDrk 
                     ? ((offer.description?.length > offer.name?.length) ? offer.description : offer.name)
                     : offer.name;
@@ -5831,20 +5718,11 @@
             let navigationMenuHTML = '';
             
             if (tariffType === '2.0TD') {
-                // DEBUG: Ver qué datos tenemos
-                console.log('📊 Calculando distribución 2.0TD:', {
-                    energyCosts: res.energyCosts,
-                    isNegativeSavings: res.isNegativeSavings,
-                    hasEnergyCosts: res.energyCosts && res.energyCosts.length > 0
-                });
-                
-                // Calcular kWh por período - ASEGURAR que siempre obtenemos valores
-                const puntaKwh = (res.energyCosts && res.energyCosts[0]) ? (res.energyCosts[0].kwh || 0) : 0;
-                const llanoKwh = (res.energyCosts && res.energyCosts[1]) ? (res.energyCosts[1].kwh || 0) : 0;
-                const valleKwh = (res.energyCosts && res.energyCosts[2]) ? (res.energyCosts[2].kwh || 0) : 0;
+                // Calcular kWh por período
+                const puntaKwh = res.energyCosts[0]?.kwh || 0;
+                const llanoKwh = res.energyCosts[1]?.kwh || 0;
+                const valleKwh = res.energyCosts[2]?.kwh || 0;
                 const totalKwh = puntaKwh + llanoKwh + valleKwh;
-                
-                console.log('📊 Consumos calculados:', { puntaKwh, llanoKwh, valleKwh, totalKwh });
                 
                 const puntaPct = totalKwh > 0 ? (puntaKwh / totalKwh * 100).toFixed(1) : 0;
                 const llanoPct = totalKwh > 0 ? (llanoKwh / totalKwh * 100).toFixed(1) : 0;

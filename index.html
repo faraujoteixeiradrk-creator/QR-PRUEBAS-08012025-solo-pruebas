@@ -17624,6 +17624,25 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                 }
                 
+                // NUEVO: Intento 5.5: Super-resolución para QRs densos (Escala 8.0)
+                addProcessingLog(`  Página ${i}: Ultra-zoom para QRs densos (8.0x)`, 'working');
+                updateProcessingProgress(progressBase + 11);
+                qrUrl = await scanPDFPageForQR(page, 8.0, false);
+                if (qrUrl) {
+                    const validUrl = processFoundUrl(qrUrl, 'Ultra-Zoom x8', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR denso detectado en página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito Ultra-Zoom!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
+                }
+                
                 // NUEVO: Intento 6: Grid 3x3 Solapado (Francotirador)
                 addProcessingLog(`  Página ${i}: Escaneo Zonal 3x3 (Último recurso)`, 'working');
                 updateProcessingProgress(progressBase + 12);
@@ -17633,6 +17652,25 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     if (validUrl) {
                         addProcessingLog(`✓ ¡QR detectado por Grid 3x3 en página ${i}!`, 'success');
                         updateStrategyStatus(3, '¡Éxito Grid 3x3!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
+                }
+                
+                // NUEVO: Intento 7: Grid 3x3 con super-resolución para QRs muy densos
+                addProcessingLog(`  Página ${i}: Grid 3x3 Ultra-HD (6.0x)`, 'working');
+                updateProcessingProgress(progressBase + 14);
+                qrUrl = await scanPageQuadrants(page, 6.0);
+                if (qrUrl) {
+                    const validUrl = processFoundUrl(qrUrl, 'Grid 3x3 Ultra-HD', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR denso localizado por Grid Ultra-HD en página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito Ultra-HD!', 'green');
                         updateProcessingProgress(100);
                         
                         setTimeout(() => {

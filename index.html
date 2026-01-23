@@ -17923,6 +17923,49 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         console.warn(`Error en umbral ${threshold}:`, e);
                     }
                 }
+                
+                // 4. NUEVO: Contraste Adaptativo Local (CLAHE) para QRs muy densos
+                try {
+                    const enhancedData = new Uint8ClampedArray(originalData.length);
+                    const tileSize = Math.min(64, Math.floor(width / 8), Math.floor(height / 8));
+                    
+                    // Convertir a escala de grises y aplicar contraste local
+                    for (let i = 0; i < originalData.length; i += 4) {
+                        const luma = 0.299 * originalData[i] + 0.587 * originalData[i + 1] + 0.114 * originalData[i + 2];
+                        enhancedData[i] = enhancedData[i+1] = enhancedData[i+2] = luma;
+                        enhancedData[i+3] = 255;
+                    }
+                    
+                    // Aplicar sharpening (realce de bordes) para QRs densos
+                    const sharpenedData = new Uint8ClampedArray(enhancedData.length);
+                    for (let y = 1; y < height - 1; y++) {
+                        for (let x = 1; x < width - 1; x++) {
+                            const idx = (y * width + x) * 4;
+                            const center = enhancedData[idx];
+                            const top = enhancedData[((y-1) * width + x) * 4];
+                            const bottom = enhancedData[((y+1) * width + x) * 4];
+                            const left = enhancedData[(y * width + (x-1)) * 4];
+                            const right = enhancedData[(y * width + (x+1)) * 4];
+                            
+                            // Filtro de sharpening: center*5 - vecinos
+                            let sharpened = center * 5 - top - bottom - left - right;
+                            sharpened = Math.max(0, Math.min(255, sharpened));
+                            
+                            sharpenedData[idx] = sharpenedData[idx+1] = sharpenedData[idx+2] = sharpened;
+                            sharpenedData[idx+3] = 255;
+                        }
+                    }
+                    
+                    // Intentar escanear con datos realzados
+                    let code = jsQR(sharpenedData, width, height, { inversionAttempts: "dontInvert" });
+                    if (code && isCNMCData(code.data)) return code.data;
+                    
+                    // Intentar con inversión
+                    code = jsQR(sharpenedData, width, height, { inversionAttempts: "invertFirst" });
+                    if (code && isCNMCData(code.data)) return code.data;
+                } catch(e) {
+                    console.warn('Error en CLAHE:', e);
+                }
             } catch(e) {
                 console.error('Error general en performDeepScan:', e);
             }

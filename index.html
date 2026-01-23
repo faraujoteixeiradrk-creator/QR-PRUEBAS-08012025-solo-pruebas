@@ -1,4 +1,4 @@
-v<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -1167,8 +1167,8 @@ v<!DOCTYPE html>
             </div>
         </div>
 
-        <!-- 3. Initial Input View (Scan/Manual) -->
-        <div id="initial-view" class="fade-in hidden">
+        <!-- 3. Initial Input View (Scan/Manual) - OCULTO PARA CLIENTE -->
+        <div id="initial-view" style="display: none !important;" class="fade-in hidden">
             <button onclick="currentTariffType === 'MULTICUPS' ? showMultiCupsSagaView() : goBackFromInitialView()" class="mb-4 text-sm text-slate-500 hover:text-drk-600 flex items-center gap-1">
                 &larr; Volver <span id="back-button-label">a selección</span>
             </button>
@@ -27492,10 +27492,11 @@ ${clientName}
             window.addEventListener('load', () => {
                 setTimeout(() => window.LANG.retranslate(), 200);
                 
-                // Auto-click en 2.0TD (invisible, carga tarifas)
+                // Cargar tarifas 2.0TD directamente SIN cambiar de vista
                 setTimeout(() => {
-                    const btn = document.querySelector('button[onclick*="selectTariffType(\'2.0TD\')"]');
-                    if (btn) btn.click();
+                    console.log('🔄 Cargando tarifas 2.0TD para cliente...');
+                    currentTariffType = '2.0TD';
+                    fetchTariffsFromSheet('2.0TD');
                 }, 800);
             });
         })();

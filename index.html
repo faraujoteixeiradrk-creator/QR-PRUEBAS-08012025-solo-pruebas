@@ -404,7 +404,7 @@
                     <h1 class="text-5xl md:text-6xl lg:text-7xl font-black text-blue-400">Extractor Inteligente</h1>
                 </div>
                 <p class="text-slate-400 text-base md:text-lg uppercase tracking-widest font-mono">
-                    ANALIZADOR DE FACTURAS ELÉCTRICAS DRK 
+                    ANALIZADOR DE FACTURAS ELÉCTRICAS CNMC
                 </p>
             </div>
             
@@ -4513,6 +4513,11 @@
             document.getElementById('scanner-view').classList.add('hidden');
             document.getElementById('results-view').classList.remove('hidden');
             document.getElementById('results-view').classList.add('animate-fade-in-up');
+            
+            // Abrir página limpia con resultados después de un breve delay
+            setTimeout(() => {
+                openCleanResults();
+            }, 500);
         }
 
 
@@ -27567,6 +27572,121 @@ Idioma: ${lang.toUpperCase()}
 
 Gracias.`;
             window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        }
+        
+        // Función para abrir resultados en página limpia
+        function openCleanResults() {
+            // Obtener datos de los resultados
+            const cups = document.getElementById('cups-value')?.textContent || '';
+            const offerName = document.getElementById('best-offer-name')?.textContent || 'DRK';
+            const offerDesc = document.getElementById('best-offer-desc')?.textContent || 'DRK PLAN AMIGO';
+            const savings = document.getElementById('savings-estimate')?.textContent || '0 €';
+            const oldPeriodCost = document.getElementById('old-period-cost-display')?.textContent || '0 €';
+            const oldPeriodDays = document.getElementById('old-period-days-label')?.textContent || 'Total Periodo';
+            const oldAnnualCost = document.getElementById('old-annual-cost-display')?.textContent || '0 €/año';
+            const newMonthlyCost = document.getElementById('new-monthly-cost-display')?.textContent || '0 €/mes';
+            const newAnnualCost = document.getElementById('new-annual-cost-display')?.textContent || '0 €/año';
+            
+            // Crear HTML limpio
+            const cleanHTML = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado - Extractor Inteligente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-bold mb-4">
+                <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span> Análisis Completado
+            </div>
+            <h1 class="text-3xl font-black text-slate-800 mb-2">Resultado del Estudio</h1>
+            <p class="text-slate-600">CUPS: <span class="font-mono font-bold">${cups}</span></p>
+        </div>
+
+        <!-- Tarjeta Resultado -->
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 mb-6">
+            <!-- Header azul -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-500 p-8 text-white text-center">
+                <h2 class="text-4xl font-extrabold mb-2">${offerName}</h2>
+                <p class="text-blue-100 text-lg">${offerDesc}</p>
+            </div>
+            
+            <!-- Contenido -->
+            <div class="p-8">
+                <!-- Ahorro grande -->
+                <div class="text-center mb-8">
+                    <p class="text-slate-500 text-sm font-bold uppercase tracking-wider mb-2">TU AHORRO ANUAL ESTIMADO</p>
+                    <p class="text-6xl font-black text-green-600">${savings}</p>
+                </div>
+                
+                <!-- Comparativa -->
+                <div class="grid grid-cols-2 gap-6 border-t border-slate-200 pt-6">
+                    <!-- Actual -->
+                    <div class="text-center border-r border-slate-200">
+                        <p class="text-slate-400 text-xs font-semibold uppercase mb-3">TU FACTURA ACTUAL</p>
+                        <div class="mb-4">
+                            <p class="text-2xl font-bold text-red-500 line-through">${oldPeriodCost}</p>
+                            <p class="text-xs text-slate-500 mt-1">${oldPeriodDays}</p>
+                        </div>
+                        <p class="text-xl font-bold text-red-500 line-through">${oldAnnualCost}</p>
+                    </div>
+                    
+                    <!-- Nuevo -->
+                    <div class="text-center">
+                        <p class="text-blue-700 text-xs font-semibold uppercase mb-3">TU NUEVO COSTE DRK</p>
+                        <div class="mb-4">
+                            <p class="text-3xl font-black text-blue-900">${newMonthlyCost}</p>
+                            <p class="text-xs text-slate-600 mt-1">Estimado Mensual</p>
+                        </div>
+                        <p class="text-3xl font-black text-blue-900">${newAnnualCost}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón LO QUIERO -->
+        <button onclick="sendEmail()" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-6 px-6 rounded-2xl shadow-2xl transform transition hover:scale-105 active:scale-95 flex items-center justify-center gap-4 text-2xl">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+            <span>LO QUIERO</span>
+        </button>
+        
+        <script>
+        function sendEmail() {
+            const to = 'f.araujo@drk.es,rguerra@drk.es,s.caballero@drk.es';
+            const subject = 'Estimado DRK: Estoy interesado en los precios de la oferta';
+            const body = \`Estimado DRK,
+
+Estoy interesado en los precios de la oferta. Adjunto la siguiente información para la contratación:
+
+- Foto DNI
+- Email de validación de contrato
+- Teléfono de validación de contrato
+- Número de cuenta bancaria
+- Factura eléctrica (no puede ser más antigua de 3 meses desde la fecha actual)
+
+CUPS: ${cups}
+
+Gracias.\`;
+            window.location.href = \`mailto:\${to}?subject=\${encodeURIComponent(subject)}&body=\${encodeURIComponent(body)}\`;
+        }
+        </script>
+    </div>
+</body>
+</html>`;
+            
+            // Abrir en nueva ventana
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write(cleanHTML);
+            newWindow.document.close();
         }
     </script>
 </body>

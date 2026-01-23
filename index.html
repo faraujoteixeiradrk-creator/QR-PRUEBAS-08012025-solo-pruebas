@@ -5897,22 +5897,22 @@
                             
                             <!-- Contenedor de tabs con scroll -->
                             <div id="tabs-container" class="flex overflow-x-auto scrollbar-hide scroll-smooth" style="scroll-behavior: smooth;">
-                                <button onclick="showSection('analisis'); return false;" id="btn-analisis"
+                                <button onclick="event.preventDefault(); event.stopPropagation(); showSection('analisis'); return false;" id="btn-analisis"
                                         class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
                                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     ${tr('Análisis de Horarios')}
                                 </button>
-                                <button onclick="showSection('datos-extraidos'); return false;" id="btn-datos-extraidos"
+                                <button onclick="event.preventDefault(); event.stopPropagation(); showSection('datos-extraidos'); return false;" id="btn-datos-extraidos"
                                         class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
                                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     ${tr('Datos Extraídos')}
                                 </button>
-                                <button onclick="showSection('precios'); return false;" id="btn-precios"
+                                <button onclick="event.preventDefault(); event.stopPropagation(); showSection('precios'); return false;" id="btn-precios"
                                         class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
                                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     ${tr('Precios Ofertas')}
                                 </button>
-                                <button onclick="showSection('calculo'); return false;" id="btn-calculo"
+                                <button onclick="event.preventDefault(); event.stopPropagation(); showSection('calculo'); return false;" id="btn-calculo"
                                         class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
                                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                                     ${tr('Cálculo Oficial')}
@@ -6088,6 +6088,10 @@
         
         // === FUNCIÓN PARA NAVEGACIÓN POR PESTAÑAS ===
         window.showSection = function(sectionName) {
+            // Guardar posición de scroll actual
+            const currentScrollY = window.scrollY || window.pageYOffset;
+            const currentScrollX = window.scrollX || window.pageXOffset;
+            
             // Ocultar todas las secciones
             const sections = document.querySelectorAll('.section-content');
             sections.forEach(section => {
@@ -6112,8 +6116,12 @@
                 activeButton.classList.add('active');
             }
             
-            // Scroll suave al inicio de la sección
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // CRÍTICO: NO scrollear - mantener posición actual
+            setTimeout(() => {
+                window.scrollTo(currentScrollX, currentScrollY);
+            }, 0);
+            
+            return false;
         };
         
         // === INICIALIZAR PRIMERA PESTAÑA ===
@@ -27721,9 +27729,18 @@ Gracias.`;
         
         // Función para mostrar secciones del carrusel SIN scroll automático
         window.showSection = function(sectionId) {
-            // Guardar la posición actual del scroll
-            const currentScrollY = window.scrollY || window.pageYOffset;
+            // PASO 1: Guardar la posición exacta del scroll
+            const savedScrollY = window.scrollY || window.pageYOffset;
+            const savedScrollX = window.scrollX || window.pageXOffset;
             
+            // PASO 2: Bloquear temporalmente el scroll
+            const originalOverflow = document.body.style.overflow;
+            const originalPosition = document.documentElement.style.scrollBehavior;
+            
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.scrollBehavior = 'auto';
+            
+            // PASO 3: Hacer los cambios de UI
             // Ocultar todas las secciones
             document.querySelectorAll('.section-content').forEach(s => s.style.display = 'none');
             
@@ -27746,10 +27763,23 @@ Gracias.`;
                 btn.classList.add('text-drk-600', 'bg-drk-50', 'border-drk-500');
             }
             
-            // CRÍTICO: Restaurar la posición del scroll inmediatamente
-            setTimeout(() => {
-                window.scrollTo(0, currentScrollY);
-            }, 0);
+            // PASO 4: Forzar la posición del scroll múltiples veces
+            window.scrollTo(savedScrollX, savedScrollY);
+            
+            requestAnimationFrame(() => {
+                window.scrollTo(savedScrollX, savedScrollY);
+                
+                setTimeout(() => {
+                    window.scrollTo(savedScrollX, savedScrollY);
+                    
+                    // Desbloquear el scroll
+                    document.body.style.overflow = originalOverflow;
+                    document.documentElement.style.scrollBehavior = originalPosition;
+                    
+                    // Una última verificación
+                    window.scrollTo(savedScrollX, savedScrollY);
+                }, 10);
+            });
             
             // Prevenir cualquier comportamiento por defecto
             return false;

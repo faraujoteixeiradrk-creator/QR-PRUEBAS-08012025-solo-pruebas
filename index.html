@@ -398,10 +398,10 @@
             <!-- Header DRK Power - Extractor Inteligente -->
             <div class="w-full max-w-5xl mb-12 text-center px-4">
                 <div class="flex flex-col items-center justify-center gap-6 mb-6">
-                    <!-- Logo DRK POWER en una sola línea -->
-                    <div class="flex items-center gap-3">
+                    <!-- Logo DRK POWER en una sola línea compacta -->
+                    <div class="flex items-center gap-2">
                         <!-- Logo circular DRK -->
-                        <svg class="w-16 h-16 md:w-20 md:h-20" viewBox="0 0 100 100" fill="none">
+                        <svg class="w-12 h-12 md:w-16 md:h-16" viewBox="0 0 100 100" fill="none">
                             <!-- Círculo con gradientes de colores -->
                             <defs>
                                 <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -431,19 +431,24 @@
                             <path d="M 5 50 A 45 45 0 0 1 50 5" stroke="url(#grad4)" stroke-width="6" fill="none" stroke-linecap="round"/>
                         </svg>
                         
-                        <!-- Texto DRK -->
-                        <h1 class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight" style="color: rgb(53,168,223);">DRK</h1>
-                        
-                        <!-- Separador con puntos -->
-                        <div class="hidden md:flex flex-col gap-1 mx-2">
-                            <div class="w-2 h-2 bg-white rounded-full"></div>
-                            <div class="w-2 h-2 bg-white rounded-full"></div>
-                            <div class="w-2 h-2 bg-white rounded-full"></div>
-                        </div>
-                        
-                        <!-- POWER en fondo oscuro -->
-                        <div class="bg-slate-800 px-4 md:px-6 py-2 md:py-3 rounded-lg">
-                            <h2 class="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-wider">POWER</h2>
+                        <!-- Contenedor integrado con fondo oscuro -->
+                        <div class="flex items-center bg-slate-800 rounded-lg overflow-hidden">
+                            <!-- Texto DRK -->
+                            <div class="px-3 md:px-4 py-2 md:py-3">
+                                <h1 class="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight" style="color: rgb(53,168,223);">DRK</h1>
+                            </div>
+                            
+                            <!-- Separador con puntos -->
+                            <div class="flex flex-col gap-0.5 px-2">
+                                <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                                <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                            </div>
+                            
+                            <!-- POWER -->
+                            <div class="px-3 md:px-5 py-2 md:py-3">
+                                <h2 class="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-wide">POWER</h2>
+                            </div>
                         </div>
                     </div>
                 </div>

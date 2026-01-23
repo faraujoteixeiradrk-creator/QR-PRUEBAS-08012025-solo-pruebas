@@ -1664,13 +1664,6 @@
                         <div class="text-slate-500 font-bold">Esperando...</div>
                     </div>
                 </div>
-                
-                <!-- Botón de cancelar -->
-                <div class="mt-4 text-center">
-                    <button id="cancel-processing-btn" onclick="cancelProcessing()" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all transform hover:scale-105 active:scale-95">
-                        ✕ Cancelar Análisis
-                    </button>
-                </div>
             </div>
         </div>
 
@@ -17119,24 +17112,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         
         // ==================== FUNCIONES COMPLETAS DE PROCESAMIENTO ====================
         
-        // Variable global para controlar la cancelación
-        let processingCancelled = false;
-        
         // Configurar PDF.js worker
         if (typeof pdfjsLib !== 'undefined') {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        }
-        
-        // Función para cancelar el procesamiento
-        function cancelProcessing() {
-            processingCancelled = true;
-            addProcessingLog('✕ Cancelando análisis...', 'error');
-            updateProcessingStatus('Cancelado por el usuario');
-            
-            setTimeout(() => {
-                hideProcessingModal();
-                processingCancelled = false; // Reset para próximos análisis
-            }, 500);
         }
         
         // Funciones de actualización del modal de procesamiento
@@ -17145,7 +17123,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             // Reset
-            processingCancelled = false; // Asegurar que esté reseteado
             document.getElementById('processing-progress-bar').style.width = '0%';
             document.getElementById('processing-log').innerHTML = '<div class="text-drk-400">█ Sistema iniciado...</div>';
             updateStrategyStatus(1, 'Esperando...', 'slate');
@@ -17296,12 +17273,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             updateProcessingProgress(20);
             
             for (let i = 1; i <= pdf.numPages; i++) {
-                // Verificar si se canceló el procesamiento
-                if (processingCancelled) {
-                    addProcessingLog('✕ Procesamiento cancelado por el usuario', 'error');
-                    return;
-                }
-                
                 const page = await pdf.getPage(i);
                 const annotations = await page.getAnnotations();
                 
@@ -17355,12 +17326,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             updateProcessingProgress(35);
             
             for (let i = 1; i <= pdf.numPages; i++) {
-                // Verificar si se canceló el procesamiento
-                if (processingCancelled) {
-                    addProcessingLog('✕ Procesamiento cancelado por el usuario', 'error');
-                    return;
-                }
-                
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
                 
@@ -17561,12 +17526,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             updateProcessingProgress(55);
             
             for (let i = 1; i <= pdf.numPages; i++) {
-                // Verificar si se canceló el procesamiento
-                if (processingCancelled) {
-                    addProcessingLog('✕ Procesamiento cancelado por el usuario', 'error');
-                    return;
-                }
-                
                 const page = await pdf.getPage(i);
                 const progressBase = 55 + (i - 1) * (40 / pdf.numPages);
                 
@@ -17665,25 +17624,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                 }
                 
-                // NUEVO: Intento 5.5: Super-resolución para QRs densos (Escala 8.0)
-                addProcessingLog(`  Página ${i}: Ultra-zoom para QRs densos (8.0x)`, 'working');
-                updateProcessingProgress(progressBase + 11);
-                qrUrl = await scanPDFPageForQR(page, 8.0, false);
-                if (qrUrl) {
-                    const validUrl = processFoundUrl(qrUrl, 'Ultra-Zoom x8', i);
-                    if (validUrl) {
-                        addProcessingLog(`✓ ¡QR denso detectado en página ${i}!`, 'success');
-                        updateStrategyStatus(3, '¡Éxito Ultra-Zoom!', 'green');
-                        updateProcessingProgress(100);
-                        
-                        setTimeout(() => {
-                            hideProcessingModal();
-                            handleQRRead(validUrl);
-                        }, 800);
-                        return;
-                    }
-                }
-                
                 // NUEVO: Intento 6: Grid 3x3 Solapado (Francotirador)
                 addProcessingLog(`  Página ${i}: Escaneo Zonal 3x3 (Último recurso)`, 'working');
                 updateProcessingProgress(progressBase + 12);
@@ -17693,66 +17633,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     if (validUrl) {
                         addProcessingLog(`✓ ¡QR detectado por Grid 3x3 en página ${i}!`, 'success');
                         updateStrategyStatus(3, '¡Éxito Grid 3x3!', 'green');
-                        updateProcessingProgress(100);
-                        
-                        setTimeout(() => {
-                            hideProcessingModal();
-                            handleQRRead(validUrl);
-                        }, 800);
-                        return;
-                    }
-                }
-                
-                // NUEVO: Intento 7: Grid 3x3 con super-resolución para QRs muy densos
-                addProcessingLog(`  Página ${i}: Grid 3x3 Ultra-HD (6.0x)`, 'working');
-                updateProcessingProgress(progressBase + 14);
-                qrUrl = await scanPageQuadrants(page, 6.0);
-                if (qrUrl) {
-                    const validUrl = processFoundUrl(qrUrl, 'Grid 3x3 Ultra-HD', i);
-                    if (validUrl) {
-                        addProcessingLog(`✓ ¡QR denso localizado por Grid Ultra-HD en página ${i}!`, 'success');
-                        updateStrategyStatus(3, '¡Éxito Ultra-HD!', 'green');
-                        updateProcessingProgress(100);
-                        
-                        setTimeout(() => {
-                            hideProcessingModal();
-                            handleQRRead(validUrl);
-                        }, 800);
-                        return;
-                    }
-                }
-                
-                // NUEVO: Intento 8: Búsqueda en zona derecha típica del QR CNMC
-                addProcessingLog(`  Página ${i}: Zona específica QR CNMC (10.0x)`, 'working');
-                updateProcessingProgress(progressBase + 15);
-                
-                // Renderizar a escala muy alta
-                const viewport = page.getViewport({ scale: 10.0 });
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                await page.render({ canvasContext: context, viewport: viewport }).promise;
-                
-                // Extraer zona derecha (típicamente 30-70% ancho, 10-50% alto)
-                const zoneX = Math.floor(canvas.width * 0.5);  // Mitad derecha
-                const zoneY = Math.floor(canvas.height * 0.1);  // Desde 10% superior
-                const zoneW = Math.floor(canvas.width * 0.45);  // 45% del ancho
-                const zoneH = Math.floor(canvas.height * 0.5);  // Hasta 50% de alto
-                
-                const zoneCanvas = document.createElement('canvas');
-                zoneCanvas.width = zoneW;
-                zoneCanvas.height = zoneH;
-                const zoneCtx = zoneCanvas.getContext('2d');
-                zoneCtx.drawImage(canvas, zoneX, zoneY, zoneW, zoneH, 0, 0, zoneW, zoneH);
-                
-                // Aplicar Deep Scan a esta zona específica
-                const zoneQR = performDeepScan(zoneCtx, zoneW, zoneH);
-                if (zoneQR) {
-                    const validUrl = processFoundUrl(zoneQR, 'Zona Típica CNMC x10', i);
-                    if (validUrl) {
-                        addProcessingLog(`✓ ¡QR encontrado en zona típica CNMC página ${i}!`, 'success');
-                        updateStrategyStatus(3, '¡Éxito Zona CNMC!', 'green');
                         updateProcessingProgress(100);
                         
                         setTimeout(() => {
@@ -18004,49 +17884,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     } catch(e) {
                         console.warn(`Error en umbral ${threshold}:`, e);
                     }
-                }
-                
-                // 4. NUEVO: Contraste Adaptativo Local (CLAHE) para QRs muy densos
-                try {
-                    const enhancedData = new Uint8ClampedArray(originalData.length);
-                    const tileSize = Math.min(64, Math.floor(width / 8), Math.floor(height / 8));
-                    
-                    // Convertir a escala de grises y aplicar contraste local
-                    for (let i = 0; i < originalData.length; i += 4) {
-                        const luma = 0.299 * originalData[i] + 0.587 * originalData[i + 1] + 0.114 * originalData[i + 2];
-                        enhancedData[i] = enhancedData[i+1] = enhancedData[i+2] = luma;
-                        enhancedData[i+3] = 255;
-                    }
-                    
-                    // Aplicar sharpening (realce de bordes) para QRs densos
-                    const sharpenedData = new Uint8ClampedArray(enhancedData.length);
-                    for (let y = 1; y < height - 1; y++) {
-                        for (let x = 1; x < width - 1; x++) {
-                            const idx = (y * width + x) * 4;
-                            const center = enhancedData[idx];
-                            const top = enhancedData[((y-1) * width + x) * 4];
-                            const bottom = enhancedData[((y+1) * width + x) * 4];
-                            const left = enhancedData[(y * width + (x-1)) * 4];
-                            const right = enhancedData[(y * width + (x+1)) * 4];
-                            
-                            // Filtro de sharpening: center*5 - vecinos
-                            let sharpened = center * 5 - top - bottom - left - right;
-                            sharpened = Math.max(0, Math.min(255, sharpened));
-                            
-                            sharpenedData[idx] = sharpenedData[idx+1] = sharpenedData[idx+2] = sharpened;
-                            sharpenedData[idx+3] = 255;
-                        }
-                    }
-                    
-                    // Intentar escanear con datos realzados
-                    let code = jsQR(sharpenedData, width, height, { inversionAttempts: "dontInvert" });
-                    if (code && isCNMCData(code.data)) return code.data;
-                    
-                    // Intentar con inversión
-                    code = jsQR(sharpenedData, width, height, { inversionAttempts: "invertFirst" });
-                    if (code && isCNMCData(code.data)) return code.data;
-                } catch(e) {
-                    console.warn('Error en CLAHE:', e);
                 }
             } catch(e) {
                 console.error('Error general en performDeepScan:', e);

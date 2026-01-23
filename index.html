@@ -17680,6 +17680,47 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         return;
                     }
                 }
+                
+                // NUEVO: Intento 8: Búsqueda en zona derecha típica del QR CNMC
+                addProcessingLog(`  Página ${i}: Zona específica QR CNMC (10.0x)`, 'working');
+                updateProcessingProgress(progressBase + 15);
+                
+                // Renderizar a escala muy alta
+                const viewport = page.getViewport({ scale: 10.0 });
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                await page.render({ canvasContext: context, viewport: viewport }).promise;
+                
+                // Extraer zona derecha (típicamente 30-70% ancho, 10-50% alto)
+                const zoneX = Math.floor(canvas.width * 0.5);  // Mitad derecha
+                const zoneY = Math.floor(canvas.height * 0.1);  // Desde 10% superior
+                const zoneW = Math.floor(canvas.width * 0.45);  // 45% del ancho
+                const zoneH = Math.floor(canvas.height * 0.5);  // Hasta 50% de alto
+                
+                const zoneCanvas = document.createElement('canvas');
+                zoneCanvas.width = zoneW;
+                zoneCanvas.height = zoneH;
+                const zoneCtx = zoneCanvas.getContext('2d');
+                zoneCtx.drawImage(canvas, zoneX, zoneY, zoneW, zoneH, 0, 0, zoneW, zoneH);
+                
+                // Aplicar Deep Scan a esta zona específica
+                const zoneQR = performDeepScan(zoneCtx, zoneW, zoneH);
+                if (zoneQR) {
+                    const validUrl = processFoundUrl(zoneQR, 'Zona Típica CNMC x10', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR encontrado en zona típica CNMC página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito Zona CNMC!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
+                }
             }
             
             updateStrategyStatus(3, 'Sin resultados', 'red');

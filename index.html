@@ -17362,6 +17362,25 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                 }
                 
+                // NUEVO: Intento con Grid 3x3 (del código que funciona)
+                addProcessingLog(`  Página ${i}: Escaneo por cuadrantes 3x3`, 'working');
+                updateProcessingProgress(progressBase + 2);
+                qrUrl = await scanPageQuadrants(page, 3.0);
+                if (qrUrl) {
+                    const validUrl = processFoundUrl(qrUrl, 'Grid 3x3', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR detectado en página ${i} con Grid 3x3!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
+                }
+                
                 // Intento 2: Escala 3.0 (HD)
                 addProcessingLog(`  Página ${i}: Escaneo HD (3.0x)`, 'working');
                 updateProcessingProgress(progressBase + 3);
@@ -17381,10 +17400,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                 }
                 
-                // Intento 3: Escala 5.0 con filtro estándar (Forense)
-                addProcessingLog(`  Página ${i}: Modo forense (5.0x + filtro std)`, 'working');
+                // Intento 3: Escala 5.0 con Deep Scan (Forense)
+                addProcessingLog(`  Página ${i}: Modo forense (5.0x + Deep Scan)`, 'working');
                 updateProcessingProgress(progressBase + 6);
-                qrUrl = await scanPDFPageForQR(page, 5.0, true, 160);
+                qrUrl = await scanPageWithCrop(page, 5.0, true);
                 if (qrUrl) {
                     const validUrl = processFoundUrl(qrUrl, 'Forense (Std)', i);
                     if (validUrl) {
@@ -17400,10 +17419,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                 }
                 
-                // Intento 4: Escala 5.0 con filtro oscuro
-                addProcessingLog(`  Página ${i}: Filtro oscuro (5.0x)`, 'working');
+                // Intento 4: Escala 5.0 con Deep Scan intenso
+                addProcessingLog(`  Página ${i}: Deep Scan intenso (5.0x)`, 'working');
                 updateProcessingProgress(progressBase + 8);
-                qrUrl = await scanPDFPageForQR(page, 5.0, true, 100);
+                qrUrl = await scanPageWithCrop(page, 5.0, true);
                 if (qrUrl) {
                     const validUrl = processFoundUrl(qrUrl, 'Forense (Dark)', i);
                     if (validUrl) {
@@ -17419,10 +17438,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                 }
                 
-                // Intento 5: Super-zoom 6.0
-                addProcessingLog(`  Página ${i}: Super-zoom (6.0x + filtro agresivo)`, 'working');
+                // Intento 5: Super-zoom 6.0 con Deep Scan
+                addProcessingLog(`  Página ${i}: Super-zoom (6.0x + Deep Scan)`, 'working');
                 updateProcessingProgress(progressBase + 10);
-                qrUrl = await scanPDFPageForQR(page, 6.0, true, 180);
+                qrUrl = await scanPageWithCrop(page, 6.0, true);
                 if (qrUrl) {
                     const validUrl = processFoundUrl(qrUrl, 'Super-Zoom x6', i);
                     if (validUrl) {
@@ -17551,6 +17570,114 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         }
         
         // Escanear página de PDF en busca de QR
+        
+        // ==================== FUNCIONES QR MEJORADAS (del código que funciona) ====================
+        
+        // Validar si los datos son del CNMC
+        function isCNMCData(str) {
+            if (!str) return false;
+            return str.includes('comparador.cnmc.gob.es') || str.includes('cups') || str.includes('imp=');
+        }
+        
+        // FUNCIÓN CLAVE: Deep Scan con múltiples umbrales
+        function performDeepScan(ctx, width, height) {
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const originalData = imageData.data;
+
+            // 1. Intento Normal
+            let code = jsQR(originalData, width, height, { inversionAttempts: "dontInvert" });
+            if (code && isCNMCData(code.data)) return code.data;
+
+            // 2. Intento Invertido
+            code = jsQR(originalData, width, height, { inversionAttempts: "invertFirst" });
+            if (code && isCNMCData(code.data)) return code.data;
+
+            // 3. Barrido de Umbrales (Simulación de Auto-Exposición)
+            const thresholds = [80, 120, 160, 200]; // Oscuro -> Claro
+            
+            for (const threshold of thresholds) {
+                const binarizedData = new Uint8ClampedArray(originalData.length);
+                for (let i = 0; i < originalData.length; i += 4) {
+                    const luma = 0.299 * originalData[i] + 0.587 * originalData[i + 1] + 0.114 * originalData[i + 2];
+                    const val = luma < threshold ? 0 : 255;
+                    binarizedData[i] = val;
+                    binarizedData[i+1] = val;
+                    binarizedData[i+2] = val;
+                    binarizedData[i+3] = 255; 
+                }
+                
+                code = jsQR(binarizedData, width, height, { inversionAttempts: "dontInvert" });
+                if (code && isCNMCData(code.data)) return code.data;
+            }
+
+            return null;
+        }
+        
+        // Escaneo por Cuadrantes Avanzado (3x3 Grid con Solapamiento)
+        async function scanPageQuadrants(page, scale) {
+            const viewport = page.getViewport({ scale: scale });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+            const w = canvas.width, h = canvas.height;
+            
+            // Creamos 9 zonas solapadas (3 columnas x 3 filas)
+            // Cada zona cubre el 50% del ancho/alto, moviéndose un 25% cada paso
+            const zones = [
+                // Fila Superior
+                { x: 0, y: 0, w: w/2, h: h/2 },
+                { x: w/4, y: 0, w: w/2, h: h/2 },
+                { x: w/2, y: 0, w: w/2, h: h/2 },
+                // Fila Media
+                { x: 0, y: h/4, w: w/2, h: h/2 },
+                { x: w/4, y: h/4, w: w/2, h: h/2 }, // Centro puro
+                { x: w/2, y: h/4, w: w/2, h: h/2 },
+                // Fila Inferior
+                { x: 0, y: h/2, w: w/2, h: h/2 },
+                { x: w/4, y: h/2, w: w/2, h: h/2 },
+                { x: w/2, y: h/2, w: w/2, h: h/2 }
+            ];
+
+            for (let z of zones) {
+                const tempC = document.createElement('canvas');
+                tempC.width = z.w;
+                tempC.height = z.h;
+                const tempCtx = tempC.getContext('2d');
+                tempCtx.drawImage(canvas, z.x, z.y, z.w, z.h, 0, 0, z.w, z.h);
+                
+                const data = performDeepScan(tempCtx, z.w, z.h);
+                if (data) {
+                    console.log('✅ QR localizado en zona recortada (Grid 3x3)!');
+                    return data; 
+                }
+            }
+            return null;
+        }
+        
+        // Función de escaneo mejorada con Deep Scan
+        function attemptQRScan(context, width, height, enhanceContrast = false) {
+            if (enhanceContrast) {
+                return performDeepScan(context, width, height);
+            }
+            const imageData = context.getImageData(0, 0, width, height);
+            const code = jsQR(imageData.data, width, height, { inversionAttempts: "dontInvert" });
+            if (code && isCNMCData(code.data)) return code.data;
+            return null;
+        }
+        
+        // Escaneo de página con crop mejorado
+        async function scanPageWithCrop(page, scale, enhanceContrast = false) {
+            const viewport = page.getViewport({ scale: scale });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+            return performDeepScan(context, canvas.width, canvas.height);
+        }
         async function scanPDFPageForQR(page, scale, enhanceContrast = false, threshold = 180) {
             const viewport = page.getViewport({ scale: scale });
             const canvas = document.createElement('canvas');

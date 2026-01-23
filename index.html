@@ -23126,8 +23126,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ========== NAVEGACIÓN ENTRE PANEL Y CALCULADORA ==========
 function showCalculator() {
-    // Redirigir al link externo
-    window.location.href = 'https://faraujoteixeiradrk-creator.github.io/DRK---CLIENTE-FINAL-05012025/';
+    // Abrir en nueva pestaña para que el usuario pueda volver fácilmente al panel
+    window.open('https://faraujoteixeiradrk-creator.github.io/DRK---CLIENTE-FINAL-05012025/', '_blank');
 }
 
 function showPanel() {
@@ -25300,9 +25300,7 @@ ${myName}`;
 <div id="news-view" style="display: none; min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 2rem;">
     <div style="max-width: 1200px; margin: 0 auto;">
         <!-- Botón Volver -->
-        <button onclick="hideNews()" style="background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; margin-bottom: 2rem; font-size: 1rem; transition: all 0.3s;">
-            <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i><span data-translate="back-button">Volver al Panel</span>
-        </button>
+        <button onclick="hideNews()" style="background: linear-gradient(135deg, #2596be 0%, #1e7a9a 100%); border: none; color: white; padding: 1rem 2rem; border-radius: 0.75rem; cursor: pointer; margin-bottom: 2rem; font-size: 1rem; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 15px rgba(37, 150, 190, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(37, 150, 190, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxSha
 
         <!-- Header -->
         <div style="text-align: center; margin-bottom: 3rem;">

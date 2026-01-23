@@ -5665,14 +5665,14 @@
                     <div class="space-y-4">
                         <!-- Información Principal -->
                         <div class="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-lg border-2 border-blue-200">
-                            <p class="text-xs font-bold text-blue-900 uppercase mb-2">📋 Información del Suministro</p>
+                            <p class="text-xs font-bold text-blue-900 uppercase mb-2">${tr('Información del Suministro')}</p>
                             <div class="grid grid-cols-1 gap-2">
                                 <div class="flex justify-between items-center">
                                     <span class="text-xs text-slate-600">CUPS:</span>
                                     <span class="font-mono font-bold text-xs text-slate-900">${res.cups || 'N/A'}</span>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-xs text-slate-600">Importe Total:</span>
+                                    <span class="text-xs text-slate-600">${tr('Importe Total:')}</span>
                                     <span class="font-bold text-lg ${brand.PRIMARY_TEXT}">${num(res.importe_total || 0, 2)} €</span>
                                 </div>
                             </div>
@@ -5681,11 +5681,11 @@
                         <!-- Periodo de Facturación -->
                         <div class="grid grid-cols-2 gap-4">
                             <div class="bg-white p-3 rounded-lg border border-slate-200">
-                                <p class="text-xs text-slate-500 mb-1">📅 Periodo</p>
+                                <p class="text-xs text-slate-500 mb-1">${tr('Periodo')}</p>
                                 <p class="font-bold text-slate-900">${res.dias_facturados} ${tr('días')}</p>
                             </div>
                             <div class="bg-white p-3 rounded-lg border border-slate-200">
-                                <p class="text-xs text-slate-500 mb-1">📆 Fechas</p>
+                                <p class="text-xs text-slate-500 mb-1">${tr('Fechas')}</p>
                                 <p class="font-bold text-slate-900 text-xs">${res.fechas}</p>
                             </div>
                         </div>
@@ -5720,15 +5720,15 @@
                             </div>
                             ${res.potencia_max_p1 || res.potencia_max_p2 ? `
                                 <div class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-300">
-                                    <p class="text-xs font-bold text-amber-900 mb-2">⚡ Picos Máximos Registrados:</p>
-                                    ${res.potencia_max_p1 ? `<div class="flex justify-between text-xs"><span>P1 (Punta):</span><span class="font-bold">${num(res.potencia_max_p1, 3)} kW</span></div>` : ''}
-                                    ${res.potencia_max_p2 ? `<div class="flex justify-between text-xs"><span>P2 (Valle):</span><span class="font-bold">${num(res.potencia_max_p2, 3)} kW</span></div>` : ''}
+                                    <p class="text-xs font-bold text-amber-900 mb-2">${tr('Picos Máximos Registrados:')}</p>
+                                    ${res.potencia_max_p1 ? `<div class="flex justify-between text-xs"><span>${tr('P1 (Punta):')}</span><span class="font-bold">${num(res.potencia_max_p1, 3)} kW</span></div>` : ''}
+                                    ${res.potencia_max_p2 ? `<div class="flex justify-between text-xs"><span>${tr('P2 (Valle):')}</span><span class="font-bold">${num(res.potencia_max_p2, 3)} kW</span></div>` : ''}
                                     ${res.potencia_p1_kw && res.potencia_max_p1 ? `
                                         <div class="mt-2 pt-2 border-t border-amber-200">
                                             <p class="text-xs text-amber-800">
-                                                <span class="font-bold">Aprovechamiento:</span> ${num((res.potencia_max_p1 / res.potencia_p1_kw) * 100, 0)}% de la potencia contratada
+                                                <span class="font-bold">${tr('Aprovechamiento:')}</span> ${num((res.potencia_max_p1 / res.potencia_p1_kw) * 100, 0)}% ${tr('de la potencia contratada')}
                                             </p>
-                                            ${((res.potencia_max_p1 / res.potencia_p1_kw) * 100) < 50 ? `<p class="text-xs text-red-600 mt-1">⚠️ Estás pagando por mucha más potencia de la que usas</p>` : ''}
+                                            ${((res.potencia_max_p1 / res.potencia_p1_kw) * 100) < 50 ? `<p class="text-xs text-red-600 mt-1">${tr('Estás pagando por mucha más potencia de la que usas')}</p>` : ''}
                                         </div>
                                     ` : ''}
                                 </div>
@@ -5742,22 +5742,22 @@
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
-                                    💰 Desglose de Costes
+                                    ${tr('Desglose de Costes')}
                                 </p>
                                 <div class="space-y-2">
-                                    ${res.coste_potencia ? `<div class="flex justify-between items-center bg-white p-2 rounded"><span class="text-sm text-slate-700">Término fijo (Potencia)</span><span class="font-bold text-purple-700">${num(res.coste_potencia, 2)} €</span></div>` : ''}
-                                    ${res.coste_energia ? `<div class="flex justify-between items-center bg-white p-2 rounded"><span class="text-sm text-slate-700">Término variable (Energía)</span><span class="font-bold text-purple-700">${num(res.coste_energia, 2)} €</span></div>` : ''}
-                                    ${res.otros_costes ? `<div class="flex justify-between items-center bg-white p-2 rounded"><span class="text-sm text-slate-700">Otros (Contador, etc.)</span><span class="font-bold text-purple-700">${num(res.otros_costes, 2)} €</span></div>` : ''}
+                                    ${res.coste_potencia ? `<div class="flex justify-between items-center bg-white p-2 rounded"><span class="text-sm text-slate-700">${tr('Término fijo (Potencia)')}</span><span class="font-bold text-purple-700">${num(res.coste_potencia, 2)} €</span></div>` : ''}
+                                    ${res.coste_energia ? `<div class="flex justify-between items-center bg-white p-2 rounded"><span class="text-sm text-slate-700">${tr('Término variable (Energía)')}</span><span class="font-bold text-purple-700">${num(res.coste_energia, 2)} €</span></div>` : ''}
+                                    ${res.otros_costes ? `<div class="flex justify-between items-center bg-white p-2 rounded"><span class="text-sm text-slate-700">${tr('Otros (Contador, etc.)')}</span><span class="font-bold text-purple-700">${num(res.otros_costes, 2)} €</span></div>` : ''}
                                     ${res.coste_potencia && res.coste_energia ? `
                                         <div class="flex justify-between items-center bg-purple-100 p-2 rounded border-t-2 border-purple-300 mt-2">
-                                            <span class="text-sm font-bold text-purple-900">Subtotal (sin impuestos)</span>
+                                            <span class="text-sm font-bold text-purple-900">${tr('Subtotal (sin impuestos)')}</span>
                                             <span class="font-bold text-lg text-purple-900">${num((res.coste_potencia || 0) + (res.coste_energia || 0) + (res.otros_costes || 0), 2)} €</span>
                                         </div>
                                         <div class="text-xs text-slate-600 mt-2 bg-white p-2 rounded">
-                                            <p class="mb-1">El resto hasta <strong>${num(res.importe_total, 2)} €</strong> corresponde a:</p>
+                                            <p class="mb-1">${tr('El resto hasta')} <strong>${num(res.importe_total, 2)} €</strong> ${tr('corresponde a:')}</p>
                                             <ul class="list-disc list-inside pl-2 space-y-1">
-                                                <li>Impuesto Eléctrico (5.11%)</li>
-                                                <li>IVA (21%)</li>
+                                                <li>${tr('Impuesto Eléctrico (5.11%)')}</li>
+                                                <li>${tr('IVA (21%)')}</li>
                                             </ul>
                                         </div>
                                     ` : ''}
@@ -5772,14 +5772,14 @@
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                                     </svg>
-                                    📊 Histórico Acumulado (Ciclo Anual)
+                                    ${tr('Histórico Acumulado (Ciclo Anual)')}
                                 </p>
                                 <div class="space-y-2">
-                                    ${res.consumo_anual_p1 ? `<div class="flex justify-between text-sm"><span class="text-slate-700">P1 (Punta):</span><span class="font-bold text-indigo-700">${num(res.consumo_anual_p1, 0)} kWh</span></div>` : ''}
-                                    ${res.consumo_anual_p2 ? `<div class="flex justify-between text-sm"><span class="text-slate-700">P2 (Llano):</span><span class="font-bold text-indigo-700">${num(res.consumo_anual_p2, 0)} kWh</span></div>` : ''}
-                                    ${res.consumo_anual_p3 ? `<div class="flex justify-between text-sm"><span class="text-slate-700">P3 (Valle):</span><span class="font-bold text-indigo-700">${num(res.consumo_anual_p3, 0)} kWh</span></div>` : ''}
+                                    ${res.consumo_anual_p1 ? `<div class="flex justify-between text-sm"><span class="text-slate-700">${tr('P1 (Punta):')}</span><span class="font-bold text-indigo-700">${num(res.consumo_anual_p1, 0)} kWh</span></div>` : ''}
+                                    ${res.consumo_anual_p2 ? `<div class="flex justify-between text-sm"><span class="text-slate-700">${tr('P2 (Llano):')}</span><span class="font-bold text-indigo-700">${num(res.consumo_anual_p2, 0)} kWh</span></div>` : ''}
+                                    ${res.consumo_anual_p3 ? `<div class="flex justify-between text-sm"><span class="text-slate-700">${tr('P3 (Valle):')}</span><span class="font-bold text-indigo-700">${num(res.consumo_anual_p3, 0)} kWh</span></div>` : ''}
                                     <div class="flex justify-between bg-indigo-100 p-2 rounded border-t-2 border-indigo-300 mt-2">
-                                        <span class="text-sm font-bold text-indigo-900">Total Acumulado:</span>
+                                        <span class="text-sm font-bold text-indigo-900">${tr('Total Acumulado:')}</span>
                                         <span class="font-bold text-lg text-indigo-900">${num((res.consumo_anual_p1 || 0) + (res.consumo_anual_p2 || 0) + (res.consumo_anual_p3 || 0), 0)} kWh</span>
                                     </div>
                                 </div>
@@ -5789,12 +5789,12 @@
                         <!-- Información Adicional -->
                         ${res.fecha_factura || res.comercializadora || res.fecha_fin_contrato ? `
                             <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                                <p class="font-bold text-slate-800 mb-3 text-sm">ℹ️ Información Adicional</p>
+                                <p class="font-bold text-slate-800 mb-3 text-sm">${tr('Información Adicional')}</p>
                                 <div class="grid grid-cols-1 gap-2 text-xs">
-                                    ${res.fecha_factura ? `<div class="flex justify-between"><span class="text-slate-600">Fecha de factura:</span><span class="font-mono font-bold">${res.fecha_factura}</span></div>` : ''}
-                                    ${res.comercializadora ? `<div class="flex justify-between"><span class="text-slate-600">Comercializadora:</span><span class="font-bold">${res.comercializadora}</span></div>` : ''}
-                                    ${res.fecha_fin_contrato ? `<div class="flex justify-between"><span class="text-slate-600">Fin de contrato:</span><span class="font-mono font-bold">${res.fecha_fin_contrato}</span></div>` : ''}
-                                    ${res.tipo_contrato ? `<div class="flex justify-between"><span class="text-slate-600">Tipo de contrato:</span><span class="font-bold">${res.tipo_contrato}</span></div>` : ''}
+                                    ${res.fecha_factura ? `<div class="flex justify-between"><span class="text-slate-600">${tr('Fecha de factura:')}</span><span class="font-mono font-bold">${res.fecha_factura}</span></div>` : ''}
+                                    ${res.comercializadora ? `<div class="flex justify-between"><span class="text-slate-600">${tr('Comercializadora:')}</span><span class="font-bold">${res.comercializadora}</span></div>` : ''}
+                                    ${res.fecha_fin_contrato ? `<div class="flex justify-between"><span class="text-slate-600">${tr('Fin de contrato:')}</span><span class="font-mono font-bold">${res.fecha_fin_contrato}</span></div>` : ''}
+                                    ${res.tipo_contrato ? `<div class="flex justify-between"><span class="text-slate-600">${tr('Tipo de contrato:')}</span><span class="font-bold">${res.tipo_contrato}</span></div>` : ''}
                                 </div>
                             </div>
                         ` : ''}
@@ -27348,7 +27348,42 @@ ${clientName}
                 "Generar Comparativa →": { en: "Generate Comparison →", zh: "生成比较 →", de: "Vergleich erstellen →", fr: "Générer la Comparaison →" },
                 "SOLICITAR MEJORA A DRK": { en: "REQUEST IMPROVEMENT FROM DRK", zh: "向DRK请求改进", de: "VERBESSERUNG VON DRK ANFORDERN", fr: "DEMANDER UNE AMÉLIORATION À DRK" },
                 "Solicitar Mejora a DRK": { en: "Request Improvement from DRK", zh: "向DRK请求改进", de: "Verbesserung von DRK anfordern", fr: "Demander une Amélioration à DRK" },
-                "Ver desglose detallado del cálculo": { en: "View detailed calculation breakdown", zh: "查看详细计算明细", de: "Detaillierte Berechnungsaufschlüsselung anzeigen", fr: "Voir la répartition détaillée du calcul" }
+                "Ver desglose detallado del cálculo": { en: "View detailed calculation breakdown", zh: "查看详细计算明细", de: "Detaillierte Berechnungsaufschlüsselung anzeigen", fr: "Voir la répartition détaillée du calcul" },
+                
+                // NUEVAS: Traducciones para el informe de datos (sin emojis problemáticos)
+                "Información del Suministro": { en: "Supply Information", zh: "供应信息", de: "Versorgungsinformationen", fr: "Informations sur l'Approvisionnement" },
+                "Importe Total:": { en: "Total Amount:", zh: "总金额：", de: "Gesamtbetrag:", fr: "Montant Total:" },
+                "Fechas": { en: "Dates", zh: "日期", de: "Daten", fr: "Dates" },
+                "Periodo": { en: "Period", zh: "期间", de: "Zeitraum", fr: "Période" },
+                "días": { en: "days", zh: "天", de: "Tage", fr: "jours" },
+                "Picos Máximos Registrados:": { en: "Maximum Peaks Recorded:", zh: "记录的最大峰值：", de: "Maximal gemessene Spitzen:", fr: "Pics Maximaux Enregistrés:" },
+                "P1 (Punta):": { en: "P1 (Peak):", zh: "P1（峰值）：", de: "P1 (Spitzenlast):", fr: "P1 (Pointe):" },
+                "P2 (Valle):": { en: "P2 (Valley):", zh: "P2（谷段）：", de: "P2 (Schwachlast):", fr: "P2 (Creuse):" },
+                "Aprovechamiento:": { en: "Utilization:", zh: "利用率：", de: "Auslastung:", fr: "Utilisation:" },
+                "de la potencia contratada": { en: "of contracted power", zh: "合同功率", de: "der vertragl. Leistung", fr: "de la puissance contractée" },
+                "Estás pagando por mucha más potencia de la que usas": { en: "You are paying for much more power than you use", zh: "您支付的功率远超实际使用量", de: "Sie zahlen für viel mehr Leistung als Sie nutzen", fr: "Vous payez pour beaucoup plus de puissance que vous n'utilisez" },
+                "Desglose de Costes": { en: "Cost Breakdown", zh: "成本明细", de: "Kostenaufschlüsselung", fr: "Répartition des Coûts" },
+                "Término fijo (Potencia)": { en: "Fixed Term (Power)", zh: "固定费用（功率）", de: "Fixkosten (Leistung)", fr: "Terme Fixe (Puissance)" },
+                "Término variable (Energía)": { en: "Variable Term (Energy)", zh: "可变费用（能源）", de: "Variable Kosten (Energie)", fr: "Terme Variable (Énergie)" },
+                "Otros (Contador, etc.)": { en: "Others (Meter, etc.)", zh: "其他（电表等）", de: "Sonstige (Zähler usw.)", fr: "Autres (Compteur, etc.)" },
+                "Subtotal (sin impuestos)": { en: "Subtotal (before taxes)", zh: "小计（税前）", de: "Zwischensumme (vor Steuern)", fr: "Sous-total (hors taxes)" },
+                "El resto hasta": { en: "The rest up to", zh: "其余部分至", de: "Der Rest bis", fr: "Le reste jusqu'à" },
+                "corresponde a:": { en: "corresponds to:", zh: "对应于：", de: "entspricht:", fr: "correspond à:" },
+                "Impuesto Eléctrico (5.11%)": { en: "Electricity Tax (5.11%)", zh: "电费税（5.11%）", de: "Stromsteuer (5,11%)", fr: "Taxe sur l'Électricité (5,11%)" },
+                "IVA (21%)": { en: "VAT (21%)", zh: "增值税（21%）", de: "MwSt (21%)", fr: "TVA (21%)" },
+                "Histórico Acumulado (Ciclo Anual)": { en: "Cumulative History (Annual Cycle)", zh: "累计历史记录（年度周期）", de: "Kumulierte Historie (Jahreszyklus)", fr: "Historique Cumulé (Cycle Annuel)" },
+                "P1 (Punta):": { en: "P1 (Peak):", zh: "P1（峰值）：", de: "P1 (Spitzenlast):", fr: "P1 (Pointe):" },
+                "P2 (Llano):": { en: "P2 (Flat):", zh: "P2（平段）：", de: "P2 (Mittellast):", fr: "P2 (Pleine):" },
+                "P3 (Valle):": { en: "P3 (Valley):", zh: "P3（谷段）：", de: "P3 (Schwachlast):", fr: "P3 (Creuse):" },
+                "Total Acumulado:": { en: "Total Accumulated:", zh: "累计总计：", de: "Gesamtsumme:", fr: "Total Cumulé:" },
+                "Información Adicional": { en: "Additional Information", zh: "附加信息", de: "Zusätzliche Informationen", fr: "Informations Supplémentaires" },
+                "Fecha de factura:": { en: "Invoice date:", zh: "发票日期：", de: "Rechnungsdatum:", fr: "Date de facture:" },
+                "Comercializadora:": { en: "Supplier:", zh: "供应商：", de: "Versorger:", fr: "Fournisseur:" },
+                "Fin de contrato:": { en: "Contract end:", zh: "合同结束：", de: "Vertragsende:", fr: "Fin de contrat:" },
+                "Tipo de contrato:": { en: "Contract type:", zh: "合同类型：", de: "Vertragsart:", fr: "Type de contrat:" },
+                "Consumo por Periodo (kWh)": { en: "Consumption by Period (kWh)", zh: "按时段消耗（kWh）", de: "Verbrauch nach Zeitraum (kWh)", fr: "Consommation par Période (kWh)" },
+                "Total Consumo": { en: "Total Consumption", zh: "总消耗", de: "Gesamtverbrauch", fr: "Consommation Totale" },
+                "Potencia Contratada (kW)": { en: "Contracted Power (kW)", zh: "合同功率（kW）", de: "Vertragsleistung (kW)", fr: "Puissance Contractée (kW)" }
             };
 
             let lang = localStorage.getItem('appLanguage') || 'es';

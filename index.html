@@ -17229,10 +17229,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             addProcessingLog(`✓ PDF cargado: ${pdf.numPages} página(s)`, 'success');
             updateProcessingProgress(15);
             
-            // ========== ESTRATEGIA 1: Enlaces Digitales Incrustados ==========
-            updateProcessingStatus('Buscando enlaces digitales incrustados...');
+            // ========== ESTRATEGIA 1: Enlaces Digitales Incrustados + TOOLTIPS ==========
+            updateProcessingStatus('Buscando enlaces digitales incrustados y tooltips...');
             updateStrategyStatus(1, 'Analizando...', 'yellow');
-            addProcessingLog('🔍 ESTRATEGIA 1: Enlaces incrustados', 'working');
+            addProcessingLog('🔍 ESTRATEGIA 1: Enlaces incrustados + Tooltips', 'working');
             updateProcessingProgress(20);
             
             for (let i = 1; i <= pdf.numPages; i++) {
@@ -17242,10 +17242,28 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 addProcessingLog(`  Página ${i}/${pdf.numPages}: ${annotations.length} anotación(es)`, 'info');
                 
                 for (const ann of annotations) {
+                    // Check URL (Link normal)
                     if (ann.url && ann.url.includes('comparador.cnmc.gob.es')) {
                         addProcessingLog(`✓ ¡Enlace encontrado en página ${i}!`, 'success');
                         
                         const validUrl = processFoundUrl(ann.url, 'Enlace Digital', i);
+                        if (validUrl) {
+                            updateStrategyStatus(1, '¡Éxito!', 'green');
+                            updateProcessingProgress(100);
+                            
+                            setTimeout(() => {
+                                hideProcessingModal();
+                                handleQRRead(validUrl);
+                            }, 800);
+                            return;
+                        }
+                    }
+                    // NUEVO: Check Tooltips/Contents (Contenido oculto al pasar ratón)
+                    // A veces el contenido está en 'contents', otras veces en 'richContents'
+                    if (ann.contents && isCNMCData(ann.contents)) {
+                        addProcessingLog(`✓ ¡Datos encontrados en Tooltip (MouseOver) en página ${i}!`, 'success');
+                        
+                        const validUrl = processFoundUrl(ann.contents, 'Tooltip Oculto', i);
                         if (validUrl) {
                             updateStrategyStatus(1, '¡Éxito!', 'green');
                             updateProcessingProgress(100);
@@ -17333,6 +17351,101 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             addProcessingLog('⊘ No se encontró texto de URL CNMC válido', 'info');
             updateProcessingProgress(50);
             
+            // ========== ESTRATEGIA 2.5: MINERÍA DE IMÁGENES NATIVAS (NUEVA) ==========
+            updateProcessingStatus('Iniciando Minería de Imágenes Nativa...');
+            addProcessingLog('🔍 ESTRATEGIA 2.5: Minería de Imágenes del PDF', 'working');
+            updateProcessingProgress(52);
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                try {
+                    const ops = await page.getOperatorList();
+                    const commonObjs = page.objs;
+                    
+                    addProcessingLog(`  Página ${i}: Extrayendo imágenes nativas...`, 'working');
+                    
+                    let imageFound = false;
+                    let imagesProcessed = 0;
+                    
+                    for (let j = 0; j < ops.fnArray.length; j++) {
+                        if (ops.fnArray[j] === pdfjsLib.OPS.paintImageXObject || ops.fnArray[j] === pdfjsLib.OPS.paintInlineImageXObject) {
+                            const imgName = ops.argsArray[j][0];
+                            if (ops.fnArray[j] === pdfjsLib.OPS.paintInlineImageXObject) continue;
+
+                            if (commonObjs.has(imgName)) {
+                                imageFound = true;
+                                imagesProcessed++;
+                                
+                                // Usamos una promesa para el callback asíncrono
+                                const processImage = new Promise((resolve) => {
+                                    commonObjs.get(imgName, (imgData) => {
+                                        if (imgData && imgData.width > 50) { 
+                                            const tempCanvas = document.createElement('canvas');
+                                            tempCanvas.width = imgData.width;
+                                            tempCanvas.height = imgData.height;
+                                            const ctx = tempCanvas.getContext('2d');
+                                            
+                                            const imageDataObj = ctx.createImageData(imgData.width, imgData.height);
+                                            if (imgData.kind === 'RGB' || imgData.kind === 'RGBA') {
+                                                for(let k=0; k<imgData.data.length; k++) imageDataObj.data[k] = imgData.data[k];
+                                            } else if (imgData.data.length === imgData.width * imgData.height) { // Grayscale
+                                                for(let k=0, p=0; k<imgData.data.length; k++, p+=4) {
+                                                    const val = imgData.data[k];
+                                                    imageDataObj.data[p] = val;
+                                                    imageDataObj.data[p+1] = val;
+                                                    imageDataObj.data[p+2] = val;
+                                                    imageDataObj.data[p+3] = 255;
+                                                }
+                                            }
+                                            
+                                            ctx.putImageData(imageDataObj, 0, 0);
+                                            
+                                            // Escaneo Profundo sobre la imagen extraída
+                                            const rawCode = performDeepScan(ctx, imgData.width, imgData.height);
+                                            if (rawCode) {
+                                                resolve(rawCode);
+                                            } else {
+                                                resolve(null);
+                                            }
+                                        } else {
+                                            resolve(null);
+                                        }
+                                    });
+                                });
+                                
+                                const result = await processImage;
+                                if (result) {
+                                    addProcessingLog(`✓ ¡QR detectado por Minería de Imágenes en página ${i}!`, 'success');
+                                    
+                                    const validUrl = processFoundUrl(result, 'Minería de Imágenes', i);
+                                    if (validUrl) {
+                                        updateStrategyStatus(2, '¡Éxito por Minería!', 'green');
+                                        updateProcessingProgress(100);
+                                        
+                                        setTimeout(() => {
+                                            hideProcessingModal();
+                                            handleQRRead(validUrl);
+                                        }, 800);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (imageFound) {
+                        addProcessingLog(`  Página ${i}: ${imagesProcessed} imagen(es) procesada(s)`, 'info');
+                    }
+                } catch(e) { 
+                    console.log("Error minería imágenes página " + i + ":", e); 
+                }
+            }
+            
+            await new Promise(r => setTimeout(r, 300));
+            
+            addProcessingLog('⊘ No se encontró QR en imágenes nativas', 'info');
+            updateProcessingProgress(54);
+            
             // ========== ESTRATEGIA 3: Búsqueda Visual QR (Microscopio Digital) ==========
             updateProcessingStatus('Iniciando escaneo visual de QR...');
             updateStrategyStatus(3, 'Analizando...', 'yellow');
@@ -17351,25 +17464,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     const validUrl = processFoundUrl(qrUrl, 'Escáner Rápido', i);
                     if (validUrl) {
                         addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
-                        updateStrategyStatus(3, '¡Éxito!', 'green');
-                        updateProcessingProgress(100);
-                        
-                        setTimeout(() => {
-                            hideProcessingModal();
-                            handleQRRead(validUrl);
-                        }, 800);
-                        return;
-                    }
-                }
-                
-                // NUEVO: Intento con Grid 3x3 (del código que funciona)
-                addProcessingLog(`  Página ${i}: Escaneo por cuadrantes 3x3`, 'working');
-                updateProcessingProgress(progressBase + 2);
-                qrUrl = await scanPageQuadrants(page, 3.0);
-                if (qrUrl) {
-                    const validUrl = processFoundUrl(qrUrl, 'Grid 3x3', i);
-                    if (validUrl) {
-                        addProcessingLog(`✓ ¡QR detectado en página ${i} con Grid 3x3!`, 'success');
                         updateStrategyStatus(3, '¡Éxito!', 'green');
                         updateProcessingProgress(100);
                         
@@ -17400,10 +17494,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                 }
                 
-                // Intento 3: Escala 5.0 con Deep Scan (Forense)
-                addProcessingLog(`  Página ${i}: Modo forense (5.0x + Deep Scan)`, 'working');
+                // Intento 3: Escala 5.0 con filtro estándar (Forense)
+                addProcessingLog(`  Página ${i}: Modo forense (5.0x + filtro std)`, 'working');
                 updateProcessingProgress(progressBase + 6);
-                qrUrl = await scanPageWithCrop(page, 5.0, true);
+                qrUrl = await scanPDFPageForQR(page, 5.0, true, 160);
                 if (qrUrl) {
                     const validUrl = processFoundUrl(qrUrl, 'Forense (Std)', i);
                     if (validUrl) {
@@ -17419,10 +17513,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                 }
                 
-                // Intento 4: Escala 5.0 con Deep Scan intenso
-                addProcessingLog(`  Página ${i}: Deep Scan intenso (5.0x)`, 'working');
+                // Intento 4: Escala 5.0 con filtro oscuro
+                addProcessingLog(`  Página ${i}: Filtro oscuro (5.0x)`, 'working');
                 updateProcessingProgress(progressBase + 8);
-                qrUrl = await scanPageWithCrop(page, 5.0, true);
+                qrUrl = await scanPDFPageForQR(page, 5.0, true, 100);
                 if (qrUrl) {
                     const validUrl = processFoundUrl(qrUrl, 'Forense (Dark)', i);
                     if (validUrl) {
@@ -17438,15 +17532,34 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                 }
                 
-                // Intento 5: Super-zoom 6.0 con Deep Scan
-                addProcessingLog(`  Página ${i}: Super-zoom (6.0x + Deep Scan)`, 'working');
+                // Intento 5: Super-zoom 6.0
+                addProcessingLog(`  Página ${i}: Super-zoom (6.0x + filtro agresivo)`, 'working');
                 updateProcessingProgress(progressBase + 10);
-                qrUrl = await scanPageWithCrop(page, 6.0, true);
+                qrUrl = await scanPDFPageForQR(page, 6.0, true, 180);
                 if (qrUrl) {
                     const validUrl = processFoundUrl(qrUrl, 'Super-Zoom x6', i);
                     if (validUrl) {
                         addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
                         updateStrategyStatus(3, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
+                }
+                
+                // NUEVO: Intento 6: Grid 3x3 Solapado (Francotirador)
+                addProcessingLog(`  Página ${i}: Escaneo Zonal 3x3 (Último recurso)`, 'working');
+                updateProcessingProgress(progressBase + 12);
+                qrUrl = await scanPageQuadrants(page, 4.0);
+                if (qrUrl) {
+                    const validUrl = processFoundUrl(qrUrl, 'Grid 3x3 Solapado', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR detectado por Grid 3x3 en página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito Grid 3x3!', 'green');
                         updateProcessingProgress(100);
                         
                         setTimeout(() => {
@@ -17494,14 +17607,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             addProcessingLog(`✓ Imagen cargada: ${canvas.width}x${canvas.height}`, 'success');
             updateProcessingProgress(25);
             
-            // Intento 1: Escaneo directo
-            addProcessingLog('🔍 Intento 1: Escaneo directo', 'working');
-            updateProcessingProgress(30);
-            let qrUrl = attemptQRScanFromCanvas(ctx, canvas.width, canvas.height, false);
+            // MEJORADO: Usar performDeepScan directamente que prueba múltiples técnicas
+            addProcessingLog('🔍 Aplicando Deep Scan (múltiples umbrales + inversión)', 'working');
+            updateProcessingProgress(35);
+            let qrUrl = performDeepScan(ctx, canvas.width, canvas.height);
             if (qrUrl) {
-                const validUrl = processFoundUrl(qrUrl, 'Modo Directo', 1);
+                const validUrl = processFoundUrl(qrUrl, 'Deep Scan en Imagen', 1);
                 if (validUrl) {
-                    addProcessingLog('✓ ¡QR detectado en modo directo!', 'success');
+                    addProcessingLog('✓ ¡QR detectado con Deep Scan!', 'success');
                     updateStrategyStatus(3, '¡Éxito!', 'green');
                     updateProcessingProgress(100);
                     
@@ -17513,41 +17626,46 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 }
             }
             
-            // Intento 2: Con filtro estándar
-            addProcessingLog('🔍 Intento 2: Filtro de contraste estándar', 'working');
-            updateProcessingProgress(50);
-            qrUrl = attemptQRScanFromCanvas(ctx, canvas.width, canvas.height, true, 160);
-            if (qrUrl) {
-                const validUrl = processFoundUrl(qrUrl, 'Filtro Estándar', 1);
-                if (validUrl) {
-                    addProcessingLog('✓ ¡QR detectado con filtro estándar!', 'success');
-                    updateStrategyStatus(3, '¡Éxito!', 'green');
-                    updateProcessingProgress(100);
+            // NUEVO: Intento con Grid 3x3 si la imagen es grande
+            if (canvas.width > 800 && canvas.height > 800) {
+                addProcessingLog('🔍 Imagen grande detectada - Aplicando Grid 3x3', 'working');
+                updateProcessingProgress(60);
+                
+                const w = canvas.width, h = canvas.height;
+                const zones = [
+                    { x: 0, y: 0, w: w/2, h: h/2 },
+                    { x: w/4, y: 0, w: w/2, h: h/2 },
+                    { x: w/2, y: 0, w: w/2, h: h/2 },
+                    { x: 0, y: h/4, w: w/2, h: h/2 },
+                    { x: w/4, y: h/4, w: w/2, h: h/2 },
+                    { x: w/2, y: h/4, w: w/2, h: h/2 },
+                    { x: 0, y: h/2, w: w/2, h: h/2 },
+                    { x: w/4, y: h/2, w: w/2, h: h/2 },
+                    { x: w/2, y: h/2, w: w/2, h: h/2 }
+                ];
+                
+                for (let z of zones) {
+                    const tempC = document.createElement('canvas');
+                    tempC.width = z.w;
+                    tempC.height = z.h;
+                    const tempCtx = tempC.getContext('2d');
+                    tempCtx.drawImage(canvas, z.x, z.y, z.w, z.h, 0, 0, z.w, z.h);
                     
-                    setTimeout(() => {
-                        hideProcessingModal();
-                        handleQRRead(validUrl);
-                    }, 800);
-                    return;
-                }
-            }
-            
-            // Intento 3: Con filtro oscuro
-            addProcessingLog('🔍 Intento 3: Filtro oscuro', 'working');
-            updateProcessingProgress(75);
-            qrUrl = attemptQRScanFromCanvas(ctx, canvas.width, canvas.height, true, 100);
-            if (qrUrl) {
-                const validUrl = processFoundUrl(qrUrl, 'Filtro Oscuro', 1);
-                if (validUrl) {
-                    addProcessingLog('✓ ¡QR detectado con filtro oscuro!', 'success');
-                    updateStrategyStatus(3, '¡Éxito!', 'green');
-                    updateProcessingProgress(100);
-                    
-                    setTimeout(() => {
-                        hideProcessingModal();
-                        handleQRRead(validUrl);
-                    }, 800);
-                    return;
+                    const zoneData = performDeepScan(tempCtx, z.w, z.h);
+                    if (zoneData) {
+                        const validUrl = processFoundUrl(zoneData, 'Grid 3x3 en Imagen', 1);
+                        if (validUrl) {
+                            addProcessingLog('✓ ¡QR detectado en zona recortada!', 'success');
+                            updateStrategyStatus(3, '¡Éxito Grid 3x3!', 'green');
+                            updateProcessingProgress(100);
+                            
+                            setTimeout(() => {
+                                hideProcessingModal();
+                                handleQRRead(validUrl);
+                            }, 800);
+                            return;
+                        }
+                    }
                 }
             }
             
@@ -17570,114 +17688,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         }
         
         // Escanear página de PDF en busca de QR
-        
-        // ==================== FUNCIONES QR MEJORADAS (del código que funciona) ====================
-        
-        // Validar si los datos son del CNMC
-        function isCNMCData(str) {
-            if (!str) return false;
-            return str.includes('comparador.cnmc.gob.es') || str.includes('cups') || str.includes('imp=');
-        }
-        
-        // FUNCIÓN CLAVE: Deep Scan con múltiples umbrales
-        function performDeepScan(ctx, width, height) {
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const originalData = imageData.data;
-
-            // 1. Intento Normal
-            let code = jsQR(originalData, width, height, { inversionAttempts: "dontInvert" });
-            if (code && isCNMCData(code.data)) return code.data;
-
-            // 2. Intento Invertido
-            code = jsQR(originalData, width, height, { inversionAttempts: "invertFirst" });
-            if (code && isCNMCData(code.data)) return code.data;
-
-            // 3. Barrido de Umbrales (Simulación de Auto-Exposición)
-            const thresholds = [80, 120, 160, 200]; // Oscuro -> Claro
-            
-            for (const threshold of thresholds) {
-                const binarizedData = new Uint8ClampedArray(originalData.length);
-                for (let i = 0; i < originalData.length; i += 4) {
-                    const luma = 0.299 * originalData[i] + 0.587 * originalData[i + 1] + 0.114 * originalData[i + 2];
-                    const val = luma < threshold ? 0 : 255;
-                    binarizedData[i] = val;
-                    binarizedData[i+1] = val;
-                    binarizedData[i+2] = val;
-                    binarizedData[i+3] = 255; 
-                }
-                
-                code = jsQR(binarizedData, width, height, { inversionAttempts: "dontInvert" });
-                if (code && isCNMCData(code.data)) return code.data;
-            }
-
-            return null;
-        }
-        
-        // Escaneo por Cuadrantes Avanzado (3x3 Grid con Solapamiento)
-        async function scanPageQuadrants(page, scale) {
-            const viewport = page.getViewport({ scale: scale });
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            await page.render({ canvasContext: context, viewport: viewport }).promise;
-
-            const w = canvas.width, h = canvas.height;
-            
-            // Creamos 9 zonas solapadas (3 columnas x 3 filas)
-            // Cada zona cubre el 50% del ancho/alto, moviéndose un 25% cada paso
-            const zones = [
-                // Fila Superior
-                { x: 0, y: 0, w: w/2, h: h/2 },
-                { x: w/4, y: 0, w: w/2, h: h/2 },
-                { x: w/2, y: 0, w: w/2, h: h/2 },
-                // Fila Media
-                { x: 0, y: h/4, w: w/2, h: h/2 },
-                { x: w/4, y: h/4, w: w/2, h: h/2 }, // Centro puro
-                { x: w/2, y: h/4, w: w/2, h: h/2 },
-                // Fila Inferior
-                { x: 0, y: h/2, w: w/2, h: h/2 },
-                { x: w/4, y: h/2, w: w/2, h: h/2 },
-                { x: w/2, y: h/2, w: w/2, h: h/2 }
-            ];
-
-            for (let z of zones) {
-                const tempC = document.createElement('canvas');
-                tempC.width = z.w;
-                tempC.height = z.h;
-                const tempCtx = tempC.getContext('2d');
-                tempCtx.drawImage(canvas, z.x, z.y, z.w, z.h, 0, 0, z.w, z.h);
-                
-                const data = performDeepScan(tempCtx, z.w, z.h);
-                if (data) {
-                    console.log('✅ QR localizado en zona recortada (Grid 3x3)!');
-                    return data; 
-                }
-            }
-            return null;
-        }
-        
-        // Función de escaneo mejorada con Deep Scan
-        function attemptQRScan(context, width, height, enhanceContrast = false) {
-            if (enhanceContrast) {
-                return performDeepScan(context, width, height);
-            }
-            const imageData = context.getImageData(0, 0, width, height);
-            const code = jsQR(imageData.data, width, height, { inversionAttempts: "dontInvert" });
-            if (code && isCNMCData(code.data)) return code.data;
-            return null;
-        }
-        
-        // Escaneo de página con crop mejorado
-        async function scanPageWithCrop(page, scale, enhanceContrast = false) {
-            const viewport = page.getViewport({ scale: scale });
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            await page.render({ canvasContext: context, viewport: viewport }).promise;
-            return performDeepScan(context, canvas.width, canvas.height);
-        }
         async function scanPDFPageForQR(page, scale, enhanceContrast = false, threshold = 180) {
             const viewport = page.getViewport({ scale: scale });
             const canvas = document.createElement('canvas');
@@ -17717,6 +17727,103 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             }
             return null;
         }
+        
+        // ========== TÉCNICAS AVANZADAS DE DEEP SCAN (NUEVAS) ==========
+        
+        // Función Maestra de Escaneo Profundo (Deep Scan)
+        // Prueba inversión de color y múltiples umbrales de contraste
+        function performDeepScan(ctx, width, height) {
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const originalData = imageData.data;
+
+            // 1. Intento Normal
+            let code = jsQR(originalData, width, height, { inversionAttempts: "dontInvert" });
+            if (code && isCNMCData(code.data)) return code.data;
+
+            // 2. Intento Invertido
+            code = jsQR(originalData, width, height, { inversionAttempts: "invertFirst" });
+            if (code && isCNMCData(code.data)) return code.data;
+
+            // 3. Barrido de Umbrales (Simulación de Auto-Exposición)
+            const thresholds = [80, 120, 160, 200]; // Oscuro -> Claro
+            
+            for (const threshold of thresholds) {
+                const binarizedData = new Uint8ClampedArray(originalData.length);
+                for (let i = 0; i < originalData.length; i += 4) {
+                    const luma = 0.299 * originalData[i] + 0.587 * originalData[i + 1] + 0.114 * originalData[i + 2];
+                    const val = luma < threshold ? 0 : 255;
+                    binarizedData[i] = val;
+                    binarizedData[i+1] = val;
+                    binarizedData[i+2] = val;
+                    binarizedData[i+3] = 255; 
+                }
+                
+                code = jsQR(binarizedData, width, height, { inversionAttempts: "dontInvert" });
+                if (code && isCNMCData(code.data)) return code.data;
+            }
+
+            return null;
+        }
+        
+        // Función auxiliar para verificar si los datos son de CNMC
+        function isCNMCData(str) {
+            if (!str) return false;
+            if (str.includes('comparador.cnmc.gob.es')) return true;
+            // Detección laxa para datos en crudo (RAW)
+            if (str.includes('cups=') || str.includes('CUPS=')) {
+                if (str.includes('imp=') || str.includes('IMP=') || str.includes('cp=') || str.includes('CP=')) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // Escaneo por Cuadrantes Avanzado (3x3 Grid con Solapamiento)
+        async function scanPageQuadrants(page, scale) {
+            const viewport = page.getViewport({ scale: scale });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+            const w = canvas.width, h = canvas.height;
+            
+            // Creamos 9 zonas solapadas (3 columnas x 3 filas)
+            // Cada zona cubre el 50% del ancho/alto, moviéndose un 25% cada paso
+            // Esto asegura que ningún QR se corte por la mitad
+            const zones = [
+                // Fila Superior
+                { x: 0, y: 0, w: w/2, h: h/2 },
+                { x: w/4, y: 0, w: w/2, h: h/2 },
+                { x: w/2, y: 0, w: w/2, h: h/2 },
+                // Fila Media
+                { x: 0, y: h/4, w: w/2, h: h/2 },
+                { x: w/4, y: h/4, w: w/2, h: h/2 }, // Centro puro
+                { x: w/2, y: h/4, w: w/2, h: h/2 },
+                // Fila Inferior
+                { x: 0, y: h/2, w: w/2, h: h/2 },
+                { x: w/4, y: h/2, w: w/2, h: h/2 },
+                { x: w/2, y: h/2, w: w/2, h: h/2 }
+            ];
+
+            for (let z of zones) {
+                const tempC = document.createElement('canvas');
+                tempC.width = z.w;
+                tempC.height = z.h;
+                const tempCtx = tempC.getContext('2d');
+                tempCtx.drawImage(canvas, z.x, z.y, z.w, z.h, 0, 0, z.w, z.h);
+                
+                const data = performDeepScan(tempCtx, z.w, z.h);
+                if (data) {
+                    addProcessingLog('✓ ¡QR localizado en zona recortada (Grid 3x3)!', 'success');
+                    return data; 
+                }
+            }
+            return null;
+        }
+        
+        // ========== FIN TÉCNICAS AVANZADAS DE DEEP SCAN ==========
         
         // ==================== FIN FUNCIONES COMPLETAS ====================
         

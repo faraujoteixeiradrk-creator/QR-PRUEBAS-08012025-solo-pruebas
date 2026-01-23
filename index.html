@@ -1664,6 +1664,13 @@
                         <div class="text-slate-500 font-bold">Esperando...</div>
                     </div>
                 </div>
+                
+                <!-- Botón de cancelar -->
+                <div class="mt-4 text-center">
+                    <button id="cancel-processing-btn" onclick="cancelProcessing()" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all transform hover:scale-105 active:scale-95">
+                        ✕ Cancelar Análisis
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -17112,9 +17119,24 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         
         // ==================== FUNCIONES COMPLETAS DE PROCESAMIENTO ====================
         
+        // Variable global para controlar la cancelación
+        let processingCancelled = false;
+        
         // Configurar PDF.js worker
         if (typeof pdfjsLib !== 'undefined') {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+        
+        // Función para cancelar el procesamiento
+        function cancelProcessing() {
+            processingCancelled = true;
+            addProcessingLog('✕ Cancelando análisis...', 'error');
+            updateProcessingStatus('Cancelado por el usuario');
+            
+            setTimeout(() => {
+                hideProcessingModal();
+                processingCancelled = false; // Reset para próximos análisis
+            }, 500);
         }
         
         // Funciones de actualización del modal de procesamiento
@@ -17123,6 +17145,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             // Reset
+            processingCancelled = false; // Asegurar que esté reseteado
             document.getElementById('processing-progress-bar').style.width = '0%';
             document.getElementById('processing-log').innerHTML = '<div class="text-drk-400">█ Sistema iniciado...</div>';
             updateStrategyStatus(1, 'Esperando...', 'slate');
@@ -17273,6 +17296,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             updateProcessingProgress(20);
             
             for (let i = 1; i <= pdf.numPages; i++) {
+                // Verificar si se canceló el procesamiento
+                if (processingCancelled) {
+                    addProcessingLog('✕ Procesamiento cancelado por el usuario', 'error');
+                    return;
+                }
+                
                 const page = await pdf.getPage(i);
                 const annotations = await page.getAnnotations();
                 
@@ -17326,6 +17355,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             updateProcessingProgress(35);
             
             for (let i = 1; i <= pdf.numPages; i++) {
+                // Verificar si se canceló el procesamiento
+                if (processingCancelled) {
+                    addProcessingLog('✕ Procesamiento cancelado por el usuario', 'error');
+                    return;
+                }
+                
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
                 
@@ -17526,6 +17561,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             updateProcessingProgress(55);
             
             for (let i = 1; i <= pdf.numPages; i++) {
+                // Verificar si se canceló el procesamiento
+                if (processingCancelled) {
+                    addProcessingLog('✕ Procesamiento cancelado por el usuario', 'error');
+                    return;
+                }
+                
                 const page = await pdf.getPage(i);
                 const progressBase = 55 + (i - 1) * (40 / pdf.numPages);
                 

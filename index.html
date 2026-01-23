@@ -389,40 +389,66 @@
             </div>
         </div>
         
-        <!-- NUEVA: Vista directa cliente -->
-        <div id="client-direct-view" class="fade-in flex flex-col items-center justify-center min-h-[80vh] py-12">
+        <!-- NUEVA: Vista directa cliente con diseño Extractor Inteligente -->
+        <div id="client-direct-view" class="fade-in flex flex-col items-center justify-center min-h-screen py-12" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
             <!-- Inputs ocultos necesarios -->
             <input type="file" id="camera-capture-input" accept="image/*" capture="environment" class="hidden">
             <input type="file" id="file-upload-input" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" class="hidden">
             
-            <!-- Selector de idiomas arriba -->
-            <div class="w-full max-w-2xl mb-8 flex justify-center gap-3">
-                <button onclick="if(window.LANG) window.LANG.change('es')" class="px-6 py-3 rounded-lg bg-white border-2 border-slate-300 hover:border-blue-500 font-semibold transition">
-                    🇪🇸 Español
+            <!-- Header Extractor Inteligente -->
+            <div class="w-full max-w-5xl mb-12 text-center px-4">
+                <div class="flex items-center justify-center gap-4 mb-6">
+                    <svg class="w-16 h-16 md:w-20 md:h-20 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <h1 class="text-5xl md:text-6xl lg:text-7xl font-black text-blue-400">Extractor Inteligente</h1>
+                </div>
+                <p class="text-slate-400 text-base md:text-lg uppercase tracking-widest font-mono">
+                    ANALIZADOR DE FACTURAS ELÉCTRICAS CNMC
+                </p>
+            </div>
+            
+            <!-- Selector de idiomas -->
+            <div class="w-full max-w-5xl mb-8 flex flex-wrap justify-center gap-3 px-4">
+                <button onclick="if(window.LANG) window.LANG.change('es')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:border-blue-400 hover:bg-slate-700 text-white font-semibold transition text-sm">
+                    🇪🇸 ES
                 </button>
-                <button onclick="if(window.LANG) window.LANG.change('en')" class="px-6 py-3 rounded-lg bg-white border-2 border-slate-300 hover:border-blue-500 font-semibold transition">
-                    🇬🇧 English
+                <button onclick="if(window.LANG) window.LANG.change('en')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:border-blue-400 hover:bg-slate-700 text-white font-semibold transition text-sm">
+                    🇬🇧 EN
                 </button>
-                <button onclick="if(window.LANG) window.LANG.change('zh')" class="px-6 py-3 rounded-lg bg-white border-2 border-slate-300 hover:border-blue-500 font-semibold transition">
-                    🇨🇳 中文
+                <button onclick="if(window.LANG) window.LANG.change('zh')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:border-blue-400 hover:bg-slate-700 text-white font-semibold transition text-sm">
+                    🇨🇳 ZH
                 </button>
-                <button onclick="if(window.LANG) window.LANG.change('fr')" class="px-6 py-3 rounded-lg bg-white border-2 border-slate-300 hover:border-blue-500 font-semibold transition">
-                    🇫🇷 Français
+                <button onclick="if(window.LANG) window.LANG.change('fr')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:border-blue-400 hover:bg-slate-700 text-white font-semibold transition text-sm">
+                    🇫🇷 FR
                 </button>
-                <button onclick="if(window.LANG) window.LANG.change('de')" class="px-6 py-3 rounded-lg bg-white border-2 border-slate-300 hover:border-blue-500 font-semibold transition">
-                    🇩🇪 Deutsch
+                <button onclick="if(window.LANG) window.LANG.change('de')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:border-blue-400 hover:bg-slate-700 text-white font-semibold transition text-sm">
+                    🇩🇪 DE
                 </button>
             </div>
             
-            <!-- Zona de Drag & Drop -->
-            <div class="w-full max-w-2xl">
-                <div id="drag-drop-zone-main" class="border-2 border-dashed border-drk-400 rounded-xl p-12 text-center bg-white hover:bg-drk-50 transition-colors cursor-pointer">
-                    <svg class="w-24 h-24 mx-auto mb-4 text-drk-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                    </svg>
-                    <p class="text-2xl font-bold text-drk-800 mb-2">Arrastra tu factura aquí</p>
-                    <p class="text-sm text-slate-600 mb-1">PDF, JPG, PNG</p>
-                    <p class="text-sm text-drk-600 font-semibold">o haz clic para seleccionar</p>
+            <!-- Zona de Drag & Drop con diseño moderno -->
+            <div class="w-full max-w-5xl px-4">
+                <div id="drag-drop-zone-main" class="border-4 border-dashed border-blue-500/40 rounded-3xl p-12 md:p-20 text-center bg-slate-800/30 hover:bg-slate-800/50 hover:border-blue-400 transition-all duration-300 cursor-pointer backdrop-blur-sm">
+                    <!-- Iconos grandes -->
+                    <div class="flex items-center justify-center gap-8 mb-8">
+                        <svg class="w-20 h-20 md:w-28 md:h-28 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
+                            <path d="M14 2v6h6M10 13h4M10 17h4M10 9h1"/>
+                        </svg>
+                        <svg class="w-20 h-20 md:w-28 md:h-28 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Arrastra PDF o Foto de Factura</h2>
+                    <p class="text-slate-300 text-base md:text-lg mb-2">
+                        Aceptamos <span class="text-blue-400 font-bold">PDF, JPG</span> o <span class="text-blue-400 font-bold">PNG</span>. Buscamos el código QR o el enlace
+                    </p>
+                    <p class="text-slate-300 text-base md:text-lg mb-4">
+                        oculto para extraer los datos.
+                    </p>
                 </div>
             </div>
         </div>

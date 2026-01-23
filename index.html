@@ -17351,45 +17351,66 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             addProcessingLog('⊘ No se encontró texto de URL CNMC válido', 'info');
             updateProcessingProgress(50);
             
-            // ========== ESTRATEGIA 2.5: MINERÍA DE IMÁGENES NATIVAS (NUEVA) ==========
+            // ========== ESTRATEGIA 2.5: MINERÍA DE IMÁGENES NATIVAS (OPTIMIZADA) ==========
             updateProcessingStatus('Iniciando Minería de Imágenes Nativa...');
             addProcessingLog('🔍 ESTRATEGIA 2.5: Minería de Imágenes del PDF', 'working');
             updateProcessingProgress(52);
             
-            for (let i = 1; i <= pdf.numPages; i++) {
+            // Flag para detectar si encontramos algo y salir rápido
+            let foundInMining = false;
+            
+            for (let i = 1; i <= pdf.numPages && !foundInMining; i++) {
                 const page = await pdf.getPage(i);
                 try {
                     const ops = await page.getOperatorList();
-                    const commonObjs = page.objs;
                     
-                    addProcessingLog(`  Página ${i}: Extrayendo imágenes nativas...`, 'working');
+                    addProcessingLog(`  Página ${i}: Buscando imágenes...`, 'working');
                     
-                    let imageFound = false;
                     let imagesProcessed = 0;
+                    const maxImagesPerPage = 10; // Límite para evitar PDFs con muchas imágenes
                     
-                    for (let j = 0; j < ops.fnArray.length; j++) {
-                        if (ops.fnArray[j] === pdfjsLib.OPS.paintImageXObject || ops.fnArray[j] === pdfjsLib.OPS.paintInlineImageXObject) {
+                    for (let j = 0; j < ops.fnArray.length && imagesProcessed < maxImagesPerPage && !foundInMining; j++) {
+                        if (ops.fnArray[j] === pdfjsLib.OPS.paintImageXObject) {
                             const imgName = ops.argsArray[j][0];
-                            if (ops.fnArray[j] === pdfjsLib.OPS.paintInlineImageXObject) continue;
-
-                            if (commonObjs.has(imgName)) {
-                                imageFound = true;
-                                imagesProcessed++;
+                            
+                            try {
+                                // Timeout de 2 segundos por imagen
+                                const imagePromise = new Promise((resolve, reject) => {
+                                    const timeout = setTimeout(() => reject(new Error('timeout')), 2000);
+                                    
+                                    try {
+                                        page.objs.get(imgName, (imgData) => {
+                                            clearTimeout(timeout);
+                                            resolve(imgData);
+                                        });
+                                    } catch(e) {
+                                        clearTimeout(timeout);
+                                        reject(e);
+                                    }
+                                });
                                 
-                                // Usamos una promesa para el callback asíncrono
-                                const processImage = new Promise((resolve) => {
-                                    commonObjs.get(imgName, (imgData) => {
-                                        if (imgData && imgData.width > 50) { 
-                                            const tempCanvas = document.createElement('canvas');
-                                            tempCanvas.width = imgData.width;
-                                            tempCanvas.height = imgData.height;
-                                            const ctx = tempCanvas.getContext('2d');
-                                            
-                                            const imageDataObj = ctx.createImageData(imgData.width, imgData.height);
-                                            if (imgData.kind === 'RGB' || imgData.kind === 'RGBA') {
-                                                for(let k=0; k<imgData.data.length; k++) imageDataObj.data[k] = imgData.data[k];
+                                const imgData = await imagePromise;
+                                
+                                if (imgData && imgData.width > 50 && imgData.height > 50) {
+                                    imagesProcessed++;
+                                    
+                                    // Renderizar solo si tiene tamaño razonable para un QR
+                                    if (imgData.width < 2000 && imgData.height < 2000) {
+                                        const tempCanvas = document.createElement('canvas');
+                                        tempCanvas.width = imgData.width;
+                                        tempCanvas.height = imgData.height;
+                                        const ctx = tempCanvas.getContext('2d');
+                                        
+                                        const imageDataObj = ctx.createImageData(imgData.width, imgData.height);
+                                        
+                                        // Manejar diferentes tipos de imagen
+                                        if (imgData.data) {
+                                            if (imgData.kind === 1 || imgData.kind === 2) { // RGB o RGBA
+                                                for(let k=0; k<Math.min(imgData.data.length, imageDataObj.data.length); k++) {
+                                                    imageDataObj.data[k] = imgData.data[k];
+                                                }
                                             } else if (imgData.data.length === imgData.width * imgData.height) { // Grayscale
-                                                for(let k=0, p=0; k<imgData.data.length; k++, p+=4) {
+                                                for(let k=0, p=0; k<imgData.data.length && p<imageDataObj.data.length; k++, p+=4) {
                                                     const val = imgData.data[k];
                                                     imageDataObj.data[p] = val;
                                                     imageDataObj.data[p+1] = val;
@@ -17400,51 +17421,54 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                             
                                             ctx.putImageData(imageDataObj, 0, 0);
                                             
-                                            // Escaneo Profundo sobre la imagen extraída
-                                            const rawCode = performDeepScan(ctx, imgData.width, imgData.height);
-                                            if (rawCode) {
-                                                resolve(rawCode);
-                                            } else {
-                                                resolve(null);
+                                            // Escaneo rápido (sin Deep Scan para ser más rápido)
+                                            const imgDataToScan = ctx.getImageData(0, 0, imgData.width, imgData.height);
+                                            const code = jsQR(imgDataToScan.data, imgData.width, imgData.height, { inversionAttempts: "dontInvert" });
+                                            
+                                            if (code && isCNMCData(code.data)) {
+                                                addProcessingLog(`✓ ¡QR detectado por Minería en página ${i}!`, 'success');
+                                                
+                                                const validUrl = processFoundUrl(code.data, 'Minería de Imágenes', i);
+                                                if (validUrl) {
+                                                    updateStrategyStatus(2, '¡Éxito Minería!', 'green');
+                                                    updateProcessingProgress(100);
+                                                    foundInMining = true;
+                                                    
+                                                    setTimeout(() => {
+                                                        hideProcessingModal();
+                                                        handleQRRead(validUrl);
+                                                    }, 800);
+                                                    return;
+                                                }
                                             }
-                                        } else {
-                                            resolve(null);
                                         }
-                                    });
-                                });
-                                
-                                const result = await processImage;
-                                if (result) {
-                                    addProcessingLog(`✓ ¡QR detectado por Minería de Imágenes en página ${i}!`, 'success');
-                                    
-                                    const validUrl = processFoundUrl(result, 'Minería de Imágenes', i);
-                                    if (validUrl) {
-                                        updateStrategyStatus(2, '¡Éxito por Minería!', 'green');
-                                        updateProcessingProgress(100);
-                                        
-                                        setTimeout(() => {
-                                            hideProcessingModal();
-                                            handleQRRead(validUrl);
-                                        }, 800);
-                                        return;
                                     }
+                                }
+                            } catch(imgError) {
+                                // Ignorar errores de imágenes individuales
+                                if (imgError.message !== 'timeout') {
+                                    console.log(`Imagen ${j} omitida:`, imgError.message);
                                 }
                             }
                         }
                     }
                     
-                    if (imageFound) {
-                        addProcessingLog(`  Página ${i}: ${imagesProcessed} imagen(es) procesada(s)`, 'info');
+                    if (imagesProcessed > 0) {
+                        addProcessingLog(`  Página ${i}: ${imagesProcessed} imagen(es) analizadas`, 'info');
                     }
                 } catch(e) { 
-                    console.log("Error minería imágenes página " + i + ":", e); 
+                    console.log("Error minería página " + i + ":", e);
+                    addProcessingLog(`  Página ${i}: Error en minería (omitida)`, 'info');
                 }
+                
+                // Pequeña pausa entre páginas
+                await new Promise(r => setTimeout(r, 50));
             }
             
-            await new Promise(r => setTimeout(r, 300));
-            
-            addProcessingLog('⊘ No se encontró QR en imágenes nativas', 'info');
-            updateProcessingProgress(54);
+            if (!foundInMining) {
+                addProcessingLog('⊘ No se encontró QR en imágenes nativas', 'info');
+                updateProcessingProgress(54);
+            }
             
             // ========== ESTRATEGIA 3: Búsqueda Visual QR (Microscopio Digital) ==========
             updateProcessingStatus('Iniciando escaneo visual de QR...');

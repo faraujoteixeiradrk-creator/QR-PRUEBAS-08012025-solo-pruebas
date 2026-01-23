@@ -4229,6 +4229,7 @@
                 } else {
                     // Flujo normal - mostrar resultados
                     document.getElementById('results-view').classList.remove('hidden');
+                    setTimeout(() => showCleanResultsPage(), 800);
                     document.getElementById('results-view').classList.add('animate-fade-in-up');
                     
                     // Detectar modo DUAL y mostrar botón si corresponde
@@ -4513,6 +4514,7 @@
             document.getElementById('multicups-saga-view').classList.add('hidden');
             document.getElementById('scanner-view').classList.add('hidden');
             document.getElementById('results-view').classList.remove('hidden');
+            setTimeout(() => showCleanResultsPage(), 800);
             document.getElementById('results-view').classList.add('animate-fade-in-up');
         }
 
@@ -14203,6 +14205,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
+                setTimeout(() => showCleanResultsPage(), 800);
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
                 
                 // Resetear bandera
@@ -14606,6 +14609,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
+                setTimeout(() => showCleanResultsPage(), 800);
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
             }
         }
@@ -14765,6 +14769,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
+                setTimeout(() => showCleanResultsPage(), 800);
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
             }
         }
@@ -15071,6 +15076,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
+                setTimeout(() => showCleanResultsPage(), 800);
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
             }
         }
@@ -15672,6 +15678,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
+                setTimeout(() => showCleanResultsPage(), 800);
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
                 
                 return; // IMPORTANTE: Salir aquí para no ejecutar el resto
@@ -15929,6 +15936,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
+                setTimeout(() => showCleanResultsPage(), 800);
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
                 
                 // CRÍTICO: Si el resultado tiene needsImprovementRequest, abrir automáticamente el modal

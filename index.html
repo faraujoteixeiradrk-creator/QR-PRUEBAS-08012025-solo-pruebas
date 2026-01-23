@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+v<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -320,7 +320,7 @@
         <!-- PANTALLA 2: ELECTRICIDAD (landing-view original) -->
         <div id="screen-electricidad" class="screen active">
         <!-- 1. Landing View -->
-        <div id="landing-view" class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8">
+        <div id="landing-view" style="display: none;" class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500" id="landing-card">
                 <div id="landing-icon-bg" class="w-16 h-16 bg-drk-50 rounded-full flex items-center justify-center mx-auto mb-4 text-drk-600 shadow-inner">
                     <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none">
@@ -386,6 +386,44 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+        
+        <!-- NUEVA: Vista directa cliente -->
+        <div id="client-direct-view" class="fade-in flex flex-col items-center justify-center min-h-[80vh] py-12">
+            <!-- Inputs ocultos necesarios -->
+            <input type="file" id="camera-capture-input" accept="image/*" capture="environment" class="hidden">
+            <input type="file" id="file-upload-input" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" class="hidden">
+            
+            <!-- Selector de idiomas arriba -->
+            <div class="w-full max-w-2xl mb-8 flex justify-center gap-3">
+                <button onclick="if(window.LANG) window.LANG.change('es')" class="px-6 py-3 rounded-lg bg-white border-2 border-slate-300 hover:border-blue-500 font-semibold transition">
+                    🇪🇸 Español
+                </button>
+                <button onclick="if(window.LANG) window.LANG.change('en')" class="px-6 py-3 rounded-lg bg-white border-2 border-slate-300 hover:border-blue-500 font-semibold transition">
+                    🇬🇧 English
+                </button>
+                <button onclick="if(window.LANG) window.LANG.change('zh')" class="px-6 py-3 rounded-lg bg-white border-2 border-slate-300 hover:border-blue-500 font-semibold transition">
+                    🇨🇳 中文
+                </button>
+                <button onclick="if(window.LANG) window.LANG.change('fr')" class="px-6 py-3 rounded-lg bg-white border-2 border-slate-300 hover:border-blue-500 font-semibold transition">
+                    🇫🇷 Français
+                </button>
+                <button onclick="if(window.LANG) window.LANG.change('de')" class="px-6 py-3 rounded-lg bg-white border-2 border-slate-300 hover:border-blue-500 font-semibold transition">
+                    🇩🇪 Deutsch
+                </button>
+            </div>
+            
+            <!-- Zona de Drag & Drop -->
+            <div class="w-full max-w-2xl">
+                <div id="drag-drop-zone-main" class="border-2 border-dashed border-drk-400 rounded-xl p-12 text-center bg-white hover:bg-drk-50 transition-colors cursor-pointer">
+                    <svg class="w-24 h-24 mx-auto mb-4 text-drk-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p class="text-2xl font-bold text-drk-800 mb-2">Arrastra tu factura aquí</p>
+                    <p class="text-sm text-slate-600 mb-1">PDF, JPG, PNG</p>
+                    <p class="text-sm text-drk-600 font-semibold">o haz clic para seleccionar</p>
+                </div>
             </div>
         </div>
         </div> <!-- Cierre screen-electricidad -->
@@ -1453,7 +1491,8 @@
         <!-- 8. QR Options Modal (Upload/Paste) - CON DRAG & DROP -->
         <div id="qr-options-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
             <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full">
-                <h3 class="text-xl font-bold text-drk-800 mb-4" id="modal-qr-title">Seleccione Opción QR</h3>
+                <!-- Título OCULTO -->
+                <h3 style="display: none;" class="text-xl font-bold text-drk-800 mb-4" id="modal-qr-title">Seleccione Opción QR</h3>
                 
                 <!-- Input oculto para captura de foto -->
                 <input type="file" id="camera-capture-input" accept="image/*" capture="environment" class="hidden">
@@ -1471,27 +1510,29 @@
                     <p class="text-xs text-drk-600 mt-2 font-semibold">o haz clic para seleccionar</p>
                 </div>
                 
-                <!-- Botón Capturar Foto (primera opción) -->
-                <button id="camera-capture-btn" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 flex items-center justify-center gap-2">
+                <!-- Botón Capturar Foto (OCULTO) -->
+                <button id="camera-capture-btn" style="display: none;" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 flex items-center justify-center gap-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.125 3h3.75a2 2 0 011.664.89l.812 1.22a2 2 0 001.664.89H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     <span>Capturar Foto</span>
                 </button>
                 
-                <!-- Botón Subir desde Archivo -->
-                <button id="modal-upload-file-btn" class="w-full bg-drk-800 hover:bg-drk-900 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 flex items-center justify-center gap-2">
+                <!-- Botón Subir desde Archivo (OCULTO) -->
+                <button id="modal-upload-file-btn" style="display: none;" class="w-full bg-drk-800 hover:bg-drk-900 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 flex items-center justify-center gap-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                     <span>Subir desde Archivo</span>
                 </button>
                 
-                <button id="modal-paste-image-btn" class="w-full bg-drk-600 hover:bg-drk-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3">Pegar Imagen (CTRL+V)</button>
+                <!-- Pegar Imagen (OCULTO) -->
+                <button id="modal-paste-image-btn" style="display: none;" class="w-full bg-drk-600 hover:bg-drk-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3">Pegar Imagen (CTRL+V)</button>
                 
-                <!-- Opción Pegar Código Completo -->
-                <button id="modal-paste-url-btn" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-4 flex items-center justify-center gap-2">
+                <!-- Opción Pegar Código Completo (OCULTO) -->
+                <button id="modal-paste-url-btn" style="display: none;" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-4 flex items-center justify-center gap-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     <span>Pegar Código Completo</span>
                 </button>
                 
-                <button onclick="document.getElementById('qr-options-modal').classList.add('hidden'); document.getElementById('qr-options-modal').classList.remove('flex');" class="w-full bg-slate-200 font-bold py-3 rounded-xl">Cancelar</button>
+                <!-- Botón Cancelar (OCULTO) -->
+                <button style="display: none;" onclick="document.getElementById('qr-options-modal').classList.add('hidden'); document.getElementById('qr-options-modal').classList.remove('flex');" class="w-full bg-slate-200 font-bold py-3 rounded-xl">Cancelar</button>
             </div>
         </div>
 
@@ -15988,6 +16029,45 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 }
             });
             
+            // === CONFIGURACIÓN DRAG & DROP PARA ZONA PRINCIPAL ===
+            const dragDropZoneMain = document.getElementById('drag-drop-zone-main');
+            
+            if (dragDropZoneMain) {
+                // Click en zona
+                dragDropZoneMain.addEventListener('click', () => {
+                    fileUploadInput.click();
+                });
+                
+                // Prevenir comportamiento por defecto
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    dragDropZoneMain.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    });
+                });
+                
+                // Efectos visuales
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dragDropZoneMain.addEventListener(eventName, () => {
+                        dragDropZoneMain.classList.add('border-drk-600', 'bg-drk-100');
+                    });
+                });
+                
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dragDropZoneMain.addEventListener(eventName, () => {
+                        dragDropZoneMain.classList.remove('border-drk-600', 'bg-drk-100');
+                    });
+                });
+                
+                // Manejar drop
+                dragDropZoneMain.addEventListener('drop', (e) => {
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        handleFile(files[0]);
+                    }
+                });
+            }
+            
             // Manejar selección de archivo desde input
             fileUploadInput.addEventListener('change', (e) => {
                 if (e.target.files.length > 0) {
@@ -27412,7 +27492,7 @@ ${clientName}
             window.addEventListener('load', () => {
                 setTimeout(() => window.LANG.retranslate(), 200);
                 
-                // Auto-click en 2.0TD
+                // Auto-click en 2.0TD (invisible, carga tarifas)
                 setTimeout(() => {
                     const btn = document.querySelector('button[onclick*="selectTariffType(\'2.0TD\')"]');
                     if (btn) btn.click();

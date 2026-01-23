@@ -5707,7 +5707,7 @@
                             </div>  
                         </div>
 
-                        <!-- Potencia Contratada -->
+                        <!-- Potencia Contratada vs Uso Real -->
                         <div class="bg-white p-4 rounded-lg border-2 border-amber-200">
                             <p class="font-bold ${brand.PRIMARY_TEXT} mb-3 flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -5718,7 +5718,86 @@
                             <div class="space-y-1">
                                 ${powerRows}
                             </div>
+                            ${res.potencia_max_p1 || res.potencia_max_p2 ? `
+                                <div class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-300">
+                                    <p class="text-xs font-bold text-amber-900 mb-2">⚡ Picos Máximos Registrados:</p>
+                                    ${res.potencia_max_p1 ? `<div class="flex justify-between text-xs"><span>P1 (Punta):</span><span class="font-bold">${num(res.potencia_max_p1, 3)} kW</span></div>` : ''}
+                                    ${res.potencia_max_p2 ? `<div class="flex justify-between text-xs"><span>P2 (Valle):</span><span class="font-bold">${num(res.potencia_max_p2, 3)} kW</span></div>` : ''}
+                                    ${res.potencia_p1_kw && res.potencia_max_p1 ? `
+                                        <div class="mt-2 pt-2 border-t border-amber-200">
+                                            <p class="text-xs text-amber-800">
+                                                <span class="font-bold">Aprovechamiento:</span> ${num((res.potencia_max_p1 / res.potencia_p1_kw) * 100, 0)}% de la potencia contratada
+                                            </p>
+                                            ${((res.potencia_max_p1 / res.potencia_p1_kw) * 100) < 50 ? `<p class="text-xs text-red-600 mt-1">⚠️ Estás pagando por mucha más potencia de la que usas</p>` : ''}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
                         </div>
+
+                        <!-- Costes Desglosados -->
+                        ${res.coste_potencia || res.coste_energia || res.otros_costes ? `
+                            <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border-2 border-purple-200">
+                                <p class="font-bold text-purple-900 mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    💰 Desglose de Costes
+                                </p>
+                                <div class="space-y-2">
+                                    ${res.coste_potencia ? `<div class="flex justify-between items-center bg-white p-2 rounded"><span class="text-sm text-slate-700">Término fijo (Potencia)</span><span class="font-bold text-purple-700">${num(res.coste_potencia, 2)} €</span></div>` : ''}
+                                    ${res.coste_energia ? `<div class="flex justify-between items-center bg-white p-2 rounded"><span class="text-sm text-slate-700">Término variable (Energía)</span><span class="font-bold text-purple-700">${num(res.coste_energia, 2)} €</span></div>` : ''}
+                                    ${res.otros_costes ? `<div class="flex justify-between items-center bg-white p-2 rounded"><span class="text-sm text-slate-700">Otros (Contador, etc.)</span><span class="font-bold text-purple-700">${num(res.otros_costes, 2)} €</span></div>` : ''}
+                                    ${res.coste_potencia && res.coste_energia ? `
+                                        <div class="flex justify-between items-center bg-purple-100 p-2 rounded border-t-2 border-purple-300 mt-2">
+                                            <span class="text-sm font-bold text-purple-900">Subtotal (sin impuestos)</span>
+                                            <span class="font-bold text-lg text-purple-900">${num((res.coste_potencia || 0) + (res.coste_energia || 0) + (res.otros_costes || 0), 2)} €</span>
+                                        </div>
+                                        <div class="text-xs text-slate-600 mt-2 bg-white p-2 rounded">
+                                            <p class="mb-1">El resto hasta <strong>${num(res.importe_total, 2)} €</strong> corresponde a:</p>
+                                            <ul class="list-disc list-inside pl-2 space-y-1">
+                                                <li>Impuesto Eléctrico (5.11%)</li>
+                                                <li>IVA (21%)</li>
+                                            </ul>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <!-- Histórico Acumulado Anual -->
+                        ${res.consumo_anual_p1 || res.consumo_anual_p2 || res.consumo_anual_p3 ? `
+                            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg border-2 border-indigo-200">
+                                <p class="font-bold text-indigo-900 mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                    </svg>
+                                    📊 Histórico Acumulado (Ciclo Anual)
+                                </p>
+                                <div class="space-y-2">
+                                    ${res.consumo_anual_p1 ? `<div class="flex justify-between text-sm"><span class="text-slate-700">P1 (Punta):</span><span class="font-bold text-indigo-700">${num(res.consumo_anual_p1, 0)} kWh</span></div>` : ''}
+                                    ${res.consumo_anual_p2 ? `<div class="flex justify-between text-sm"><span class="text-slate-700">P2 (Llano):</span><span class="font-bold text-indigo-700">${num(res.consumo_anual_p2, 0)} kWh</span></div>` : ''}
+                                    ${res.consumo_anual_p3 ? `<div class="flex justify-between text-sm"><span class="text-slate-700">P3 (Valle):</span><span class="font-bold text-indigo-700">${num(res.consumo_anual_p3, 0)} kWh</span></div>` : ''}
+                                    <div class="flex justify-between bg-indigo-100 p-2 rounded border-t-2 border-indigo-300 mt-2">
+                                        <span class="text-sm font-bold text-indigo-900">Total Acumulado:</span>
+                                        <span class="font-bold text-lg text-indigo-900">${num((res.consumo_anual_p1 || 0) + (res.consumo_anual_p2 || 0) + (res.consumo_anual_p3 || 0), 0)} kWh</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <!-- Información Adicional -->
+                        ${res.fecha_factura || res.comercializadora || res.fecha_fin_contrato ? `
+                            <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                <p class="font-bold text-slate-800 mb-3 text-sm">ℹ️ Información Adicional</p>
+                                <div class="grid grid-cols-1 gap-2 text-xs">
+                                    ${res.fecha_factura ? `<div class="flex justify-between"><span class="text-slate-600">Fecha de factura:</span><span class="font-mono font-bold">${res.fecha_factura}</span></div>` : ''}
+                                    ${res.comercializadora ? `<div class="flex justify-between"><span class="text-slate-600">Comercializadora:</span><span class="font-bold">${res.comercializadora}</span></div>` : ''}
+                                    ${res.fecha_fin_contrato ? `<div class="flex justify-between"><span class="text-slate-600">Fin de contrato:</span><span class="font-mono font-bold">${res.fecha_fin_contrato}</span></div>` : ''}
+                                    ${res.tipo_contrato ? `<div class="flex justify-between"><span class="text-slate-600">Tipo de contrato:</span><span class="font-bold">${res.tipo_contrato}</span></div>` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             } else {
@@ -17801,14 +17880,32 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const directData = {
                 cups: p.cups || 'QR SCAN',
                 dias_facturados: billingDays,
-                importe_total: parseFloat(p.imp || 0), // FIX: asegurar que es float, default a 0
+                importe_total: parseFloat(p.imp || 0),
                 potencia_p1_kw: parseFloat(p.pP1 || 0),
                 potencia_p2_kw: parseFloat(p.pP2 || 0),
-                // Solo se reciben 3 consumos del QR de la CNMC (P1, P2, P3 -> Punta, Llano, Valle)
                 consumo_punta: parseFloat(p.cfP1 || 0),
                 consumo_llano: parseFloat(p.cfP2 || 0),
                 consumo_valle: parseFloat(p.cfP3 || 0),
                 fechas: dateRangeStr,
+                // NUEVOS CAMPOS AMPLIADOS del QR
+                potencia_max_p1: parseFloat(p.pmaxP1 || 0),
+                potencia_max_p2: parseFloat(p.pmaxP2 || 0),
+                consumo_anual_p1: parseFloat(p.caP1 || 0),
+                consumo_anual_p2: parseFloat(p.caP2 || 0),
+                consumo_anual_p3: parseFloat(p.caP3 || 0),
+                coste_potencia: parseFloat(p.impPot || 0),
+                coste_energia: parseFloat(p.impEner || 0),
+                otros_costes: parseFloat(p.impOtrosSinIE || 0),
+                precio_potencia_p1: parseFloat(p.prP1 || 0),
+                precio_potencia_p2: parseFloat(p.prP2 || 0),
+                precio_energia_p1: parseFloat(p.prE1 || 0),
+                precio_energia_p2: parseFloat(p.prE2 || 0),
+                precio_energia_p3: parseFloat(p.prE3 || 0),
+                fecha_factura: p.fFact || '',
+                fecha_fin_contrato: p.finContrato || '',
+                tipo_contrato: p.tc || '',
+                tipo_factura: p.tf || '',
+                comercializadora: p.com || '',
                 rawQR: raw  
             };
             

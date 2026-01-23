@@ -3232,8 +3232,6 @@
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
-                
-                // Después de un delay, mostrar página limpia
                 setTimeout(() => showCleanResultsPage(), 800);
                 
                 console.log('=== COMPARACIÓN DUAL COMPLETADA ===');
@@ -27583,110 +27581,7 @@ Gracias.`;
             const newMonthlyCost = document.getElementById('new-monthly-cost-display')?.textContent || '0 €/mes';
             const newAnnualCost = document.getElementById('new-annual-cost-display')?.textContent || '0 €/año';
             
-            // Reemplazar TODA la página
-            document.body.innerHTML = `
-                <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { font-family: 'Inter', system-ui, sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); min-height: 100vh; padding: 1rem; }
-                    .back-btn { position: fixed; top: 1rem; left: 1rem; background: #fff; border: 2px solid #e2e8f0; padding: .75rem 1.5rem; border-radius: .75rem; font-weight: 700; color: #475569; cursor: pointer; display: flex; align-items: center; gap: .5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1); transition: all .2s; z-index: 1000; text-decoration: none; }
-                    .back-btn:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-2px); }
-                    .container { max-width: 48rem; margin: 2rem auto; padding-top: 2rem; }
-                    .badge { display: inline-flex; align-items: center; gap: .5rem; background: #dcfce7; color: #166534; padding: .5rem 1rem; border-radius: 9999px; font-size: .875rem; font-weight: 700; margin-bottom: 1rem; }
-                    .pulse { width: .75rem; height: .75rem; background: #22c55e; border-radius: 9999px; animation: pulse 2s infinite; }
-                    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-                    .title { font-size: 2rem; font-weight: 900; color: #1e293b; margin-bottom: .5rem; text-align: center; }
-                    .subtitle { color: #64748b; margin-bottom: 2rem; text-align: center; }
-                    .result-card { background: #fff; border-radius: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,.25); overflow: hidden; border: 1px solid #e2e8f0; margin-bottom: 1.5rem; }
-                    .header-blue { background: linear-gradient(to right, #2563eb, #3b82f6); padding: 2rem; text-align: center; color: #fff; }
-                    .header-blue h2 { font-size: 2.5rem; font-weight: 800; margin: 0 0 .5rem 0; }
-                    .header-blue p { font-size: 1.125rem; opacity: .9; margin: 0; }
-                    .content { padding: 2rem; }
-                    .savings { text-align: center; margin-bottom: 2rem; }
-                    .savings-label { color: #64748b; font-size: .875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .5rem; }
-                    .savings-amount { font-size: 4rem; font-weight: 900; color: #16a34a; line-height: 1; }
-                    .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; border-top: 1px solid #e2e8f0; padding-top: 1.5rem; }
-                    .col { text-align: center; }
-                    .col:first-child { border-right: 1px solid #e2e8f0; padding-right: 1.5rem; }
-                    .col-title { color: #94a3b8; font-size: .75rem; font-weight: 600; text-transform: uppercase; margin-bottom: 1rem; }
-                    .col-title-blue { color: #1e40af; }
-                    .cost-old { font-size: 1.5rem; font-weight: 700; color: #dc2626; text-decoration: line-through; margin-bottom: .25rem; }
-                    .cost-new { font-size: 2rem; font-weight: 900; color: #1e3a8a; margin-bottom: .25rem; }
-                    .cost-label { font-size: .75rem; color: #64748b; margin-top: .25rem; }
-                    .cost-annual-old { font-size: 1.25rem; font-weight: 700; color: #dc2626; text-decoration: line-through; }
-                    .cost-annual-new { font-size: 1.875rem; font-weight: 900; color: #1e3a8a; }
-                    .btn { width: 100%; background: linear-gradient(to right, #dc2626, #b91c1c); color: #fff; font-weight: 700; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,.1); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 1rem; font-size: 1.5rem; transition: all .2s; }
-                    .btn:hover { background: linear-gradient(to right, #b91c1c, #991b1b); transform: scale(1.02); }
-                    .btn:active { transform: scale(.98); }
-                    .icon { width: 2.5rem; height: 2.5rem; }
-                    @media (max-width: 640px) {
-                        .savings-amount { font-size: 3rem; }
-                        .comparison { grid-template-columns: 1fr; gap: 1.5rem; }
-                        .col:first-child { border-right: none; border-bottom: 1px solid #e2e8f0; padding-right: 0; padding-bottom: 1.5rem; }
-                        .cost-new { font-size: 1.5rem; }
-                        .cost-annual-new { font-size: 1.5rem; }
-                        .back-btn { font-size: .875rem; padding: .5rem 1rem; }
-                    }
-                </style>
-                
-                <a href="javascript:window.location.reload()" class="back-btn">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                    </svg>
-                    Volver
-                </a>
-                
-                <div class="container">
-                    <div style="text-align: center">
-                        <div class="badge">
-                            <span class="pulse"></span>
-                            Análisis Completado
-                        </div>
-                        <h1 class="title">Resultado del Estudio</h1>
-                        <p class="subtitle">CUPS: <strong>${cups}</strong></p>
-                    </div>
-
-                    <div class="result-card">
-                        <div class="header-blue">
-                            <h2>${offerName}</h2>
-                            <p>${offerDesc}</p>
-                        </div>
-                        
-                        <div class="content">
-                            <div class="savings">
-                                <div class="savings-label">TU AHORRO ANUAL ESTIMADO</div>
-                                <div class="savings-amount">${savings}</div>
-                            </div>
-                            
-                            <div class="comparison">
-                                <div class="col">
-                                    <div class="col-title">TU FACTURA ACTUAL</div>
-                                    <div style="margin-bottom: 1.5rem">
-                                        <div class="cost-old">${oldPeriodCost}</div>
-                                        <div class="cost-label">${oldPeriodDays}</div>
-                                    </div>
-                                    <div class="cost-annual-old">${oldAnnualCost}</div>
-                                </div>
-                                
-                                <div class="col">
-                                    <div class="col-title col-title-blue">TU NUEVO COSTE DRK</div>
-                                    <div style="margin-bottom: 1.5rem">
-                                        <div class="cost-new">${newMonthlyCost}</div>
-                                        <div class="cost-label">Estimado Mensual</div>
-                                    </div>
-                                    <div class="cost-annual-new">${newAnnualCost}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button class="btn" onclick="window.location.href='mailto:f.araujo@drk.es,rguerra@drk.es,s.caballero@drk.es?subject=' + encodeURIComponent('Estimado DRK: Estoy interesado en los precios de la oferta') + '&body=' + encodeURIComponent('Estimado DRK,\\n\\nEstoy interesado en los precios de la oferta. Adjunto la siguiente información para la contratación:\\n\\n- Foto DNI\\n- Email de validación de contrato\\n- Teléfono de validación de contrato\\n- Número de cuenta bancaria\\n- Factura eléctrica (no puede ser más antigua de 3 meses desde la fecha actual)\\n\\nCUPS: ${cups}\\n\\nGracias.')">
-                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                        </svg>
-                        LO QUIERO
-                    </button>
-                </div>
-            `;
+            document.body.innerHTML = '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,system-ui,sans-serif;background:#f1f5f9;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem}.container{max-width:56rem;width:100%}.card{background:#fff;border-radius:1.5rem;box-shadow:0 20px 40px rgba(0,0,0,.1);overflow:hidden;margin-bottom:1.5rem}.header{background:linear-gradient(135deg,#3b6d9c 0%,#5a9bd4 100%);padding:3rem 2rem;text-align:center;color:#fff}.header h1{font-size:3.5rem;font-weight:800;margin:0 0 .75rem 0;letter-spacing:-.02em}.header p{font-size:1.5rem;opacity:.95;margin:0;font-weight:500}.content{padding:3rem 2.5rem}.savings-section{text-align:center;margin-bottom:3rem}.savings-label{color:#64748b;font-size:1.125rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem}.savings-amount{font-size:5.5rem;font-weight:900;color:#16a34a;line-height:1;letter-spacing:-.02em}.comparison{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:2px solid #e2e8f0;padding-top:2.5rem}.col{text-align:center;padding:0 1.5rem}.col:first-child{border-right:2px solid #e2e8f0}.col-title{color:#94a3b8;font-size:.875rem;font-weight:700;text-transform:uppercase;margin-bottom:1.5rem;letter-spacing:.05em}.col-title.blue{color:#1e40af}.price-block{margin-bottom:2rem}.price-old{font-size:2rem;font-weight:700;color:#dc2626;text-decoration:line-through;margin-bottom:.5rem}.price-new{font-size:2.5rem;font-weight:900;color:#1e3a8a;margin-bottom:.5rem}.price-label{font-size:.875rem;color:#64748b;font-weight:500}.price-annual-old{font-size:1.75rem;font-weight:700;color:#dc2626;text-decoration:line-through}.price-annual-new{font-size:2.5rem;font-weight:900;color:#1e3a8a}.btn-want{width:100%;background:linear-gradient(135deg,#c53030 0%,#9b2c2c 100%);color:#fff;font-weight:700;padding:2rem;border-radius:1.25rem;box-shadow:0 10px 25px rgba(197,48,48,.3);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:1rem;font-size:1.875rem;transition:all .2s;margin-bottom:1.5rem}.btn-want:hover{transform:translateY(-2px);box-shadow:0 15px 30px rgba(197,48,48,.4)}.btn-want:active{transform:translateY(0)}.icon{width:2.5rem;height:2.5rem}.link{text-align:center;margin-bottom:2rem}.link a{color:#1e40af;font-weight:600;text-decoration:none;font-size:1.125rem}.link a:hover{text-decoration:underline}.btn-new{width:100%;background:#fff;color:#475569;font-weight:700;padding:1.5rem;border-radius:1.25rem;border:2px solid #e2e8f0;cursor:pointer;font-size:1.25rem;transition:all .2s}.btn-new:hover{background:#f8fafc;border-color:#cbd5e1}@media (max-width:768px){.header h1{font-size:2.5rem}.header p{font-size:1.125rem}.savings-amount{font-size:4rem}.comparison{grid-template-columns:1fr;gap:2rem}.col:first-child{border-right:none;border-bottom:2px solid #e2e8f0;padding-bottom:2rem}.price-new,.price-annual-new{font-size:2rem}}</style><div class="container"><div class="card"><div class="header"><h1>'+offerName+'</h1><p>'+offerDesc+'</p></div><div class="content"><div class="savings-section"><div class="savings-label">TU AHORRO ANUAL ESTIMADO</div><div class="savings-amount">'+savings+'</div></div><div class="comparison"><div class="col"><div class="col-title">TU FACTURA ACTUAL</div><div class="price-block"><div class="price-old">'+oldPeriodCost+'</div><div class="price-label">'+oldPeriodDays+'</div></div><div class="price-annual-old">'+oldAnnualCost+'</div></div><div class="col"><div class="col-title blue">TU NUEVO COSTE DRK</div><div class="price-block"><div class="price-new">'+newMonthlyCost+'</div><div class="price-label">Estimado Mensual</div></div><div class="price-annual-new">'+newAnnualCost+'</div></div></div></div></div><button class="btn-want" onclick="window.location.href=\'mailto:f.araujo@drk.es,rguerra@drk.es,s.caballero@drk.es?subject=\'+encodeURIComponent(\'Estimado DRK: Estoy interesado en los precios de la oferta\')+\'&body=\'+encodeURIComponent(\'Estimado DRK,\\n\\nEstoy interesado en los precios de la oferta. Adjunto la siguiente información para la contratación:\\n\\n- Foto DNI\\n- Email de validación de contrato\\n- Teléfono de validación de contrato\\n- Número de cuenta bancaria\\n- Factura eléctrica (no puede ser más antigua de 3 meses desde la fecha actual)\\n\\nCUPS: '+cups+'\\n\\nGracias.\')"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>LO QUIERO</button><div class="link"><a href="#" onclick="alert(\'Desglose disponible próximamente\');return false">Ver desglose detallado del cálculo</a></div><button class="btn-new" onclick="window.location.reload()">Realizar Nueva Comparación</button></div>';
         }
     </script>
 </body>

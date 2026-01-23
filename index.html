@@ -4513,8 +4513,8 @@
             document.getElementById('initial-view').classList.add('hidden');
             document.getElementById('multicups-saga-view').classList.add('hidden');
             document.getElementById('scanner-view').classList.add('hidden');
-            document.getElementById('results-view').classList.remove('hidden');
             setTimeout(() => showCleanResultsPage(), 800);
+            document.getElementById('results-view').classList.remove('hidden');
             document.getElementById('results-view').classList.add('animate-fade-in-up');
         }
 
@@ -14205,7 +14205,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
-                setTimeout(() => showCleanResultsPage(), 800);
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
                 
                 // Resetear bandera
@@ -14609,7 +14608,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
-                setTimeout(() => showCleanResultsPage(), 800);
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
             }
         }
@@ -14769,7 +14767,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
-                setTimeout(() => showCleanResultsPage(), 800);
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
             }
         }
@@ -15076,7 +15073,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
-                setTimeout(() => showCleanResultsPage(), 800);
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
             }
         }
@@ -15678,7 +15674,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
-                setTimeout(() => showCleanResultsPage(), 800);
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
                 
                 return; // IMPORTANTE: Salir aquí para no ejecutar el resto
@@ -15936,7 +15931,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
-                setTimeout(() => showCleanResultsPage(), 800);
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
                 
                 // CRÍTICO: Si el resultado tiene needsImprovementRequest, abrir automáticamente el modal
@@ -27579,17 +27573,144 @@ Gracias.`;
         }
         
         function showCleanResultsPage() {
-            const cups = document.getElementById('cups-value')?.textContent || '';
-            const offerName = document.getElementById('best-offer-name')?.textContent || 'DRK';
-            const offerDesc = document.getElementById('best-offer-desc')?.textContent || 'DRK PLAN AMIGO';
-            const savings = document.getElementById('savings-estimate')?.textContent || '0 €';
-            const oldPeriodCost = document.getElementById('old-period-cost-display')?.textContent || '0 €';
-            const oldPeriodDays = document.getElementById('old-period-days-label')?.textContent || 'Total Periodo (60 días)';
-            const oldAnnualCost = document.getElementById('old-annual-cost-display')?.textContent || '0 €/año';
-            const newMonthlyCost = document.getElementById('new-monthly-cost-display')?.textContent || '0 €/mes';
-            const newAnnualCost = document.getElementById('new-annual-cost-display')?.textContent || '0 €/año';
+            // Capturar TODO el contenido HTML del results-view antes de reemplazar
+            const resultsView = document.getElementById('results-view');
+            if (!resultsView) return;
             
-            document.body.innerHTML = '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,system-ui,sans-serif;background:#f1f5f9;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem}.container{max-width:56rem;width:100%}.card{background:#fff;border-radius:1.5rem;box-shadow:0 20px 40px rgba(0,0,0,.1);overflow:hidden;margin-bottom:1.5rem}.header{background:linear-gradient(135deg,#3b6d9c 0%,#5a9bd4 100%);padding:3rem 2rem;text-align:center;color:#fff}.header h1{font-size:3.5rem;font-weight:800;margin:0 0 .75rem 0;letter-spacing:-.02em}.header p{font-size:1.5rem;opacity:.95;margin:0;font-weight:500}.content{padding:3rem 2.5rem}.savings-section{text-align:center;margin-bottom:3rem}.savings-label{color:#64748b;font-size:1.125rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem}.savings-amount{font-size:5.5rem;font-weight:900;color:#16a34a;line-height:1;letter-spacing:-.02em}.comparison{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:2px solid #e2e8f0;padding-top:2.5rem}.col{text-align:center;padding:0 1.5rem}.col:first-child{border-right:2px solid #e2e8f0}.col-title{color:#94a3b8;font-size:.875rem;font-weight:700;text-transform:uppercase;margin-bottom:1.5rem;letter-spacing:.05em}.col-title.blue{color:#1e40af}.price-block{margin-bottom:2rem}.price-old{font-size:2rem;font-weight:700;color:#dc2626;text-decoration:line-through;margin-bottom:.5rem}.price-new{font-size:2.5rem;font-weight:900;color:#1e3a8a;margin-bottom:.5rem}.price-label{font-size:.875rem;color:#64748b;font-weight:500}.price-annual-old{font-size:1.75rem;font-weight:700;color:#dc2626;text-decoration:line-through}.price-annual-new{font-size:2.5rem;font-weight:900;color:#1e3a8a}.btn-want{width:100%;background:linear-gradient(135deg,#c53030 0%,#9b2c2c 100%);color:#fff;font-weight:700;padding:2rem;border-radius:1.25rem;box-shadow:0 10px 25px rgba(197,48,48,.3);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:1rem;font-size:1.875rem;transition:all .2s;margin-bottom:1.5rem}.btn-want:hover{transform:translateY(-2px);box-shadow:0 15px 30px rgba(197,48,48,.4)}.btn-want:active{transform:translateY(0)}.icon{width:2.5rem;height:2.5rem}.link{text-align:center;margin-bottom:2rem}.link a{color:#1e40af;font-weight:600;text-decoration:none;font-size:1.125rem}.link a:hover{text-decoration:underline}.btn-new{width:100%;background:#fff;color:#475569;font-weight:700;padding:1.5rem;border-radius:1.25rem;border:2px solid #e2e8f0;cursor:pointer;font-size:1.25rem;transition:all .2s}.btn-new:hover{background:#f8fafc;border-color:#cbd5e1}@media (max-width:768px){.header h1{font-size:2.5rem}.header p{font-size:1.125rem}.savings-amount{font-size:4rem}.comparison{grid-template-columns:1fr;gap:2rem}.col:first-child{border-right:none;border-bottom:2px solid #e2e8f0;padding-bottom:2rem}.price-new,.price-annual-new{font-size:2rem}}</style><div class="container"><div class="card"><div class="header"><h1>'+offerName+'</h1><p>'+offerDesc+'</p></div><div class="content"><div class="savings-section"><div class="savings-label">TU AHORRO ANUAL ESTIMADO</div><div class="savings-amount">'+savings+'</div></div><div class="comparison"><div class="col"><div class="col-title">TU FACTURA ACTUAL</div><div class="price-block"><div class="price-old">'+oldPeriodCost+'</div><div class="price-label">'+oldPeriodDays+'</div></div><div class="price-annual-old">'+oldAnnualCost+'</div></div><div class="col"><div class="col-title blue">TU NUEVO COSTE DRK</div><div class="price-block"><div class="price-new">'+newMonthlyCost+'</div><div class="price-label">Estimado Mensual</div></div><div class="price-annual-new">'+newAnnualCost+'</div></div></div></div></div><button class="btn-want" onclick="window.location.href=\'mailto:f.araujo@drk.es,rguerra@drk.es,s.caballero@drk.es?subject=\'+encodeURIComponent(\'Estimado DRK: Estoy interesado en los precios de la oferta\')+\'&body=\'+encodeURIComponent(\'Estimado DRK,\\n\\nEstoy interesado en los precios de la oferta. Adjunto la siguiente información para la contratación:\\n\\n- Foto DNI\\n- Email de validación de contrato\\n- Teléfono de validación de contrato\\n- Número de cuenta bancaria\\n- Factura eléctrica (no puede ser más antigua de 3 meses desde la fecha actual)\\n\\nCUPS: '+cups+'\\n\\nGracias.\')"><svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>LO QUIERO</button><div class="link"><a href="#" onclick="alert(\'Desglose disponible próximamente\');return false">Ver desglose detallado del cálculo</a></div><button class="btn-new" onclick="window.location.reload()">Realizar Nueva Comparación</button></div>';
+            // Clonar todo el contenido
+            const fullContent = resultsView.innerHTML;
+            
+            // Reemplazar TODA la página con versión limpia que incluye TODO
+            document.body.innerHTML = `
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; min-height: 100vh; padding: 2rem 1rem; }
+                    .clean-container { max-width: 56rem; margin: 0 auto; }
+                    .back-section { margin-bottom: 2rem; }
+                    .btn-back { background: #fff; border: 2px solid #e2e8f0; color: #475569; font-weight: 700; padding: .75rem 1.5rem; border-radius: .75rem; cursor: pointer; display: inline-flex; align-items: center; gap: .5rem; transition: all .2s; }
+                    .btn-back:hover { background: #f8fafc; border-color: #cbd5e1; }
+                    
+                    /* Mantener todos los estilos originales de Tailwind */
+                    .hidden { display: none !important; }
+                    .mb-8 { margin-bottom: 2rem; }
+                    .mb-6 { margin-bottom: 1.5rem; }
+                    .mb-4 { margin-bottom: 1rem; }
+                    .mb-3 { margin-bottom: 0.75rem; }
+                    .mb-2 { margin-bottom: 0.5rem; }
+                    .mb-1 { margin-bottom: 0.25rem; }
+                    .mt-8 { margin-top: 2rem; }
+                    .p-6 { padding: 1.5rem; }
+                    .p-3 { padding: 0.75rem; }
+                    .py-5 { padding-top: 1.25rem; padding-bottom: 1.25rem; }
+                    .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+                    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+                    .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+                    .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+                    .rounded-3xl { border-radius: 1.5rem; }
+                    .rounded-2xl { border-radius: 1rem; }
+                    .rounded-xl { border-radius: 0.75rem; }
+                    .rounded-full { border-radius: 9999px; }
+                    .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+                    .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+                    .text-center { text-align: center; }
+                    .text-xl { font-size: 1.25rem; }
+                    .text-2xl { font-size: 1.5rem; }
+                    .text-5xl { font-size: 3rem; }
+                    .font-black { font-weight: 900; }
+                    .font-bold { font-weight: 700; }
+                    .text-slate-800 { color: #1e293b; }
+                    .text-slate-600 { color: #475569; }
+                    .text-slate-500 { color: #64748b; }
+                    .text-white { color: #fff; }
+                    .bg-white { background-color: #fff; }
+                    .bg-green-100 { background-color: #dcfce7; }
+                    .text-green-800 { color: #166534; }
+                    .bg-green-500 { background-color: #22c55e; }
+                    .border { border-width: 1px; }
+                    .border-2 { border-width: 2px; }
+                    .border-slate-100 { border-color: #f1f5f9; }
+                    .border-slate-200 { border-color: #e2e8f0; }
+                    .overflow-hidden { overflow: hidden; }
+                    .inline-flex { display: inline-flex; }
+                    .flex { display: flex; }
+                    .items-center { align-items: center; }
+                    .justify-center { justify-content: center; }
+                    .gap-2 { gap: 0.5rem; }
+                    .gap-3 { gap: 0.75rem; }
+                    .gap-6 { gap: 1.5rem; }
+                    .w-full { width: 100%; }
+                    .w-2 { width: 0.5rem; }
+                    .w-8 { width: 2rem; }
+                    .h-2 { height: 0.5rem; }
+                    .h-8 { height: 2rem; }
+                    .text-xs { font-size: 0.75rem; line-height: 1rem; }
+                    .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+                    .uppercase { text-transform: uppercase; }
+                    .tracking-wider { letter-spacing: 0.05em; }
+                    .tracking-tight { letter-spacing: -0.025em; }
+                    .font-mono { font-family: ui-monospace, monospace; }
+                    .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+                    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+                    .bg-gradient-to-r { background-image: linear-gradient(to right, var(--tw-gradient-stops)); }
+                    .from-drk-800 { --tw-gradient-from: #075985; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(7, 89, 133, 0)); }
+                    .to-drk-600 { --tw-gradient-to: #0284c7; }
+                    .from-red-600 { --tw-gradient-from: #dc2626; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(220, 38, 38, 0)); }
+                    .to-red-700 { --tw-gradient-to: #b91c1c; }
+                    .hover\\:from-red-700:hover { --tw-gradient-from: #b91c1c; }
+                    .hover\\:to-red-800:hover { --tw-gradient-to: #991b1b; }
+                    .hover\\:underline:hover { text-decoration: underline; }
+                    .hover\\:border-drk-500:hover { border-color: #0ea5e9; }
+                    .hover\\:text-drk-800:hover { color: #075985; }
+                    .transition { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+                    .active\\:scale-95:active { transform: scale(0.95); }
+                    .transform { transform: translateX(0) translateY(0) rotate(0) skewX(0) skewY(0) scaleX(1) scaleY(1); }
+                    .grid { display: grid; }
+                    .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+                    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+                    .gap-3 { gap: 0.75rem; }
+                    .space-y-6 > * + * { margin-top: 1.5rem; }
+                    .border-b { border-bottom-width: 1px; }
+                    .pb-4 { padding-bottom: 1rem; }
+                    .pr-2 { padding-right: 0.5rem; }
+                    .pl-2 { padding-left: 0.5rem; }
+                    .border-r { border-right-width: 1px; }
+                    .line-through { text-decoration: line-through; }
+                    .decoration-2 { text-decoration-thickness: 2px; }
+                    .text-cta-green-500 { color: #16a34a; }
+                    .text-cta-red-500 { color: #dc2626; }
+                    .text-drk-800 { color: #075985; }
+                    .text-drk-900 { color: #0c4a6e; }
+                    .text-drk-100 { color: #e0f2fe; }
+                    .bg-drk-800 { background-color: #075985; }
+                    .bg-drk-600 { background-color: #0284c7; }
+                    .opacity-90 { opacity: 0.9; }
+                    .relative { position: relative; }
+                    .flex-col { flex-direction: column; }
+                </style>
+                
+                <div class="clean-container">
+                    <div class="back-section">
+                        <button class="btn-back" onclick="window.location.reload()">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                            </svg>
+                            Realizar Nueva Comparación
+                        </button>
+                    </div>
+                    
+                    <div id="results-content">
+                        ${fullContent}
+                    </div>
+                </div>
+            `;
+            
+            // Re-inicializar event listeners si es necesario
+            const detailsBtn = document.getElementById('details-toggle-btn');
+            if (detailsBtn) {
+                detailsBtn.onclick = function() {
+                    document.getElementById('details-container').classList.toggle('hidden');
+                };
+            }
         }
     </script>
 </body>

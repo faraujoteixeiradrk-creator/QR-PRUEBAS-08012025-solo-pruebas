@@ -8,20 +8,10 @@
     <!-- Incluimos QRCode.js y jsQR.min.js para el manejo de QR -->
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-    <!-- PDF.js para lectura de PDFs -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        // Configurar PDF.js worker
-        if (typeof pdfjsLib !== 'undefined') {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            console.log('✅ PDF.js configurado correctamente');
-        } else {
-            console.error('❌ pdfjsLib no está disponible');
-        }
-    </script>
     <!-- Librerías para generar PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
         // --- TAILWIND CONFIGURATION ---
         tailwind.config = {
@@ -218,22 +208,14 @@
         #panel-view { display: block; }
         #calculator-view { display: none; }
         #comparison-view { display: none; }
-        #pdf-upload-view { display: none; }
         
         body.showing-calculator #panel-view { display: none !important; }
         body.showing-calculator #calculator-view { display: block !important; }
         body.showing-calculator #comparison-view { display: none !important; }
-        body.showing-calculator #pdf-upload-view { display: none !important; }
 
         body.showing-comparison #panel-view { display: none !important; }
         body.showing-comparison #calculator-view { display: none !important; }
         body.showing-comparison #comparison-view { display: block !important; }
-        body.showing-comparison #pdf-upload-view { display: none !important; }
-
-        body.showing-pdf-upload #panel-view { display: none !important; }
-        body.showing-pdf-upload #calculator-view { display: none !important; }
-        body.showing-pdf-upload #comparison-view { display: none !important; }
-        body.showing-pdf-upload #pdf-upload-view { display: block !important; }
 
         /* Estilos del Panel */
         #panel-view {
@@ -959,49 +941,48 @@
 
         <!-- PANTALLA 2: ELECTRICIDAD (landing-view original) -->
         <div id="screen-electricidad" class="screen">
-        <!-- 1. Landing View -->
-        <div id="landing-view" class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8">
-            <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500" id="landing-card">
-                <div id="landing-icon-bg" class="w-16 h-16 bg-drk-50 rounded-full flex items-center justify-center mx-auto mb-4 text-drk-600 shadow-inner">
-                    <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none">
-                        <style>.drk-ring{fill:none;stroke-width:10;stroke-linecap:round;}</style>
-                        <circle class="drk-ring" cx="45" cy="45" r="35" stroke="#E50000"/>
-                        <circle class="drk-ring" cx="55" cy="55" r="35" stroke="#FFCC00"/>
-                        <circle class="drk-ring" cx="45" cy="55" r="35" stroke="#0079C1"/>
-                        <circle class="drk-ring" cx="55" cy="45" r="35" stroke="#00A859"/>
-                    </svg>
-                </div>
-                <h2 id="landing-title" class="text-3xl font-black text-drk-900 mb-2 text-center">DRK COMPARADOR</h2>
-                <p class="text-slate-500 mb-6 text-center">Selecciona la tarifa que deseas analizar.</p>
-                
-                <!-- Tariff Selection Buttons -->
-                <div class="w-full space-y-4">
-                    <button onclick="selectTariffType('2.0TD')" class="tariff-select-btn group">
-                        <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                        </div>
-                        <div class="text-left">
-                            <span class="text-lg font-bold text-drk-900">2.0 TD</span>
-                            <span class="block text-xs text-slate-500">Hogar / Pequeño Negocio</span>
-                        </div>
-                        <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
-                    </button>
+                <!-- ZONA DRAG & DROP (reemplaza landing-view) -->
+        <div id="landing-view" class="fade-in flex flex-col items-center justify-center min-h-[80vh] py-8">
+            <div class="w-full max-w-5xl px-4">
+                <!-- Título -->
+                <div class="text-center mb-8">
+                    <h2 class="text-4xl md:text-5xl font-black text-drk-900 mb-4">
+                        📄 Arrastra tu Factura PDF
+                    </h2>
+                    <p class="text-lg text-slate-600 mb-2">
+                        El sistema extraerá automáticamente todos los datos
+                    </p>
+                    <p class="text-sm text-slate-500">
+                        Válido para todas las comercializadoras • <span class="text-red-600 font-bold">Excepto PVPC</span>
+                    </p>
                 </div>
                 
-                <!-- QR Link Section -->
-                <div id="pwa-install-section" class="mt-8 pt-4 border-t border-slate-200 text-center">
-                    <label class="flex items-center justify-center cursor-pointer mb-3 text-drk-800 hover:text-drk-900 transition">
-                        <input type="checkbox" id="qr-toggle-checkbox" class="h-4 w-4 text-drk-500 border-gray-300 rounded focus:ring-drk-500 mr-2">
-                        <span class="text-xs font-bold uppercase tracking-wider underline decoration-drk-500 decoration-2 underline-offset-4">Abrir en el Movil</span>
-                    </label>
-                    <div id="qr-content-wrapper" class="opacity-0 max-h-0">
-                        <div id="qr-visual-container" class="mx-auto w-44 h-44 p-2">
-                            <div id="qr-code-container"></div>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-3">Haz una foto del QR y ábrelo en tu móvil.</p>
+                <!-- Zona de drag & drop -->
+                <div id="drag-drop-zone-main" class="border-4 border-dashed border-drk-400 rounded-3xl p-12 md:p-20 text-center bg-white hover:bg-drk-50 hover:border-drk-600 transition-all duration-300 cursor-pointer shadow-2xl">
+                    <!-- Iconos -->
+                    <div class="flex items-center justify-center gap-8 mb-8">
+                        <svg class="w-24 h-24 md:w-32 md:h-32 text-drk-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
+                            <path d="M14 2v6h6M10 13h4M10 17h4M10 9h1"/>
+                        </svg>
+                        <svg class="w-24 h-24 md:w-32 md:h-32 text-drk-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
                     </div>
+                    
+                    <h3 class="text-2xl md:text-3xl font-bold text-drk-900 mb-4">
+                        Arrastra tu PDF aquí o haz clic para seleccionar
+                    </h3>
+                    <div class="mt-6">
+                        <div class="inline-block px-8 py-4 bg-drk-500 hover:bg-drk-600 text-white rounded-xl font-bold transition-all transform hover:scale-105 shadow-lg">
+                            📂 Seleccionar Archivo PDF
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-500 mt-6">
+                        Formatos aceptados: PDF, JPG, PNG
+                    </p>
                 </div>
-
             </div>
         </div>
         </div> <!-- Cierre screen-electricidad -->
@@ -18962,6 +18943,32 @@ ${clientName}
                                 </style>
                             </head>
                             <body>
+
+    <!-- Input oculto para subir PDFs -->
+    <input type="file" id="file-upload-input" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" style="display: none;">
+
+    <!-- NUEVO: Modal de Procesamiento Avanzado (PDF/Imagen) -->
+        <div id="advanced-processing-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+            <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-2xl shadow-2xl max-w-2xl w-full border border-drk-500">
+                <div class="text-center mb-6">
+                    <div class="inline-block animate-spin rounded-full h-20 w-20 border-b-4 border-drk-400 mb-4"></div>
+                    <h3 class="text-2xl font-bold text-white mb-2">🔍 Analizando Documento</h3>
+                    <p id="processing-status" class="text-drk-300 text-lg mb-4">Iniciando motor de análisis...</p>
+                </div>
+                
+                <!-- Barra de progreso -->
+                <div class="bg-slate-700 rounded-full h-3 mb-4 overflow-hidden">
+                    <div id="processing-progress-bar" class="bg-gradient-to-r from-drk-400 to-drk-600 h-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                
+                <!-- Log detallado con scroll -->
+                <div class="bg-slate-950 rounded-xl p-4 max-h-64 overflow-y-auto border border-slate-700">
+                    <div id="processing-log" class="text-xs font-mono text-drk-300 space-y-1">
+                        <div class="text-drk-400">█ Sistema iniciado...</div>
+                    </div>
+                </div>
+
+
                                 <div class="container">
                                     <div class="header">
                                         <h1>🔥 DRK 能源 - GAS</h1>
@@ -22509,6 +22516,761 @@ ${clientName}
                 setTimeout(() => window.LANG.retranslate(), 200);
             });
         })();
+    
+    
+    // ============================================================================
+    // FUNCIONES DE PROCESAMIENTO PDF - DRAG & DROP
+    // ============================================================================
+    
+    
+        // === SHOWPROCESSINGMODAL ===
+        function showProcessingModal() {
+            const modal = document.getElementById('advanced-processing-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            // Reset
+            document.getElementById('processing-progress-bar').style.width = '0%';
+            document.getElementById('processing-log').innerHTML = '<div class="text-drk-400">█ Sistema iniciado...</div>';
+            updateStrategyStatus(1, 'Esperando...', 'slate');
+            updateStrategyStatus(2, 'Esperando...', 'slate');
+            updateStrategyStatus(3, 'Esperando...', 'slate');
+        }
+
+
+        // === HIDEPROCESSINGMODAL ===
+        function hideProcessingModal() {
+            const modal = document.getElementById('advanced-processing-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+
+        // === UPDATEPROCESSINGSTATUS ===
+        function updateProcessingStatus(message) {
+            document.getElementById('processing-status').textContent = message;
+        }
+
+
+        // === UPDATEPROCESSINGPROGRESS ===
+        function updateProcessingProgress(percent) {
+            document.getElementById('processing-progress-bar').style.width = percent + '%';
+        }
+
+
+        // === ADDPROCESSINGLOG ===
+        function addProcessingLog(message, type = 'info') {
+            const logContainer = document.getElementById('processing-log');
+            const logEntry = document.createElement('div');
+            
+            const icons = {
+                'info': '█',
+                'success': '✓',
+                'error': '✗',
+                'working': '⚡'
+            };
+            
+            const colors = {
+                'info': 'text-drk-400',
+                'success': 'text-green-400',
+                'error': 'text-red-400',
+                'working': 'text-yellow-400'
+            };
+            
+            logEntry.className = colors[type] || colors['info'];
+            logEntry.textContent = `${icons[type]} ${message}`;
+            logContainer.appendChild(logEntry);
+            
+            // Auto scroll
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+
+        // === UPDATESTRATEGYSTATUS ===
+        function updateStrategyStatus(strategyNum, status, color = 'blue') {
+            const element = document.getElementById(`strategy-${strategyNum}`);
+            if (!element) return;
+            
+            const colors = {
+                'slate': 'text-slate-500',
+                'blue': 'text-drk-400',
+                'yellow': 'text-yellow-400',
+                'green': 'text-green-400',
+                'red': 'text-red-400'
+            };
+            
+            const statusEl = element.querySelector('div:last-child');
+            statusEl.className = `${colors[color]} font-bold`;
+            statusEl.textContent = status;
+        }
+
+
+        // === PROCESSFOUNDURL ===
+        function processFoundUrl(url, method, pageNum) {
+            try {
+                // Asegurar protocolo
+                if (!url.startsWith('http')) url = 'https://' + url;
+                
+                console.log(`🔍 Validando URL encontrada: ${url.substring(0, 100)}...`);
+                
+                const urlObj = new URL(url);
+                const params = {};
+                
+                // Extraer parámetros
+                urlObj.searchParams.forEach((value, key) => {
+                    // Manejo especial para números con signo al final (ej: "2.99-")
+                    if (value.endsWith('-')) {
+                        value = '-' + value.slice(0, -1);
+                    }
+                    params[key] = value;
+                });
+                
+                // VALIDACIÓN CRÍTICA: Solo aceptar si tiene parámetros reales
+                if (Object.keys(params).length === 0) {
+                    console.log('⚠️ URL sin parámetros, continuando búsqueda...');
+                    addProcessingLog(`URL sin parámetros válidos`, 'info');
+                    return false; // Continuar buscando
+                }
+                
+                console.log(`✅ URL válida con ${Object.keys(params).length} parámetros`);
+                addProcessingLog(`✓ URL válida con ${Object.keys(params).length} parámetros`, 'success');
+                addProcessingLog(`Método: ${method} (Página ${pageNum})`, 'success');
+                
+                // URL válida, procesar
+                return url; // Retornar la URL limpia
+                
+            } catch (e) {
+                console.error('❌ Error al validar URL:', e);
+                addProcessingLog(`Error al validar URL: ${e.message}`, 'error');
+                return false; // Continuar buscando
+            }
+        }
+
+
+        // === ISCNMCDATA ===
+        function isCNMCData(str) {
+            if (!str) return false;
+            if (str.includes('comparador.cnmc.gob.es')) return true;
+            // Detección laxa para datos en crudo (RAW)
+            if (str.includes('cups=') || str.includes('CUPS=')) {
+                if (str.includes('imp=') || str.includes('IMP=') || str.includes('cp=') || str.includes('CP=')) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
+        // === HANDLEFILE ===
+        async function handleFile(file) {
+            console.log('📁 Archivo recibido:', file.name, file.type);
+            
+            showProcessingModal();
+            updateProcessingStatus('Detectando tipo de archivo...');
+            addProcessingLog(`Archivo: ${file.name}`, 'info');
+            addProcessingLog(`Tipo: ${file.type}`, 'info');
+            addProcessingLog(`Tamaño: ${(file.size / 1024).toFixed(2)} KB`, 'info');
+            updateProcessingProgress(5);
+            
+            try {
+                if (file.type === 'application/pdf') {
+                    await handlePDFComplete(file);
+                } else if (file.type.startsWith('image/')) {
+                    await handleImageComplete(file);
+                } else {
+                    throw new Error('Formato no soportado. Por favor sube PDF, JPG o PNG.');
+                }
+            } catch (err) {
+                console.error('❌ Error procesando archivo:', err);
+                hideProcessingModal();
+                window.showErrorModal(`❌ Error al procesar el archivo:\n\n${err.message}`);
+            }
+        }
+
+
+        // === HANDLEPDFCOMPLETE ===
+        async function handlePDFComplete(file) {
+            updateProcessingStatus('Cargando PDF...');
+            addProcessingLog('📄 Iniciando análisis de PDF...', 'working');
+            updateProcessingProgress(10);
+            
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+            
+            addProcessingLog(`✓ PDF cargado: ${pdf.numPages} página(s)`, 'success');
+            updateProcessingProgress(15);
+            
+            // ========== ESTRATEGIA 1: Enlaces Digitales Incrustados + TOOLTIPS ==========
+            updateProcessingStatus('Buscando enlaces digitales incrustados y tooltips...');
+            updateStrategyStatus(1, 'Analizando...', 'yellow');
+            addProcessingLog('🔍 ESTRATEGIA 1: Enlaces incrustados + Tooltips', 'working');
+            updateProcessingProgress(20);
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const annotations = await page.getAnnotations();
+                
+                addProcessingLog(`  Página ${i}/${pdf.numPages}: ${annotations.length} anotación(es)`, 'info');
+                
+                for (const ann of annotations) {
+                    // Check URL (Link normal)
+                    if (ann.url && ann.url.includes('comparador.cnmc.gob.es')) {
+                        addProcessingLog(`✓ ¡Enlace encontrado en página ${i}!`, 'success');
+                        
+                        const validUrl = processFoundUrl(ann.url, 'Enlace Digital', i);
+                        if (validUrl) {
+                            updateStrategyStatus(1, '¡Éxito!', 'green');
+                            updateProcessingProgress(100);
+                            
+                            setTimeout(() => {
+                                hideProcessingModal();
+                                handleQRRead(validUrl);
+                            }, 800);
+                            return;
+                        }
+                    }
+                    // NUEVO: Check Tooltips/Contents (Contenido oculto al pasar ratón)
+                    // A veces el contenido está en 'contents', otras veces en 'richContents'
+                    if (ann.contents && isCNMCData(ann.contents)) {
+                        addProcessingLog(`✓ ¡Datos encontrados en Tooltip (MouseOver) en página ${i}!`, 'success');
+                        
+                        const validUrl = processFoundUrl(ann.contents, 'Tooltip Oculto', i);
+                        if (validUrl) {
+                            updateStrategyStatus(1, '¡Éxito!', 'green');
+                            updateProcessingProgress(100);
+                            
+                            setTimeout(() => {
+                                hideProcessingModal();
+                                handleQRRead(validUrl);
+                            }, 800);
+                            return;
+                        }
+                    }
+                }
+            }
+            
+            updateStrategyStatus(1, 'Sin resultados', 'slate');
+            addProcessingLog('⊘ No se encontraron enlaces digitales válidos', 'info');
+            updateProcessingProgress(30);
+            
+            // ========== ESTRATEGIA 2: Escaneo de Texto en Bruto ==========
+            updateProcessingStatus('Analizando texto completo del documento...');
+            updateStrategyStatus(2, 'Analizando...', 'yellow');
+            addProcessingLog('🔍 ESTRATEGIA 2: Extracción de texto', 'working');
+            updateProcessingProgress(35);
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                
+                const rawText = textContent.items.map(item => item.str).join('');
+                const spacedText = textContent.items.map(item => item.str).join(' ');
+                
+                addProcessingLog(`  Página ${i}/${pdf.numPages}: ${textContent.items.length} elementos de texto`, 'info');
+                
+                if (rawText.includes('comparador.cnmc.gob.es')) {
+                    addProcessingLog(`✓ Texto CNMC detectado en página ${i}`, 'success');
+                    
+                    // MÉTODO 2A: Reconstrucción desde texto espaciado
+                    const match = spacedText.match(/(https?:\s*\/\/\s*)?comparador\.cnmc\.gob\.es\/[A-Za-z0-9\/\?=&%\.\-\_]+/i);
+                    if (match) {
+                        let cleanUrl = match[0].replace(/\s/g, '');
+                        if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
+                        
+                        addProcessingLog('✓ URL reconstruida desde texto', 'success');
+                        
+                        const validUrl = processFoundUrl(cleanUrl, 'Reconstrucción de Texto', i);
+                        if (validUrl) {
+                            updateStrategyStatus(2, '¡Éxito!', 'green');
+                            updateProcessingProgress(100);
+                            
+                            setTimeout(() => {
+                                hideProcessingModal();
+                                handleQRRead(validUrl);
+                            }, 800);
+                            return;
+                        }
+                    }
+                    
+                    // MÉTODO 2B: Extracción por fuerza bruta
+                    addProcessingLog('Intentando extracción por fuerza bruta...', 'working');
+                    const startIdx = rawText.indexOf('comparador.cnmc.gob.es');
+                    let potentialUrl = rawText.substring(startIdx);
+                    const endMatch = potentialUrl.match(/[^a-zA-Z0-9\/\?=&%\.\-\_]/);
+                    if (endMatch) {
+                        potentialUrl = potentialUrl.substring(0, endMatch.index);
+                    }
+                    potentialUrl = 'https://' + potentialUrl;
+                    
+                    addProcessingLog('✓ URL extraída por análisis profundo', 'success');
+                    
+                    const validUrl = processFoundUrl(potentialUrl, 'Extracción Profunda', i);
+                    if (validUrl) {
+                        updateStrategyStatus(2, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
+                }
+            }
+            
+            updateStrategyStatus(2, 'Sin resultados', 'slate');
+            addProcessingLog('⊘ No se encontró texto de URL CNMC válido', 'info');
+            updateProcessingProgress(50);
+            
+            // ========== ESTRATEGIA 2.5: MINERÍA DE IMÁGENES NATIVAS (OPTIMIZADA) ==========
+            updateProcessingStatus('Iniciando Minería de Imágenes Nativa...');
+            addProcessingLog('🔍 ESTRATEGIA 2.5: Minería de Imágenes del PDF', 'working');
+            updateProcessingProgress(52);
+            
+            // Flag para detectar si encontramos algo y salir rápido
+            let foundInMining = false;
+            
+            for (let i = 1; i <= pdf.numPages && !foundInMining; i++) {
+                const page = await pdf.getPage(i);
+                try {
+                    const ops = await page.getOperatorList();
+                    
+                    addProcessingLog(`  Página ${i}: Buscando imágenes...`, 'working');
+                    
+                    let imagesProcessed = 0;
+                    const maxImagesPerPage = 10; // Límite para evitar PDFs con muchas imágenes
+                    
+                    for (let j = 0; j < ops.fnArray.length && imagesProcessed < maxImagesPerPage && !foundInMining; j++) {
+                        if (ops.fnArray[j] === pdfjsLib.OPS.paintImageXObject) {
+                            const imgName = ops.argsArray[j][0];
+                            
+                            try {
+                                // Timeout de 2 segundos por imagen
+                                const imagePromise = new Promise((resolve, reject) => {
+                                    const timeout = setTimeout(() => reject(new Error('timeout')), 2000);
+                                    
+                                    try {
+                                        page.objs.get(imgName, (imgData) => {
+                                            clearTimeout(timeout);
+                                            resolve(imgData);
+                                        });
+                                    } catch(e) {
+                                        clearTimeout(timeout);
+                                        reject(e);
+                                    }
+                                });
+                                
+                                const imgData = await imagePromise;
+                                
+                                if (imgData && imgData.width > 50 && imgData.height > 50) {
+                                    imagesProcessed++;
+                                    
+                                    // Renderizar solo si tiene tamaño razonable para un QR
+                                    if (imgData.width < 2000 && imgData.height < 2000) {
+                                        const tempCanvas = document.createElement('canvas');
+                                        tempCanvas.width = imgData.width;
+                                        tempCanvas.height = imgData.height;
+                                        const ctx = tempCanvas.getContext('2d');
+                                        
+                                        const imageDataObj = ctx.createImageData(imgData.width, imgData.height);
+                                        
+                                        // Manejar diferentes tipos de imagen
+                                        if (imgData.data) {
+                                            if (imgData.kind === 1 || imgData.kind === 2) { // RGB o RGBA
+                                                for(let k=0; k<Math.min(imgData.data.length, imageDataObj.data.length); k++) {
+                                                    imageDataObj.data[k] = imgData.data[k];
+                                                }
+                                            } else if (imgData.data.length === imgData.width * imgData.height) { // Grayscale
+                                                for(let k=0, p=0; k<imgData.data.length && p<imageDataObj.data.length; k++, p+=4) {
+                                                    const val = imgData.data[k];
+                                                    imageDataObj.data[p] = val;
+                                                    imageDataObj.data[p+1] = val;
+                                                    imageDataObj.data[p+2] = val;
+                                                    imageDataObj.data[p+3] = 255;
+                                                }
+                                            }
+                                            
+                                            ctx.putImageData(imageDataObj, 0, 0);
+                                            
+                                            // Validar que los datos sean correctos antes de escanear
+                                            const imgDataToScan = ctx.getImageData(0, 0, imgData.width, imgData.height);
+                                            
+                                            // Verificar integridad de los datos
+                                            if (imgDataToScan && imgDataToScan.data && 
+                                                imgDataToScan.data.length === imgData.width * imgData.height * 4) {
+                                                
+                                                try {
+                                                    const code = jsQR(imgDataToScan.data, imgData.width, imgData.height, { 
+                                                        inversionAttempts: "dontInvert" 
+                                                    });
+                                                    
+                                                    if (code && isCNMCData(code.data)) {
+                                                        addProcessingLog(`✓ ¡QR detectado por Minería en página ${i}!`, 'success');
+                                                        
+                                                        const validUrl = processFoundUrl(code.data, 'Minería de Imágenes', i);
+                                                        if (validUrl) {
+                                                            updateStrategyStatus(2, '¡Éxito Minería!', 'green');
+                                                            updateProcessingProgress(100);
+                                                            foundInMining = true;
+                                                            
+                                                            setTimeout(() => {
+                                                                hideProcessingModal();
+                                                                handleQRRead(validUrl);
+                                                            }, 800);
+                                                            return;
+                                                        }
+                                                    }
+                                                } catch(qrError) {
+                                                    console.warn('Error escaneando QR en imagen:', qrError);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch(imgError) {
+                                // Ignorar errores de imágenes individuales
+                                if (imgError.message !== 'timeout') {
+                                    console.log(`Imagen ${j} omitida:`, imgError.message);
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (imagesProcessed > 0) {
+                        addProcessingLog(`  Página ${i}: ${imagesProcessed} imagen(es) analizadas`, 'info');
+                    }
+                } catch(e) { 
+                    console.log("Error minería página " + i + ":", e);
+                    addProcessingLog(`  Página ${i}: Error en minería (omitida)`, 'info');
+                }
+                
+                // Pequeña pausa entre páginas
+                await new Promise(r => setTimeout(r, 50));
+            }
+            
+            if (!foundInMining) {
+                addProcessingLog('⊘ No se encontró QR en imágenes nativas', 'info');
+                updateProcessingProgress(54);
+            }
+            
+            // ========== ESTRATEGIA 3: Búsqueda Visual QR (Microscopio Digital) ==========
+            updateProcessingStatus('Iniciando escaneo visual de QR...');
+            updateStrategyStatus(3, 'Analizando...', 'yellow');
+            addProcessingLog('🔍 ESTRATEGIA 3: Detección visual de QR', 'working');
+            updateProcessingProgress(55);
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const progressBase = 55 + (i - 1) * (40 / pdf.numPages);
+                
+                // Intento 1: Escala 2.0 (Rápido)
+                addProcessingLog(`  Página ${i}: Escaneo rápido (2.0x)`, 'working');
+                updateProcessingProgress(progressBase);
+                let qrUrl = await scanPDFPageForQR(page, 2.0);
+                if (qrUrl) {
+                    const validUrl = processFoundUrl(qrUrl, 'Escáner Rápido', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
+                }
+                
+                // Intento 2: Escala 3.0 (HD)
+                addProcessingLog(`  Página ${i}: Escaneo HD (3.0x)`, 'working');
+                updateProcessingProgress(progressBase + 3);
+                qrUrl = await scanPDFPageForQR(page, 3.0);
+                if (qrUrl) {
+                    const validUrl = processFoundUrl(qrUrl, 'Escáner HD', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
+                }
+                
+                // Intento 3: Escala 5.0 con filtro estándar (Forense)
+                addProcessingLog(`  Página ${i}: Modo forense (5.0x + filtro std)`, 'working');
+                updateProcessingProgress(progressBase + 6);
+                qrUrl = await scanPDFPageForQR(page, 5.0, true, 160);
+                if (qrUrl) {
+                    const validUrl = processFoundUrl(qrUrl, 'Forense (Std)', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
+                }
+                
+                // Intento 4: Escala 5.0 con filtro oscuro
+                addProcessingLog(`  Página ${i}: Filtro oscuro (5.0x)`, 'working');
+                updateProcessingProgress(progressBase + 8);
+                qrUrl = await scanPDFPageForQR(page, 5.0, true, 100);
+                if (qrUrl) {
+                    const validUrl = processFoundUrl(qrUrl, 'Forense (Dark)', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
+                }
+                
+                // Intento 5: Super-zoom 6.0
+                addProcessingLog(`  Página ${i}: Super-zoom (6.0x + filtro agresivo)`, 'working');
+                updateProcessingProgress(progressBase + 10);
+                qrUrl = await scanPDFPageForQR(page, 6.0, true, 180);
+                if (qrUrl) {
+                    const validUrl = processFoundUrl(qrUrl, 'Super-Zoom x6', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
+                }
+                
+                // NUEVO: Intento 6: Grid 3x3 Solapado (Francotirador)
+                addProcessingLog(`  Página ${i}: Escaneo Zonal 3x3 (Último recurso)`, 'working');
+                updateProcessingProgress(progressBase + 12);
+                qrUrl = await scanPageQuadrants(page, 4.0);
+                if (qrUrl) {
+                    const validUrl = processFoundUrl(qrUrl, 'Grid 3x3 Solapado', i);
+                    if (validUrl) {
+                        addProcessingLog(`✓ ¡QR detectado por Grid 3x3 en página ${i}!`, 'success');
+                        updateStrategyStatus(3, '¡Éxito Grid 3x3!', 'green');
+                        updateProcessingProgress(100);
+                        
+                        setTimeout(() => {
+                            hideProcessingModal();
+                            handleQRRead(validUrl);
+                        }, 800);
+                        return;
+                    }
+                }
+            }
+            
+            updateStrategyStatus(3, 'Sin resultados', 'red');
+            addProcessingLog('✗ No se detectó código QR válido en ninguna página', 'error');
+            updateProcessingProgress(100);
+            
+            // No se encontró nada válido
+            setTimeout(() => {
+                hideProcessingModal();
+                window.showErrorModal(
+                    "❌ No se detectó código QR de CNMC\n\n" +
+                    "💡 Sugerencias:\n" +
+                    "• Verifica que el PDF contenga el QR de la CNMC\n" +
+                    "• El QR debe ser visible y legible\n" +
+                    "• Asegúrate de que el QR tenga datos válidos\n" +
+                    "• Intenta con una imagen clara del QR\n" +
+                    "• Usa la opción 'Pegar Código Completo' si tienes la URL"
+                );
+            }, 1500);
+        }
+
+
+        // === HANDLEIMAGECOMPLETE ===
+        async function handleImageComplete(file) {
+            updateProcessingStatus('Cargando imagen...');
+            updateStrategyStatus(3, 'Analizando...', 'yellow');
+            addProcessingLog('📸 Iniciando análisis de imagen...', 'working');
+            updateProcessingProgress(15);
+            
+            const bitmap = await createImageBitmap(file);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = bitmap.width;
+            canvas.height = bitmap.height;
+            ctx.drawImage(bitmap, 0, 0);
+            
+            addProcessingLog(`✓ Imagen cargada: ${canvas.width}x${canvas.height}`, 'success');
+            updateProcessingProgress(25);
+            
+            // MEJORADO: Usar performDeepScan directamente que prueba múltiples técnicas
+            addProcessingLog('🔍 Aplicando Deep Scan (múltiples umbrales + inversión)', 'working');
+            updateProcessingProgress(35);
+            let qrUrl = performDeepScan(ctx, canvas.width, canvas.height);
+            if (qrUrl) {
+                const validUrl = processFoundUrl(qrUrl, 'Deep Scan en Imagen', 1);
+                if (validUrl) {
+                    addProcessingLog('✓ ¡QR detectado con Deep Scan!', 'success');
+                    updateStrategyStatus(3, '¡Éxito!', 'green');
+                    updateProcessingProgress(100);
+                    
+                    setTimeout(() => {
+                        hideProcessingModal();
+                        handleQRRead(validUrl);
+                    }, 800);
+                    return;
+                }
+            }
+            
+            // NUEVO: Intento con Grid 3x3 si la imagen es grande
+            if (canvas.width > 800 && canvas.height > 800) {
+                addProcessingLog('🔍 Imagen grande detectada - Aplicando Grid 3x3', 'working');
+                updateProcessingProgress(60);
+                
+                const w = canvas.width, h = canvas.height;
+                const zones = [
+                    { x: 0, y: 0, w: w/2, h: h/2 },
+                    { x: w/4, y: 0, w: w/2, h: h/2 },
+                    { x: w/2, y: 0, w: w/2, h: h/2 },
+                    { x: 0, y: h/4, w: w/2, h: h/2 },
+                    { x: w/4, y: h/4, w: w/2, h: h/2 },
+                    { x: w/2, y: h/4, w: w/2, h: h/2 },
+                    { x: 0, y: h/2, w: w/2, h: h/2 },
+                    { x: w/4, y: h/2, w: w/2, h: h/2 },
+                    { x: w/2, y: h/2, w: w/2, h: h/2 }
+                ];
+                
+                for (let z of zones) {
+                    const tempC = document.createElement('canvas');
+                    tempC.width = z.w;
+                    tempC.height = z.h;
+                    const tempCtx = tempC.getContext('2d');
+                    tempCtx.drawImage(canvas, z.x, z.y, z.w, z.h, 0, 0, z.w, z.h);
+                    
+                    const zoneData = performDeepScan(tempCtx, z.w, z.h);
+                    if (zoneData) {
+                        const validUrl = processFoundUrl(zoneData, 'Grid 3x3 en Imagen', 1);
+                        if (validUrl) {
+                            addProcessingLog('✓ ¡QR detectado en zona recortada!', 'success');
+                            updateStrategyStatus(3, '¡Éxito Grid 3x3!', 'green');
+                            updateProcessingProgress(100);
+                            
+                            setTimeout(() => {
+                                hideProcessingModal();
+                                handleQRRead(validUrl);
+                            }, 800);
+                            return;
+                        }
+                    }
+                }
+            }
+            
+            // No detectado
+            updateStrategyStatus(3, 'Sin resultados', 'red');
+            addProcessingLog('✗ No se detectó código QR válido en la imagen', 'error');
+            updateProcessingProgress(100);
+            
+            setTimeout(() => {
+                hideProcessingModal();
+                window.showErrorModal(
+                    "❌ No se detectó el código QR\n\n" +
+                    "💡 Sugerencias:\n" +
+                    "• Asegúrate de que el QR sea visible y legible\n" +
+                    "• Intenta con mejor iluminación\n" +
+                    "• Haz una foto más cercana del QR\n" +
+                    "• Usa el escáner en vivo para mejores resultados"
+                );
+            }, 1500);
+        }
+
+    
+    // ============================================================================
+    // EVENT LISTENERS PARA DRAG & DROP
+    // ============================================================================
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔧 Inicializando Drag & Drop PDF...');
+        
+        const fileInput = document.getElementById('file-upload-input');
+        const dragZone = document.getElementById('drag-drop-zone-main');
+        
+        if (!fileInput) {
+            console.error('❌ No se encontró file-upload-input');
+            return;
+        }
+        
+        if (!dragZone) {
+            console.error('❌ No se encontró drag-drop-zone-main');
+            return;
+        }
+        
+        console.log('✅ Elementos encontrados');
+        
+        // Click en la zona para abrir selector de archivos
+        dragZone.addEventListener('click', function(e) {
+            console.log('📂 Click en drag zone');
+            fileInput.click();
+        });
+        
+        // Prevenir comportamiento por defecto en drag & drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dragZone.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
+        
+        // Efectos visuales al arrastrar
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dragZone.addEventListener(eventName, function() {
+                dragZone.classList.add('border-drk-600', 'bg-drk-100');
+                console.log('🎨 Hover activo');
+            });
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dragZone.addEventListener(eventName, function() {
+                dragZone.classList.remove('border-drk-600', 'bg-drk-100');
+            });
+        });
+        
+        // Manejar drop de archivo
+        dragZone.addEventListener('drop', function(e) {
+            console.log('📥 Archivo dropeado');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                console.log('📄 Procesando:', files[0].name);
+                handleFile(files[0]);
+            }
+        });
+        
+        // Manejar selección desde input
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                console.log('📄 Archivo seleccionado:', e.target.files[0].name);
+                handleFile(e.target.files[0]);
+                e.target.value = ''; // Reset
+            }
+        });
+        
+        console.log('✅ Drag & Drop inicializado correctamente');
+    });
+    
+    // ============================================================================
+    // FIN FUNCIONES DRAG & DROP
+    // ============================================================================
+    
     </script>
 </div>
 
@@ -23145,41 +23907,53 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ========== NAVEGACIÓN ENTRE PANEL Y CALCULADORA ==========
 function showCalculator() {
-    console.log('📂 showCalculator llamada');
+    console.log('🚀 showCalculator - Mostrando drag & drop');
     
-    // Mostrar la vista de PDF drag & drop
-    document.body.classList.add('showing-pdf-upload');
+    // 1. Ocultar panel principal
     document.getElementById('panel-view').style.display = 'none';
-    document.getElementById('pdf-upload-view').style.display = 'block';
+    
+    // 2. Mostrar calculator-view
+    document.getElementById('calculator-view').style.display = 'block';
+    
+    // 3. CRÍTICO: Ocultar TODAS las pantallas primero
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
+    
+    // 4. Activar SOLO screen-electricidad
+    const screenElec = document.getElementById('screen-electricidad');
+    if (screenElec) {
+        screenElec.classList.add('active');
+        console.log('✅ screen-electricidad activado');
+    }
+    
+    // 5. Asegurar que landing-view (drag & drop) esté visible
+    const landingView = document.getElementById('landing-view');
+    if (landingView) {
+        landingView.style.display = 'flex';
+        landingView.classList.remove('hidden');
+        landingView.classList.add('fade-in');
+        console.log('✅ Landing view (drag & drop) mostrado');
+    } else {
+        console.error('❌ No se encontró landing-view');
+    }
+    
+    // 6. Aplicar clase al body
+    document.body.classList.add('showing-calculator');
     window.scrollTo(0, 0);
     
-    console.log('👀 Vista PDF mostrada, esperando para inicializar...');
-    
-    // IMPORTANTE: Reinicializar el drag & drop cada vez que se muestra la vista
-    setTimeout(() => {
-        console.log('⏰ Timeout ejecutado, llamando a initPDFDragDrop...');
-        initPDFDragDrop();
-    }, 300);
-    
-    // Cargar tarifas en segundo plano si no están cargadas
-    if (currentTariffs['2.0TD'].length === 0) {
-        console.log('📥 Precargando tarifas 2.0TD...');
-        fetchTariffsFromSheet('2.0TD').then(() => {
-            console.log('✅ Tarifas 2.0TD precargadas:', currentTariffs['2.0TD'].length);
-        }).catch(err => {
-            console.error('❌ Error precargando tarifas:', err);
-        });
-    } else {
-        console.log('✅ Tarifas ya cargadas:', currentTariffs['2.0TD'].length);
+    // 7. Ocultar selector de idiomas de la calculadora
+    const calcLangSelector = document.getElementById('calculator-language-selector');
+    if (calcLangSelector) {
+        calcLangSelector.style.display = 'none';
     }
+    
+    console.log('✅ showCalculator completado - drag & drop debe estar visible');
 }
 
 function showPanel() {
     document.body.classList.remove('showing-calculator');
     document.body.classList.remove('showing-comparison');
-    document.body.classList.remove('showing-pdf-upload');
-    document.getElementById('panel-view').style.display = 'block';
-    document.getElementById('pdf-upload-view').style.display = 'none';
     window.scrollTo(0, 0);
     
     // Traducir panel por si acaso
@@ -25343,1167 +26117,13 @@ ${myName}`;
 </script>
 
 
-
-
-<!-- ========== VISTA DE PDF UPLOAD (CALCULA TU AHORRO) ========== -->
-<div id="pdf-upload-view" style="display: none; min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); font-family: 'Outfit', sans-serif;">
-    <button class="back-btn" onclick="showPanel()">
-        <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i>Volver al Panel
-    </button>
-
-    <!-- Selector de Idiomas -->
-    <div style="position: fixed; top: 1.5rem; right: 1.5rem; z-index: 1000;">
-        <select id="pdf-language-selector" onchange="changePDFLanguage(this.value)" 
-                style="background: linear-gradient(135deg, #1e7a9e, #2596be); color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; border: 2px solid rgba(255,255,255,0.2); font-weight: 600; cursor: pointer; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
-            <option value="es">🇪🇸 Español</option>
-            <option value="en">🇬🇧 English</option>
-            <option value="pt">🇵🇹 Português</option>
-            <option value="zh">🇨🇳 中文</option>
-            <option value="fr">🇫🇷 Français</option>
-        </select>
-    </div>
-
-    <div style="padding: 2rem; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-        <div style="text-align: center; margin-bottom: 3rem;">
-            <!-- Logo DRK -->
-            <div style="display: inline-flex; align-items: center; justify-content: center; margin-bottom: 2rem;">
-                <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #2596be, #1e7a9e); border-radius: 25px; display: flex; align-items: center; justify-center; box-shadow: 0 10px 30px rgba(37, 150, 190, 0.4); position: relative;">
-                    <span style="font-size: 2.5rem; font-weight: 900; color: white; letter-spacing: -0.05em;">DRK</span>
-                    <div style="position: absolute; top: -8px; right: -8px; width: 30px; height: 30px; background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.5);">
-                        <i class="fas fa-bolt" style="color: white; font-size: 0.9rem;"></i>
-                    </div>
-                </div>
-            </div>
-            
-            <h1 style="font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 1rem; letter-spacing: -0.02em;">
-                <span id="pdf-title">DRK</span> <span style="color: #2596be;">POWER</span>
-            </h1>
-            <p style="font-size: 1.25rem; color: #cbd5e1; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">
-                <span id="pdf-subtitle">SOLO PARA FACTURAS PDF DIRECTAS DE LA COMERCIALIZADORA</span>
-            </p>
-            <p style="font-size: 0.9rem; color: #60a5fa; font-weight: 600;">
-                <span id="pdf-multi">(MULTIIDIOMAS)</span>
-            </p>
-        </div>
-
-        <!-- Selector de Idiomas de Factura -->
-        <div style="width: 100%; max-width: 600px; margin-bottom: 2rem;">
-            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center;">
-                <button onclick="selectPDFLang('es')" id="pdf-lang-es" class="pdf-lang-btn" style="background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
-                    🇪🇸 ES
-                </button>
-                <button onclick="selectPDFLang('en')" id="pdf-lang-en" class="pdf-lang-btn" style="background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
-                    🇬🇧 EN
-                </button>
-                <button onclick="selectPDFLang('zh')" id="pdf-lang-zh" class="pdf-lang-btn" style="background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
-                    🇨🇳 ZH
-                </button>
-                <button onclick="selectPDFLang('fr')" id="pdf-lang-fr" class="pdf-lang-btn" style="background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
-                    🇫🇷 FR
-                </button>
-            </div>
-            <div style="text-align: center; margin-top: 1rem;">
-                <button onclick="selectPDFLang('de')" id="pdf-lang-de" class="pdf-lang-btn" style="background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
-                    🇩🇪 DE
-                </button>
-            </div>
-        </div>
-
-        <!-- Zona de Drag & Drop -->
-        <div style="width: 100%; max-w-5xl; padding: 0 1rem;">
-            <div id="pdf-drag-drop-zone" 
-                 style="border: 4px dashed rgba(37, 150, 190, 0.4); border-radius: 2rem; padding: 3rem 2rem; text-align: center; background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(10px); cursor: pointer; transition: all 0.3s ease; pointer-events: all;"
-                 onclick="console.log('CLICK DETECTADO'); document.getElementById('pdf-file-input').click();"
-                 ondragenter="event.preventDefault(); event.stopPropagation(); console.log('DRAG ENTER'); this.style.borderColor='#2596be'; this.style.background='rgba(37, 150, 190, 0.2)';"
-                 ondragover="event.preventDefault(); event.stopPropagation(); console.log('DRAG OVER'); this.style.borderColor='#2596be';"
-                 ondragleave="event.preventDefault(); event.stopPropagation(); console.log('DRAG LEAVE'); this.style.borderColor='rgba(37, 150, 190, 0.4)'; this.style.background='rgba(30, 41, 59, 0.3)';"
-                 ondrop="event.preventDefault(); event.stopPropagation(); console.log('DROP DETECTADO', event.dataTransfer.files); this.style.borderColor='rgba(37, 150, 190, 0.4)'; this.style.background='rgba(30, 41, 59, 0.3)'; if(event.dataTransfer.files.length > 0) { console.log('Procesando:', event.dataTransfer.files[0].name); handlePDFFile(event.dataTransfer.files[0]); }">
-                <!-- Iconos -->
-                <div style="display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 2rem; pointer-events: none;">
-                    <svg style="width: 5rem; height: 5rem; color: #94a3b8; pointer-events: none;" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
-                        <path d="M14 2v6h6M10 13h4M10 17h4M10 9h1"/>
-                    </svg>
-                    <svg style="width: 5rem; height: 5rem; color: #94a3b8; pointer-events: none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                </div>
-                
-                <h2 id="pdf-drop-title" style="font-size: 2rem; font-weight: 700; color: white; margin-bottom: 1rem; pointer-events: none;">
-                    Arrastra el PDF de la factura original de la comercializadora
-                </h2>
-                <p id="pdf-drop-subtitle" style="color: #cbd5e1; font-size: 1rem; pointer-events: none;">
-                    Válido para todas las comercializadoras de electricidad, <span style="font-weight: 700; color: #ef4444;">excepto PVPC</span>.
-                </p>
-                
-                <!-- Botón de prueba visible -->
-                <button onclick="event.stopPropagation(); console.log('BOTÓN CLICK'); document.getElementById('pdf-file-input').click();" style="margin-top: 2rem; background: linear-gradient(135deg, #2596be, #1e7a9e); color: white; padding: 1rem 2rem; border: none; border-radius: 0.75rem; cursor: pointer; font-size: 1rem; font-weight: 600; box-shadow: 0 4px 15px rgba(37, 150, 190, 0.3); transition: all 0.3s;">
-                    📁 O haz clic aquí para seleccionar archivo
-                </button>
-            </div>
-        </div>
-
-        <!-- Input oculto para seleccionar archivo -->
-        <input type="file" id="pdf-file-input" accept="application/pdf,image/*" style="display: none;" onchange="console.log('FILE INPUT CHANGE', this.files); if(this.files.length > 0) { console.log('Procesando desde input:', this.files[0].name); handlePDFFile(this.files[0]); this.value = ''; }">
-        
-        <!-- Modal de Procesamiento Avanzado -->
-        <div id="advanced-processing-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-            <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-2xl shadow-2xl max-w-2xl w-full border border-drk-500">
-                <div class="text-center mb-6">
-                    <div class="inline-block animate-spin rounded-full h-20 w-20 border-b-4 border-drk-400 mb-4"></div>
-                    <h3 class="text-2xl font-bold text-white mb-2">🔍 Analizando Documento</h3>
-                    <p id="processing-status" class="text-drk-300 text-lg mb-4">Iniciando motor de análisis...</p>
-                </div>
-                
-                <!-- Barra de progreso -->
-                <div class="bg-slate-700 rounded-full h-3 mb-4 overflow-hidden">
-                    <div id="processing-progress-bar" class="bg-gradient-to-r from-drk-400 to-drk-600 h-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-                
-                <!-- Log detallado con scroll -->
-                <div class="bg-slate-950 rounded-xl p-4 max-h-64 overflow-y-auto border border-slate-700">
-                    <div id="processing-log" class="text-xs font-mono text-drk-300 space-y-1">
-                        <div class="text-drk-400">█ Sistema iniciado...</div>
-                    </div>
-                </div>
-                
-                <!-- Información de estrategias -->
-                <div class="mt-4 grid grid-cols-3 gap-2 text-xs">
-                    <div id="strategy-1" class="bg-slate-800 p-2 rounded-lg text-center border border-slate-700">
-                        <div class="text-slate-400 mb-1">📡 Enlaces</div>
-                        <div class="text-slate-500 font-bold">Esperando...</div>
-                    </div>
-                    <div id="strategy-2" class="bg-slate-800 p-2 rounded-lg text-center border border-slate-700">
-                        <div class="text-slate-400 mb-1">📝 Texto</div>
-                        <div class="text-slate-500 font-bold">Esperando...</div>
-                    </div>
-                    <div id="strategy-3" class="bg-slate-800 p-2 rounded-lg text-center border border-slate-700">
-                        <div class="text-slate-400 mb-1">🔍 Visual</div>
-                        <div class="text-slate-500 font-bold">Esperando...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-.pdf-lang-btn:hover {
-    background: rgba(37, 150, 190, 0.4) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(37, 150, 190, 0.4);
-}
-
-.pdf-lang-btn.active {
-    background: linear-gradient(135deg, #2596be, #1e7a9e) !important;
-    transform: scale(1.05);
-}
-
-#pdf-drag-drop-zone:hover {
-    border-color: #2596be;
-    background: rgba(30, 41, 59, 0.5);
-    transform: translateY(-4px);
-    box-shadow: 0 10px 30px rgba(37, 150, 190, 0.3);
-}
-
-#pdf-drag-drop-zone.drag-over {
-    border-color: #3b82f6;
-    background: rgba(59, 130, 246, 0.1);
-}
-</style>
-
-<script>
-// ========== CONFIGURACIÓN GLOBAL DEL SISTEMA ==========
-
-// Configuración de tarifas y Google Sheets
-const TARIFF_CONFIG = {
-    '2.0TD': { sheetId: '1kLfQOZnTsBJ8lRXA0ab5RXk-QM3VeSRkDQsatL3-tVk', periods: 3, powerPeriods: 2, label: '2.0 TD', isHighVoltage: false },
-    '3.0TD': { sheetId: '18nieA7yMD9Ytc2Z3EnktoNDZokuMrBet_ETGyhNZDuo', periods: 6, powerPeriods: 6, label: '3.0 TD', isHighVoltage: true }
-};
-
-// Estado global de tarifas
-let currentTariffs = {
-    '2.0TD': [],
-    '3.0TD': []
-};
-
-let currentTariffType = '2.0TD';
-let lastComparisonResult = null;
-let comparisonMode = 'drk_only';
-
-// Funciones de formato
-const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
-const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
-
-// Cargar tarifas desde Google Sheets
-async function fetchTariffsFromSheet(tariffType) {
-    const config = TARIFF_CONFIG[tariffType];
-    const sheetId = config.sheetId;
-    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=0&t=${Date.now()}`;
-
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Error red para ${tariffType}`);
-        const text = await response.text();
-        currentTariffs[tariffType] = parseCSV(text, tariffType);
-        console.log(`✅ Tarifas ${tariffType} cargadas:`, currentTariffs[tariffType].length);
-    } catch (e) {
-        console.error(`❌ Error al cargar ${tariffType}:`, e);
-        currentTariffs[tariffType] = [];
-    }
-}
-
-// Parser CSV
-function parseCSV(text, tariffType) {
-    const lines = text.trim().split('\n');
-    if (lines.length < 2) return [];
-    
-    const rawHeader = lines[0];
-    const delimiter = rawHeader.includes(';') ? ';' : ',';
-    const headers = rawHeader.split(delimiter).map(h => h.trim().toLowerCase().replace(/"/g, ''));
-    const data = [];
-
-    for(let i=1; i<lines.length; i++) {
-        const row = lines[i].trim();
-        if(!row) continue;
-        
-        const regex = new RegExp(`(?:^|${delimiter})(\"(?:[^\"]|\"\")*\"|[^${delimiter}]*)`,"g");
-        const values = [];
-        let match = null;
-        regex.lastIndex = 0;
-        let lastIndex = 0;
-        
-        while(match = regex.exec(row)){
-            let val = match[1].replace(/^"|"$/g, '').replace(/""/g, '"');
-            if (match.index > lastIndex) {
-                for (let j = 0; j < (match.index - lastIndex) / delimiter.length; j++) {
-                    values.push('');
-                }
-            }
-            values.push(val.trim());
-            lastIndex = match.index + match[0].length;
-        }
-        
-        if (values.length < headers.length) {
-            for (let j = values.length; j < headers.length; j++) {
-                values.push('');
-            }
-        }
-
-        if(values.length < headers.length) continue;
-
-        let item = { cups_match: [tariffType] };
-        headers.forEach((h, idx) => {
-            let val = values[idx];
-            if (h.includes('price') || h.includes('potencia') || h === 'descuento') {
-                val = parseFloat(val?.replace(',', '.') || 0);
-                if(isNaN(val)) val = 0;
-            }
-            item[h] = val;
-        });
-
-        item.isDrk = item.name?.toUpperCase().includes('DRK') || 
-                     item.description?.toUpperCase().includes('DRK') ||
-                     item.commercializer?.toUpperCase().includes('DRK');
-        
-        if(item.p1_price !== undefined) {
-            data.push(item);
-        }
-    }
-    return data;
-}
-
-// Función para calcular el costo de una tarifa
-function calculateTariffCost(tariff, userData, tariffType) {
-    const billingDays = userData.dias_facturados || 30;
-    const daysInYear = 365;
-    const monthlyMultiplier = daysInYear / billingDays;
-    
-    // Calcular costes de energía
-    const energyCosts = [];
-    let totalEnergyCost = 0;
-    
-    if (tariffType === '2.0TD') {
-        // 3 periodos
-        const periods = [
-            { period: 1, kwh: userData.consumo_punta || 0, price: tariff.p1_price || 0 },
-            { period: 2, kwh: userData.consumo_llano || 0, price: tariff.p2_price || 0 },
-            { period: 3, kwh: userData.consumo_valle || 0, price: tariff.p3_price || 0 }
-        ];
-        
-        periods.forEach(p => {
-            const cost = p.kwh * p.price;
-            totalEnergyCost += cost;
-            energyCosts.push({ period: p.period, kwh: p.kwh, price: p.price, cost: cost });
-        });
-    } else if (tariffType === '3.0TD') {
-        // 6 periodos
-        const periods = [
-            { period: 1, kwh: userData.kwh_p1 || 0, price: tariff.p1_price || 0 },
-            { period: 2, kwh: userData.kwh_p2 || 0, price: tariff.p2_price || 0 },
-            { period: 3, kwh: userData.kwh_p3 || 0, price: tariff.p3_price || 0 },
-            { period: 4, kwh: userData.kwh_p4 || 0, price: tariff.p4_price || 0 },
-            { period: 5, kwh: userData.kwh_p5 || 0, price: tariff.p5_price || 0 },
-            { period: 6, kwh: userData.kwh_p6 || 0, price: tariff.p6_price || 0 }
-        ];
-        
-        periods.forEach(p => {
-            const cost = p.kwh * p.price;
-            totalEnergyCost += cost;
-            energyCosts.push({ period: p.period, kwh: p.kwh, price: p.price, cost: cost });
-        });
-    }
-    
-    // Calcular costes de potencia
-    const powerCosts = [];
-    let totalPowerCost = 0;
-    
-    if (tariffType === '2.0TD') {
-        const powers = [
-            { period: 1, kw: userData.potencia_p1_kw || 0, priceDay: (tariff.potencia_p1 || 0) / 365 },
-            { period: 2, kw: userData.potencia_p2_kw || 0, priceDay: (tariff.potencia_p2 || 0) / 365 }
-        ];
-        
-        powers.forEach(p => {
-            const cost = p.kw * p.priceDay * billingDays;
-            totalPowerCost += cost;
-            powerCosts.push({ period: p.period, kw: p.kw, priceDay: p.priceDay, cost: cost });
-        });
-    } else if (tariffType === '3.0TD') {
-        const powers = [
-            { period: 1, kw: userData.p1 || 0, priceDay: (tariff.potencia_p1 || 0) / 365 },
-            { period: 2, kw: userData.p2 || 0, priceDay: (tariff.potencia_p2 || 0) / 365 },
-            { period: 3, kw: userData.p3 || 0, priceDay: (tariff.potencia_p3 || 0) / 365 },
-            { period: 4, kw: userData.p4 || 0, priceDay: (tariff.potencia_p4 || 0) / 365 },
-            { period: 5, kw: userData.p5 || 0, priceDay: (tariff.potencia_p5 || 0) / 365 },
-            { period: 6, kw: userData.p6 || 0, priceDay: (tariff.potencia_p6 || 0) / 365 }
-        ];
-        
-        powers.forEach(p => {
-            const cost = p.kw * p.priceDay * billingDays;
-            totalPowerCost += cost;
-            powerCosts.push({ period: p.period, kw: p.kw, priceDay: p.priceDay, cost: cost });
-        });
-    }
-    
-    const totalPeriod = totalEnergyCost + totalPowerCost;
-    const totalAnnual = totalPeriod * monthlyMultiplier;
-    const originalBillAnnual = (userData.importe_total || 0) * monthlyMultiplier;
-    
-    return {
-        offer: tariff,
-        energyCosts: energyCosts,
-        powerCosts: powerCosts,
-        totalPeriod: totalPeriod,
-        totalAnnual: totalAnnual,
-        originalBillAnnual: originalBillAnnual,
-        savings: originalBillAnnual - totalAnnual,
-        cups: userData.cups,
-        dias_facturados: billingDays,
-        tariffType: tariffType
-    };
-}
-
-// Función para comparar ofertas
-function compareOffers(data) {
-    try {
-        console.log('🔍 Comparando ofertas con datos:', data);
-        
-        const tariffType = currentTariffType;
-        const tariffsToCompare = currentTariffs[tariffType] || [];
-
-        if (tariffsToCompare.length === 0) {
-            console.error(`No hay tarifas cargadas para ${tariffType}`);
-            alert(`Las tarifas ${tariffType} no están cargadas. Por favor, espere un momento e intente de nuevo.`);
-            return;
-        }
-
-        const results = tariffsToCompare.map(t => calculateTariffCost(t, data, tariffType));
-        console.log('✅ Resultados calculados:', results.length);
-        
-        // Encontrar la mejor oferta
-        let bestOffer = results.reduce((best, current) => {
-            if (!best || current.totalAnnual < best.totalAnnual) {
-                return current;
-            }
-            return best;
-        }, null);
-        
-        // Encontrar la mejor oferta DRK
-        let bestDrkOffer = results
-            .filter(r => r.offer.isDrk)
-            .reduce((best, current) => {
-                if (!best || current.totalAnnual < best.totalAnnual) {
-                    return current;
-                }
-                return best;
-            }, null);
-        
-        console.log('🏆 Mejor oferta:', bestOffer?.offer?.name, 'Coste anual:', bestOffer?.totalAnnual);
-        console.log('🏆 Mejor oferta DRK:', bestDrkOffer?.offer?.name, 'Coste anual:', bestDrkOffer?.totalAnnual);
-        
-        // Guardar resultado
-        lastComparisonResult = bestDrkOffer || bestOffer;
-        
-        // Mostrar resultados
-        showResults(lastComparisonResult);
-        
-    } catch (error) {
-        console.error('❌ Error en compareOffers:', error);
-        alert(`Error al calcular: ${error.message}`);
-    }
-}
-
-// Función para mostrar los resultados
-function showResults(result) {
-    hideProcessingModal();
-    
-    const savings = result.savings;
-    const savingsPercent = (savings / result.originalBillAnnual) * 100;
-    
-    let message = `✅ ¡Análisis Completado!\n\n`;
-    message += `📊 RESULTADOS:\n`;
-    message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
-    message += `🏢 Tarifa: ${result.offer.name}\n`;
-    message += `📋 Descripción: ${result.offer.description || 'N/A'}\n\n`;
-    message += `💰 Coste actual anual: ${eur(result.originalBillAnnual)}\n`;
-    message += `💰 Nuevo coste anual: ${eur(result.totalAnnual)}\n\n`;
-    
-    if (savings > 0) {
-        message += `💚 AHORRO ANUAL: ${eur(savings)}\n`;
-        message += `📈 Porcentaje: ${savingsPercent.toFixed(2)}%\n\n`;
-        message += `🎯 ¡Puedes ahorrar ${eur(savings/12)} al mes!`;
-    } else {
-        message += `⚠️ No hay ahorro con esta tarifa\n`;
-        message += `Diferencia: ${eur(Math.abs(savings))} más al año`;
-    }
-    
-    alert(message);
-    
-    // Volver al panel
-    setTimeout(() => {
-        showPanel();
-    }, 2000);
-}
-
-// Variables globales para PDF upload
-let selectedPDFLanguage = 'es';
-
-// Función para cambiar idioma de la interfaz
-function changePDFLanguage(lang) {
-    selectedPDFLanguage = lang;
-    const translations = {
-        es: {
-            title: 'DRK',
-            subtitle: 'SOLO PARA FACTURAS PDF DIRECTAS DE LA COMERCIALIZADORA',
-            multi: '(MULTIIDIOMAS)',
-            dropTitle: 'Arrastra el PDF de la factura original de la comercializadora',
-            dropSubtitle: 'Válido para todas las comercializadoras de electricidad, <span style="font-weight: 700; color: #ef4444;">excepto PVPC</span>.'
-        },
-        en: {
-            title: 'DRK',
-            subtitle: 'ONLY FOR DIRECT PDF INVOICES FROM THE RETAILER',
-            multi: '(MULTILANGUAGE)',
-            dropTitle: 'Drag the PDF of the original invoice from the retailer',
-            dropSubtitle: 'Valid for all electricity retailers, <span style="font-weight: 700; color: #ef4444;">except PVPC</span>.'
-        },
-        pt: {
-            title: 'DRK',
-            subtitle: 'APENAS PARA FATURAS PDF DIRETAS DA COMERCIALIZADORA',
-            multi: '(MULTILINGUE)',
-            dropTitle: 'Arraste o PDF da fatura original da comercializadora',
-            dropSubtitle: 'Válido para todas as comercializadoras de eletricidade, <span style="font-weight: 700; color: #ef4444;">exceto PVPC</span>.'
-        },
-        zh: {
-            title: 'DRK',
-            subtitle: '仅适用于零售商的直接PDF发票',
-            multi: '(多语言)',
-            dropTitle: '拖放零售商原始发票的PDF',
-            dropSubtitle: '适用于所有电力零售商，<span style="font-weight: 700; color: #ef4444;">PVPC除外</span>。'
-        },
-        fr: {
-            title: 'DRK',
-            subtitle: 'UNIQUEMENT POUR LES FACTURES PDF DIRECTES DU FOURNISSEUR',
-            multi: '(MULTILINGUE)',
-            dropTitle: 'Glissez le PDF de la facture originale du fournisseur',
-            dropSubtitle: 'Valable pour tous les fournisseurs d\'électricité, <span style="font-weight: 700; color: #ef4444;">sauf PVPC</span>.'
-        }
-    };
-    
-    const t = translations[lang];
-    document.getElementById('pdf-title').textContent = t.title;
-    document.getElementById('pdf-subtitle').textContent = t.subtitle;
-    document.getElementById('pdf-multi').textContent = t.multi;
-    document.getElementById('pdf-drop-title').textContent = t.dropTitle;
-    document.getElementById('pdf-drop-subtitle').innerHTML = t.dropSubtitle;
-}
-
-// Función para seleccionar idioma de factura
-function selectPDFLang(lang) {
-    // Remover clase active de todos los botones
-    document.querySelectorAll('.pdf-lang-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    // Añadir clase active al botón seleccionado
-    document.getElementById(`pdf-lang-${lang}`).classList.add('active');
-    selectedPDFLanguage = lang;
-}
-
-// Configurar drag & drop cuando se carga la página
-// Función para inicializar el drag & drop del PDF (eventos inline en HTML)
-function initPDFDragDrop() {
-    console.log('🔧 initPDFDragDrop - Verificando elementos...');
-    
-    const dropZone = document.getElementById('pdf-drag-drop-zone');
-    const fileInput = document.getElementById('pdf-file-input');
-    
-    if (dropZone && fileInput) {
-        console.log('✅ Elementos encontrados - Eventos inline activos');
-        console.log('dropZone:', dropZone);
-        console.log('fileInput:', fileInput);
-        
-        // Seleccionar español por defecto
-        if (typeof selectPDFLang === 'function') {
-            selectPDFLang('es');
-        }
-    } else {
-        console.error('❌ Elementos NO encontrados:', { dropZone: !!dropZone, fileInput: !!fileInput });
-    }
-}
-
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 DOM cargado - Primera inicialización');
-    setTimeout(() => {
-        initPDFDragDrop();
-    }, 500);
-});
-
-// ========== FUNCIONES DE PROCESAMIENTO DE PDF ==========
-
-// Función principal para manejar archivos (PDF o imagen)
-async function handlePDFFile(file) {
-    console.log('════════════════════════════════════════');
-    console.log('🚀 handlePDFFile INICIADO');
-    console.log('📁 Archivo recibido:', file.name, file.type, file.size);
-    console.log('════════════════════════════════════════');
-    
-    try {
-        console.log('1️⃣ Llamando a showProcessingModal()...');
-        showProcessingModal();
-        
-        console.log('2️⃣ Actualizando estado...');
-        updateProcessingStatus('Detectando tipo de archivo...');
-        addProcessingLog(`Archivo: ${file.name}`, 'info');
-        addProcessingLog(`Tipo: ${file.type}`, 'info');
-        addProcessingLog(`Tamaño: ${(file.size / 1024).toFixed(2)} KB`, 'info');
-        updateProcessingProgress(5);
-        
-        console.log('3️⃣ Verificando tipo de archivo...');
-        if (file.type === 'application/pdf') {
-            console.log('✅ Es un PDF, llamando a handlePDFComplete...');
-            await handlePDFComplete(file);
-        } else if (file.type.startsWith('image/')) {
-            console.log('✅ Es una imagen, llamando a handleImageComplete...');
-            await handleImageComplete(file);
-        } else {
-            throw new Error('Formato no soportado. Por favor sube PDF, JPG o PNG.');
-        }
-        
-        console.log('✅ handlePDFFile COMPLETADO exitosamente');
-    } catch (err) {
-        console.error('❌❌❌ ERROR EN handlePDFFile ❌❌❌');
-        console.error('Error:', err);
-        console.error('Stack:', err.stack);
-        hideProcessingModal();
-        alert(`❌ Error al procesar el archivo:\n\n${err.message}`);
-    }
-}
-
-// Funciones de UI del modal de procesamiento
-function showProcessingModal() {
-    const modal = document.getElementById('advanced-processing-modal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    // Reset
-    document.getElementById('processing-progress-bar').style.width = '0%';
-    document.getElementById('processing-log').innerHTML = '<div class="text-drk-400">█ Sistema iniciado...</div>';
-    updateStrategyStatus(1, 'Esperando...', 'slate');
-    updateStrategyStatus(2, 'Esperando...', 'slate');
-    updateStrategyStatus(3, 'Esperando...', 'slate');
-}
-
-function hideProcessingModal() {
-    const modal = document.getElementById('advanced-processing-modal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-}
-
-function updateProcessingStatus(message) {
-    document.getElementById('processing-status').textContent = message;
-}
-
-function updateProcessingProgress(percent) {
-    document.getElementById('processing-progress-bar').style.width = percent + '%';
-}
-
-function addProcessingLog(message, type = 'info') {
-    const logContainer = document.getElementById('processing-log');
-    const logEntry = document.createElement('div');
-    
-    const icons = {
-        'info': '█',
-        'success': '✓',
-        'error': '✗',
-        'working': '⚡'
-    };
-    
-    const colors = {
-        'info': 'text-drk-400',
-        'success': 'text-green-400',
-        'error': 'text-red-400',
-        'working': 'text-yellow-400'
-    };
-    
-    logEntry.className = colors[type] || colors['info'];
-    logEntry.textContent = `${icons[type]} ${message}`;
-    logContainer.appendChild(logEntry);
-    
-    // Auto scroll
-    logContainer.scrollTop = logContainer.scrollHeight;
-}
-
-function updateStrategyStatus(strategyNum, status, color = 'blue') {
-    const element = document.getElementById(`strategy-${strategyNum}`);
-    if (!element) return;
-    
-    const colors = {
-        'slate': 'text-slate-500',
-        'blue': 'text-drk-400',
-        'yellow': 'text-yellow-400',
-        'green': 'text-green-400',
-        'red': 'text-red-400'
-    };
-    
-    const statusEl = element.querySelector('div:last-child');
-    statusEl.className = `${colors[color]} font-bold`;
-    statusEl.textContent = status;
-}
-
-// Función para validar y procesar la URL encontrada
-function processFoundUrl(url, method, pageNum) {
-    try {
-        // Asegurar protocolo
-        if (!url.startsWith('http')) url = 'https://' + url;
-        
-        console.log(`🔍 Validando URL encontrada: ${url.substring(0, 100)}...`);
-        
-        const urlObj = new URL(url);
-        const params = {};
-        
-        // Extraer parámetros
-        urlObj.searchParams.forEach((value, key) => {
-            // Manejo especial para números con signo al final (ej: "2.99-")
-            if (value.endsWith('-')) {
-                value = '-' + value.slice(0, -1);
-            }
-            params[key] = value;
-        });
-        
-        // VALIDACIÓN CRÍTICA: Solo aceptar si tiene parámetros reales
-        if (Object.keys(params).length === 0) {
-            console.log('⚠️ URL sin parámetros, continuando búsqueda...');
-            addProcessingLog(`URL sin parámetros válidos`, 'info');
-            return false; // Continuar buscando
-        }
-        
-        console.log(`✅ URL válida con ${Object.keys(params).length} parámetros`);
-        addProcessingLog(`✓ URL válida con ${Object.keys(params).length} parámetros`, 'success');
-        addProcessingLog(`Método: ${method} (Página ${pageNum})`, 'success');
-        
-        // URL válida, procesar
-        return url; // Retornar la URL limpia
-        
-    } catch (e) {
-        console.error('❌ Error al validar URL:', e);
-        addProcessingLog(`Error al validar URL: ${e.message}`, 'error');
-        return false; // Continuar buscando
-    }
-}
-
-// Función auxiliar para verificar si los datos son de CNMC
-function isCNMCData(str) {
-    if (!str) return false;
-    if (str.includes('comparador.cnmc.gob.es')) return true;
-    // Detección laxa para datos en crudo (RAW)
-    if (str.includes('cups=') || str.includes('CUPS=')) {
-        if (str.includes('imp=') || str.includes('IMP=') || str.includes('cp=') || str.includes('CP=')) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// Procesar PDF con TODAS las estrategias del código original
-async function handlePDFComplete(file) {
-    console.log('════════════════════════════════════════');
-    console.log('📄 handlePDFComplete INICIADO');
-    console.log('════════════════════════════════════════');
-    
-    try {
-        updateProcessingStatus('Cargando PDF...');
-        addProcessingLog('📄 Iniciando análisis de PDF...', 'working');
-        updateProcessingProgress(10);
-        
-        console.log('📖 Convirtiendo archivo a arrayBuffer...');
-        const arrayBuffer = await file.arrayBuffer();
-        console.log('✅ ArrayBuffer creado, tamaño:', arrayBuffer.byteLength);
-        
-        console.log('📖 Verificando pdfjsLib...');
-        if (typeof pdfjsLib === 'undefined') {
-            throw new Error('PDF.js no está cargado. Por favor, recarga la página.');
-        }
-        console.log('✅ pdfjsLib disponible');
-        
-        console.log('📖 Cargando documento PDF...');
-        const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-        console.log('✅ PDF cargado exitosamente, páginas:', pdf.numPages);
-        
-        addProcessingLog(`✓ PDF cargado: ${pdf.numPages} página(s)`, 'success');
-        updateProcessingProgress(15);
-    
-    // ========== ESTRATEGIA 1: Enlaces Digitales Incrustados + TOOLTIPS ==========
-    updateProcessingStatus('Buscando enlaces digitales incrustados y tooltips...');
-    updateStrategyStatus(1, 'Analizando...', 'yellow');
-    addProcessingLog('🔍 ESTRATEGIA 1: Enlaces incrustados + Tooltips', 'working');
-    updateProcessingProgress(20);
-    
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const annotations = await page.getAnnotations();
-        
-        addProcessingLog(`  Página ${i}/${pdf.numPages}: ${annotations.length} anotación(es)`, 'info');
-        
-        for (const ann of annotations) {
-            // Check URL (Link normal)
-            if (ann.url && ann.url.includes('comparador.cnmc.gob.es')) {
-                addProcessingLog(`✓ ¡Enlace encontrado en página ${i}!`, 'success');
-                
-                const validUrl = processFoundUrl(ann.url, 'Enlace Digital', i);
-                if (validUrl) {
-                    updateStrategyStatus(1, '¡Éxito!', 'green');
-                    updateProcessingProgress(100);
-                    
-                    setTimeout(() => {
-                        hideProcessingModal();
-                        handleQRRead(validUrl);
-                    }, 800);
-                    return;
-                }
-            }
-            // NUEVO: Check Tooltips/Contents (Contenido oculto al pasar ratón)
-            if (ann.contents && isCNMCData(ann.contents)) {
-                addProcessingLog(`✓ ¡Datos encontrados en Tooltip (MouseOver) en página ${i}!`, 'success');
-                
-                const validUrl = processFoundUrl(ann.contents, 'Tooltip Oculto', i);
-                if (validUrl) {
-                    updateStrategyStatus(1, '¡Éxito!', 'green');
-                    updateProcessingProgress(100);
-                    
-                    setTimeout(() => {
-                        hideProcessingModal();
-                        handleQRRead(validUrl);
-                    }, 800);
-                    return;
-                }
-            }
-        }
-    }
-    
-    updateStrategyStatus(1, 'Sin resultados', 'slate');
-    addProcessingLog('⊘ No se encontraron enlaces digitales válidos', 'info');
-    updateProcessingProgress(30);
-    
-    // ========== ESTRATEGIA 2: Escaneo de Texto en Bruto ==========
-    updateProcessingStatus('Analizando texto completo del documento...');
-    updateStrategyStatus(2, 'Analizando...', 'yellow');
-    addProcessingLog('🔍 ESTRATEGIA 2: Extracción de texto', 'working');
-    updateProcessingProgress(35);
-    
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        
-        const rawText = textContent.items.map(item => item.str).join('');
-        const spacedText = textContent.items.map(item => item.str).join(' ');
-        
-        addProcessingLog(`  Página ${i}/${pdf.numPages}: ${textContent.items.length} elementos de texto`, 'info');
-        
-        if (rawText.includes('comparador.cnmc.gob.es')) {
-            addProcessingLog(`✓ Texto CNMC detectado en página ${i}`, 'success');
-            
-            // MÉTODO 2A: Reconstrucción desde texto espaciado
-            const match = spacedText.match(/(https?:\s*\/\/\s*)?comparador\.cnmc\.gob\.es\/[A-Za-z0-9\/\?=&%\.\-\_]+/i);
-            if (match) {
-                let cleanUrl = match[0].replace(/\s/g, '');
-                if (!cleanUrl.startsWith('http')) cleanUrl = 'https://' + cleanUrl;
-                
-                addProcessingLog('✓ URL reconstruida desde texto', 'success');
-                
-                const validUrl = processFoundUrl(cleanUrl, 'Reconstrucción de Texto', i);
-                if (validUrl) {
-                    updateStrategyStatus(2, '¡Éxito!', 'green');
-                    updateProcessingProgress(100);
-                    
-                    setTimeout(() => {
-                        hideProcessingModal();
-                        handleQRRead(validUrl);
-                    }, 800);
-                    return;
-                }
-            }
-            
-            // MÉTODO 2B: Extracción por fuerza bruta
-            addProcessingLog('Intentando extracción por fuerza bruta...', 'working');
-            const startIdx = rawText.indexOf('comparador.cnmc.gob.es');
-            let potentialUrl = rawText.substring(startIdx);
-            const endMatch = potentialUrl.match(/[^a-zA-Z0-9\/\?=&%\.\-\_]/);
-            if (endMatch) {
-                potentialUrl = potentialUrl.substring(0, endMatch.index);
-            }
-            potentialUrl = 'https://' + potentialUrl;
-            
-            addProcessingLog('✓ URL extraída por análisis profundo', 'success');
-            
-            const validUrl = processFoundUrl(potentialUrl, 'Extracción Profunda', i);
-            if (validUrl) {
-                updateStrategyStatus(2, '¡Éxito!', 'green');
-                updateProcessingProgress(100);
-                
-                setTimeout(() => {
-                    hideProcessingModal();
-                    handleQRRead(validUrl);
-                }, 800);
-                return;
-            }
-        }
-    }
-    
-    updateStrategyStatus(2, 'Sin resultados', 'slate');
-    addProcessingLog('⊘ No se encontró texto de URL CNMC válido', 'info');
-    updateProcessingProgress(50);
-    
-    // ========== ESTRATEGIA 3: Búsqueda Visual QR ==========
-    updateProcessingStatus('Iniciando escaneo visual de QR...');
-    updateStrategyStatus(3, 'Analizando...', 'yellow');
-    addProcessingLog('🔍 ESTRATEGIA 3: Detección visual de QR', 'working');
-    updateProcessingProgress(55);
-    
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const progressBase = 55 + (i - 1) * (40 / pdf.numPages);
-        
-        // Intento 1: Escala 2.0 (Rápido)
-        addProcessingLog(`  Página ${i}: Escaneo rápido (2.0x)`, 'working');
-        updateProcessingProgress(progressBase);
-        let qrUrl = await scanPDFPageForQR(page, 2.0);
-        if (qrUrl) {
-            const validUrl = processFoundUrl(qrUrl, 'Escáner Rápido', i);
-            if (validUrl) {
-                addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
-                updateStrategyStatus(3, '¡Éxito!', 'green');
-                updateProcessingProgress(100);
-                
-                setTimeout(() => {
-                    hideProcessingModal();
-                    handleQRRead(validUrl);
-                }, 800);
-                return;
-            }
-        }
-        
-        // Intento 2: Escala 3.0 (HD)
-        addProcessingLog(`  Página ${i}: Escaneo HD (3.0x)`, 'working');
-        updateProcessingProgress(progressBase + 3);
-        qrUrl = await scanPDFPageForQR(page, 3.0);
-        if (qrUrl) {
-            const validUrl = processFoundUrl(qrUrl, 'Escáner HD', i);
-            if (validUrl) {
-                addProcessingLog(`✓ ¡QR detectado en página ${i}!`, 'success');
-                updateStrategyStatus(3, '¡Éxito!', 'green');
-                updateProcessingProgress(100);
-                
-                setTimeout(() => {
-                    hideProcessingModal();
-                    handleQRRead(validUrl);
-                }, 800);
-                return;
-            }
-        }
-    }
-    
-    updateStrategyStatus(3, 'Sin resultados', 'red');
-    addProcessingLog('✗ No se detectó código QR válido en el PDF', 'error');
-    updateProcessingProgress(100);
-    
-    setTimeout(() => {
-        hideProcessingModal();
-        alert(
-            "❌ No se detectó el código QR en el PDF\n\n" +
-            "💡 Sugerencias:\n" +
-            "• Asegúrate de que el PDF contenga un código QR de CNMC\n" +
-            "• Verifica que el QR sea legible\n" +
-            "• Intenta con un PDF de mejor calidad"
-        );
-    }, 1500);
-    
-    } catch (error) {
-        console.error('❌❌❌ ERROR EN handlePDFComplete ❌❌❌');
-        console.error('Error:', error);
-        console.error('Stack:', error.stack);
-        hideProcessingModal();
-        throw error; // Re-lanzar para que handlePDFFile lo capture
-    }
-}
-
-// Procesar imágenes
-async function handleImageComplete(file) {
-    updateProcessingStatus('Cargando imagen...');
-    updateStrategyStatus(3, 'Analizando...', 'yellow');
-    addProcessingLog('📸 Iniciando análisis de imagen...', 'working');
-    updateProcessingProgress(15);
-    
-    const bitmap = await createImageBitmap(file);
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = bitmap.width;
-    canvas.height = bitmap.height;
-    ctx.drawImage(bitmap, 0, 0);
-    
-    addProcessingLog(`✓ Imagen cargada: ${canvas.width}x${canvas.height}`, 'success');
-    updateProcessingProgress(25);
-    
-    // Usar performDeepScan
-    addProcessingLog('🔍 Aplicando Deep Scan (múltiples umbrales + inversión)', 'working');
-    updateProcessingProgress(35);
-    let qrUrl = performDeepScan(ctx, canvas.width, canvas.height);
-    if (qrUrl) {
-        const validUrl = processFoundUrl(qrUrl, 'Deep Scan en Imagen', 1);
-        if (validUrl) {
-            addProcessingLog('✓ ¡QR detectado con Deep Scan!', 'success');
-            updateStrategyStatus(3, '¡Éxito!', 'green');
-            updateProcessingProgress(100);
-            
-            setTimeout(() => {
-                hideProcessingModal();
-                handleQRRead(validUrl);
-            }, 800);
-            return;
-        }
-    }
-    
-    // No detectado
-    updateStrategyStatus(3, 'Sin resultados', 'red');
-    addProcessingLog('✗ No se detectó código QR válido en la imagen', 'error');
-    updateProcessingProgress(100);
-    
-    setTimeout(() => {
-        hideProcessingModal();
-        alert(
-            "❌ No se detectó el código QR\n\n" +
-            "💡 Sugerencias:\n" +
-            "• Asegúrate de que el QR sea visible y legible\n" +
-            "• Intenta con mejor iluminación\n" +
-            "• Haz una foto más cercana del QR"
-        );
-    }, 1500);
-}
-
-// Escanear página de PDF en busca de QR
-async function scanPDFPageForQR(page, scale, enhanceContrast = false, threshold = 180) {
-    const viewport = page.getViewport({ scale: scale });
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    
-    await page.render({ canvasContext: context, viewport: viewport }).promise;
-    
-    return attemptQRScanFromCanvas(context, canvas.width, canvas.height, enhanceContrast, threshold);
-}
-
-// Intentar escanear QR desde canvas
-function attemptQRScanFromCanvas(context, width, height, enhanceContrast = false, threshold = 180) {
-    try {
-        if (!context || !width || !height || width <= 0 || height <= 0) return null;
-        if (width > 10000 || height > 10000) return null;
-        
-        const imageData = context.getImageData(0, 0, width, height);
-        let data = imageData.data;
-        
-        if (!data || data.length !== width * height * 4) return null;
-        
-        // Aplicar filtro de contraste si se solicita
-        if (enhanceContrast) {
-            const newData = new Uint8ClampedArray(data);
-            for (let i = 0; i < newData.length; i += 4) {
-                const luma = 0.299 * newData[i] + 0.587 * newData[i + 1] + 0.114 * newData[i + 2];
-                const val = luma < threshold ? 0 : 255;
-                newData[i] = val;
-                newData[i + 1] = val;
-                newData[i + 2] = val;
-            }
-            data = newData;
-        }
-        
-        const code = jsQR(data, width, height, {
-            inversionAttempts: "dontInvert",
-        });
-        
-        if (code && code.data.includes('comparador.cnmc.gob.es')) {
-            return code.data;
-        }
-    } catch(e) {
-        console.error('Error en attemptQRScanFromCanvas:', e);
-    }
-    return null;
-}
-
-// Función Maestra de Escaneo Profundo (Deep Scan)
-function performDeepScan(ctx, width, height) {
-    try {
-        if (!ctx || !width || !height || width <= 0 || height <= 0) return null;
-        if (width > 10000 || height > 10000) return null;
-        
-        const imageData = ctx.getImageData(0, 0, width, height);
-        const originalData = imageData.data;
-        
-        if (!originalData || originalData.length !== width * height * 4) return null;
-
-        // 1. Intento Normal
-        try {
-            let code = jsQR(originalData, width, height, { inversionAttempts: "dontInvert" });
-            if (code && isCNMCData(code.data)) return code.data;
-        } catch(e) {}
-
-        // 2. Intento Invertido
-        try {
-            let code = jsQR(originalData, width, height, { inversionAttempts: "invertFirst" });
-            if (code && isCNMCData(code.data)) return code.data;
-        } catch(e) {}
-
-        // 3. Barrido de Umbrales
-        const thresholds = [80, 120, 160, 200];
-        
-        for (const threshold of thresholds) {
-            try {
-                const binarizedData = new Uint8ClampedArray(originalData.length);
-                for (let i = 0; i < originalData.length; i += 4) {
-                    const luma = 0.299 * originalData[i] + 0.587 * originalData[i + 1] + 0.114 * originalData[i + 2];
-                    const val = luma < threshold ? 0 : 255;
-                    binarizedData[i] = val;
-                    binarizedData[i+1] = val;
-                    binarizedData[i+2] = val;
-                    binarizedData[i+3] = 255;
-                }
-                
-                const code = jsQR(binarizedData, width, height, { inversionAttempts: "dontInvert" });
-                if (code && isCNMCData(code.data)) return code.data;
-            } catch(e) {}
-        }
-    } catch(e) {
-        console.error('Error general en performDeepScan:', e);
-    }
-
-    return null;
-}
-
-// Función para manejar los datos del QR leído
-function handleQRRead(raw) {
-    console.log('✅ QR leído exitosamente:', raw);
-    
-    // Parsear los parámetros del QR
-    const p = {};
-    raw.split('&').forEach(part => {  
-        let [key, ...rest] = part.split('=');
-        let value = rest.join('=');
-        try { 
-            p[key] = decodeURIComponent(value || '').replace(',', '.'); 
-        } catch (e) { 
-            p[key] = value || ''; 
-        }
-    });
-    
-    // Calcular días de facturación
-    let billingDays = 30;
-    let dateRangeStr = "No disponible";
-    
-    const iniF_key = Object.keys(p).find(k => k.toLowerCase() === 'inif');
-    const finF_key = Object.keys(p).find(k => k.toLowerCase() === 'finf');
-    const iniA_key = Object.keys(p).find(k => k.toLowerCase() === 'inia');
-    
-    let rawStartDate = iniF_key ? p[iniF_key] : null;
-    let rawEndDate = finF_key ? p[finF_key] : (iniA_key ? p[iniA_key] : null);
-    
-    if (rawStartDate && rawEndDate) {
-        // Calcular días entre fechas (simplificado)
-        billingDays = 30; // Por defecto
-        dateRangeStr = `${rawStartDate} - ${rawEndDate}`;
-    }
-
-    // Construir objeto de datos
-    const directData = {
-        cups: p.cups || 'QR SCAN',
-        dias_facturados: billingDays,
-        importe_total: parseFloat(p.imp || 0),
-        potencia_p1_kw: parseFloat(p.pP1 || 0),
-        potencia_p2_kw: parseFloat(p.pP2 || 0),
-        consumo_punta: parseFloat(p.cfP1 || 0),
-        consumo_llano: parseFloat(p.cfP2 || 0),
-        consumo_valle: parseFloat(p.cfP3 || 0),
-        fechas: dateRangeStr,
-        comercializadora: p.com || '',
-        rawQR: raw
-    };
-    
-    console.log('📊 Datos extraídos del QR:', directData);
-    
-    // Validar que tengamos datos mínimos
-    if (directData.importe_total <= 0) {
-        hideProcessingModal();
-        alert("⚠️ QR incompleto. No se detectó el Importe Total de la factura.");
-        return;
-    }
-    
-    // Cargar tarifas si no están cargadas y luego comparar
-    if (currentTariffs['2.0TD'].length === 0) {
-        console.log('📥 Cargando tarifas 2.0TD...');
-        updateProcessingStatus('Cargando tarifas desde Google Sheets...');
-        
-        fetchTariffsFromSheet('2.0TD').then(() => {
-            if (currentTariffs['2.0TD'].length > 0) {
-                console.log('✅ Tarifas cargadas, comparando...');
-                compareOffers(directData);
-            } else {
-                hideProcessingModal();
-                alert("❌ Error al cargar las tarifas. Por favor, intente de nuevo.");
-            }
-        });
-    } else {
-        // Tarifas ya cargadas, comparar directamente
-        console.log('✅ Tarifas ya cargadas, comparando...');
-        compareOffers(directData);
-    }
-}
-
-</script>
-
 <!-- ========== VISTA DE NOTICIAS ========== -->
 <div id="news-view" style="display: none; min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 2rem;">
     <div style="max-width: 1200px; margin: 0 auto;">
         <!-- Botón Volver -->
-        <button onclick="hideNews()" style="background: linear-gradient(135deg, #2596be 0%, #1e7a9a 100%); border: none; color: white; padding: 1rem 2rem; border-radius: 0.75rem; cursor: pointer; margin-bottom: 2rem; font-size: 1rem; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 15px rgba(37, 150, 190, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(37, 150, 190, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxSha
+        <button onclick="hideNews()" style="background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; margin-bottom: 2rem; font-size: 1rem; transition: all 0.3s;">
+            <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i><span data-translate="back-button">Volver al Panel</span>
+        </button>
 
         <!-- Header -->
         <div style="text-align: center; margin-bottom: 3rem;">

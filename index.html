@@ -25402,7 +25402,13 @@ ${myName}`;
 
         <!-- Zona de Drag & Drop -->
         <div style="width: 100%; max-w-5xl; padding: 0 1rem;">
-            <div id="pdf-drag-drop-zone" style="border: 4px dashed rgba(37, 150, 190, 0.4); border-radius: 2rem; padding: 3rem 2rem; text-align: center; background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(10px); cursor: pointer; transition: all 0.3s ease; pointer-events: all;">
+            <div id="pdf-drag-drop-zone" 
+                 style="border: 4px dashed rgba(37, 150, 190, 0.4); border-radius: 2rem; padding: 3rem 2rem; text-align: center; background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(10px); cursor: pointer; transition: all 0.3s ease; pointer-events: all;"
+                 onclick="console.log('CLICK DETECTADO'); document.getElementById('pdf-file-input').click();"
+                 ondragenter="event.preventDefault(); event.stopPropagation(); console.log('DRAG ENTER'); this.style.borderColor='#2596be'; this.style.background='rgba(37, 150, 190, 0.2)';"
+                 ondragover="event.preventDefault(); event.stopPropagation(); console.log('DRAG OVER'); this.style.borderColor='#2596be';"
+                 ondragleave="event.preventDefault(); event.stopPropagation(); console.log('DRAG LEAVE'); this.style.borderColor='rgba(37, 150, 190, 0.4)'; this.style.background='rgba(30, 41, 59, 0.3)';"
+                 ondrop="event.preventDefault(); event.stopPropagation(); console.log('DROP DETECTADO', event.dataTransfer.files); this.style.borderColor='rgba(37, 150, 190, 0.4)'; this.style.background='rgba(30, 41, 59, 0.3)'; if(event.dataTransfer.files.length > 0) { console.log('Procesando:', event.dataTransfer.files[0].name); handlePDFFile(event.dataTransfer.files[0]); }">
                 <!-- Iconos -->
                 <div style="display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 2rem; pointer-events: none;">
                     <svg style="width: 5rem; height: 5rem; color: #94a3b8; pointer-events: none;" fill="currentColor" viewBox="0 0 24 24">
@@ -25423,14 +25429,14 @@ ${myName}`;
                 </p>
                 
                 <!-- Botón de prueba visible -->
-                <button onclick="document.getElementById('pdf-file-input').click();" style="margin-top: 2rem; background: linear-gradient(135deg, #2596be, #1e7a9e); color: white; padding: 1rem 2rem; border: none; border-radius: 0.75rem; cursor: pointer; font-size: 1rem; font-weight: 600; box-shadow: 0 4px 15px rgba(37, 150, 190, 0.3); transition: all 0.3s;">
+                <button onclick="event.stopPropagation(); console.log('BOTÓN CLICK'); document.getElementById('pdf-file-input').click();" style="margin-top: 2rem; background: linear-gradient(135deg, #2596be, #1e7a9e); color: white; padding: 1rem 2rem; border: none; border-radius: 0.75rem; cursor: pointer; font-size: 1rem; font-weight: 600; box-shadow: 0 4px 15px rgba(37, 150, 190, 0.3); transition: all 0.3s;">
                     📁 O haz clic aquí para seleccionar archivo
                 </button>
             </div>
         </div>
 
         <!-- Input oculto para seleccionar archivo -->
-        <input type="file" id="pdf-file-input" accept="application/pdf,image/*" style="display: none;">
+        <input type="file" id="pdf-file-input" accept="application/pdf,image/*" style="display: none;" onchange="console.log('FILE INPUT CHANGE', this.files); if(this.files.length > 0) { console.log('Procesando desde input:', this.files[0].name); handlePDFFile(this.files[0]); this.value = ''; }">
         
         <!-- Modal de Procesamiento Avanzado -->
         <div id="advanced-processing-modal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
@@ -25836,88 +25842,25 @@ function selectPDFLang(lang) {
 }
 
 // Configurar drag & drop cuando se carga la página
-// Función para inicializar el drag & drop del PDF
+// Función para inicializar el drag & drop del PDF (eventos inline en HTML)
 function initPDFDragDrop() {
-    console.log('🔧 initPDFDragDrop llamada');
+    console.log('🔧 initPDFDragDrop - Verificando elementos...');
     
     const dropZone = document.getElementById('pdf-drag-drop-zone');
     const fileInput = document.getElementById('pdf-file-input');
     
-    console.log('🔍 dropZone:', dropZone);
-    console.log('🔍 fileInput:', fileInput);
-    
-    if (!dropZone || !fileInput) {
-        console.error('❌ Elementos de PDF no encontrados');
-        console.log('dropZone existe:', !!dropZone);
-        console.log('fileInput existe:', !!fileInput);
-        return;
-    }
-    
-    console.log('✅ Elementos encontrados, configurando eventos...');
-    
-    // Click en zona de drop - DIRECTO sin clonar
-    dropZone.onclick = function() {
-        console.log('🖱️ Click en zona de drop detectado');
-        fileInput.click();
-    };
-    
-    // Prevenir comportamiento por defecto
-    dropZone.ondragenter = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('📥 dragenter');
-        dropZone.classList.add('drag-over');
-    };
-    
-    dropZone.ondragover = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        dropZone.classList.add('drag-over');
-    };
-    
-    dropZone.ondragleave = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('📤 dragleave');
-        dropZone.classList.remove('drag-over');
-    };
-    
-    // Manejar drop
-    dropZone.ondrop = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('📦 DROP detectado!');
-        dropZone.classList.remove('drag-over');
+    if (dropZone && fileInput) {
+        console.log('✅ Elementos encontrados - Eventos inline activos');
+        console.log('dropZone:', dropZone);
+        console.log('fileInput:', fileInput);
         
-        const files = e.dataTransfer.files;
-        console.log('📁 Archivos recibidos:', files.length);
-        
-        if (files.length > 0) {
-            console.log('✅ Procesando archivo:', files[0].name);
-            handlePDFFile(files[0]);
-        } else {
-            console.error('❌ No se recibieron archivos');
+        // Seleccionar español por defecto
+        if (typeof selectPDFLang === 'function') {
+            selectPDFLang('es');
         }
-    };
-    
-    // Manejar selección de archivo desde input
-    fileInput.onchange = function(e) {
-        console.log('📁 Archivo seleccionado desde input');
-        if (e.target.files.length > 0) {
-            console.log('✅ Procesando archivo:', e.target.files[0].name);
-            handlePDFFile(e.target.files[0]);
-            e.target.value = ''; // Reset input
-        }
-    };
-    
-    // Seleccionar español por defecto
-    if (typeof selectPDFLang === 'function') {
-        selectPDFLang('es');
+    } else {
+        console.error('❌ Elementos NO encontrados:', { dropZone: !!dropZone, fileInput: !!fileInput });
     }
-    
-    console.log('✅ Drag & drop configurado correctamente');
-    console.log('dropZone.onclick:', typeof dropZone.onclick);
-    console.log('dropZone.ondrop:', typeof dropZone.ondrop);
 }
 
 // Inicializar cuando el DOM esté listo

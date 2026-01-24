@@ -23141,6 +23141,16 @@ function showCalculator() {
     document.getElementById('panel-view').style.display = 'none';
     document.getElementById('pdf-upload-view').style.display = 'block';
     window.scrollTo(0, 0);
+    
+    // Cargar tarifas en segundo plano si no están cargadas
+    if (currentTariffs['2.0TD'].length === 0) {
+        console.log('📥 Precargando tarifas 2.0TD...');
+        fetchTariffsFromSheet('2.0TD').then(() => {
+            console.log('✅ Tarifas 2.0TD precargadas:', currentTariffs['2.0TD'].length);
+        }).catch(err => {
+            console.error('❌ Error precargando tarifas:', err);
+        });
+    }
 }
 
 function showPanel() {
@@ -25472,6 +25482,279 @@ ${myName}`;
 </style>
 
 <script>
+// ========== CONFIGURACIÓN GLOBAL DEL SISTEMA ==========
+
+// Configuración de tarifas y Google Sheets
+const TARIFF_CONFIG = {
+    '2.0TD': { sheetId: '1kLfQOZnTsBJ8lRXA0ab5RXk-QM3VeSRkDQsatL3-tVk', periods: 3, powerPeriods: 2, label: '2.0 TD', isHighVoltage: false },
+    '3.0TD': { sheetId: '18nieA7yMD9Ytc2Z3EnktoNDZokuMrBet_ETGyhNZDuo', periods: 6, powerPeriods: 6, label: '3.0 TD', isHighVoltage: true }
+};
+
+// Estado global de tarifas
+let currentTariffs = {
+    '2.0TD': [],
+    '3.0TD': []
+};
+
+let currentTariffType = '2.0TD';
+let lastComparisonResult = null;
+let comparisonMode = 'drk_only';
+
+// Funciones de formato
+const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
+const num = (n, d=2) => new Intl.NumberFormat('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
+
+// Cargar tarifas desde Google Sheets
+async function fetchTariffsFromSheet(tariffType) {
+    const config = TARIFF_CONFIG[tariffType];
+    const sheetId = config.sheetId;
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=0&t=${Date.now()}`;
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Error red para ${tariffType}`);
+        const text = await response.text();
+        currentTariffs[tariffType] = parseCSV(text, tariffType);
+        console.log(`✅ Tarifas ${tariffType} cargadas:`, currentTariffs[tariffType].length);
+    } catch (e) {
+        console.error(`❌ Error al cargar ${tariffType}:`, e);
+        currentTariffs[tariffType] = [];
+    }
+}
+
+// Parser CSV
+function parseCSV(text, tariffType) {
+    const lines = text.trim().split('\n');
+    if (lines.length < 2) return [];
+    
+    const rawHeader = lines[0];
+    const delimiter = rawHeader.includes(';') ? ';' : ',';
+    const headers = rawHeader.split(delimiter).map(h => h.trim().toLowerCase().replace(/"/g, ''));
+    const data = [];
+
+    for(let i=1; i<lines.length; i++) {
+        const row = lines[i].trim();
+        if(!row) continue;
+        
+        const regex = new RegExp(`(?:^|${delimiter})(\"(?:[^\"]|\"\")*\"|[^${delimiter}]*)`,"g");
+        const values = [];
+        let match = null;
+        regex.lastIndex = 0;
+        let lastIndex = 0;
+        
+        while(match = regex.exec(row)){
+            let val = match[1].replace(/^"|"$/g, '').replace(/""/g, '"');
+            if (match.index > lastIndex) {
+                for (let j = 0; j < (match.index - lastIndex) / delimiter.length; j++) {
+                    values.push('');
+                }
+            }
+            values.push(val.trim());
+            lastIndex = match.index + match[0].length;
+        }
+        
+        if (values.length < headers.length) {
+            for (let j = values.length; j < headers.length; j++) {
+                values.push('');
+            }
+        }
+
+        if(values.length < headers.length) continue;
+
+        let item = { cups_match: [tariffType] };
+        headers.forEach((h, idx) => {
+            let val = values[idx];
+            if (h.includes('price') || h.includes('potencia') || h === 'descuento') {
+                val = parseFloat(val?.replace(',', '.') || 0);
+                if(isNaN(val)) val = 0;
+            }
+            item[h] = val;
+        });
+
+        item.isDrk = item.name?.toUpperCase().includes('DRK') || 
+                     item.description?.toUpperCase().includes('DRK') ||
+                     item.commercializer?.toUpperCase().includes('DRK');
+        
+        if(item.p1_price !== undefined) {
+            data.push(item);
+        }
+    }
+    return data;
+}
+
+// Función para calcular el costo de una tarifa
+function calculateTariffCost(tariff, userData, tariffType) {
+    const billingDays = userData.dias_facturados || 30;
+    const daysInYear = 365;
+    const monthlyMultiplier = daysInYear / billingDays;
+    
+    // Calcular costes de energía
+    const energyCosts = [];
+    let totalEnergyCost = 0;
+    
+    if (tariffType === '2.0TD') {
+        // 3 periodos
+        const periods = [
+            { period: 1, kwh: userData.consumo_punta || 0, price: tariff.p1_price || 0 },
+            { period: 2, kwh: userData.consumo_llano || 0, price: tariff.p2_price || 0 },
+            { period: 3, kwh: userData.consumo_valle || 0, price: tariff.p3_price || 0 }
+        ];
+        
+        periods.forEach(p => {
+            const cost = p.kwh * p.price;
+            totalEnergyCost += cost;
+            energyCosts.push({ period: p.period, kwh: p.kwh, price: p.price, cost: cost });
+        });
+    } else if (tariffType === '3.0TD') {
+        // 6 periodos
+        const periods = [
+            { period: 1, kwh: userData.kwh_p1 || 0, price: tariff.p1_price || 0 },
+            { period: 2, kwh: userData.kwh_p2 || 0, price: tariff.p2_price || 0 },
+            { period: 3, kwh: userData.kwh_p3 || 0, price: tariff.p3_price || 0 },
+            { period: 4, kwh: userData.kwh_p4 || 0, price: tariff.p4_price || 0 },
+            { period: 5, kwh: userData.kwh_p5 || 0, price: tariff.p5_price || 0 },
+            { period: 6, kwh: userData.kwh_p6 || 0, price: tariff.p6_price || 0 }
+        ];
+        
+        periods.forEach(p => {
+            const cost = p.kwh * p.price;
+            totalEnergyCost += cost;
+            energyCosts.push({ period: p.period, kwh: p.kwh, price: p.price, cost: cost });
+        });
+    }
+    
+    // Calcular costes de potencia
+    const powerCosts = [];
+    let totalPowerCost = 0;
+    
+    if (tariffType === '2.0TD') {
+        const powers = [
+            { period: 1, kw: userData.potencia_p1_kw || 0, priceDay: (tariff.potencia_p1 || 0) / 365 },
+            { period: 2, kw: userData.potencia_p2_kw || 0, priceDay: (tariff.potencia_p2 || 0) / 365 }
+        ];
+        
+        powers.forEach(p => {
+            const cost = p.kw * p.priceDay * billingDays;
+            totalPowerCost += cost;
+            powerCosts.push({ period: p.period, kw: p.kw, priceDay: p.priceDay, cost: cost });
+        });
+    } else if (tariffType === '3.0TD') {
+        const powers = [
+            { period: 1, kw: userData.p1 || 0, priceDay: (tariff.potencia_p1 || 0) / 365 },
+            { period: 2, kw: userData.p2 || 0, priceDay: (tariff.potencia_p2 || 0) / 365 },
+            { period: 3, kw: userData.p3 || 0, priceDay: (tariff.potencia_p3 || 0) / 365 },
+            { period: 4, kw: userData.p4 || 0, priceDay: (tariff.potencia_p4 || 0) / 365 },
+            { period: 5, kw: userData.p5 || 0, priceDay: (tariff.potencia_p5 || 0) / 365 },
+            { period: 6, kw: userData.p6 || 0, priceDay: (tariff.potencia_p6 || 0) / 365 }
+        ];
+        
+        powers.forEach(p => {
+            const cost = p.kw * p.priceDay * billingDays;
+            totalPowerCost += cost;
+            powerCosts.push({ period: p.period, kw: p.kw, priceDay: p.priceDay, cost: cost });
+        });
+    }
+    
+    const totalPeriod = totalEnergyCost + totalPowerCost;
+    const totalAnnual = totalPeriod * monthlyMultiplier;
+    const originalBillAnnual = (userData.importe_total || 0) * monthlyMultiplier;
+    
+    return {
+        offer: tariff,
+        energyCosts: energyCosts,
+        powerCosts: powerCosts,
+        totalPeriod: totalPeriod,
+        totalAnnual: totalAnnual,
+        originalBillAnnual: originalBillAnnual,
+        savings: originalBillAnnual - totalAnnual,
+        cups: userData.cups,
+        dias_facturados: billingDays,
+        tariffType: tariffType
+    };
+}
+
+// Función para comparar ofertas
+function compareOffers(data) {
+    try {
+        console.log('🔍 Comparando ofertas con datos:', data);
+        
+        const tariffType = currentTariffType;
+        const tariffsToCompare = currentTariffs[tariffType] || [];
+
+        if (tariffsToCompare.length === 0) {
+            console.error(`No hay tarifas cargadas para ${tariffType}`);
+            alert(`Las tarifas ${tariffType} no están cargadas. Por favor, espere un momento e intente de nuevo.`);
+            return;
+        }
+
+        const results = tariffsToCompare.map(t => calculateTariffCost(t, data, tariffType));
+        console.log('✅ Resultados calculados:', results.length);
+        
+        // Encontrar la mejor oferta
+        let bestOffer = results.reduce((best, current) => {
+            if (!best || current.totalAnnual < best.totalAnnual) {
+                return current;
+            }
+            return best;
+        }, null);
+        
+        // Encontrar la mejor oferta DRK
+        let bestDrkOffer = results
+            .filter(r => r.offer.isDrk)
+            .reduce((best, current) => {
+                if (!best || current.totalAnnual < best.totalAnnual) {
+                    return current;
+                }
+                return best;
+            }, null);
+        
+        console.log('🏆 Mejor oferta:', bestOffer?.offer?.name, 'Coste anual:', bestOffer?.totalAnnual);
+        console.log('🏆 Mejor oferta DRK:', bestDrkOffer?.offer?.name, 'Coste anual:', bestDrkOffer?.totalAnnual);
+        
+        // Guardar resultado
+        lastComparisonResult = bestDrkOffer || bestOffer;
+        
+        // Mostrar resultados
+        showResults(lastComparisonResult);
+        
+    } catch (error) {
+        console.error('❌ Error en compareOffers:', error);
+        alert(`Error al calcular: ${error.message}`);
+    }
+}
+
+// Función para mostrar los resultados
+function showResults(result) {
+    hideProcessingModal();
+    
+    const savings = result.savings;
+    const savingsPercent = (savings / result.originalBillAnnual) * 100;
+    
+    let message = `✅ ¡Análisis Completado!\n\n`;
+    message += `📊 RESULTADOS:\n`;
+    message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+    message += `🏢 Tarifa: ${result.offer.name}\n`;
+    message += `📋 Descripción: ${result.offer.description || 'N/A'}\n\n`;
+    message += `💰 Coste actual anual: ${eur(result.originalBillAnnual)}\n`;
+    message += `💰 Nuevo coste anual: ${eur(result.totalAnnual)}\n\n`;
+    
+    if (savings > 0) {
+        message += `💚 AHORRO ANUAL: ${eur(savings)}\n`;
+        message += `📈 Porcentaje: ${savingsPercent.toFixed(2)}%\n\n`;
+        message += `🎯 ¡Puedes ahorrar ${eur(savings/12)} al mes!`;
+    } else {
+        message += `⚠️ No hay ahorro con esta tarifa\n`;
+        message += `Diferencia: ${eur(Math.abs(savings))} más al año`;
+    }
+    
+    alert(message);
+    
+    // Volver al panel
+    setTimeout(() => {
+        showPanel();
+    }, 2000);
+}
+
 // Variables globales para PDF upload
 let selectedPDFLanguage = 'es';
 
@@ -26096,14 +26379,78 @@ function performDeepScan(ctx, width, height) {
 function handleQRRead(raw) {
     console.log('✅ QR leído exitosamente:', raw);
     
-    // Aquí deberías integrar con tu sistema de comparación
-    // Por ahora, mostraremos un mensaje con los datos
-    hideProcessingModal();
+    // Parsear los parámetros del QR
+    const p = {};
+    raw.split('&').forEach(part => {  
+        let [key, ...rest] = part.split('=');
+        let value = rest.join('=');
+        try { 
+            p[key] = decodeURIComponent(value || '').replace(',', '.'); 
+        } catch (e) { 
+            p[key] = value || ''; 
+        }
+    });
     
-    alert(`✅ ¡QR Detectado Exitosamente!\n\nDatos extraídos del código QR.\n\nURL: ${raw.substring(0, 100)}...\n\n🚀 Procesando información...`);
+    // Calcular días de facturación
+    let billingDays = 30;
+    let dateRangeStr = "No disponible";
     
-    // Opcional: Redirigir al sistema completo con los datos
-    // window.location.href = 'https://faraujoteixeiradrk-creator.github.io/DRK---CLIENTE-FINAL-05012025/?qr=' + encodeURIComponent(raw);
+    const iniF_key = Object.keys(p).find(k => k.toLowerCase() === 'inif');
+    const finF_key = Object.keys(p).find(k => k.toLowerCase() === 'finf');
+    const iniA_key = Object.keys(p).find(k => k.toLowerCase() === 'inia');
+    
+    let rawStartDate = iniF_key ? p[iniF_key] : null;
+    let rawEndDate = finF_key ? p[finF_key] : (iniA_key ? p[iniA_key] : null);
+    
+    if (rawStartDate && rawEndDate) {
+        // Calcular días entre fechas (simplificado)
+        billingDays = 30; // Por defecto
+        dateRangeStr = `${rawStartDate} - ${rawEndDate}`;
+    }
+
+    // Construir objeto de datos
+    const directData = {
+        cups: p.cups || 'QR SCAN',
+        dias_facturados: billingDays,
+        importe_total: parseFloat(p.imp || 0),
+        potencia_p1_kw: parseFloat(p.pP1 || 0),
+        potencia_p2_kw: parseFloat(p.pP2 || 0),
+        consumo_punta: parseFloat(p.cfP1 || 0),
+        consumo_llano: parseFloat(p.cfP2 || 0),
+        consumo_valle: parseFloat(p.cfP3 || 0),
+        fechas: dateRangeStr,
+        comercializadora: p.com || '',
+        rawQR: raw
+    };
+    
+    console.log('📊 Datos extraídos del QR:', directData);
+    
+    // Validar que tengamos datos mínimos
+    if (directData.importe_total <= 0) {
+        hideProcessingModal();
+        alert("⚠️ QR incompleto. No se detectó el Importe Total de la factura.");
+        return;
+    }
+    
+    // Cargar tarifas si no están cargadas y luego comparar
+    if (currentTariffs['2.0TD'].length === 0) {
+        console.log('📥 Cargando tarifas 2.0TD...');
+        updateProcessingStatus('Cargando tarifas desde Google Sheets...');
+        
+        fetchTariffsFromSheet('2.0TD').then(() => {
+            if (currentTariffs['2.0TD'].length > 0) {
+                console.log('✅ Tarifas cargadas, comparando...');
+                compareOffers(directData);
+            } else {
+                hideProcessingModal();
+                alert("❌ Error al cargar las tarifas. Por favor, intente de nuevo.");
+            }
+        });
+    } else {
+        // Tarifas ya cargadas, comparar directamente
+        console.log('✅ Tarifas ya cargadas, comparando...');
+        compareOffers(directData);
+    }
 }
 
 </script>

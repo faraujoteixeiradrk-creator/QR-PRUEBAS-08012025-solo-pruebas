@@ -23136,11 +23136,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ========== NAVEGACIÓN ENTRE PANEL Y CALCULADORA ==========
 function showCalculator() {
+    console.log('📂 showCalculator llamada');
+    
     // Mostrar la vista de PDF drag & drop
     document.body.classList.add('showing-pdf-upload');
     document.getElementById('panel-view').style.display = 'none';
     document.getElementById('pdf-upload-view').style.display = 'block';
     window.scrollTo(0, 0);
+    
+    console.log('👀 Vista PDF mostrada, esperando para inicializar...');
+    
+    // IMPORTANTE: Reinicializar el drag & drop cada vez que se muestra la vista
+    setTimeout(() => {
+        console.log('⏰ Timeout ejecutado, llamando a initPDFDragDrop...');
+        initPDFDragDrop();
+    }, 300);
     
     // Cargar tarifas en segundo plano si no están cargadas
     if (currentTariffs['2.0TD'].length === 0) {
@@ -23150,6 +23160,8 @@ function showCalculator() {
         }).catch(err => {
             console.error('❌ Error precargando tarifas:', err);
         });
+    } else {
+        console.log('✅ Tarifas ya cargadas:', currentTariffs['2.0TD'].length);
     }
 }
 
@@ -25390,25 +25402,30 @@ ${myName}`;
 
         <!-- Zona de Drag & Drop -->
         <div style="width: 100%; max-w-5xl; padding: 0 1rem;">
-            <div id="pdf-drag-drop-zone" style="border: 4px dashed rgba(37, 150, 190, 0.4); border-radius: 2rem; padding: 3rem 2rem; text-align: center; background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(10px); cursor: pointer; transition: all 0.3s ease;">
+            <div id="pdf-drag-drop-zone" style="border: 4px dashed rgba(37, 150, 190, 0.4); border-radius: 2rem; padding: 3rem 2rem; text-align: center; background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(10px); cursor: pointer; transition: all 0.3s ease; pointer-events: all;">
                 <!-- Iconos -->
-                <div style="display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 2rem;">
-                    <svg style="width: 5rem; height: 5rem; color: #94a3b8;" fill="currentColor" viewBox="0 0 24 24">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 2rem; pointer-events: none;">
+                    <svg style="width: 5rem; height: 5rem; color: #94a3b8; pointer-events: none;" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
                         <path d="M14 2v6h6M10 13h4M10 17h4M10 9h1"/>
                     </svg>
-                    <svg style="width: 5rem; height: 5rem; color: #94a3b8;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg style="width: 5rem; height: 5rem; color: #94a3b8; pointer-events: none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                 </div>
                 
-                <h2 id="pdf-drop-title" style="font-size: 2rem; font-weight: 700; color: white; margin-bottom: 1rem;">
+                <h2 id="pdf-drop-title" style="font-size: 2rem; font-weight: 700; color: white; margin-bottom: 1rem; pointer-events: none;">
                     Arrastra el PDF de la factura original de la comercializadora
                 </h2>
-                <p id="pdf-drop-subtitle" style="color: #cbd5e1; font-size: 1rem;">
+                <p id="pdf-drop-subtitle" style="color: #cbd5e1; font-size: 1rem; pointer-events: none;">
                     Válido para todas las comercializadoras de electricidad, <span style="font-weight: 700; color: #ef4444;">excepto PVPC</span>.
                 </p>
+                
+                <!-- Botón de prueba visible -->
+                <button onclick="document.getElementById('pdf-file-input').click();" style="margin-top: 2rem; background: linear-gradient(135deg, #2596be, #1e7a9e); color: white; padding: 1rem 2rem; border: none; border-radius: 0.75rem; cursor: pointer; font-size: 1rem; font-weight: 600; box-shadow: 0 4px 15px rgba(37, 150, 190, 0.3); transition: all 0.3s;">
+                    📁 O haz clic aquí para seleccionar archivo
+                </button>
             </div>
         </div>
 
@@ -25819,58 +25836,96 @@ function selectPDFLang(lang) {
 }
 
 // Configurar drag & drop cuando se carga la página
-document.addEventListener('DOMContentLoaded', function() {
+// Función para inicializar el drag & drop del PDF
+function initPDFDragDrop() {
+    console.log('🔧 initPDFDragDrop llamada');
+    
     const dropZone = document.getElementById('pdf-drag-drop-zone');
     const fileInput = document.getElementById('pdf-file-input');
     
-    // Click en zona de drop
-    if (dropZone) {
-        dropZone.addEventListener('click', () => {
-            fileInput.click();
-        });
-        
-        // Prevenir comportamiento por defecto
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            });
-        });
-        
-        // Efectos visuales
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => {
-                dropZone.classList.add('drag-over');
-            });
-        });
-        
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => {
-                dropZone.classList.remove('drag-over');
-            });
-        });
-        
-        // Manejar drop
-        dropZone.addEventListener('drop', (e) => {
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handlePDFFile(files[0]);
-            }
-        });
+    console.log('🔍 dropZone:', dropZone);
+    console.log('🔍 fileInput:', fileInput);
+    
+    if (!dropZone || !fileInput) {
+        console.error('❌ Elementos de PDF no encontrados');
+        console.log('dropZone existe:', !!dropZone);
+        console.log('fileInput existe:', !!fileInput);
+        return;
     }
+    
+    console.log('✅ Elementos encontrados, configurando eventos...');
+    
+    // Click en zona de drop - DIRECTO sin clonar
+    dropZone.onclick = function() {
+        console.log('🖱️ Click en zona de drop detectado');
+        fileInput.click();
+    };
+    
+    // Prevenir comportamiento por defecto
+    dropZone.ondragenter = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('📥 dragenter');
+        dropZone.classList.add('drag-over');
+    };
+    
+    dropZone.ondragover = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('drag-over');
+    };
+    
+    dropZone.ondragleave = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('📤 dragleave');
+        dropZone.classList.remove('drag-over');
+    };
+    
+    // Manejar drop
+    dropZone.ondrop = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('📦 DROP detectado!');
+        dropZone.classList.remove('drag-over');
+        
+        const files = e.dataTransfer.files;
+        console.log('📁 Archivos recibidos:', files.length);
+        
+        if (files.length > 0) {
+            console.log('✅ Procesando archivo:', files[0].name);
+            handlePDFFile(files[0]);
+        } else {
+            console.error('❌ No se recibieron archivos');
+        }
+    };
     
     // Manejar selección de archivo desde input
-    if (fileInput) {
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handlePDFFile(e.target.files[0]);
-                e.target.value = ''; // Reset input
-            }
-        });
-    }
+    fileInput.onchange = function(e) {
+        console.log('📁 Archivo seleccionado desde input');
+        if (e.target.files.length > 0) {
+            console.log('✅ Procesando archivo:', e.target.files[0].name);
+            handlePDFFile(e.target.files[0]);
+            e.target.value = ''; // Reset input
+        }
+    };
     
     // Seleccionar español por defecto
-    selectPDFLang('es');
+    if (typeof selectPDFLang === 'function') {
+        selectPDFLang('es');
+    }
+    
+    console.log('✅ Drag & drop configurado correctamente');
+    console.log('dropZone.onclick:', typeof dropZone.onclick);
+    console.log('dropZone.ondrop:', typeof dropZone.ondrop);
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 DOM cargado - Primera inicialización');
+    setTimeout(() => {
+        initPDFDragDrop();
+    }, 500);
 });
 
 // ========== FUNCIONES DE PROCESAMIENTO DE PDF ==========

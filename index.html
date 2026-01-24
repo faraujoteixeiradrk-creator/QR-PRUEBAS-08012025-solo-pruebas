@@ -11,7 +11,6 @@
     <!-- Librerías para generar PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
         // --- TAILWIND CONFIGURATION ---
         tailwind.config = {
@@ -889,102 +888,159 @@
         </div>
 
         <!-- PANTALLA INICIAL: Unificada con opciones de escaneo -->
-                <div id="screen-inicio" class="screen active">
-            <div class="fade-in flex flex-col items-center justify-center min-h-screen py-8" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-                <div class="w-full max-w-5xl px-4">
-                    <!-- Título -->
-                    <div class="text-center mb-8">
-                        <h2 class="text-4xl md:text-5xl font-black text-white mb-4">
-                            📄 Arrastra tu Factura PDF
-                        </h2>
-                        <p class="text-lg text-slate-300 mb-2">
-                            El sistema extraerá automáticamente todos los datos
-                        </p>
-                        <p class="text-sm text-slate-400">
-                            Válido para todas las comercializadoras • <span class="text-red-400 font-bold">Excepto PVPC</span>
-                        </p>
+        <div id="screen-inicio" class="screen active">
+            <div class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8">
+                <div class="bg-white p-8 md:p-12 rounded-3xl shadow-2xl w-full max-w-2xl border-4 border-drk-500 relative">
+                    <!-- VERSION -->
+                    <div class="absolute bottom-4 right-6 text-sm text-gray-400 font-semibold">
+                        v2024.12.20
                     </div>
                     
-                    <!-- Zona drag & drop -->
-                    <div id="drag-drop-zone-main" class="border-4 border-dashed border-blue-400 rounded-3xl p-12 md:p-20 text-center bg-slate-800/50 hover:bg-slate-700/50 hover:border-blue-300 transition-all duration-300 cursor-pointer backdrop-blur-sm">
-                        <div class="flex items-center justify-center gap-8 mb-8">
-                            <svg class="w-24 h-24 md:w-32 md:h-32 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
-                                <path d="M14 2v6h6M10 13h4M10 17h4M10 9h1"/>
-                            </svg>
-                            <svg class="w-24 h-24 md:w-32 md:h-32 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                        </div>
-                        
-                        <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">
-                            Arrastra el PDF aquí o haz clic para seleccionar
-                        </h3>
-                        <p class="text-slate-400 text-sm mt-6">
-                            Formatos aceptados: PDF, JPG, PNG
-                        </p>
+                    <!-- Logo circular más grande -->
+                    <div class="w-32 h-32 bg-gradient-to-br from-drk-50 to-drk-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
+                        <svg class="w-16 h-16" viewBox="0 0 100 100" fill="none">
+                            <style>.drk-ring{fill:none;stroke-width:12;stroke-linecap:round;}</style>
+                            <circle class="drk-ring" cx="45" cy="45" r="30" stroke="#10b981"/>
+                            <circle class="drk-ring" cx="55" cy="55" r="30" stroke="#ef4444"/>
+                            <circle class="drk-ring" cx="45" cy="55" r="30" stroke="#3b82f6"/>
+                            <circle class="drk-ring" cx="55" cy="45" r="30" stroke="#fbbf24"/>
+                        </svg>
                     </div>
-                    
-                    <!-- Botón volver -->
-                    <div class="mt-8 text-center">
-                        <button onclick="showPanel()" class="text-slate-400 hover:text-white underline">
-                            ← Volver al panel
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- PANTALLA 2: ELECTRICIDAD (landing-view original) -->
-        <div id="screen-electricidad" class="screen">
-        <!-- 1. Landing View -->
-        <div id="landing-view" class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8">
-            <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500" id="landing-card">
-                <div id="landing-icon-bg" class="w-16 h-16 bg-drk-50 rounded-full flex items-center justify-center mx-auto mb-4 text-drk-600 shadow-inner">
-                    <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none">
-                        <style>.drk-ring{fill:none;stroke-width:10;stroke-linecap:round;}</style>
-                        <circle class="drk-ring" cx="45" cy="45" r="35" stroke="#E50000"/>
-                        <circle class="drk-ring" cx="55" cy="55" r="35" stroke="#FFCC00"/>
-                        <circle class="drk-ring" cx="45" cy="55" r="35" stroke="#0079C1"/>
-                        <circle class="drk-ring" cx="55" cy="45" r="35" stroke="#00A859"/>
-                    </svg>
-                </div>
-                <h2 id="landing-title" class="text-3xl font-black text-drk-900 mb-2 text-center">DRK COMPARADOR</h2>
-                <p class="text-slate-500 mb-6 text-center">Selecciona la tarifa que deseas analizar.</p>
-                
-                <!-- Tariff Selection Buttons -->
-                <div class="w-full space-y-4">
-                    <button onclick="selectTariffType('2.0TD')" class="tariff-select-btn group">
-                        <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                        </div>
-                        <div class="text-left">
-                            <span class="text-lg font-bold text-drk-900">2.0 TD</span>
-                            <span class="block text-xs text-slate-500">Hogar / Pequeño Negocio</span>
-                        </div>
-                        <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
+                    <!-- Título principal -->
+                    <h2 id="inicio-title" class="text-4xl font-black text-slate-900 mb-4 text-center">Analizar Factura</h2>
+                    
+                    <!-- Subtítulo explicativo -->
+                    <p class="text-lg text-slate-600 mb-8 text-center font-medium">
+                        Escanea el código QR o introduce datos manualmente.
+                    </p>
+                    
+                    <!-- Botón principal ESCANEAR QR AHORA -->
+                    <button onclick="selectTariffType('2.0TD'); setTimeout(() => document.getElementById('start-scan-btn').click(), 300);" class="w-full bg-gradient-to-r from-drk-600 to-drk-700 hover:from-drk-700 hover:to-drk-800 text-white font-bold py-5 px-8 rounded-2xl shadow-xl transform transition active:scale-95 flex items-center justify-center gap-4 text-lg">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.125 3h3.75a2 2 0 011.664.89l.812 1.22a2 2 0 001.664.89H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span>ESCANEAR QR AHORA</span>
+                    </button>
+                    
+                    <!-- Botones ocultos pero funcionales -->
+                    <button onclick="selectTariffType('2.0TD'); setTimeout(() => document.getElementById('upload-menu-btn').click(), 300);" class="w-full bg-drk-50 hover:bg-drk-100 text-drk-800 font-bold py-3 px-6 rounded-xl shadow-sm transform transition active:scale-95 flex items-center justify-center gap-3 mt-3" style="display: none;">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span>OTRAS OPCIONES DE CAPTURA</span>
+                    </button>
+                    
+                    <button onclick="selectTariffType('2.0TD'); setTimeout(() => document.getElementById('manual-input-btn').click(), 300);" class="w-full bg-drk-50 hover:bg-drk-100 text-drk-800 font-bold py-3 px-6 rounded-xl shadow-sm transform transition active:scale-95 flex items-center justify-center gap-3 mt-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        <span>DATOS A MANO</span>
                     </button>
                 </div>
-                
-                <!-- QR Link Section -->
-                <div id="pwa-install-section" class="mt-8 pt-4 border-t border-slate-200 text-center">
-                    <label class="flex items-center justify-center cursor-pointer mb-3 text-drk-800 hover:text-drk-900 transition">
-                        <input type="checkbox" id="qr-toggle-checkbox" class="h-4 w-4 text-drk-500 border-gray-300 rounded focus:ring-drk-500 mr-2">
-                        <span class="text-xs font-bold uppercase tracking-wider underline decoration-drk-500 decoration-2 underline-offset-4">Abrir en el Movil</span>
-                    </label>
-                    <div id="qr-content-wrapper" class="opacity-0 max-h-0">
-                        <div id="qr-visual-container" class="mx-auto w-44 h-44 p-2">
-                            <div id="qr-code-container"></div>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-3">Haz una foto del QR y ábrelo en tu móvil.</p>
-                    </div>
-                </div>
-
             </div>
         </div>
-        </div> <!-- Cierre screen-electricidad -->
-        
+
+                <!-- PANTALLA 2: ELECTRICIDAD - DRAG & DROP DIRECTO -->
+        <div id="screen-electricidad" class="screen">
+            <div id="client-direct-view" class="fade-in flex flex-col items-center justify-center min-h-screen py-12" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+            <!-- Inputs ocultos necesarios -->
+            <input type="file" id="camera-capture-input" accept="image/*" capture="environment" class="hidden">
+            <input type="file" id="file-upload-input" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" class="hidden">
+            
+            <!-- Header DRK Power - Extractor Inteligente -->
+            <div class="w-full max-w-5xl mb-12 text-center px-4">
+                <div class="flex flex-col items-center justify-center gap-4 mb-6">
+                    <!-- Logo DRK arriba -->
+                    <div class="flex items-center gap-3">
+                        <!-- Logo circular DRK -->
+                        <svg class="w-16 h-16 md:w-20 md:h-20" viewBox="0 0 100 100" fill="none">
+                            <!-- Círculo con gradientes de colores -->
+                            <defs>
+                                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" style="stop-color:#E53935;stop-opacity:1" />
+                                    <stop offset="25%" style="stop-color:#FF8C00;stop-opacity:1" />
+                                </linearGradient>
+                                <linearGradient id="grad2" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#FF8C00;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:rgb(53,168,223);stop-opacity:1" />
+                                </linearGradient>
+                                <linearGradient id="grad3" x1="100%" y1="0%" x2="0%" y2="0%">
+                                    <stop offset="0%" style="stop-color:rgb(53,168,223);stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#4CAF50;stop-opacity:1" />
+                                </linearGradient>
+                                <linearGradient id="grad4" x1="0%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" style="stop-color:#4CAF50;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#E53935;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <!-- Arco superior (rojo a naranja) -->
+                            <path d="M 50 5 A 45 45 0 0 1 95 50" stroke="url(#grad1)" stroke-width="6" fill="none" stroke-linecap="round"/>
+                            <!-- Arco derecho (naranja a azul) -->
+                            <path d="M 95 50 A 45 45 0 0 1 50 95" stroke="url(#grad2)" stroke-width="6" fill="none" stroke-linecap="round"/>
+                            <!-- Arco inferior (azul a verde) -->
+                            <path d="M 50 95 A 45 45 0 0 1 5 50" stroke="url(#grad3)" stroke-width="6" fill="none" stroke-linecap="round"/>
+                            <!-- Arco izquierdo (verde a rojo) -->
+                            <path d="M 5 50 A 45 45 0 0 1 50 5" stroke="url(#grad4)" stroke-width="6" fill="none" stroke-linecap="round"/>
+                        </svg>
+                        
+                        <!-- Texto DRK -->
+                        <h1 class="text-6xl md:text-7xl lg:text-8xl font-black tracking-tight" style="color: rgb(53,168,223);">DRK</h1>
+                    </div>
+                    
+                    <!-- POWER abajo -->
+                    <div class="bg-slate-800 px-6 md:px-8 py-2 md:py-3 rounded-lg">
+                        <h2 class="text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-wider">POWER</h2>
+                    </div>
+                </div>
+                <p class="text-slate-300 text-sm md:text-base lg:text-lg uppercase tracking-widest font-mono leading-relaxed">
+                    SOLO PARA FACTURAS PDF DIRECTAS<br class="md:hidden">
+                    <span class="hidden md:inline">DE LA COMERCIALIZADORA</span>
+                    <span class="md:hidden">DE LA COMERCIALIZADORA</span>
+                    <span class="block mt-2 text-xs md:text-sm" style="color: rgb(53,168,223);">(MULTIDIOMAS)</span>
+                </p>
+            </div>
+            
+            <!-- Selector de idiomas -->
+            <div class="w-full max-w-5xl mb-8 flex flex-wrap justify-center gap-3 px-4">
+                <button onclick="if(window.LANG) window.LANG.change('es')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:bg-slate-700 text-white font-semibold transition text-sm" style="border-color: rgb(53,168,223);">
+                    🇪🇸 ES
+                </button>
+                <button onclick="if(window.LANG) window.LANG.change('en')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:bg-slate-700 text-white font-semibold transition text-sm" style="border-color: rgb(53,168,223);">
+                    🇬🇧 EN
+                </button>
+                <button onclick="if(window.LANG) window.LANG.change('zh')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:bg-slate-700 text-white font-semibold transition text-sm" style="border-color: rgb(53,168,223);">
+                    🇨🇳 ZH
+                </button>
+                <button onclick="if(window.LANG) window.LANG.change('fr')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:bg-slate-700 text-white font-semibold transition text-sm" style="border-color: rgb(53,168,223);">
+                    🇫🇷 FR
+                </button>
+                <button onclick="if(window.LANG) window.LANG.change('de')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:bg-slate-700 text-white font-semibold transition text-sm" style="border-color: rgb(53,168,223);">
+                    🇩🇪 DE
+                </button>
+            </div>
+            
+            <!-- Zona de Drag & Drop con diseño moderno -->
+            <div class="w-full max-w-5xl px-4">
+                <div id="drag-drop-zone-main" class="border-4 border-dashed border-blue-500/40 rounded-3xl p-12 md:p-20 text-center bg-slate-800/30 hover:bg-slate-800/50 hover:border-blue-400 transition-all duration-300 cursor-pointer backdrop-blur-sm">
+                    <!-- Iconos grandes -->
+                    <div class="flex items-center justify-center gap-8 mb-8">
+                        <svg class="w-20 h-20 md:w-28 md:h-28 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
+                            <path d="M14 2v6h6M10 13h4M10 17h4M10 9h1"/>
+                        </svg>
+                        <svg class="w-20 h-20 md:w-28 md:h-28 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Arrastra el PDF de la factura original de la comercializadora</h2>
+                    <p class="text-slate-300 text-base md:text-lg">
+                        Válido para todas las comercializadoras de electricidad, <span class="font-bold text-red-400">excepto PVPC</span>.
+                    </p>
+                </div>
+            </div>
+        </div>
+        </div>
+
         <!-- PANTALLA 3: GAS -->
         <div id="screen-gas" class="screen">
             <div class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8">
@@ -12989,7 +13045,61 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     decodeQRFromImage(e.target.files[0]);
                     e.target.value = ''; // Limpiar input
                 }
-            });
+            
+        
+        // ========== INICIALIZACIÓN DRAG & DROP (desde V7) ==========
+        // === CONFIGURACIÓN DRAG & DROP PARA ZONA PRINCIPAL ===
+            const dragDropZoneMain = document.getElementById('drag-drop-zone-main');
+            
+            if (dragDropZoneMain) {
+                // Click en zona
+                dragDropZoneMain.addEventListener('click', () => {
+                    fileUploadInput.click();
+                });
+                
+                // Prevenir comportamiento por defecto
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    dragDropZoneMain.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    });
+                });
+                
+                // Efectos visuales
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dragDropZoneMain.addEventListener(eventName, () => {
+                        dragDropZoneMain.classList.add('border-drk-600', 'bg-drk-100');
+                    });
+                });
+                
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dragDropZoneMain.addEventListener(eventName, () => {
+                        dragDropZoneMain.classList.remove('border-drk-600', 'bg-drk-100');
+                    });
+                });
+                
+                // Manejar drop
+                dragDropZoneMain.addEventListener('drop', (e) => {
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        handleFile(files[0]);
+                    }
+                });
+            }
+            
+            // Manejar selección de archivo desde input
+            fileUploadInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    // Cerrar modal de opciones
+                    document.getElementById('qr-options-modal').classList.add('hidden');
+                    document.getElementById('qr-options-modal').classList.remove('flex');
+                    // Procesar archivo
+                    handleFile(e.target.files[0]);
+                    e.tar
+        
+        console.log('✅ Event listeners de drag & drop configurados');
+
+        });
             
             // Botón de Finalizar MULTICUPS (en la nueva vista SAGA)
             document.getElementById('multicups-finalize-btn-saga').onclick = finalizeMultiCups;
@@ -18941,8 +19051,6 @@ ${clientName}
                                 </style>
                             </head>
                             <body>
-<input type="file" id="file-upload-input" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" style="display: none;">
-
                                 <div class="container">
                                     <div class="header">
                                         <h1>🔥 DRK 能源 - GAS</h1>
@@ -19002,8 +19110,6 @@ ${clientName}
                                 </style>
                             </head>
                             <body>
-<input type="file" id="file-upload-input" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" style="display: none;">
-
                                 <div class="container">
                                     <div class="header">
                                         <h1>DRK 能源</h1>
@@ -23128,54 +23234,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ========== NAVEGACIÓN ENTRE PANEL Y CALCULADORA ==========
 function showCalculator() {
-    document.body.classList.add('showing-calculator');
-    window.scrollTo(0, 0);
+    console.log('🚀 showCalculator() llamada');
     
-    // Ocultar el selector de idiomas de la calculadora (ya se eligió en el panel)
-    const calcLangSelector = document.getElementById('calculator-language-selector');
-    if (calcLangSelector) {
-        calcLangSelector.style.display = 'none';
+    // Ocultar panel principal
+    document.body.classList.add('showing-calculator');
+    
+    // Mostrar screen-electricidad
+    const screenElec = document.getElementById('screen-electricidad');
+    if (screenElec) {
+        screenElec.classList.add('active');
+        screenElec.style.display = 'block';
+        console.log('✅ screen-electricidad visible');
     }
     
-    // FORZAR el cambio de idioma cada vez que se muestra la calculadora
+    // Mostrar client-direct-view
+    const clientView = document.getElementById('client-direct-view');
+    if (clientView) {
+        clientView.style.display = 'flex';
+        console.log('✅ client-direct-view visible');
+    }
+    
+    // Ocultar otras vistas
+    const landingView = document.getElementById('landing-view');
+    if (landingView) landingView.style.display = 'none';
+    
+    const screenInicio = document.getElementById('screen-inicio');
+    if (screenInicio) screenInicio.style.display = 'none';
+    
+    // Re-inicializar event listeners del drag & drop después de un momento
     setTimeout(() => {
-        const savedLang = localStorage.getItem('selectedLanguage') || 'es';
+        const dragZone = document.getElementById('drag-drop-zone-main');
+        const fileInput = document.getElementById('file-upload-input');
         
-        console.log('🔄 Aplicando idioma:', savedLang);
-        
-        // Actualizar el selector oculto primero
-        const calcSelector = document.getElementById('language-selector');
-        if (calcSelector) {
-            calcSelector.value = savedLang;
+        if (dragZone && fileInput) {
+            console.log('✅ Elementos drag & drop encontrados');
+            console.log('   - drag-drop-zone-main:', dragZone);
+            console.log('   - file-upload-input:', fileInput);
+        } else {
+            console.error('❌ No se encontraron elementos drag & drop');
+            if (!dragZone) console.error('   - Falta: drag-drop-zone-main');
+            if (!fileInput) console.error('   - Falta: file-upload-input');
         }
-        
-        // FORZAR cambio de idioma en la calculadora (sin skipReload)
-        if (window.LANG && typeof window.LANG.change === 'function') {
-            window.LANG.change(savedLang, false); // false = NO skip reload, fuerza cambio
-            console.log('✅ Idioma FORZADO en calculadora:', savedLang);
-        }
-        
-        // Precargar tarifas automáticamente en segundo plano
-        if (typeof fetchTariffsFromSheet === 'function' && typeof currentTariffs !== 'undefined') {
-            if (currentTariffs['2.0TD'] && currentTariffs['2.0TD'].length === 0) {
-                console.log('📊 Precargando tarifas 2.0TD en segundo plano...');
-                fetchTariffsFromSheet('2.0TD').then(() => {
-                    console.log('✅ Tarifas 2.0TD precargadas exitosamente');
-                }).catch(err => {
-                    console.error('⚠️ Error precargando tarifas:', err);
-                });
-            }
-        }
-        
-        // Doble verificación: volver a traducir después de un momento
-        setTimeout(() => {
-            if (window.LANG && typeof window.LANG.retranslate === 'function') {
-                window.LANG.retranslate();
-                console.log('✅ Traducción refrescada');
-            }
-        }, 200);
-        
-    }, 150);
+    }, 100);
+    
+    window.scrollTo(0, 0);
 }
 
 function showPanel() {
@@ -25341,6 +25443,36 @@ ${myName}`;
         document.getElementById('friends-code-form').reset();
     }, 1000);
 }
+
+        
+        // ========== FUNCIÓN HANDLEFILE (desde V7) ==========
+        async function handleFile(file) {
+            console.log('📁 Archivo recibido:', file.name, file.type);
+            
+            showProcessingModal();
+            updateProcessingStatus('Detectando tipo de archivo...');
+            addProcessingLog(`Archivo: ${file.name}`, 'info');
+            addProcessingLog(`Tipo: ${file.type}`, 'info');
+            addProcessingLog(`Tamaño: ${(file.size / 1024).toFixed(2)} KB`, 'info');
+            updateProcessingProgress(5);
+            
+            try {
+                if (file.type === 'application/pdf') {
+                    await handlePDFComplete(file);
+                } else if (file.type.startsWith('image/')) {
+                    await handleImageComplete(file);
+                } else {
+                    throw new Error('Formato no soportado. Por favor sube PDF, JPG o PNG.');
+                }
+            } catch (err) {
+                console.error('❌ Error procesando archivo:', err);
+                hideProcessingModal();
+                window.showErrorModal(`❌ Error al procesar el archivo:\n\n${err.message}`);
+            }
+        }
+        
+        // Procesar PDF con TODAS las estrategias del código original
+        
 </script>
 
 
@@ -25434,54 +25566,5 @@ ${myName}`;
     </div>
 </div>
 
-
-<script>
-// Event listeners para drag & drop
-document.addEventListener('DOMContentLoaded', function() {
-    const input = document.getElementById('file-upload-input');
-    const zone = document.getElementById('drag-drop-zone-main');
-    
-    if (!input || !zone) {
-        console.error('Elementos no encontrados');
-        return;
-    }
-    
-    // Click
-    zone.addEventListener('click', () => input.click());
-    
-    // Drag & drop
-    ['dragenter', 'dragover'].forEach(e => {
-        zone.addEventListener(e, (ev) => {
-            ev.preventDefault();
-            zone.classList.add('border-green-400', 'bg-slate-600/50');
-        });
-    });
-    
-    ['dragleave', 'drop'].forEach(e => {
-        zone.addEventListener(e, (ev) => {
-            ev.preventDefault();
-            zone.classList.remove('border-green-400', 'bg-slate-600/50');
-        });
-    });
-    
-    zone.addEventListener('drop', (e) => {
-        if (e.dataTransfer.files.length > 0) {
-            const file = e.dataTransfer.files[0];
-            alert('Archivo recibido: ' + file.name + '\n\nEn la siguiente versión procesaremos el PDF automáticamente.');
-        }
-    });
-    
-    // Selección de archivo
-    input.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            const file = e.target.files[0];
-            alert('Archivo seleccionado: ' + file.name + '\n\nEn la siguiente versión procesaremos el PDF automáticamente.');
-            e.target.value = '';
-        }
-    });
-    
-    console.log('✅ Drag & drop inicializado');
-});
-</script>
 </body>
 </html>

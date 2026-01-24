@@ -10,6 +10,15 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <!-- PDF.js para lectura de PDFs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Configurar PDF.js worker
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            console.log('✅ PDF.js configurado correctamente');
+        } else {
+            console.error('❌ pdfjsLib no está disponible');
+        }
+    </script>
     <!-- Librerías para generar PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -25875,25 +25884,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Función principal para manejar archivos (PDF o imagen)
 async function handlePDFFile(file) {
-    console.log('📁 Archivo recibido:', file.name, file.type);
-    
-    showProcessingModal();
-    updateProcessingStatus('Detectando tipo de archivo...');
-    addProcessingLog(`Archivo: ${file.name}`, 'info');
-    addProcessingLog(`Tipo: ${file.type}`, 'info');
-    addProcessingLog(`Tamaño: ${(file.size / 1024).toFixed(2)} KB`, 'info');
-    updateProcessingProgress(5);
+    console.log('════════════════════════════════════════');
+    console.log('🚀 handlePDFFile INICIADO');
+    console.log('📁 Archivo recibido:', file.name, file.type, file.size);
+    console.log('════════════════════════════════════════');
     
     try {
+        console.log('1️⃣ Llamando a showProcessingModal()...');
+        showProcessingModal();
+        
+        console.log('2️⃣ Actualizando estado...');
+        updateProcessingStatus('Detectando tipo de archivo...');
+        addProcessingLog(`Archivo: ${file.name}`, 'info');
+        addProcessingLog(`Tipo: ${file.type}`, 'info');
+        addProcessingLog(`Tamaño: ${(file.size / 1024).toFixed(2)} KB`, 'info');
+        updateProcessingProgress(5);
+        
+        console.log('3️⃣ Verificando tipo de archivo...');
         if (file.type === 'application/pdf') {
+            console.log('✅ Es un PDF, llamando a handlePDFComplete...');
             await handlePDFComplete(file);
         } else if (file.type.startsWith('image/')) {
+            console.log('✅ Es una imagen, llamando a handleImageComplete...');
             await handleImageComplete(file);
         } else {
             throw new Error('Formato no soportado. Por favor sube PDF, JPG o PNG.');
         }
+        
+        console.log('✅ handlePDFFile COMPLETADO exitosamente');
     } catch (err) {
-        console.error('❌ Error procesando archivo:', err);
+        console.error('❌❌❌ ERROR EN handlePDFFile ❌❌❌');
+        console.error('Error:', err);
+        console.error('Stack:', err.stack);
         hideProcessingModal();
         alert(`❌ Error al procesar el archivo:\n\n${err.message}`);
     }
@@ -26025,15 +26047,31 @@ function isCNMCData(str) {
 
 // Procesar PDF con TODAS las estrategias del código original
 async function handlePDFComplete(file) {
-    updateProcessingStatus('Cargando PDF...');
-    addProcessingLog('📄 Iniciando análisis de PDF...', 'working');
-    updateProcessingProgress(10);
+    console.log('════════════════════════════════════════');
+    console.log('📄 handlePDFComplete INICIADO');
+    console.log('════════════════════════════════════════');
     
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-    
-    addProcessingLog(`✓ PDF cargado: ${pdf.numPages} página(s)`, 'success');
-    updateProcessingProgress(15);
+    try {
+        updateProcessingStatus('Cargando PDF...');
+        addProcessingLog('📄 Iniciando análisis de PDF...', 'working');
+        updateProcessingProgress(10);
+        
+        console.log('📖 Convirtiendo archivo a arrayBuffer...');
+        const arrayBuffer = await file.arrayBuffer();
+        console.log('✅ ArrayBuffer creado, tamaño:', arrayBuffer.byteLength);
+        
+        console.log('📖 Verificando pdfjsLib...');
+        if (typeof pdfjsLib === 'undefined') {
+            throw new Error('PDF.js no está cargado. Por favor, recarga la página.');
+        }
+        console.log('✅ pdfjsLib disponible');
+        
+        console.log('📖 Cargando documento PDF...');
+        const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+        console.log('✅ PDF cargado exitosamente, páginas:', pdf.numPages);
+        
+        addProcessingLog(`✓ PDF cargado: ${pdf.numPages} página(s)`, 'success');
+        updateProcessingProgress(15);
     
     // ========== ESTRATEGIA 1: Enlaces Digitales Incrustados + TOOLTIPS ==========
     updateProcessingStatus('Buscando enlaces digitales incrustados y tooltips...');
@@ -26219,6 +26257,14 @@ async function handlePDFComplete(file) {
             "• Intenta con un PDF de mejor calidad"
         );
     }, 1500);
+    
+    } catch (error) {
+        console.error('❌❌❌ ERROR EN handlePDFComplete ❌❌❌');
+        console.error('Error:', error);
+        console.error('Stack:', error.stack);
+        hideProcessingModal();
+        throw error; // Re-lanzar para que handlePDFFile lo capture
+    }
 }
 
 // Procesar imágenes

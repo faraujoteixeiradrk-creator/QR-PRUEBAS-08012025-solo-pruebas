@@ -210,194 +210,36 @@
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
-
-    <style>
-        /* Ocultar inicialmente la vista client-direct de V7 */
-        #client-direct-view {
-            display: none !important;
-        }
-        
-        /* Mostrar el panel principal por defecto */
-        #main-panel {
-            display: block !important;
-        }
-        
-        /* Cuando se activa la calculadora, ocultar panel y mostrar V7 */
-        body.showing-calculator #main-panel {
-            display: none !important;
-        }
-        
-        body.showing-calculator #client-direct-view {
-            display: flex !important;
-        }
-    </style>
 </head>
 <body class="flex flex-col min-h-screen text-slate-800 drk-active">
 
-<!-- ========== PANEL DE DEPARTAMENTOS ========== -->
-<div id="panel-view">
-    <!-- Selector de Idiomas -->
-    <div class="panel-language-selector">
-        <select id="panel-language-selector" onchange="currentPanelLanguage=this.value; localStorage.setItem('appLanguage',this.value); localStorage.setItem('selectedLanguage',this.value); changePanelLanguage(this.value); console.log('✅ Selector cambiado a:',this.value);">
-            <option value="es">🇪🇸 Español</option>
-            <option value="en">🇬🇧 English</option>
-            <option value="pt">🇵🇹 Português</option>
-            <option value="zh">🇨🇳 中文</option>
-            <option value="fr">🇫🇷 Français</option>
-        </select>
-        <span class="panel-language-arrow">▼</span>
-    </div>
-
-    <div style="width: 100%; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem;">
-        <div style="width: 100%; max-width: 1200px;">
-            
-            <!-- Logo y Branding -->
-            <div style="text-align: center; margin-bottom: 3rem;">
-                <div style="display: flex; justify-content: center; margin-bottom: 2rem;">
-                    <div class="logo-container">
-                        <span style="font-size: 3.5rem; font-weight: 900; color: #2596be; letter-spacing: -0.05em;">DRK</span>
-                        <div class="logo-badge">
-                            <i class="fas fa-bolt" style="color: white; font-size: 1.25rem;"></i>
-                        </div>
-                    </div>
-                </div>
-                <h1 style="font-size: 3rem; font-weight: 800; color: white; margin-bottom: 0.5rem;" data-translate="panel-title">DRK Energía</h1>
-                <p style="font-size: 1rem; font-weight: 600; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.3em;" data-translate="panel-subtitle">Smart Solutions</p>
-            </div>
-
-            <!-- Tarjeta de Noticias CENTRADA -->
-            <div style="max-width: 400px; margin: 3rem auto 3rem auto;">
-                <div class="dept-card" onclick="showNews()" style="cursor: pointer;">
-                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.5rem;">
-                        <div class="icon-box">
-                            <!-- Icono: Periódico/Noticias EN ROJO -->
-                            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <!-- Periódico -->
-                                <rect x="12" y="15" width="36" height="30" rx="2" fill="#ef4444" opacity="0.2"/>
-                                <rect x="12" y="15" width="36" height="30" rx="2" stroke="#ef4444" stroke-width="2"/>
-                                
-                                <!-- Título principal -->
-                                <line x1="16" y1="21" x2="44" y2="21" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
-                                
-                                <!-- Líneas de texto -->
-                                <line x1="16" y1="27" x2="35" y2="27" stroke="#f87171" stroke-width="1.5" stroke-linecap="round"/>
-                                <line x1="16" y1="31" x2="40" y2="31" stroke="#f87171" stroke-width="1.5" stroke-linecap="round"/>
-                                <line x1="16" y1="35" x2="32" y2="35" stroke="#f87171" stroke-width="1.5" stroke-linecap="round"/>
-                                
-                                <!-- Imagen/foto -->
-                                <rect x="16" y="38" width="12" height="5" rx="1" fill="#f87171" opacity="0.5"/>
-                                
-                                <!-- Más líneas -->
-                                <line x1="30" y1="39" x2="44" y2="39" stroke="#f87171" stroke-width="1.5" stroke-linecap="round"/>
-                                <line x1="30" y1="42" x2="44" y2="42" stroke="#f87171" stroke-width="1.5" stroke-linecap="round"/>
-                                
-                                <!-- Icono de "nuevo" -->
-                                <circle cx="46" cy="18" r="6" fill="#dc2626"/>
-                                <text x="46" y="21" text-anchor="middle" font-size="7" font-weight="bold" fill="#ffffff">N</text>
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="dept-label" data-translate="dept5-label" style="text-align: center;">Información</p>
-                            <h3 class="dept-title" data-translate="dept5-title" style="text-align: center;">Noticias</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Grid de Departamentos 2x2 -->
-            <div class="grid-container" style="margin: 0 auto;">
-                
-                <!-- Departamento 1: Calcula tu Ahorro -->
-                <div class="dept-card" onclick="showCalculator()">
-                    <div class="icon-box">
-                        <!-- Icono: Calculadora con monedas -->
-                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="8" y="10" width="30" height="38" rx="4" fill="#fbbf24" opacity="0.2"/>
-                            <rect x="8" y="10" width="30" height="38" rx="4" stroke="#fbbf24" stroke-width="2"/>
-                            <rect x="12" y="14" width="22" height="8" rx="2" fill="#fbbf24"/>
-                            <circle cx="15" cy="27" r="2.5" fill="#fbbf24"/>
-                            <circle cx="23" cy="27" r="2.5" fill="#fbbf24"/>
-                            <circle cx="31" cy="27" r="2.5" fill="#fbbf24"/>
-                            <circle cx="15" cy="34" r="2.5" fill="#fbbf24"/>
-                            <circle cx="23" cy="34" r="2.5" fill="#fbbf24"/>
-                            <circle cx="31" cy="34" r="2.5" fill="#fbbf24"/>
-                            <circle cx="15" cy="41" r="2.5" fill="#fbbf24"/>
-                            <rect x="20" y="38.5" width="14" height="5" rx="2.5" fill="#fbbf24"/>
-                            <circle cx="45" cy="18" r="8" fill="#f59e0b" opacity="0.3"/>
-                            <circle cx="45" cy="18" r="8" stroke="#f59e0b" stroke-width="2"/>
-                            <text x="45" y="22" text-anchor="middle" font-size="10" font-weight="bold" fill="#f59e0b">€</text>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="dept-label" data-translate="dept1-label">Optimización</p>
-                        <h3 class="dept-title" data-translate="dept1-title">Calcula tu Ahorro</h3>
-                    </div>
-                </div>
-
-                <!-- Departamento 2: Precios de la Competencia -->
-                <div class="dept-card" onclick="showComparison()">
-                    <div class="icon-box">
-                        <!-- Icono: Gráfico comparativo -->
-                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="8" y="35" width="8" height="20" rx="2" fill="#22d3ee"/>
-                            <rect x="19" y="25" width="8" height="30" rx="2" fill="#06b6d4"/>
-                            <rect x="30" y="30" width="8" height="25" rx="2" fill="#22d3ee"/>
-                            <rect x="41" y="15" width="8" height="40" rx="2" fill="#06b6d4"/>
-                            <path d="M10 28 L23 18 L34 22 L45 8" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="10" cy="28" r="3" fill="#0ea5e9"/>
-                            <circle cx="23" cy="18" r="3" fill="#0ea5e9"/>
-                            <circle cx="34" cy="22" r="3" fill="#0ea5e9"/>
-                            <circle cx="45" cy="8" r="3" fill="#0ea5e9"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="dept-label" data-translate="dept2-label">Mercado</p>
-                        <h3 class="dept-title" data-translate="dept2-title">Precios de la Competencia</h3>
-                    </div>
-                </div>
-
-                <!-- Departamento 3: Email Backoffice -->
-                <div class="dept-card" onclick="openEmailModal()">
-                    <div class="icon-box">
-                        <!-- Icono: Sobre de correo con @ -->
-                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="8" y="15" width="44" height="30" rx="4" fill="#3db4d8" opacity="0.2"/>
-                            <rect x="8" y="15" width="44" height="30" rx="4" stroke="#3db4d8" stroke-width="2"/>
-                            <path d="M8 15 L30 32 L52 15" stroke="#3db4d8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="30" cy="30" r="10" fill="#2596be" opacity="0.3"/>
-                            <circle cx="30" cy="30" r="10" stroke="#2596be" stroke-width="2"/>
-                            <text x="30" y="35" text-anchor="middle" font-size="12" font-weight="bold" fill="#2596be">@</text>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="dept-label" data-translate="dept3-label">Contacto</p>
-                        <h3 class="dept-title" data-translate="dept3-title">Email Backoffice</h3>
-                    </div>
-                </div>
-
-                <!-- Departamento 4: Código Amigos y Descuentos -->
-                <div class="dept-card" onclick="showFriendsCode()">
-                    <div class="icon-box">
-                        <!-- Icono: Ticket con descuento -->
-                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 20 L50 20 L50 25 C47 25 45 27 45 30 C45 33 47 35 50 35 L50 40 L10 40 L10 35 C13 35 15 33 15 30 C15 27 13 25 10 25 Z" fill="#f87171" opacity="0.2"/>
-                            <path d="M10 20 L50 20 L50 25 C47 25 45 27 45 30 C45 33 47 35 50 35 L50 40 L10 40 L10 35 C13 35 15 33 15 30 C15 27 13 25 10 25 Z" stroke="#f87171" stroke-width="2"/>
-                            <circle cx="30" cy="30" r="8" fill="#ef4444" opacity="0.3"/>
-                            <circle cx="30" cy="30" r="8" stroke="#ef4444" stroke-width="2"/>
-                            <text x="30" y="35" text-anchor="middle" font-size="10" font-weight="bold" fill="#ef4444">%</text>
-                            <line x1="20" y1="15" x2="20" y2="45" stroke="#f87171" stroke-width="1.5" stroke-dasharray="3 3"/>
-                            <line x1="40" y1="15" x2="40" y2="45" stroke="#f87171" stroke-width="1.5" stroke-dasharray="3 3"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="dept-label" data-translate="dept4-label">Beneficios</p>
-                        <h3 class="dept-title" data-translate="dept4-title">Código Amigos y Descuentos</h3>
-                    </div>
-                </div>
-
-
-            </div>
+<!-- PANTALLA DE INICIO SIMPLE -->
+<div id="pantalla-inicio-simple" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); z-index: 10000; display: flex; align-items: center; justify-content: center;">
+    <div style="text-align: center; padding: 2rem;">
+        <!-- Logo -->
+        <div style="margin-bottom: 3rem;">
+            <h1 style="font-size: 4rem; font-weight: 900; color: #2596be; margin-bottom: 0.5rem;">DRK</h1>
+            <p style="font-size: 1.5rem; color: #93c5fd; font-weight: 600;">Energía</p>
         </div>
+        
+        <!-- Botón grande -->
+        <button onclick="document.getElementById('pantalla-inicio-simple').style.display='none';" 
+                style="background: linear-gradient(135deg, #2596be 0%, #1e7ba0 100%); 
+                       color: white; 
+                       font-size: 1.5rem; 
+                       font-weight: bold; 
+                       padding: 1.5rem 3rem; 
+                       border: none; 
+                       border-radius: 1rem; 
+                       cursor: pointer; 
+                       box-shadow: 0 10px 25px rgba(37, 150, 190, 0.3);
+                       transition: all 0.3s;"
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 35px rgba(37, 150, 190, 0.4)';"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 25px rgba(37, 150, 190, 0.3)';">
+            📊 Calcula tu Ahorro
+        </button>
+        
+        <p style="color: #94a3b8; margin-top: 2rem; font-size: 0.9rem;">Click para acceder al comparador</p>
     </div>
 </div>
 
@@ -28542,45 +28384,5 @@ Gracias.`;
                 };
             }
         }
-    </script>
-
-    <script>
-    function showCalculator() {
-        console.log('🚀 showCalculator() - Activando vista V7');
-        
-        // Activar clase en body
-        document.body.classList.add('showing-calculator');
-        
-        // Ocultar panel
-        const panel = document.getElementById('main-panel');
-        if (panel) panel.style.display = 'none';
-        
-        // Mostrar client-direct-view
-        const clientView = document.getElementById('client-direct-view');
-        if (clientView) {
-            clientView.style.display = 'flex';
-            console.log('✅ client-direct-view activada');
-        }
-        
-        // Scroll al top
-        window.scrollTo(0, 0);
-    }
-    
-    function showPanel() {
-        console.log('🔙 showPanel() - Volviendo al panel');
-        
-        // Quitar clase
-        document.body.classList.remove('showing-calculator');
-        
-        // Mostrar panel
-        const panel = document.getElementById('main-panel');
-        if (panel) panel.style.display = 'block';
-        
-        // Ocultar client-direct-view
-        const clientView = document.getElementById('client-direct-view');
-        if (clientView) clientView.style.display = 'none';
-        
-        window.scrollTo(0, 0);
-    }
     </script>
 </body>

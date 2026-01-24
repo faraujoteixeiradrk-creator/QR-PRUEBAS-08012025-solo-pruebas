@@ -207,14 +207,22 @@
         #panel-view { display: block; }
         #calculator-view { display: none; }
         #comparison-view { display: none; }
+        #pdf-upload-view { display: none; }
         
         body.showing-calculator #panel-view { display: none !important; }
         body.showing-calculator #calculator-view { display: block !important; }
         body.showing-calculator #comparison-view { display: none !important; }
+        body.showing-calculator #pdf-upload-view { display: none !important; }
 
         body.showing-comparison #panel-view { display: none !important; }
         body.showing-comparison #calculator-view { display: none !important; }
         body.showing-comparison #comparison-view { display: block !important; }
+        body.showing-comparison #pdf-upload-view { display: none !important; }
+
+        body.showing-pdf-upload #panel-view { display: none !important; }
+        body.showing-pdf-upload #calculator-view { display: none !important; }
+        body.showing-pdf-upload #comparison-view { display: none !important; }
+        body.showing-pdf-upload #pdf-upload-view { display: block !important; }
 
         /* Estilos del Panel */
         #panel-view {
@@ -23126,13 +23134,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ========== NAVEGACIÓN ENTRE PANEL Y CALCULADORA ==========
 function showCalculator() {
-    // Abrir en nueva pestaña para que el usuario pueda volver fácilmente al panel
-    window.open('https://faraujoteixeiradrk-creator.github.io/DRK---CLIENTE-FINAL-05012025/', '_blank');
+    // Mostrar la vista de PDF drag & drop
+    document.body.classList.add('showing-pdf-upload');
+    document.getElementById('panel-view').style.display = 'none';
+    document.getElementById('pdf-upload-view').style.display = 'block';
+    window.scrollTo(0, 0);
 }
 
 function showPanel() {
     document.body.classList.remove('showing-calculator');
     document.body.classList.remove('showing-comparison');
+    document.body.classList.remove('showing-pdf-upload');
+    document.getElementById('panel-view').style.display = 'block';
+    document.getElementById('pdf-upload-view').style.display = 'none';
     window.scrollTo(0, 0);
     
     // Traducir panel por si acaso
@@ -25295,6 +25309,263 @@ ${myName}`;
 }
 </script>
 
+
+
+
+<!-- ========== VISTA DE PDF UPLOAD (CALCULA TU AHORRO) ========== -->
+<div id="pdf-upload-view" style="display: none; min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); font-family: 'Outfit', sans-serif;">
+    <button class="back-btn" onclick="showPanel()">
+        <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i>Volver al Panel
+    </button>
+
+    <!-- Selector de Idiomas -->
+    <div style="position: fixed; top: 1.5rem; right: 1.5rem; z-index: 1000;">
+        <select id="pdf-language-selector" onchange="changePDFLanguage(this.value)" 
+                style="background: linear-gradient(135deg, #1e7a9e, #2596be); color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; border: 2px solid rgba(255,255,255,0.2); font-weight: 600; cursor: pointer; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+            <option value="es">🇪🇸 Español</option>
+            <option value="en">🇬🇧 English</option>
+            <option value="pt">🇵🇹 Português</option>
+            <option value="zh">🇨🇳 中文</option>
+            <option value="fr">🇫🇷 Français</option>
+        </select>
+    </div>
+
+    <div style="padding: 2rem; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <!-- Logo DRK -->
+            <div style="display: inline-flex; align-items: center; justify-content: center; margin-bottom: 2rem;">
+                <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #2596be, #1e7a9e); border-radius: 25px; display: flex; align-items: center; justify-center; box-shadow: 0 10px 30px rgba(37, 150, 190, 0.4); position: relative;">
+                    <span style="font-size: 2.5rem; font-weight: 900; color: white; letter-spacing: -0.05em;">DRK</span>
+                    <div style="position: absolute; top: -8px; right: -8px; width: 30px; height: 30px; background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.5);">
+                        <i class="fas fa-bolt" style="color: white; font-size: 0.9rem;"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <h1 style="font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 1rem; letter-spacing: -0.02em;">
+                <span id="pdf-title">DRK</span> <span style="color: #2596be;">POWER</span>
+            </h1>
+            <p style="font-size: 1.25rem; color: #cbd5e1; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">
+                <span id="pdf-subtitle">SOLO PARA FACTURAS PDF DIRECTAS DE LA COMERCIALIZADORA</span>
+            </p>
+            <p style="font-size: 0.9rem; color: #60a5fa; font-weight: 600;">
+                <span id="pdf-multi">(MULTIIDIOMAS)</span>
+            </p>
+        </div>
+
+        <!-- Selector de Idiomas de Factura -->
+        <div style="width: 100%; max-width: 600px; margin-bottom: 2rem;">
+            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center;">
+                <button onclick="selectPDFLang('es')" id="pdf-lang-es" class="pdf-lang-btn" style="background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    🇪🇸 ES
+                </button>
+                <button onclick="selectPDFLang('en')" id="pdf-lang-en" class="pdf-lang-btn" style="background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    🇬🇧 EN
+                </button>
+                <button onclick="selectPDFLang('zh')" id="pdf-lang-zh" class="pdf-lang-btn" style="background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    🇨🇳 ZH
+                </button>
+                <button onclick="selectPDFLang('fr')" id="pdf-lang-fr" class="pdf-lang-btn" style="background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    🇫🇷 FR
+                </button>
+            </div>
+            <div style="text-align: center; margin-top: 1rem;">
+                <button onclick="selectPDFLang('de')" id="pdf-lang-de" class="pdf-lang-btn" style="background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    🇩🇪 DE
+                </button>
+            </div>
+        </div>
+
+        <!-- Zona de Drag & Drop -->
+        <div style="width: 100%; max-w-5xl; padding: 0 1rem;">
+            <div id="pdf-drag-drop-zone" style="border: 4px dashed rgba(37, 150, 190, 0.4); border-radius: 2rem; padding: 3rem 2rem; text-align: center; background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(10px); cursor: pointer; transition: all 0.3s ease;">
+                <!-- Iconos -->
+                <div style="display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 2rem;">
+                    <svg style="width: 5rem; height: 5rem; color: #94a3b8;" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
+                        <path d="M14 2v6h6M10 13h4M10 17h4M10 9h1"/>
+                    </svg>
+                    <svg style="width: 5rem; height: 5rem; color: #94a3b8;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                
+                <h2 id="pdf-drop-title" style="font-size: 2rem; font-weight: 700; color: white; margin-bottom: 1rem;">
+                    Arrastra el PDF de la factura original de la comercializadora
+                </h2>
+                <p id="pdf-drop-subtitle" style="color: #cbd5e1; font-size: 1rem;">
+                    Válido para todas las comercializadoras de electricidad, <span style="font-weight: 700; color: #ef4444;">excepto PVPC</span>.
+                </p>
+            </div>
+        </div>
+
+        <!-- Input oculto para seleccionar archivo -->
+        <input type="file" id="pdf-file-input" accept="application/pdf,image/*" style="display: none;">
+    </div>
+</div>
+
+<style>
+.pdf-lang-btn:hover {
+    background: rgba(37, 150, 190, 0.4) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 150, 190, 0.4);
+}
+
+.pdf-lang-btn.active {
+    background: linear-gradient(135deg, #2596be, #1e7a9e) !important;
+    transform: scale(1.05);
+}
+
+#pdf-drag-drop-zone:hover {
+    border-color: #2596be;
+    background: rgba(30, 41, 59, 0.5);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(37, 150, 190, 0.3);
+}
+
+#pdf-drag-drop-zone.drag-over {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+}
+</style>
+
+<script>
+// Variables globales para PDF upload
+let selectedPDFLanguage = 'es';
+
+// Función para cambiar idioma de la interfaz
+function changePDFLanguage(lang) {
+    selectedPDFLanguage = lang;
+    const translations = {
+        es: {
+            title: 'DRK',
+            subtitle: 'SOLO PARA FACTURAS PDF DIRECTAS DE LA COMERCIALIZADORA',
+            multi: '(MULTIIDIOMAS)',
+            dropTitle: 'Arrastra el PDF de la factura original de la comercializadora',
+            dropSubtitle: 'Válido para todas las comercializadoras de electricidad, <span style="font-weight: 700; color: #ef4444;">excepto PVPC</span>.'
+        },
+        en: {
+            title: 'DRK',
+            subtitle: 'ONLY FOR DIRECT PDF INVOICES FROM THE RETAILER',
+            multi: '(MULTILANGUAGE)',
+            dropTitle: 'Drag the PDF of the original invoice from the retailer',
+            dropSubtitle: 'Valid for all electricity retailers, <span style="font-weight: 700; color: #ef4444;">except PVPC</span>.'
+        },
+        pt: {
+            title: 'DRK',
+            subtitle: 'APENAS PARA FATURAS PDF DIRETAS DA COMERCIALIZADORA',
+            multi: '(MULTILINGUE)',
+            dropTitle: 'Arraste o PDF da fatura original da comercializadora',
+            dropSubtitle: 'Válido para todas as comercializadoras de eletricidade, <span style="font-weight: 700; color: #ef4444;">exceto PVPC</span>.'
+        },
+        zh: {
+            title: 'DRK',
+            subtitle: '仅适用于零售商的直接PDF发票',
+            multi: '(多语言)',
+            dropTitle: '拖放零售商原始发票的PDF',
+            dropSubtitle: '适用于所有电力零售商，<span style="font-weight: 700; color: #ef4444;">PVPC除外</span>。'
+        },
+        fr: {
+            title: 'DRK',
+            subtitle: 'UNIQUEMENT POUR LES FACTURES PDF DIRECTES DU FOURNISSEUR',
+            multi: '(MULTILINGUE)',
+            dropTitle: 'Glissez le PDF de la facture originale du fournisseur',
+            dropSubtitle: 'Valable pour tous les fournisseurs d\'électricité, <span style="font-weight: 700; color: #ef4444;">sauf PVPC</span>.'
+        }
+    };
+    
+    const t = translations[lang];
+    document.getElementById('pdf-title').textContent = t.title;
+    document.getElementById('pdf-subtitle').textContent = t.subtitle;
+    document.getElementById('pdf-multi').textContent = t.multi;
+    document.getElementById('pdf-drop-title').textContent = t.dropTitle;
+    document.getElementById('pdf-drop-subtitle').innerHTML = t.dropSubtitle;
+}
+
+// Función para seleccionar idioma de factura
+function selectPDFLang(lang) {
+    // Remover clase active de todos los botones
+    document.querySelectorAll('.pdf-lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    // Añadir clase active al botón seleccionado
+    document.getElementById(`pdf-lang-${lang}`).classList.add('active');
+    selectedPDFLanguage = lang;
+}
+
+// Configurar drag & drop cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    const dropZone = document.getElementById('pdf-drag-drop-zone');
+    const fileInput = document.getElementById('pdf-file-input');
+    
+    // Click en zona de drop
+    if (dropZone) {
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // Prevenir comportamiento por defecto
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        });
+        
+        // Efectos visuales
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.add('drag-over');
+            });
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.remove('drag-over');
+            });
+        });
+        
+        // Manejar drop
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handlePDFFile(files[0]);
+            }
+        });
+    }
+    
+    // Manejar selección de archivo desde input
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handlePDFFile(e.target.files[0]);
+                e.target.value = ''; // Reset input
+            }
+        });
+    }
+    
+    // Seleccionar español por defecto
+    selectPDFLang('es');
+});
+
+// Función para manejar el archivo PDF
+function handlePDFFile(file) {
+    console.log('📁 Archivo recibido:', file.name, file.type);
+    
+    if (file.type !== 'application/pdf' && !file.type.startsWith('image/')) {
+        alert('Por favor, sube un archivo PDF o una imagen.');
+        return;
+    }
+    
+    // Aquí puedes añadir la lógica para procesar el PDF
+    // Por ahora, solo redirigiremos al link externo con la información
+    alert(`Archivo "${file.name}" cargado exitosamente.\nIdioma seleccionado: ${selectedPDFLanguage}\n\nPróximamente: Procesamiento automático del PDF.`);
+    
+    // Opcional: Redirigir al link externo
+    // window.location.href = 'https://faraujoteixeiradrk-creator.github.io/DRK---CLIENTE-FINAL-05012025/';
+}
+</script>
 
 <!-- ========== VISTA DE NOTICIAS ========== -->
 <div id="news-view" style="display: none; min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 2rem;">

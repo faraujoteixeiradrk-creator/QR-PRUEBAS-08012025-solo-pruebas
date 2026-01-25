@@ -22509,56 +22509,7 @@ ${clientName}
                 setTimeout(() => window.LANG.retranslate(), 200);
             });
         })();
-
-        // ========== FUNCIONES PDF ANALYZER ==========
-        function showPDFAnalyzer() {
-            document.getElementById('main-panel').style.display = 'none';
-            document.getElementById('pdf-analyzer-view').style.display = 'block';
-            if (!window.pdfInitialized) {
-                initPDFDragDrop();
-                window.pdfInitialized = true;
-            }
-        }
-
-        function hidePDFAnalyzer() {
-            document.getElementById('pdf-analyzer-view').style.display = 'none';
-            document.getElementById('main-panel').style.display = 'block';
-        }
-
-        function initPDFDragDrop() {
-            const zone = document.getElementById('drag-drop-zone-main');
-            const input = document.getElementById('pdf-file-input');
-            
-            if (!zone || !input) return;
-
-            zone.onclick = () => input.click();
-            
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => {
-                zone.addEventListener(e, (ev) => { ev.preventDefault(); ev.stopPropagation(); });
-            });
-            
-            ['dragenter', 'dragover'].forEach(e => {
-                zone.addEventListener(e, () => zone.style.borderColor = 'rgba(59, 130, 246, 0.8)');
-            });
-            
-            ['dragleave', 'drop'].forEach(e => {
-                zone.addEventListener(e, () => zone.style.borderColor = 'rgba(59, 130, 246, 0.4)');
-            });
-            
-            zone.addEventListener('drop', (e) => {
-                if (e.dataTransfer.files.length > 0) handlePDFDrop(e.dataTransfer.files[0]);
-            });
-            
-            input.onchange = (e) => {
-                if (e.target.files.length > 0) handlePDFDrop(e.target.files[0]);
-            };
-        }
-
-        function handlePDFDrop(file) {
-            alert('Archivo recibido: ' + file.name + '\nTipo: ' + file.type + '\n\n✅ Drag & drop funcionando correctamente!');
-        }
     </script>
-</div>
 
 <script>
 // ========== SISTEMA DE TRADUCCIÓN DEL PANEL ==========
@@ -23255,6 +23206,65 @@ function showPanel() {
         if (typeof translatePanel === 'function') translatePanel();
     }, 50);
 }
+
+// ========== FUNCIONES PDF ANALYZER ==========
+function showPDFAnalyzer() {
+    console.log('🔵 showPDFAnalyzer llamada');
+    document.getElementById('panel-view').style.display = 'none';
+    document.getElementById('pdf-analyzer-view').style.display = 'block';
+    window.scrollTo(0, 0);
+    if (!window.pdfInitialized) {
+        initPDFDragDrop();
+        window.pdfInitialized = true;
+    }
+}
+
+function hidePDFAnalyzer() {
+    console.log('🔵 hidePDFAnalyzer llamada');
+    document.getElementById('pdf-analyzer-view').style.display = 'none';
+    document.getElementById('panel-view').style.display = 'block';
+    window.scrollTo(0, 0);
+}
+
+function initPDFDragDrop() {
+    console.log('🔧 Inicializando drag & drop...');
+    const zone = document.getElementById('drag-drop-zone-main');
+    const input = document.getElementById('pdf-file-input');
+    
+    if (!zone || !input) {
+        console.error('❌ No se encontró zona o input');
+        return;
+    }
+
+    zone.onclick = () => input.click();
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => {
+        zone.addEventListener(e, (ev) => { ev.preventDefault(); ev.stopPropagation(); });
+    });
+    
+    ['dragenter', 'dragover'].forEach(e => {
+        zone.addEventListener(e, () => zone.style.borderColor = 'rgba(59, 130, 246, 0.8)');
+    });
+    
+    ['dragleave', 'drop'].forEach(e => {
+        zone.addEventListener(e, () => zone.style.borderColor = 'rgba(59, 130, 246, 0.4)');
+    });
+    
+    zone.addEventListener('drop', (e) => {
+        if (e.dataTransfer.files.length > 0) handlePDFDrop(e.dataTransfer.files[0]);
+    });
+    
+    input.onchange = (e) => {
+        if (e.target.files.length > 0) handlePDFDrop(e.target.files[0]);
+    };
+    
+    console.log('✅ Drag & drop inicializado');
+}
+
+function handlePDFDrop(file) {
+    alert('✅ ARCHIVO RECIBIDO:\n\n' + file.name + '\n\nTipo: ' + file.type + '\n\n¡Drag & drop funcionando!');
+}
+// ========== FIN FUNCIONES PDF ANALYZER ==========
 
 function showPanelFromComparison() {
     document.body.classList.remove('showing-comparison');

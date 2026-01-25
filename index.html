@@ -419,9 +419,11 @@
 
             </div>
         </div>
+        </div> <!-- Cierre screen-electricidad -->
         
-        <!-- NUEVA: Vista directa cliente con diseño Extractor Inteligente -->
-        <div id="client-direct-view" class="fade-in flex flex-col items-center justify-center min-h-screen py-12" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+        <!-- PANTALLA: DRK POWER (CLIENT-DIRECT-VIEW) -->
+        <div id="client-direct-view" class="screen" style="display: none; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+            <div class="fade-in flex flex-col items-center justify-center min-h-screen py-12">
             <!-- Inputs ocultos necesarios -->
             <input type="file" id="camera-capture-input" accept="image/*" capture="environment" class="hidden">
             <input type="file" id="file-upload-input" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" class="hidden">
@@ -519,7 +521,8 @@
                     </p>
                 </div>
             </div>
-        </div>
+            </div>
+        </div> <!-- Cierre client-direct-view -->
         </div> <!-- Cierre screen-electricidad -->
         
         <!-- PANTALLA 3: GAS -->
@@ -18899,6 +18902,13 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // Pantalla panel inicial
             document.getElementById('screen-panel-inicial').classList.remove('active');
             
+            // Pantalla DRK POWER
+            const clientDirectView = document.getElementById('client-direct-view');
+            if (clientDirectView) {
+                clientDirectView.classList.remove('active');
+                clientDirectView.style.display = 'none';
+            }
+            
             // Pantallas principales
             document.getElementById('screen-inicio').classList.remove('active');
             document.getElementById('screen-electricidad').classList.remove('active');
@@ -18980,9 +18990,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         // Función: Ir directo a DRK POWER desde panel inicial
         function goDirectToDrkPower() {
             hideAllScreens();
-            document.getElementById('screen-electricidad').classList.add('active');
-            document.getElementById('landing-view').style.display = 'none';
-            document.getElementById('client-direct-view').style.display = 'flex';
+            document.getElementById('client-direct-view').classList.add('active');
+            document.getElementById('client-direct-view').style.display = 'block';
             document.getElementById('modo-comparacion-section').style.display = 'none';
             console.log('✅ DRK POWER activado desde panel inicial');
         }

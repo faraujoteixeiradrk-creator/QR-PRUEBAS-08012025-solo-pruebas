@@ -832,27 +832,16 @@
                     </div>
                 </div>
 
-                <!-- NUEVO: Departamento 5: Análisis de Factura PDF -->
+                <!-- NUEVO: Análisis de Factura PDF -->
                 <div class="dept-card" onclick="showPDFAnalyzer()" style="grid-column: span 2;">
                     <div class="icon-box">
-                        <!-- Icono: PDF con lupa -->
                         <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <!-- Documento PDF -->
                             <path d="M15 8 L35 8 L45 18 L45 52 L15 52 Z" fill="#dc2626" opacity="0.2"/>
                             <path d="M15 8 L35 8 L45 18 L45 52 L15 52 Z" stroke="#dc2626" stroke-width="2"/>
                             <path d="M35 8 L35 18 L45 18" stroke="#dc2626" stroke-width="2" fill="none"/>
-                            
-                            <!-- Texto PDF -->
                             <text x="30" y="32" text-anchor="middle" font-size="8" font-weight="bold" fill="#dc2626">PDF</text>
-                            
-                            <!-- Lupa -->
                             <circle cx="38" cy="40" r="8" fill="none" stroke="#fbbf24" stroke-width="2.5"/>
                             <line x1="44" y1="46" x2="50" y2="52" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
-                            
-                            <!-- Líneas de texto en el PDF -->
-                            <line x1="19" y1="24" x2="31" y2="24" stroke="#dc2626" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-                            <line x1="19" y1="28" x2="28" y2="28" stroke="#dc2626" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
-                            <line x1="19" y1="36" x2="25" y2="36" stroke="#dc2626" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
                         </svg>
                     </div>
                     <div>
@@ -22521,104 +22510,55 @@ ${clientName}
             });
         })();
 
-        // ========== FUNCIONES PARA PDF ANALYZER ========== 
+        // ========== FUNCIONES PDF ANALYZER ==========
         function showPDFAnalyzer() {
-            console.log('📄 Mostrando vista de PDF Analyzer');
             document.getElementById('main-panel').style.display = 'none';
             document.getElementById('pdf-analyzer-view').style.display = 'block';
-            
-            // Inicializar drag & drop si no está inicializado
-            if (!window.pdfDragDropInitialized) {
-                initializePDFDragDrop();
-                window.pdfDragDropInitialized = true;
+            if (!window.pdfInitialized) {
+                initPDFDragDrop();
+                window.pdfInitialized = true;
             }
         }
 
         function hidePDFAnalyzer() {
-            console.log('📄 Ocultando vista de PDF Analyzer');
             document.getElementById('pdf-analyzer-view').style.display = 'none';
             document.getElementById('main-panel').style.display = 'block';
         }
 
-        function initializePDFDragDrop() {
-            console.log('🔧 Inicializando drag & drop para PDF...');
-            const dragDropZone = document.getElementById('drag-drop-zone-main');
-            const fileInput = document.getElementById('pdf-file-upload-input');
+        function initPDFDragDrop() {
+            const zone = document.getElementById('drag-drop-zone-main');
+            const input = document.getElementById('pdf-file-input');
             
-            if (!dragDropZone || !fileInput) {
-                console.error('❌ No se encontró la zona de drag & drop o el input de archivo');
-                return;
-            }
+            if (!zone || !input) return;
 
-            // Click en zona para abrir selector de archivos
-            dragDropZone.addEventListener('click', () => {
-                fileInput.click();
+            zone.onclick = () => input.click();
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => {
+                zone.addEventListener(e, (ev) => { ev.preventDefault(); ev.stopPropagation(); });
             });
             
-            // Prevenir comportamiento por defecto
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dragDropZone.addEventListener(eventName, (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                });
+            ['dragenter', 'dragover'].forEach(e => {
+                zone.addEventListener(e, () => zone.style.borderColor = 'rgba(59, 130, 246, 0.8)');
             });
             
-            // Efectos visuales al arrastrar
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dragDropZone.addEventListener(eventName, () => {
-                    dragDropZone.style.borderColor = 'rgba(59, 130, 246, 0.8)';
-                    dragDropZone.style.background = 'rgba(59, 130, 246, 0.1)';
-                });
+            ['dragleave', 'drop'].forEach(e => {
+                zone.addEventListener(e, () => zone.style.borderColor = 'rgba(59, 130, 246, 0.4)');
             });
             
-            ['dragleave', 'drop'].forEach(eventName => {
-                dragDropZone.addEventListener(eventName, () => {
-                    dragDropZone.style.borderColor = 'rgba(59, 130, 246, 0.4)';
-                    dragDropZone.style.background = 'rgba(30, 41, 59, 0.3)';
-                });
+            zone.addEventListener('drop', (e) => {
+                if (e.dataTransfer.files.length > 0) handlePDFDrop(e.dataTransfer.files[0]);
             });
             
-            // Manejar drop de archivo
-            dragDropZone.addEventListener('drop', (e) => {
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    handlePDFFile(files[0]);
-                }
-            });
-            
-            // Manejar selección desde input
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    handlePDFFile(e.target.files[0]);
-                    e.target.value = ''; // Reset input
-                }
-            });
-            
-            console.log('✅ Drag & drop inicializado correctamente');
+            input.onchange = (e) => {
+                if (e.target.files.length > 0) handlePDFDrop(e.target.files[0]);
+            };
         }
 
-        async function handlePDFFile(file) {
-            console.log('📁 Archivo recibido:', file.name, file.type);
-            
-            // Mostrar modal de procesamiento (si existe en el código)
-            alert(`Archivo recibido: ${file.name}\n\nProcesando PDF...`);
-            
-            try {
-                if (file.type === 'application/pdf') {
-                    // Aquí iría la lógica completa de procesamiento de PDF
-                    // Por ahora mostramos un mensaje
-                    alert(`PDF "${file.name}" recibido correctamente.\n\n✅ La funcionalidad completa de extracción se integrará en el siguiente paso.`);
-                } else if (file.type.startsWith('image/')) {
-                    alert(`Imagen "${file.name}" recibida.\n\n✅ La funcionalidad de procesamiento de imágenes se integrará en el siguiente paso.`);
-                } else {
-                    throw new Error('Formato no soportado. Por favor sube PDF, JPG o PNG.');
-                }
-            } catch (err) {
-                console.error('❌ Error procesando archivo:', err);
-                alert(`❌ Error al procesar el archivo:\n\n${err.message}`);
-            }
+        function handlePDFDrop(file) {
+            alert('Archivo recibido: ' + file.name + '\nTipo: ' + file.type + '\n\n✅ Drag & drop funcionando correctamente!');
         }
     </script>
+</div>
 
 <script>
 // ========== SISTEMA DE TRADUCCIÓN DEL PANEL ==========
@@ -22752,8 +22692,6 @@ const panelTranslations = {
         'dept3-coming-soon': 'Coming Soon: Backoffice Email',
         'dept4-label': 'Benefits',
         'dept4-title': 'Friends Code & Discounts',
-        'dept6-label': 'Smart Extraction',
-        'dept6-title': 'PDF Invoice Analysis',
         'dept5-label': 'Information',
         'dept5-title': 'News',
         'news-title': 'News',
@@ -22866,8 +22804,6 @@ const panelTranslations = {
         'dept3-coming-soon': 'Em Breve: Email Backoffice',
         'dept4-label': 'Benefícios',
         'dept4-title': 'Código Amigos e Descontos',
-        'dept6-label': 'Extração Inteligente',
-        'dept6-title': 'Análise de Fatura PDF',
         'dept5-label': 'Informação',
         'dept5-title': 'Notícias',
         'news-title': 'Notícias',
@@ -25519,81 +25455,6 @@ ${myName}`;
 }
 </style>
 
-
-<!-- ========== VISTA DE ANÁLISIS DE FACTURA PDF ========== -->
-<div id="pdf-analyzer-view" style="display: none; min-height: 100vh; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 2rem;">
-    <!-- Inputs ocultos necesarios -->
-    <input type="file" id="pdf-file-upload-input" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" class="hidden">
-    
-    <div style="max-width: 1200px; margin: 0 auto;">
-        <!-- Botón Volver -->
-        <button onclick="hidePDFAnalyzer()" style="background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; margin-bottom: 2rem; font-size: 1rem; transition: all 0.3s;">
-            <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i><span data-translate="back-button">Volver al Panel</span>
-        </button>
-
-        <!-- Header -->
-        <div style="text-align: center; margin-bottom: 3rem;">
-            <div style="display: flex; align-items: center; justify-center; gap: 1rem; margin-bottom: 1.5rem;">
-                <svg style="width: 4rem; height: 4rem;" viewBox="0 0 100 100" fill="none">
-                    <defs>
-                        <linearGradient id="grad1-pdf" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#E53935;stop-opacity:1" />
-                            <stop offset="25%" style="stop-color:#FF8C00;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="grad2-pdf" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#FF8C00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:rgb(53,168,223);stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="grad3-pdf" x1="100%" y1="0%" x2="0%" y2="0%">
-                            <stop offset="0%" style="stop-color:rgb(53,168,223);stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#4CAF50;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="grad4-pdf" x1="0%" y1="100%" x2="0%" y2="0%">
-                            <stop offset="0%" style="stop-color:#4CAF50;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#E53935;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <style>.drk-ring-pdf{fill:none;stroke-width:10;stroke-linecap:round;}</style>
-                    <circle class="drk-ring-pdf" cx="45" cy="45" r="35" stroke="url(#grad1-pdf)"/>
-                    <circle class="drk-ring-pdf" cx="55" cy="55" r="35" stroke="url(#grad2-pdf)"/>
-                    <circle class="drk-ring-pdf" cx="45" cy="55" r="35" stroke="url(#grad3-pdf)"/>
-                    <circle class="drk-ring-pdf" cx="55" cy="45" r="35" stroke="url(#grad4-pdf)"/>
-                </svg>
-                <div style="text-align: left;">
-                    <h2 style="font-size: 2rem; font-weight: 800; color: white; margin: 0;">DRK</h2>
-                    <h2 style="font-size: 2rem; font-weight: 800; color: white; margin: 0;">POWER</h2>
-                </div>
-            </div>
-            <p style="font-size: 0.875rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.3em; margin-top: 0.5rem;">
-                SOLO PARA FACTURAS PDF DIRECTAS<br>
-                <span style="color: rgb(53,168,223); font-size: 0.75rem;">(MULTIDIOMAS)</span>
-            </p>
-        </div>
-        
-        <!-- Zona de Drag & Drop -->
-        <div style="max-width: 900px; margin: 0 auto;">
-            <div id="drag-drop-zone-main" style="border: 4px dashed rgba(59, 130, 246, 0.4); border-radius: 1.5rem; padding: 3rem; text-align: center; background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(12px); transition: all 0.3s; cursor: pointer;">
-                <!-- Iconos grandes -->
-                <div style="display: flex; align-items: center; justify-content: center; gap: 2rem; margin-bottom: 2rem;">
-                    <svg style="width: 5rem; height: 5rem; color: #94a3b8;" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
-                        <path d="M14 2v6h6M10 13h4M10 17h4M10 9h1"/>
-                    </svg>
-                    <svg style="width: 5rem; height: 5rem; color: #94a3b8;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                </div>
-                
-                <h2 style="font-size: 2rem; font-weight: 700; color: white; margin-bottom: 1rem;">Arrastra el PDF de la factura original</h2>
-                <p style="font-size: 1.125rem; color: #cbd5e1;">
-                    Válido para todas las comercializadoras de electricidad, <span style="font-weight: 700; color: #ef4444;">excepto PVPC</span>.
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Modal Email Backoffice -->
 <div id="email-modal" class="email-modal">
     <div class="email-modal-content">
@@ -25637,6 +25498,79 @@ ${myName}`;
         <p style="font-size: 0.75rem; color: #94a3b8; text-align: center; margin-top: 1rem;" data-translate="email-optional-note">
             Los campos son opcionales. Puedes enviar el email sin rellenarlos.
         </p>
+    </div>
+</div>
+
+<!-- ========== VISTA DE ANÁLISIS DE FACTURA PDF ========== -->
+<div id="pdf-analyzer-view" style="display: none;">
+    <input type="file" id="pdf-file-input" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" style="display: none;">
+    
+    <div id="client-direct-view" class="fade-in flex flex-col items-center justify-center min-h-screen py-12" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+        <!-- Botón Volver -->
+        <button onclick="hidePDFAnalyzer()" style="position: absolute; top: 2rem; left: 2rem; background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; font-size: 1rem; transition: all 0.3s; z-index: 100;">
+            <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i>Volver al Panel
+        </button>
+        
+        <!-- Header DRK Power -->
+        <div class="w-full max-w-5xl mb-12 text-center px-4">
+            <div class="flex flex-col items-center justify-center gap-4 mb-6">
+                <div class="flex items-center gap-3">
+                    <svg class="w-16 h-16 md:w-20 md:h-20" viewBox="0 0 100 100" fill="none">
+                        <defs>
+                            <linearGradient id="pdfgrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#E53935;stop-opacity:1" />
+                                <stop offset="25%" style="stop-color:#FF8C00;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="pdfgrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#FF8C00;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:rgb(53,168,223);stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="pdfgrad3" x1="100%" y1="0%" x2="0%" y2="0%">
+                                <stop offset="0%" style="stop-color:rgb(53,168,223);stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#4CAF50;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="pdfgrad4" x1="0%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" style="stop-color:#4CAF50;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#E53935;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M 50 5 A 45 45 0 0 1 95 50" stroke="url(#pdfgrad1)" stroke-width="6" fill="none" stroke-linecap="round"/>
+                        <path d="M 95 50 A 45 45 0 0 1 50 95" stroke="url(#pdfgrad2)" stroke-width="6" fill="none" stroke-linecap="round"/>
+                        <path d="M 50 95 A 45 45 0 0 1 5 50" stroke="url(#pdfgrad3)" stroke-width="6" fill="none" stroke-linecap="round"/>
+                        <path d="M 5 50 A 45 45 0 0 1 50 5" stroke="url(#pdfgrad4)" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    </svg>
+                    <h1 class="text-6xl md:text-7xl lg:text-8xl font-black tracking-tight" style="color: rgb(53,168,223);">DRK</h1>
+                </div>
+                <div class="bg-slate-800 px-6 md:px-8 py-2 md:py-3 rounded-lg">
+                    <h2 class="text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-wider">POWER</h2>
+                </div>
+            </div>
+            <p class="text-slate-300 text-sm md:text-base lg:text-lg uppercase tracking-widest font-mono leading-relaxed">
+                SOLO PARA FACTURAS PDF DIRECTAS<br>
+                DE LA COMERCIALIZADORA
+                <span class="block mt-2 text-xs md:text-sm" style="color: rgb(53,168,223);">(MULTIDIOMAS)</span>
+            </p>
+        </div>
+        
+        <!-- Zona de Drag & Drop -->
+        <div class="w-full max-w-5xl px-4">
+            <div id="drag-drop-zone-main" class="border-4 border-dashed border-blue-500/40 rounded-3xl p-12 md:p-20 text-center bg-slate-800/30 hover:bg-slate-800/50 hover:border-blue-400 transition-all duration-300 cursor-pointer backdrop-blur-sm">
+                <div class="flex items-center justify-center gap-8 mb-8">
+                    <svg class="w-20 h-20 md:w-28 md:h-28 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
+                        <path d="M14 2v6h6M10 13h4M10 17h4M10 9h1"/>
+                    </svg>
+                    <svg class="w-20 h-20 md:w-28 md:h-28 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Arrastra el PDF de la factura original de la comercializadora</h2>
+                <p class="text-slate-300 text-base md:text-lg">
+                    Válido para todas las comercializadoras de electricidad, <span class="font-bold text-red-400">excepto PVPC</span>.
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 

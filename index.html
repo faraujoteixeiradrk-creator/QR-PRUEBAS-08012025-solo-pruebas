@@ -262,8 +262,8 @@
                     <h2 class="text-3xl font-black text-drk-900 mb-2 text-center">PANEL DE SERVICIOS</h2>
                     <p class="text-slate-500 mb-6 text-center">Selecciona el servicio</p>
                     
-                    <!-- Botón simple -->
-                    <button onclick="goDirectToDrkPower()" style="padding: 2rem; border-radius: 1.5rem; border: 4px solid #0c4a6e; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); text-align: center; cursor: pointer; width: 100%;">
+                    <!-- Botón DRK POWER (grande, centrado) -->
+                    <button onclick="goDirectToDrkPower()" style="padding: 2rem; border-radius: 1.5rem; border: 4px solid #0c4a6e; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); text-align: center; cursor: pointer; width: 100%; margin-bottom: 1.5rem;">
                         <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem;">
                             <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #E50000, #FFCC00, #0079C1, #00A859); margin-right: 10px;"></div>
                             <div style="font-size: 1.5rem; font-weight: 900; color: #60a5fa;">DRK</div>
@@ -273,6 +273,39 @@
                         <div style="font-size: 0.875rem; font-weight: 700; color: #94a3b8;">DE LA COMERCIALIZADORA</div>
                         <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">(MULTIIDIOMAS)</div>
                     </button>
+                    
+                    <!-- Grid 2x2 para los otros 4 botones -->
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        
+                        <!-- Botón NOTICIAS -->
+                        <button onclick="showNewsView()" style="padding: 1.5rem; border-radius: 1rem; border: 3px solid #ef4444; background: white; text-align: center; cursor: pointer; transition: all 0.3s;">
+                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📰</div>
+                            <div style="font-size: 0.9rem; font-weight: 800; color: #ef4444;">NOTICIAS</div>
+                            <div style="font-size: 0.7rem; color: #64748b; margin-top: 0.25rem;">Información</div>
+                        </button>
+                        
+                        <!-- Botón PRECIOS COMPETENCIA -->
+                        <button onclick="showCompetitionView()" style="padding: 1.5rem; border-radius: 1rem; border: 3px solid #06b6d4; background: white; text-align: center; cursor: pointer; transition: all 0.3s;">
+                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📊</div>
+                            <div style="font-size: 0.9rem; font-weight: 800; color: #06b6d4;">PRECIOS</div>
+                            <div style="font-size: 0.7rem; color: #64748b; margin-top: 0.25rem;">Competencia</div>
+                        </button>
+                        
+                        <!-- Botón EMAK BACKOFFICE -->
+                        <button onclick="showBackofficeView()" style="padding: 1.5rem; border-radius: 1rem; border: 3px solid #2596be; background: white; text-align: center; cursor: pointer; transition: all 0.3s;">
+                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📧</div>
+                            <div style="font-size: 0.9rem; font-weight: 800; color: #2596be;">BACKOFFICE</div>
+                            <div style="font-size: 0.7rem; color: #64748b; margin-top: 0.25rem;">Email</div>
+                        </button>
+                        
+                        <!-- Botón CÓDIGO AMIGOS -->
+                        <button onclick="showFriendsView()" style="padding: 1.5rem; border-radius: 1rem; border: 3px solid #f87171; background: white; text-align: center; cursor: pointer; transition: all 0.3s;">
+                            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎟️</div>
+                            <div style="font-size: 0.9rem; font-weight: 800; color: #f87171;">CÓDIGO</div>
+                            <div style="font-size: 0.7rem; color: #64748b; margin-top: 0.25rem;">Amigos</div>
+                        </button>
+                        
+                    </div>
                 </div>
             </div>
         </div>
@@ -18909,6 +18942,29 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 clientDirectView.style.display = 'none';
             }
             
+            // Vistas de servicios nuevos
+            const newsView = document.getElementById('news-view');
+            const competitionView = document.getElementById('competition-view');
+            const backofficeView = document.getElementById('backoffice-view');
+            const friendsView = document.getElementById('friends-view');
+            
+            if (newsView) {
+                newsView.classList.remove('active');
+                newsView.style.display = 'none';
+            }
+            if (competitionView) {
+                competitionView.classList.remove('active');
+                competitionView.style.display = 'none';
+            }
+            if (backofficeView) {
+                backofficeView.classList.remove('active');
+                backofficeView.style.display = 'none';
+            }
+            if (friendsView) {
+                friendsView.classList.remove('active');
+                friendsView.style.display = 'none';
+            }
+            
             // Pantallas principales
             document.getElementById('screen-inicio').classList.remove('active');
             document.getElementById('screen-electricidad').classList.remove('active');
@@ -18994,6 +19050,78 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             document.getElementById('client-direct-view').style.display = 'block';
             document.getElementById('modo-comparacion-section').style.display = 'none';
             console.log('✅ DRK POWER activado desde panel inicial');
+        }
+        
+        // Funciones para los 4 botones nuevos
+        function showNewsView() {
+            hideAllScreens();
+            document.getElementById('news-view').classList.add('active');
+            document.getElementById('news-view').style.display = 'block';
+            window.scrollTo(0, 0);
+            console.log('✅ Vista de NOTICIAS activada');
+        }
+        
+        function hideNewsView() {
+            hideAllScreens();
+            document.getElementById('screen-panel-inicial').classList.add('active');
+            window.scrollTo(0, 0);
+        }
+        
+        function showCompetitionView() {
+            hideAllScreens();
+            document.getElementById('competition-view').classList.add('active');
+            document.getElementById('competition-view').style.display = 'block';
+            window.scrollTo(0, 0);
+            console.log('✅ Vista de PRECIOS COMPETENCIA activada');
+        }
+        
+        function hideCompetitionView() {
+            hideAllScreens();
+            document.getElementById('screen-panel-inicial').classList.add('active');
+            window.scrollTo(0, 0);
+        }
+        
+        function showBackofficeView() {
+            hideAllScreens();
+            document.getElementById('backoffice-view').classList.add('active');
+            document.getElementById('backoffice-view').style.display = 'block';
+            window.scrollTo(0, 0);
+            console.log('✅ Vista de BACKOFFICE activada');
+        }
+        
+        function hideBackofficeView() {
+            hideAllScreens();
+            document.getElementById('screen-panel-inicial').classList.add('active');
+            window.scrollTo(0, 0);
+        }
+        
+        function sendBackofficeEmail() {
+            const name = document.getElementById('client-name').value;
+            const email = document.getElementById('client-email').value;
+            const phone = document.getElementById('client-phone').value;
+            
+            const subject = 'Consulta Backoffice DRK';
+            let body = 'Consulta desde el panel de servicios DRK\n\n';
+            if (name) body += `Nombre: ${name}\n`;
+            if (email) body += `Email: ${email}\n`;
+            if (phone) body += `Teléfono: ${phone}\n`;
+            
+            const mailtoLink = `mailto:backoffice@drk.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = mailtoLink;
+        }
+        
+        function showFriendsView() {
+            hideAllScreens();
+            document.getElementById('friends-view').classList.add('active');
+            document.getElementById('friends-view').style.display = 'block';
+            window.scrollTo(0, 0);
+            console.log('✅ Vista de CÓDIGO AMIGOS activada');
+        }
+        
+        function hideFriendsView() {
+            hideAllScreens();
+            document.getElementById('screen-panel-inicial').classList.add('active');
+            window.scrollTo(0, 0);
         }
         
         // Función: Ir a pantalla DUAL
@@ -28404,4 +28532,126 @@ Gracias.`;
             }
         }
     </script>
+
+<!-- ========== VISTAS DE LOS NUEVOS SERVICIOS ========== -->
+
+<!-- Vista de NOTICIAS -->
+<div id="news-view" class="screen" style="display: none; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 2rem; min-height: 100vh;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <button onclick="hideNewsView()" style="background: rgba(37, 150, 190, 0.2); border: 2px solid #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; margin-bottom: 2rem;">
+            ← Volver al Panel
+        </button>
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <h1 style="font-size: 3rem; font-weight: 800; color: white; margin-bottom: 1rem;">📰 Noticias</h1>
+            <p style="font-size: 1.25rem; color: #94a3b8;">Mantente informado con las últimas novedades</p>
+        </div>
+        <div id="news-container" style="display: grid; gap: 2rem; max-width: 800px; margin: 0 auto;">
+            <div style="background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-bottom: 1rem;">Próximamente</h3>
+                <p style="color: #64748b;">Esta sección estará disponible próximamente con las últimas noticias del sector energético.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vista de PRECIOS COMPETENCIA -->
+<div id="competition-view" class="screen" style="display: none; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 2rem; min-height: 100vh;">
+    <div style="max-width: 1400px; margin: 0 auto;">
+        <button onclick="hideCompetitionView()" style="background: #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; margin-bottom: 2rem; border: none;">
+            ← Volver al Panel
+        </button>
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <h1 style="font-size: 2.5rem; font-weight: 800; color: #1e293b; margin-bottom: 1rem;">📊 Precios de la Competencia</h1>
+            <p style="font-size: 1.1rem; color: #64748b;">Comparativa de precios del mercado</p>
+        </div>
+        <div style="background: white; padding: 3rem; border-radius: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; text-align: center;">
+            <h3 style="font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-bottom: 1rem;">Próximamente</h3>
+            <p style="color: #64748b; font-size: 1.1rem;">Comparativa completa de precios de todas las comercializadoras del mercado.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Vista de EMAK BACKOFFICE -->
+<div id="backoffice-view" class="screen" style="display: none; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 2rem; min-height: 100vh;">
+    <div style="max-width: 600px; margin: 0 auto;">
+        <button onclick="hideBackofficeView()" style="background: #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; margin-bottom: 2rem; border: none;">
+            ← Volver al Panel
+        </button>
+        <div style="background: white; padding: 3rem; border-radius: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">📧</div>
+                <h1 style="font-size: 2rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem;">Email Backoffice</h1>
+                <p style="color: #64748b;">Datos del Cliente (opcional)</p>
+            </div>
+            <form onsubmit="event.preventDefault(); sendBackofficeEmail();">
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem;">Nombre y Apellidos</label>
+                    <input type="text" id="client-name" style="width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 0.5rem; font-size: 1rem;" placeholder="Ej: Juan García López">
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem;">Email</label>
+                    <input type="email" id="client-email" style="width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 0.5rem; font-size: 1rem;" placeholder="Ej: juan@email.com">
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem;">Teléfono</label>
+                    <input type="tel" id="client-phone" style="width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 0.5rem; font-size: 1rem;" placeholder="Ej: +34 600 123 456">
+                </div>
+                <button type="submit" style="width: 100%; background: #2596be; color: white; padding: 1rem; border-radius: 0.5rem; font-weight: 700; font-size: 1.1rem; cursor: pointer; border: none;">
+                    📧 Abrir Email
+                </button>
+            </form>
+            <p style="font-size: 0.875rem; color: #94a3b8; text-align: center; margin-top: 1rem;">Los campos son opcionales. Puedes enviar el email sin rellenarlos.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Vista de CÓDIGO AMIGOS -->
+<div id="friends-view" class="screen" style="display: none; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 2rem; min-height: 100vh;">
+    <div style="max-width: 1000px; margin: 0 auto;">
+        <button onclick="hideFriendsView()" style="background: #2596be; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; cursor: pointer; margin-bottom: 2rem; border: none;">
+            ← Volver al Panel
+        </button>
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <h1 style="font-size: 2.5rem; font-weight: 800; color: #dc2626; margin-bottom: 1rem;">🎟️ Código Amigos DRK</h1>
+            <p style="font-size: 1.1rem; color: #64748b;">Comparte energía, comparte ahorro</p>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, #1e7a9e 0%, #2596be 100%); border-radius: 1.5rem; padding: 3rem; color: white; margin-bottom: 2rem;">
+            <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 1.5rem; text-align: center;">👍 Lo mejor de todo</h2>
+            <p style="font-size: 1.2rem; line-height: 1.8; text-align: center;">
+                Imagina poder ofrecer a tus seres queridos una tarifa energética increíble con <strong style="font-size: 1.5rem; color: #fbbf24;">10% de descuento</strong> en energía.
+            </p>
+            <p style="font-size: 1.1rem; line-height: 1.8; text-align: center; margin-top: 1.5rem;">
+                El código que te enviamos es <strong>aplicable en hasta 5 hogares diferentes</strong>.
+            </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+            <div style="background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 3rem; margin-bottom: 1rem; text-align: center;">🤝</div>
+                <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.75rem; text-align: center;">Presenta a un amigo</h3>
+                <p style="font-size: 0.95rem; color: #64748b; line-height: 1.6;">Solo necesitas presentarnos a un contacto con su factura energética actual</p>
+            </div>
+            
+            <div style="background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 3rem; margin-bottom: 1rem; text-align: center;">📊</div>
+                <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.75rem; text-align: center;">Estudio gratuito</h3>
+                <p style="font-size: 0.95rem; color: #64748b; line-height: 1.6;">Análisis completo y profesional sin coste ni compromiso</p>
+            </div>
+            
+            <div style="background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 3rem; margin-bottom: 1rem; text-align: center;">🎁</div>
+                <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.75rem; text-align: center;">Código exclusivo</h3>
+                <p style="font-size: 0.95rem; color: #64748b; line-height: 1.6;">Recibe un código único para compartir con 5 amigos</p>
+            </div>
+            
+            <div style="background: white; padding: 2rem; border-radius: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="font-size: 3rem; margin-bottom: 1rem; text-align: center;">🏠</div>
+                <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.75rem; text-align: center;">5 hogares</h3>
+                <p style="font-size: 0.95rem; color: #64748b; line-height: 1.6;">Tu código funciona en hasta 5 hogares diferentes</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>

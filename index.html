@@ -4205,6 +4205,22 @@
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 
+                // CRÍTICO: Si el resultado tiene needsImprovementRequest, abrir automáticamente el modal
+                if (final.needsImprovementRequest) {
+                    console.log('🔔 NO HAY AHORRO DETECTADO (desde compareOffers) - Abriendo modal de solicitud de mejora automáticamente');
+                    console.log('📊 Modo de comparación:', comparisonMode);
+                    setTimeout(() => {
+                        const improvementModal = document.getElementById('request-improvement-modal');
+                        if (improvementModal) {
+                            improvementModal.classList.remove('hidden');
+                            improvementModal.classList.add('flex');
+                            console.log('✅ Modal de solicitud de mejora abierto');
+                        } else {
+                            console.error('❌ No se encontró el modal request-improvement-modal');
+                        }
+                    }, 800); // Delay para que se muestre primero la pantalla de resultados
+                }
+                
                 // NUEVO: Si estamos en modo DUAL, mostrar confirmación en lugar de resultados
                 if (window.dualMode === true) {
                     console.log('Modo DUAL detectado - usando flujo con dirección');

@@ -755,7 +755,7 @@
                     
                     <!-- NUEVO: Botón para solicitar mejora cuando no hay ahorro en GAS -->
                     <div id="gas-request-improvement-container" style="display:none;" class="mt-6">
-                        <button id="gas-request-improvement-btn" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3" onclick="console.log('🎯 GAS ONCLICK INLINE'); document.getElementById('request-improvement-modal').classList.remove('hidden'); document.getElementById('request-improvement-modal').classList.add('flex');">
+                        <button id="gas-request-improvement-btn" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                             <span id="gas-request-improvement-text">SOLICITAR MEJORA A DRK</span>
                         </button>
@@ -970,7 +970,7 @@
                     <div class="mt-6 flex flex-col gap-3">
                         <!-- NUEVO: Botón para solicitar mejora cuando NO hay ahorro en DUAL -->
                         <div id="dual-request-improvement-container" style="display:none;">
-                            <button id="dual-request-improvement-btn" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3" onclick="console.log('🎯 DUAL ONCLICK INLINE'); document.getElementById('request-improvement-modal').classList.remove('hidden'); document.getElementById('request-improvement-modal').classList.add('flex');">
+                            <button id="dual-request-improvement-btn" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                                 <span id="dual-request-improvement-text">SOLICITAR MEJORA A DRK</span>
                             </button>
@@ -1431,7 +1431,7 @@
                 </button>
                 
                 <!-- NUEVO: Botón para solicitar mejora cuando no hay ahorro -->
-                <button id="request-improvement-btn" style="display:none;" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3" onclick="console.log('🎯 ONCLICK INLINE DETECTADO'); document.getElementById('request-improvement-modal').classList.remove('hidden'); document.getElementById('request-improvement-modal').classList.add('flex');">
+                <button id="request-improvement-btn" style="display:none;" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3" onclick="window.location.href='mailto:F.araujo@drk.es,rguerra@drk.es,l.grande@drk.es?subject=Solicitud%20Mejora%20Comparativo&amp;body=Hola%20equipo%20de%20Back%20Office%2C%0A%0ASolicito%20revisi%C3%B3n%20y%20mejora%20del%20siguiente%20comparativo%20que%20no%20presenta%20ahorro%20para%20el%20cliente.%0A%0A%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%0A%F0%9F%93%8B%20DATOS%20DEL%20COMERCIAL%0A%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%0AC%C3%B3digo%20Comercial%3A%20%5BCOMPLETAR%5D%0A%0A%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%0A%F0%9F%91%A4%20DATOS%20DEL%20CLIENTE%0A%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%0ANombre%3A%20%5BCOMPLETAR%5D%0ACUPS%3A%20%5BCOMPLETAR%5D%0ATel%C3%A9fono%3A%20%5BCOMPLETAR%5D%0AEmail%3A%20%5BCOMPLETAR%5D%0A%0A%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%0A%E2%9A%A0%EF%B8%8F%20RECORDATORIO%20IMPORTANTE%0A%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%E2%94%81%0APor%20favor%2C%20adjuntar%3A%0A%F0%9F%93%84%20Factura%20utilizada%20para%20el%20estudio%0A%F0%9F%93%84%20Factura%20m%C3%A1s%20actualizada%20del%20cliente%0A(Si%20son%20la%20misma%2C%20adjuntar%20solo%20una%20vez)%0A%0AGracias';">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     <span id="request-improvement-text">SOLICITAR MEJORA A DRK</span>
                 </button>
@@ -2227,7 +2227,7 @@
             '3.0TD': []
         };
         let currentTariffType = '2.0TD';
-        window.window.window.lastComparisonResult = null; // GLOBAL para acceso desde onclick
+        let lastComparisonResult = null;
         let lastIndexedResult = null; // Para almacenar el resultado de tarifa indexada
         let comparisonMode = 'drk_only';
         let compareWithIndexed = false; // Control para comparación con tarifas indexadas
@@ -2917,7 +2917,7 @@
             console.log('✅ Todas las pantallas ocultadas con hideAllScreens()');
             
             // CRÍTICO: Limpiar TODAS las variables globales
-            window.window.lastComparisonResult = null;
+            lastComparisonResult = null;
             lastIndexedResult = null;
             multiCupsData = [];
             multiCupsAddType = null;
@@ -3255,8 +3255,8 @@
                 applyBrandStyles(brand);
                 
                 // Guardar el mejor resultado temporalmente para compatibilidad
-                window.window.lastComparisonResult = finalOptimized;
-                window.lastComparisonResult.isMulti = false;
+                lastComparisonResult = finalOptimized;
+                lastComparisonResult.isMulti = false;
                 
                 // NUEVO: Si hay múltiples ofertas con ahorro, mostrar modal de decisión
                 // (igual que el flujo normal)
@@ -3305,8 +3305,8 @@
                     console.log('ℹ️ window.lastDualPowerComparison ya existía, preservando');
                 }
                 
-                // IMPORTANTE: Guardar también en window.lastComparisonResult para compatibilidad
-                window.window.lastComparisonResult = resOptimized;
+                // IMPORTANTE: Guardar también en lastComparisonResult para compatibilidad
+                lastComparisonResult = resOptimized;
                 lastIndexedResult = null; // No es comparativa Fijo vs Indexado
                 
                 const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
@@ -3752,7 +3752,7 @@
             // CRÍTICO: Si estamos en modo DUAL, limpiar TODAS las variables
             if (window.dualMode === true) {
                 console.log('⚡ MODO DUAL DETECTADO - Limpiando variables anteriores...');
-                window.window.lastComparisonResult = null;
+                lastComparisonResult = null;
                 lastIndexedResult = null;
                 availableOffers = [];
                 manuallySelectedOffer = null;
@@ -3768,7 +3768,7 @@
                 multiCupsData = [];  
                 multiCupsAddType = null; // Reset sub-type
                 availableOffers = [];
-                window.window.lastComparisonResult = null;
+                lastComparisonResult = null;
                 manuallySelectedOffer = null;
                 
                 document.getElementById('landing-view').classList.add('hidden');
@@ -4167,7 +4167,7 @@
                 // Add originalTariffType for consistent logic in HTML generation
                 final.originalTariffType = tariffType;
 
-                window.window.lastComparisonResult = final;
+                lastComparisonResult = final;
                 
                 console.log('About to apply brand styles. Brand:', brand.NAME);
                 try {
@@ -4179,8 +4179,8 @@
                 }
                 
                 // Guardar el resultado temporalmente
-                window.window.lastComparisonResult = final;
-                window.lastComparisonResult.isMulti = false;
+                lastComparisonResult = final;
+                lastComparisonResult.isMulti = false;
                 
                 console.log('Checking available offers...');
                 console.log('availableOffers.length:', availableOffers.length);
@@ -4526,7 +4526,7 @@
                 console.log('finalResult incluye datos indexados:', totalIndexed);
             }
             
-            window.window.lastComparisonResult = finalResult;
+            lastComparisonResult = finalResult;
             
             // --- LÓGICA DE BRANDING (MultiCups) ---
             let brandToApply = activeBrand;
@@ -4566,8 +4566,8 @@
             console.log('renderMultiDualComparisonUI llamada', res);
             
             // IMPORTANTE: Asegurar que la variable global esté guardada
-            if (!window.lastComparisonResult) {
-                window.window.lastComparisonResult = res;
+            if (!lastComparisonResult) {
+                lastComparisonResult = res;
             }
             
             const brand = activeBrand;
@@ -4924,11 +4924,6 @@
                 
                 // NUEVO: Mostrar botón para solicitar mejora a DRK
                 document.getElementById('request-improvement-btn').style.display = 'flex';
-                
-                // Re-asignar event listener
-                if (typeof window.attachImprovementListeners === 'function') {
-                    window.attachImprovementListeners();
-                }
                 
                 newCostLabelEl.textContent = "TU COSTE ACTUAL CONSOLIDADO";
                 oldCostPeriodEl.classList.remove('line-through');
@@ -5335,8 +5330,8 @@
             console.log('renderDualComparisonUI llamada', resFijo, resIndexed);
             
             // IMPORTANTE: Asegurar que las variables globales estén guardadas
-            if (!window.lastComparisonResult) {
-                window.window.lastComparisonResult = resFijo;
+            if (!lastComparisonResult) {
+                lastComparisonResult = resFijo;
             }
             if (!lastIndexedResult) {
                 lastIndexedResult = resIndexed;
@@ -5640,25 +5635,7 @@
                 document.getElementById('price-columns').style.display = 'none';
                 
                 // NUEVO: Mostrar botón para solicitar mejora a DRK
-                console.log('🔴🔴🔴 MOSTRANDO BOTÓN DE SOLICITAR MEJORA 🔴🔴🔴');
-                const improvementBtn = document.getElementById('request-improvement-btn');
-                console.log('Botón encontrado:', improvementBtn);
-                if (improvementBtn) {
-                    improvementBtn.style.display = 'flex';
-                    console.log('Display cambiado a flex');
-                } else {
-                    console.error('❌ No se encontró el botón request-improvement-btn');
-                }
-                
-                // Re-asignar event listener
-                console.log('Verificando función attachImprovementListeners:', typeof window.attachImprovementListeners);
-                if (typeof window.attachImprovementListeners === 'function') {
-                    console.log('🔧 Llamando a attachImprovementListeners...');
-                    window.attachImprovementListeners();
-                    console.log('✅ attachImprovementListeners ejecutada');
-                } else {
-                    console.error('❌ attachImprovementListeners NO está definida como función');
-                }
+                document.getElementById('request-improvement-btn').style.display = 'flex';
                 
                 newCostLabelEl.textContent = "TU COSTE ACTUAL";
                 
@@ -6612,7 +6589,7 @@
 
         async function handleCopyOffer() {
             console.log('handleCopyOffer llamada', {
-                window.lastComparisonResult: window.lastComparisonResult,
+                lastComparisonResult: lastComparisonResult,
                 lastIndexedResult: lastIndexedResult,
                 compareWithIndexed: compareWithIndexed,
                 dualPowerComparison: window.lastDualPowerComparison
@@ -6624,8 +6601,8 @@
                 return await handleCopyOfferDualPower();
             }
             
-            if (!window.lastComparisonResult) {
-                console.error('ERROR: window.lastComparisonResult es null o undefined');
+            if (!lastComparisonResult) {
+                console.error('ERROR: lastComparisonResult es null o undefined');
                 return window.showErrorModal("Primero realice una comparación.");
             }
             
@@ -6648,7 +6625,7 @@
                 const monthlyText = document.getElementById('new-monthly-cost-display')?.textContent || '0 €';
                 
                 // Extraer datos del cálculo
-                const res = window.lastComparisonResult;
+                const res = lastComparisonResult;
                 
                 // Crear HTML ULTRA-SIMPLE para Outlook (compatible con TODOS los idiomas)
                 const htmlContent = `
@@ -7101,16 +7078,16 @@
                 // IMPORTANTE: Detectar si hay resultado indexado para generar HTML dual
                 if (lastIndexedResult && compareWithIndexed) {
                     // Si hay resultado indexado, generar HTML dual
-                    if (window.lastComparisonResult.isMultiCups) {
+                    if (lastComparisonResult.isMultiCups) {
                         // MULTICUPS con índice - generar HTML especial
                         htmlContent = generateMultiDualStyledHtmlOffer(commercialCode);
                     } else {
                         // Individual con índice - generar HTML especial
-                        htmlContent = generateDualStyledHtmlOffer(commercialCode, window.lastComparisonResult, lastIndexedResult);
+                        htmlContent = generateDualStyledHtmlOffer(commercialCode, lastComparisonResult, lastIndexedResult);
                     }
                 } else {
                     // Modo normal (sin indexado)
-                    if (window.lastComparisonResult.isMulti) {
+                    if (lastComparisonResult.isMulti) {
                         htmlContent = generateMultiStyledHtmlOffer(commercialCode);
                     } else {
                         htmlContent = generateStyledHtmlOffer(commercialCode);
@@ -8766,7 +8743,7 @@
             console.log('handleRequestImprovement llamada');
             
             // Verificar si hay datos de ELECTRICIDAD, GAS o DUAL
-            const hasElectricityData = window.lastComparisonResult !== null;
+            const hasElectricityData = lastComparisonResult !== null;
             const hasGasData = window.lastGasComparisonResult !== null;
             const hasDualData = window.dualGlobalResults !== null && typeof dualSupplies !== 'undefined' && dualSupplies && dualSupplies.length >= 2;
             
@@ -9201,16 +9178,16 @@ Desglose mensual estimado:
                     console.log('✅ Usando datos ELECTRICIDAD individual');
                     tipoSuministro = 'ELECTRICIDAD';
                     
-                    // VALIDACIÓN: Verificar que window.lastComparisonResult existe y tiene las propiedades necesarias
-                    if (!window.lastComparisonResult || !window.lastComparisonResult.dias_facturados || !window.lastComparisonResult.energyCosts) {
-                        console.error('❌ ERROR: window.lastComparisonResult incompleto', window.lastComparisonResult);
+                    // VALIDACIÓN: Verificar que lastComparisonResult existe y tiene las propiedades necesarias
+                    if (!lastComparisonResult || !lastComparisonResult.dias_facturados || !lastComparisonResult.energyCosts) {
+                        console.error('❌ ERROR: lastComparisonResult incompleto', lastComparisonResult);
                         return window.showErrorModal(tr("Error: Los datos de ELECTRICIDAD no están completos. Por favor, realice el cálculo de nuevo."));
                     }
                     
                     // Verificar si hay ahorro o no
-                    const hasPositiveSavings = window.lastComparisonResult && window.lastComparisonResult.savings > 0;
+                    const hasPositiveSavings = lastComparisonResult && lastComparisonResult.savings > 0;
                     
-                    if (!hasPositiveSavings || window.lastComparisonResult.isNegativeSavings) {
+                    if (!hasPositiveSavings || lastComparisonResult.isNegativeSavings) {
                         // NO HAY AHORRO: Generar HTML especial
                         const brand = activeBrand;
                         const isDrk = brand.NAME.includes('DRK');
@@ -9237,27 +9214,27 @@ Desglose mensual estimado:
                                     <table style="width: 100%; border-collapse: collapse;">
                                         <tr style="border-bottom: 1px solid ${isDrk ? '#bfdbfe' : '#d9f99d'};">
                                             <td style="padding: 8px; font-weight: bold;">Periodo analizado:</td>
-                                            <td style="padding: 8px; text-align: right;">${window.lastComparisonResult.dias_facturados || 0} días</td>
+                                            <td style="padding: 8px; text-align: right;">${lastComparisonResult.dias_facturados || 0} días</td>
                                         </tr>
                                         <tr style="border-bottom: 1px solid ${isDrk ? '#bfdbfe' : '#d9f99d'};">
                                             <td style="padding: 8px; font-weight: bold;"${tr("CUPS:")}</td>
-                                            <td style="padding: 8px; text-align: right; font-family: monospace; font-size: 11px;">${window.lastComparisonResult.cups || 'N/A'}</td>
+                                            <td style="padding: 8px; text-align: right; font-family: monospace; font-size: 11px;">${lastComparisonResult.cups || 'N/A'}</td>
                                         </tr>
                                         <tr style="border-bottom: 1px solid ${isDrk ? '#bfdbfe' : '#d9f99d'};">
                                             <td style="padding: 8px; font-weight: bold;">Tipo de tarifa:</td>
-                                            <td style="padding: 8px; text-align: right;">${window.lastComparisonResult.tariffType || 'N/A'}</td>
+                                            <td style="padding: 8px; text-align: right;">${lastComparisonResult.tariffType || 'N/A'}</td>
                                         </tr>
                                         <tr style="border-bottom: 2px solid ${brandColor};">
                                             <td style="padding: 8px; font-weight: bold;">Consumo total energía:</td>
-                                            <td style="padding: 8px; text-align: right; font-weight: bold;">${window.lastComparisonResult.energyCosts ? window.lastComparisonResult.energyCosts.reduce((sum, e) => sum + e.kwh, 0).toFixed(0) : 0} kWh</td>
+                                            <td style="padding: 8px; text-align: right; font-weight: bold;">${lastComparisonResult.energyCosts ? lastComparisonResult.energyCosts.reduce((sum, e) => sum + e.kwh, 0).toFixed(0) : 0} kWh</td>
                                         </tr>
                                         <tr style="background-color: ${isDrk ? '#dbeafe' : '#ecfccb'};">
                                             <td style="padding: 12px; font-size: 18px; font-weight: bold; color: ${isDrk ? '#0c4a6e' : '#365314'};">Total periodo:</td>
-                                            <td style="padding: 12px; font-size: 24px; text-align: right; color: ${isDrk ? '#0c4a6e' : '#365314'}; font-weight: bold;">${(window.lastComparisonResult.importe_total || 0).toFixed(2)} €</td>
+                                            <td style="padding: 12px; font-size: 24px; text-align: right; color: ${isDrk ? '#0c4a6e' : '#365314'}; font-weight: bold;">${(lastComparisonResult.importe_total || 0).toFixed(2)} €</td>
                                         </tr>
                                         <tr>
                                             <td style="padding: 12px; font-size: 16px; font-weight: bold; color: ${isDrk ? '#0c4a6e' : '#365314'};">Estimación anual:</td>
-                                            <td style="padding: 12px; font-size: 20px; text-align: right; color: ${isDrk ? '#0c4a6e' : '#365314'}; font-weight: bold;">${(window.lastComparisonResult.originalBillAnnual || 0).toFixed(2)} €/año</td>
+                                            <td style="padding: 12px; font-size: 20px; text-align: right; color: ${isDrk ? '#0c4a6e' : '#365314'}; font-weight: bold;">${(lastComparisonResult.originalBillAnnual || 0).toFixed(2)} €/año</td>
                                         </tr>
                                     </table>
                                 </div>
@@ -9266,13 +9243,13 @@ Desglose mensual estimado:
                     } else {
                         // SÍ HAY AHORRO: Usar funciones existentes
                         if (lastIndexedResult && compareWithIndexed) {
-                            if (window.lastComparisonResult.isMultiCups) {
+                            if (lastComparisonResult.isMultiCups) {
                                 htmlContent = generateMultiDualStyledHtmlOffer(commercialCode);
                             } else {
-                                htmlContent = generateDualStyledHtmlOffer(commercialCode, window.lastComparisonResult, lastIndexedResult);
+                                htmlContent = generateDualStyledHtmlOffer(commercialCode, lastComparisonResult, lastIndexedResult);
                             }
                         } else {
-                            if (window.lastComparisonResult.isMulti) {
+                            if (lastComparisonResult.isMulti) {
                                 htmlContent = generateMultiStyledHtmlOffer(commercialCode);
                             } else {
                                 htmlContent = generateStyledHtmlOffer(commercialCode);
@@ -9281,101 +9258,144 @@ Desglose mensual estimado:
                     }
                     
                     // 2. Generar desglose detallado de cálculos
-                    desglose = generateCalculationBreakdown(window.lastComparisonResult);
+                    desglose = generateCalculationBreakdown(lastComparisonResult);
                 }
                 
-                // 3. Preparar el contenido del email SIMPLE Y DIRECTO
-                const emailSubject = `Solicitud Mejora Comparativo - ${clientName || 'Cliente'} - Comercial ${commercialCode}`;
+                // 3. Preparar el contenido del email (MUY CORTO para evitar límites de mailto)
+                const emailSubject = `Solicitud Mejora ${tipoSuministro} - ${clientName || 'Cliente'} - ${cups || 'Sin CUPS'}`;
                 
-                // Crear cuerpo del email simple y profesional
-                const emailBody = `Hola equipo de Back Office,
+                const emailBody = `SOLICITUD DE MEJORA - ${tipoSuministro}
 
-Solicito revisión y mejora del siguiente comparativo que no presenta ahorro para el cliente:
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 DATOS DEL COMERCIAL
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-Código Comercial: ${commercialCode}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-👤 DATOS DEL CLIENTE
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-Nombre: ${clientName || 'No proporcionado'}
+Comercial: ${commercialCode}
+Cliente: ${clientName || 'No proporcionado'}
 CUPS: ${cups || 'No proporcionado'}
-Teléfono: ${phone || 'No proporcionado'}
-Email: ${email || 'No proporcionado'}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-📊 TIPO DE SUMINISTRO
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-${tipoSuministro}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ INSTRUCCIONES IMPORTANTES:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-${observations ? `━━━━━━━━━━━━━━━━━━━━━━━━━━
-💬 OBSERVACIONES
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-${observations}
+1. PEGAR contenido completo (Ctrl+V) debajo de este texto
+   → El contenido está copiado en el portapapeles
 
-` : ''}━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ RECORDATORIO IMPORTANTE
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-Por favor, adjuntar:
-📄 Factura utilizada para el estudio
-📄 Factura más actualizada del cliente
-(Si son la misma, adjuntar solo una vez)
+2. ADJUNTAR facturas OBLIGATORIAS:
+   📄 Factura usada para el estudio
+   📄 Factura más actualizada del cliente
 
-Gracias,
-${commercialCode}`;
+3. ENVIAR email
 
-                // 4. Crear mailto con múltiples destinatarios
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[PEGAR AQUÍ EL CONTENIDO COMPLETO CON CTRL+V]
+
+`;
+
+                // 4. Crear mailto con múltiples destinatarios (LIMITADO para evitar cortes)
                 const recipients = 'F.araujo@drk.es,rguerra@drk.es,l.grande@drk.es';
-                const mailtoLink = `mailto:${recipients}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+                const mailtoLink = `mailto:${recipients}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody.substring(0, 900))}`;
                 
-                console.log('📧 Abriendo email...');
-                console.log('Destinatarios:', recipients);
-                console.log('Asunto:', emailSubject);
+                // 5. Copiar HTML completo al portapapeles para pegar en el email
+                const tempElement = document.createElement('div');
+                tempElement.contentEditable = true;
+                tempElement.innerHTML = `
+                    <div style="font-family: Arial, sans-serif;">
+                        <h2 style="color: #E50000;">SOLICITUD DE MEJORA DE COMPARATIVO - ${tipoSuministro}</h2>
+                        <p><strong>El comercial ${commercialCode} solicita una mejora de este comparativo.</strong></p>
+                        
+                        <div style="background-color: #E0F2FE; border-left: 4px solid #0EA5E9; padding: 12px; margin: 16px 0;">
+                            <p style="margin: 0; font-weight: bold;">📋 TIPO DE SUMINISTRO: ${tipoSuministro}</p>
+                        </div>
+                        
+                        <h3>DATOS DEL CLIENTE:</h3>
+                        <ul>
+                            <li><strong>Nombre:</strong> ${clientName || 'No proporcionado'}</li>
+                            <li><strong${tr("CUPS:")}</strong> ${cups || 'No proporcionado'}</li>
+                            <li><strong>Teléfono:</strong> ${phone || 'No proporcionado'}</li>
+                            <li><strong>Email:</strong> ${email || 'No proporcionado'}</li>
+                            ${observations ? `<li><strong>Observaciones:</strong> ${observations}</li>` : ''}
+                        </ul>
+                        
+                        <div style="background-color: #FEF3C7; border: 2px solid #F59E0B; border-radius: 8px; padding: 16px; margin: 20px 0;">
+                            <h3 style="margin: 0 0 12px 0; color: #92400E; font-size: 18px;">⚠️ IMPORTANTE - FACTURAS A ADJUNTAR:</h3>
+                            <div style="background-color: white; padding: 12px; border-radius: 6px; margin-bottom: 8px;">
+                                <p style="margin: 0; font-weight: bold; color: #92400E;">📄 1. La factura UTILIZADA para realizar este estudio</p>
+                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #78350F;">Esta es la factura que el comercial ha analizado para hacer la comparativa</p>
+                            </div>
+                            <div style="background-color: white; padding: 12px; border-radius: 6px;">
+                                <p style="margin: 0; font-weight: bold; color: #92400E;">📄 2. La factura MÁS ACTUALIZADA del cliente</p>
+                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #78350F;">Si es la misma factura que la del estudio, adjuntar solo una vez</p>
+                            </div>
+                            <p style="margin: 12px 0 0 0; font-size: 12px; color: #92400E; font-style: italic;">
+                                ℹ️ Estas facturas son necesarias para que Back Office pueda verificar los datos y mejorar el comparativo
+                            </p>
+                        </div>
+                        
+                        <hr style="margin: 24px 0;">
+                        
+                        <h3>COMPARATIVO:</h3>
+                        ${htmlContent}
+                        
+                        <hr style="margin: 24px 0;">
+                        
+                        <h3>DESGLOSE DETALLADO DE CÁLCULOS:</h3>
+                        <pre style="background-color: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 12px;">${desglose}</pre>
+                    </div>
+                `;
+                tempElement.style.position = 'fixed';
+                tempElement.style.left = '-9999px';
+                document.body.appendChild(tempElement);
                 
-                // 5. Abrir cliente de correo directamente
-                console.log('🚀 Intentando abrir email con window.location.href...');
+                const range = document.createRange();
+                range.selectNodeContents(tempElement);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                
+                const success = document.execCommand('copy');
+                document.body.removeChild(tempElement);
+                
+                // 6. Abrir cliente de correo
                 window.location.href = mailtoLink;
                 
-                // 6. Pequeño delay y luego intentar con window.open como respaldo
-                setTimeout(() => {
-                    console.log('🔄 Intentando también con window.open...');
-                    window.open(mailtoLink, '_blank');
-                }, 100);
-                
                 // 7. Mostrar mensaje de éxito
-                window.showMessageModal(`✅ ¡Email preparado!
+                if (success) {
+                    window.showMessageModal(`✅ ¡LISTO! Email abierto y contenido copiado.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📧 SIGUIENTE PASO:
+📋 PASOS PARA ENVIAR LA SOLICITUD:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Se ha abierto tu cliente de correo con:
-✓ Destinatarios: Back Office DRK
-✓ Asunto: Solicitud de mejora
-✓ Cuerpo del email con todos los datos
+1️⃣ En el email que se acaba de abrir:
+   → Coloque el cursor debajo de "[PEGAR AQUÍ...]"
+   → Presione Ctrl+V (o Cmd+V en Mac)
+   → Se pegará TODO el comparativo completo
 
-⚠️ IMPORTANTE: Adjunta las facturas antes de enviar:
-📄 Factura utilizada para el estudio
-📄 Factura más actualizada del cliente
+2️⃣ ADJUNTE LAS FACTURAS (OBLIGATORIO):
+   📄 Factura usada para hacer el estudio
+   📄 Factura más actualizada del cliente
+   (Si son la misma, adjuntar solo una vez)
 
-Destinatarios:
-• Fernando Araujo (F.araujo@drk.es)
-• Rosa Guerra (rguerra@drk.es)  
-• Laura Grande (l.grande@drk.es)`);
-                
-                // 8. Cerrar modal
-                document.getElementById('request-improvement-modal').classList.add('hidden');
-                document.getElementById('request-improvement-modal').classList.remove('flex');
-                
-                // 9. Limpiar campos
-                document.getElementById('improvement-comercial-code').value = '';
-                document.getElementById('improvement-client-name').value = '';
-                document.getElementById('improvement-client-cups').value = '';
-                document.getElementById('improvement-client-phone').value = '';
-                document.getElementById('improvement-client-email').value = '';
-                document.getElementById('improvement-observations').value = '';
+3️⃣ Revise que todo esté correcto y ENVÍE
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
+
+⚠️ IMPORTANTE: Sin las facturas adjuntas, Back Office NO podrá procesar la solicitud.`);
+                    
+                    // Cerrar modal
+                    document.getElementById('request-improvement-modal').classList.add('hidden');
+                    document.getElementById('request-improvement-modal').classList.remove('flex');
+                    
+                    // Limpiar campos
+                    document.getElementById('improvement-comercial-code').value = '';
+                    document.getElementById('improvement-client-name').value = '';
+                    document.getElementById('improvement-client-cups').value = '';
+                    document.getElementById('improvement-client-phone').value = '';
+                    document.getElementById('improvement-client-email').value = '';
+                    document.getElementById('improvement-observations').value = '';
+                } else {
+                    window.showErrorModal("No se pudo copiar el contenido. Por favor, contacte a soporte.");
+                }
                 
             } catch (error) {
                 console.error('Error en handleRequestImprovement:', error);
@@ -10262,7 +10282,7 @@ Destinatarios:
             }
             
             console.log('handleGeneratePDF llamada', {
-                window.lastComparisonResult: window.lastComparisonResult,
+                lastComparisonResult: lastComparisonResult,
                 lastIndexedResult: lastIndexedResult,
                 compareWithIndexed: compareWithIndexed,
                 dualPowerComparison: window.lastDualPowerComparison
@@ -10292,8 +10312,8 @@ Destinatarios:
                 }
             }
             
-            if (!window.lastComparisonResult) {
-                console.error('ERROR: window.lastComparisonResult es null o undefined');
+            if (!lastComparisonResult) {
+                console.error('ERROR: lastComparisonResult es null o undefined');
                 return window.showErrorModal("Primero realice una comparación.");
             }
             
@@ -10315,22 +10335,22 @@ Destinatarios:
             // IMPORTANTE: Detectar si hay resultado indexado para generar PDF dual
             // Puede estar en lastIndexedResult (individual) o en indexedTotals (MULTICUPS)
             const hasIndexedData = (lastIndexedResult && compareWithIndexed) || 
-                                    (window.lastComparisonResult.isMultiCups && window.lastComparisonResult.indexedTotals);
+                                    (lastComparisonResult.isMultiCups && lastComparisonResult.indexedTotals);
             
             console.log('🔍 hasIndexedData:', hasIndexedData);
             console.log('🔍 lastIndexedResult:', lastIndexedResult);
-            console.log('🔍 indexedTotals:', window.lastComparisonResult.indexedTotals);
+            console.log('🔍 indexedTotals:', lastComparisonResult.indexedTotals);
             
             if (hasIndexedData) {
                 // Si hay resultado indexado, generar PDF dual
-                if (window.lastComparisonResult.isMultiCups) {
+                if (lastComparisonResult.isMultiCups) {
                     // MULTICUPS con índice
                     console.log('✅ Generando PDF MULTICUPS DUAL');
-                    await generateMultiPDF_Dual(window.lastComparisonResult, commercialCode, clientName, clientPhone, clientEmail, clientAddress);
+                    await generateMultiPDF_Dual(lastComparisonResult, commercialCode, clientName, clientPhone, clientEmail, clientAddress);
                 } else {
                     // Individual con índice
                     console.log('✅ Generando PDF INDIVIDUAL DUAL');
-                    await generatePDF_Dual(window.lastComparisonResult, lastIndexedResult, commercialCode, clientName, clientPhone, clientEmail, clientAddress);
+                    await generatePDF_Dual(lastComparisonResult, lastIndexedResult, commercialCode, clientName, clientPhone, clientEmail, clientAddress);
                 }
                 
                 // Cerrar modal
@@ -10353,7 +10373,7 @@ Destinatarios:
                 }
                 
                 const brand = activeBrand;
-                const res = window.lastComparisonResult;
+                const res = lastComparisonResult;
                 const offer = res.offer;
                 const isDrk = brand.NAME.includes('DRK');
                 const tariffType = res.originalTariffType || currentTariffType;
@@ -12541,7 +12561,7 @@ Destinatarios:
         }
         
         function generateMultiDualStyledHtmlOffer(commercialCode) {
-            const res = window.lastComparisonResult;
+            const res = lastComparisonResult;
             const brand = activeBrand;
             
             const eur = (n) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n || 0);
@@ -13062,7 +13082,7 @@ Destinatarios:
         }
 
         function generateStyledHtmlOffer(commercialCode) {
-            const bd = window.lastComparisonResult;
+            const bd = lastComparisonResult;
             const offer = bd.offer;
             const brand = activeBrand;
             
@@ -13458,7 +13478,7 @@ Destinatarios:
 
 
         function generateMultiStyledHtmlOffer(commercialCode) {
-            const bd = window.lastComparisonResult; // Resultado acumulado
+            const bd = lastComparisonResult; // Resultado acumulado
             const offer = bd.offer;
             const individualResults = bd.individualResults;
             
@@ -14238,7 +14258,7 @@ Destinatarios:
             
             console.log('Elección:', bestOptionTariffChoice);
             console.log('dualMode:', window.dualMode);
-            console.log('window.lastComparisonResult exists:', !!window.lastComparisonResult);
+            console.log('lastComparisonResult exists:', !!lastComparisonResult);
             console.log('availableOffers.length:', availableOffers.length);
             console.log('=================================================');
             
@@ -14256,9 +14276,9 @@ Destinatarios:
             console.log('🔍 CHECK estaba marcado originalmente:', hadCheckMarked ? 'SÍ' : 'NO');
             console.log('Usuario eligió tarifa:', bestOptionTariffChoice);
             
-            // CRÍTICO: Preservar _multiCupsContext ANTES de reasignar window.lastComparisonResult
-            const preservedContext = window.lastComparisonResult?._multiCupsContext 
-                ? JSON.parse(JSON.stringify(window.lastComparisonResult._multiCupsContext))
+            // CRÍTICO: Preservar _multiCupsContext ANTES de reasignar lastComparisonResult
+            const preservedContext = lastComparisonResult?._multiCupsContext 
+                ? JSON.parse(JSON.stringify(lastComparisonResult._multiCupsContext))
                 : null;
             
             console.log('🔍 Contexto MULTICUPS preservado en selectBestOptionWithChoice:', preservedContext ? 'SÍ' : 'NO');
@@ -14345,9 +14365,9 @@ Destinatarios:
                 window.lastDualPowerComparison.actual = resultWithActualPowers;
                 window.lastDualPowerComparison.optimized = bestChosen;
                 
-                // Actualizar window.lastComparisonResult para compatibilidad
-                window.window.lastComparisonResult = bestChosen;
-                window.lastComparisonResult.isMulti = false;
+                // Actualizar lastComparisonResult para compatibilidad
+                lastComparisonResult = bestChosen;
+                lastComparisonResult.isMulti = false;
                 
                 // Cerrar modal
                 closeOfferDecisionModal();
@@ -14421,11 +14441,11 @@ Destinatarios:
             }
             
             // Actualizar variables globales
-            console.log('🔍 Asignando window.lastComparisonResult...');
+            console.log('🔍 Asignando lastComparisonResult...');
             
-            window.window.lastComparisonResult = resFijo || bestChosen;
+            lastComparisonResult = resFijo || bestChosen;
             
-            console.log('✅ window.lastComparisonResult asignada, continuando...');
+            console.log('✅ lastComparisonResult asignada, continuando...');
             
             console.log('🔍 Evaluando comparación dual...');
             
@@ -14448,7 +14468,7 @@ Destinatarios:
                 
                 // CRÍTICO: RESTAURAR el contexto preservado
                 if (preservedContext) {
-                    window.lastComparisonResult._multiCupsContext = preservedContext;
+                    lastComparisonResult._multiCupsContext = preservedContext;
                     console.log('✅ Contexto MULTICUPS restaurado');
                 } else {
                     console.log('⚠️  Sin contexto MULTICUPS');
@@ -14461,28 +14481,28 @@ Destinatarios:
                     console.log('===== 🔥 MODO DUAL - Usando flujo con dirección =====');
                     
                     // Preparar datos para el flujo unificado
-                    const tariff = window.lastComparisonResult.tariffType || currentTariffType || '2.0TD';
+                    const tariff = lastComparisonResult.tariffType || currentTariffType || '2.0TD';
                     const data = {
-                        cups: window.lastComparisonResult.cups || 'CUPS-ELECTRICIDAD',
+                        cups: lastComparisonResult.cups || 'CUPS-ELECTRICIDAD',
                         tariff: tariff,
-                        kwh_p1: parseFloat(window.lastComparisonResult.kwh_p1) || 0,
-                        kwh_p2: parseFloat(window.lastComparisonResult.kwh_p2) || 0,
-                        kwh_p3: parseFloat(window.lastComparisonResult.kwh_p3) || 0,
-                        kwh_p4: parseFloat(window.lastComparisonResult.kwh_p4) || 0,
-                        kwh_p5: parseFloat(window.lastComparisonResult.kwh_p5) || 0,
-                        kwh_p6: parseFloat(window.lastComparisonResult.kwh_p6) || 0,
-                        p1: parseFloat(window.lastComparisonResult.p1) || 0,
-                        p2: parseFloat(window.lastComparisonResult.p2) || 0,
-                        p3: parseFloat(window.lastComparisonResult.p3) || 0,
-                        p4: parseFloat(window.lastComparisonResult.p4) || 0,
-                        p5: parseFloat(window.lastComparisonResult.p5) || 0,
-                        p6: parseFloat(window.lastComparisonResult.p6) || 0,
-                        dias: parseInt(window.lastComparisonResult.dias) || 30,
-                        originalBillAnnual: window.lastComparisonResult.originalBillAnnual || (window.lastComparisonResult.importe_total || 0) * 12
+                        kwh_p1: parseFloat(lastComparisonResult.kwh_p1) || 0,
+                        kwh_p2: parseFloat(lastComparisonResult.kwh_p2) || 0,
+                        kwh_p3: parseFloat(lastComparisonResult.kwh_p3) || 0,
+                        kwh_p4: parseFloat(lastComparisonResult.kwh_p4) || 0,
+                        kwh_p5: parseFloat(lastComparisonResult.kwh_p5) || 0,
+                        kwh_p6: parseFloat(lastComparisonResult.kwh_p6) || 0,
+                        p1: parseFloat(lastComparisonResult.p1) || 0,
+                        p2: parseFloat(lastComparisonResult.p2) || 0,
+                        p3: parseFloat(lastComparisonResult.p3) || 0,
+                        p4: parseFloat(lastComparisonResult.p4) || 0,
+                        p5: parseFloat(lastComparisonResult.p5) || 0,
+                        p6: parseFloat(lastComparisonResult.p6) || 0,
+                        dias: parseInt(lastComparisonResult.dias) || 30,
+                        originalBillAnnual: lastComparisonResult.originalBillAnnual || (lastComparisonResult.importe_total || 0) * 12
                     };
                     
                     // Determinar costos según modo de comparación
-                    const drkCost = window.lastComparisonResult.totalAnnual || 0;
+                    const drkCost = lastComparisonResult.totalAnnual || 0;
                     const powercupCost = 0; // Solo hay un resultado en este flujo
                     
                     const results = {
@@ -14516,8 +14536,8 @@ Destinatarios:
                         tariffSelector.classList.add('hidden');
                     }
                     
-                    // Usar el flujo con modal de dirección, pasando window.lastComparisonResult completo
-                    window.dualAddFromResults('electricidad', tariff, data, results, window.lastComparisonResult);
+                    // Usar el flujo con modal de dirección, pasando lastComparisonResult completo
+                    window.dualAddFromResults('electricidad', tariff, data, results, lastComparisonResult);
                     
                     console.log('✅ Usuario puede añadir más suministros');
                     
@@ -14693,7 +14713,7 @@ Destinatarios:
         function selectBestOptionDirectDual() {
             closeOfferDecisionModal();
             
-            if (!window.lastComparisonResult || !lastIndexedResult) {
+            if (!lastComparisonResult || !lastIndexedResult) {
                 window.showErrorModal('No hay resultados disponibles para comparación dual');
                 return;
             }
@@ -14705,27 +14725,27 @@ Destinatarios:
                 console.log('===== 🔥 MODO DUAL - Usando flujo con dirección (selectBestOptionDirectDual) =====');
                 
                 // Preparar datos para el flujo unificado
-                const tariff = window.lastComparisonResult.tariffType || currentTariffType || '2.0TD';
+                const tariff = lastComparisonResult.tariffType || currentTariffType || '2.0TD';
                 const data = {
-                    cups: window.lastComparisonResult.cups || 'CUPS-ELECTRICIDAD',
+                    cups: lastComparisonResult.cups || 'CUPS-ELECTRICIDAD',
                     tariff: tariff,
-                    kwh_p1: parseFloat(window.lastComparisonResult.kwh_p1) || 0,
-                    kwh_p2: parseFloat(window.lastComparisonResult.kwh_p2) || 0,
-                    kwh_p3: parseFloat(window.lastComparisonResult.kwh_p3) || 0,
-                    kwh_p4: parseFloat(window.lastComparisonResult.kwh_p4) || 0,
-                    kwh_p5: parseFloat(window.lastComparisonResult.kwh_p5) || 0,
-                    kwh_p6: parseFloat(window.lastComparisonResult.kwh_p6) || 0,
-                    p1: parseFloat(window.lastComparisonResult.p1) || 0,
-                    p2: parseFloat(window.lastComparisonResult.p2) || 0,
-                    p3: parseFloat(window.lastComparisonResult.p3) || 0,
-                    p4: parseFloat(window.lastComparisonResult.p4) || 0,
-                    p5: parseFloat(window.lastComparisonResult.p5) || 0,
-                    p6: parseFloat(window.lastComparisonResult.p6) || 0,
-                    dias: parseInt(window.lastComparisonResult.dias) || 30,
-                    originalBillAnnual: window.lastComparisonResult.originalBillAnnual || (window.lastComparisonResult.importe_total || 0) * 12
+                    kwh_p1: parseFloat(lastComparisonResult.kwh_p1) || 0,
+                    kwh_p2: parseFloat(lastComparisonResult.kwh_p2) || 0,
+                    kwh_p3: parseFloat(lastComparisonResult.kwh_p3) || 0,
+                    kwh_p4: parseFloat(lastComparisonResult.kwh_p4) || 0,
+                    kwh_p5: parseFloat(lastComparisonResult.kwh_p5) || 0,
+                    kwh_p6: parseFloat(lastComparisonResult.kwh_p6) || 0,
+                    p1: parseFloat(lastComparisonResult.p1) || 0,
+                    p2: parseFloat(lastComparisonResult.p2) || 0,
+                    p3: parseFloat(lastComparisonResult.p3) || 0,
+                    p4: parseFloat(lastComparisonResult.p4) || 0,
+                    p5: parseFloat(lastComparisonResult.p5) || 0,
+                    p6: parseFloat(lastComparisonResult.p6) || 0,
+                    dias: parseInt(lastComparisonResult.dias) || 30,
+                    originalBillAnnual: lastComparisonResult.originalBillAnnual || (lastComparisonResult.importe_total || 0) * 12
                 };
                 
-                const drkCost = window.lastComparisonResult.totalAnnual || 0;
+                const drkCost = lastComparisonResult.totalAnnual || 0;
                 
                 const results = {
                     drk: comparisonMode === 'overall_best' ? {
@@ -14746,19 +14766,19 @@ Destinatarios:
                 
                 console.log('Llamando a dualAddFromResults desde selectBestOptionDirectDual');
                 
-                // Usar el flujo con modal de dirección, pasando window.lastComparisonResult completo
-                window.dualAddFromResults('electricidad', tariff, data, results, window.lastComparisonResult);
+                // Usar el flujo con modal de dirección, pasando lastComparisonResult completo
+                window.dualAddFromResults('electricidad', tariff, data, results, lastComparisonResult);
                 
                 return;
             }
             
             // Verificar si estamos en contexto MultiCups
-            if (window.lastComparisonResult._multiCupsContext) {
+            if (lastComparisonResult._multiCupsContext) {
                 // Contexto MultiCups: Añadir a la lista CON comparación indexada
-                addSupplyToMultiCupsList(window.lastComparisonResult, lastIndexedResult);
+                addSupplyToMultiCupsList(lastComparisonResult, lastIndexedResult);
             } else {
                 // Contexto individual: Mostrar resultados CON comparación indexada
-                renderResultsUI(window.lastComparisonResult, lastIndexedResult);
+                renderResultsUI(lastComparisonResult, lastIndexedResult);
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
@@ -14771,26 +14791,26 @@ Destinatarios:
             console.log('=================================================');
             console.log('⚡⚡⚡ selectBestOptionDirectSingle LLAMADA ⚡⚡⚡');
             console.log('dualMode:', window.dualMode);
-            console.log('window.lastComparisonResult exists:', !!window.lastComparisonResult);
+            console.log('lastComparisonResult exists:', !!lastComparisonResult);
             console.log('=================================================');
             
             console.log('🔍 ANTES de closeOfferDecisionModal:');
-            console.log('  - window.lastComparisonResult.offer.name:', window.lastComparisonResult?.offer?.name);
-            console.log('  - window.lastComparisonResult.totalAnnual:', window.lastComparisonResult?.totalAnnual);
+            console.log('  - lastComparisonResult.offer.name:', lastComparisonResult?.offer?.name);
+            console.log('  - lastComparisonResult.totalAnnual:', lastComparisonResult?.totalAnnual);
             
             closeOfferDecisionModal();
             
             console.log('✅ DESPUÉS de closeOfferDecisionModal:');
-            console.log('  - window.lastComparisonResult.offer.name:', window.lastComparisonResult?.offer?.name);
-            console.log('  - window.lastComparisonResult.totalAnnual:', window.lastComparisonResult?.totalAnnual);
+            console.log('  - lastComparisonResult.offer.name:', lastComparisonResult?.offer?.name);
+            console.log('  - lastComparisonResult.totalAnnual:', lastComparisonResult?.totalAnnual);
             
-            if (!window.lastComparisonResult) {
-                console.error('❌ No hay window.lastComparisonResult');
+            if (!lastComparisonResult) {
+                console.error('❌ No hay lastComparisonResult');
                 window.showErrorModal('No hay resultado disponible');
                 return;
             }
             
-            console.log('✅ window.lastComparisonResult OK, continuando...');
+            console.log('✅ lastComparisonResult OK, continuando...');
             
             // FORZAR: No mostrar comparativa indexada
             lastIndexedResult = null;
@@ -14805,11 +14825,11 @@ Destinatarios:
             console.log('selectBestOptionDirectSingle: Forzando vista SIMPLE (sin comparativa)');
             
             console.log('🔍🔍🔍 ESTADO JUSTO ANTES DEL INTERCEPTOR DUAL:');
-            console.log('  - window.lastComparisonResult.offer.name:', window.lastComparisonResult?.offer?.name);
-            console.log('  - window.lastComparisonResult.totalAnnual:', window.lastComparisonResult?.totalAnnual);
-            console.log('  - window.lastComparisonResult.tariffType:', window.lastComparisonResult?.tariffType);
-            console.log('  - window.lastComparisonResult.consumo_punta:', window.lastComparisonResult?.consumo_punta);
-            console.log('  - window.lastComparisonResult.cups:', window.lastComparisonResult?.cups);
+            console.log('  - lastComparisonResult.offer.name:', lastComparisonResult?.offer?.name);
+            console.log('  - lastComparisonResult.totalAnnual:', lastComparisonResult?.totalAnnual);
+            console.log('  - lastComparisonResult.tariffType:', lastComparisonResult?.tariffType);
+            console.log('  - lastComparisonResult.consumo_punta:', lastComparisonResult?.consumo_punta);
+            console.log('  - lastComparisonResult.cups:', lastComparisonResult?.cups);
             
             // ⚡ INTERCEPTAR MODO DUAL AQUÍ
             if (window.dualMode === true) {
@@ -14819,48 +14839,48 @@ Destinatarios:
                     // CREAR el objeto de suministro CON DESGLOSE COMPLETO
                     const newSupply = {
                         type: 'electricidad',
-                        cups: window.lastComparisonResult.cups || '',
-                        tariff: window.lastComparisonResult.tariffType || currentTariffType || '2.0TD',
+                        cups: lastComparisonResult.cups || '',
+                        tariff: lastComparisonResult.tariffType || currentTariffType || '2.0TD',
                         offer: {
-                            ...window.lastComparisonResult.offer,
-                            p1_power_price: window.lastComparisonResult.powerCosts?.[0]?.priceDay || window.lastComparisonResult.powerCosts?.[0]?.price_euro_kw_day,
-                            p2_power_price: window.lastComparisonResult.powerCosts?.[1]?.priceDay || window.lastComparisonResult.powerCosts?.[1]?.price_euro_kw_day,
-                            p1_price: window.lastComparisonResult.energyCosts?.[0]?.price || window.lastComparisonResult.energyCosts?.[0]?.price_euro_kwh,
-                            p2_price: window.lastComparisonResult.energyCosts?.[1]?.price || window.lastComparisonResult.energyCosts?.[1]?.price_euro_kwh,
-                            p3_price: window.lastComparisonResult.energyCosts?.[2]?.price || window.lastComparisonResult.energyCosts?.[2]?.price_euro_kwh,
-                            p4_price: window.lastComparisonResult.energyCosts?.[3]?.price || window.lastComparisonResult.energyCosts?.[3]?.price_euro_kwh,
-                            p5_price: window.lastComparisonResult.energyCosts?.[4]?.price || window.lastComparisonResult.energyCosts?.[4]?.price_euro_kwh,
-                            p6_price: window.lastComparisonResult.energyCosts?.[5]?.price || window.lastComparisonResult.energyCosts?.[5]?.price_euro_kwh
+                            ...lastComparisonResult.offer,
+                            p1_power_price: lastComparisonResult.powerCosts?.[0]?.priceDay || lastComparisonResult.powerCosts?.[0]?.price_euro_kw_day,
+                            p2_power_price: lastComparisonResult.powerCosts?.[1]?.priceDay || lastComparisonResult.powerCosts?.[1]?.price_euro_kw_day,
+                            p1_price: lastComparisonResult.energyCosts?.[0]?.price || lastComparisonResult.energyCosts?.[0]?.price_euro_kwh,
+                            p2_price: lastComparisonResult.energyCosts?.[1]?.price || lastComparisonResult.energyCosts?.[1]?.price_euro_kwh,
+                            p3_price: lastComparisonResult.energyCosts?.[2]?.price || lastComparisonResult.energyCosts?.[2]?.price_euro_kwh,
+                            p4_price: lastComparisonResult.energyCosts?.[3]?.price || lastComparisonResult.energyCosts?.[3]?.price_euro_kwh,
+                            p5_price: lastComparisonResult.energyCosts?.[4]?.price || lastComparisonResult.energyCosts?.[4]?.price_euro_kwh,
+                            p6_price: lastComparisonResult.energyCosts?.[5]?.price || lastComparisonResult.energyCosts?.[5]?.price_euro_kwh
                         },
-                        totalAnnual: window.lastComparisonResult.totalAnnual,
-                        originalBillAnnual: window.lastComparisonResult.originalBillAnnual || (window.lastComparisonResult.importe_total || 0) * 12,
-                        data: window.lastComparisonResult,
+                        totalAnnual: lastComparisonResult.totalAnnual,
+                        originalBillAnnual: lastComparisonResult.originalBillAnnual || (lastComparisonResult.importe_total || 0) * 12,
+                        data: lastComparisonResult,
                         electricityBreakdown: {
-                            energyCosts: window.lastComparisonResult.energyCosts || [],
-                            powerCosts: window.lastComparisonResult.powerCosts || [],
-                            subEnergy: window.lastComparisonResult.subEnergyNet || 0,
-                            subPower: window.lastComparisonResult.subPower || 0,
-                            subBase: window.lastComparisonResult.subBase || 0,
-                            costIE: window.lastComparisonResult.costIE || 0,
-                            baseImp: window.lastComparisonResult.baseImp || 0,
-                            costIVA: window.lastComparisonResult.costIVA || 0,
-                            totalPeriod: window.lastComparisonResult.totalPeriod || 0,
-                            totalAnnual: window.lastComparisonResult.totalAnnual || 0,
-                            ahorro_mensual: (window.lastComparisonResult.originalBillPeriod || 0) - (window.lastComparisonResult.totalPeriod || 0),
-                            ahorro_anual: (window.lastComparisonResult.originalBillAnnual || 0) - (window.lastComparisonResult.totalAnnual || 0),
-                            dias: window.lastComparisonResult.dias_facturados || 30
+                            energyCosts: lastComparisonResult.energyCosts || [],
+                            powerCosts: lastComparisonResult.powerCosts || [],
+                            subEnergy: lastComparisonResult.subEnergyNet || 0,
+                            subPower: lastComparisonResult.subPower || 0,
+                            subBase: lastComparisonResult.subBase || 0,
+                            costIE: lastComparisonResult.costIE || 0,
+                            baseImp: lastComparisonResult.baseImp || 0,
+                            costIVA: lastComparisonResult.costIVA || 0,
+                            totalPeriod: lastComparisonResult.totalPeriod || 0,
+                            totalAnnual: lastComparisonResult.totalAnnual || 0,
+                            ahorro_mensual: (lastComparisonResult.originalBillPeriod || 0) - (lastComparisonResult.totalPeriod || 0),
+                            ahorro_anual: (lastComparisonResult.originalBillAnnual || 0) - (lastComparisonResult.totalAnnual || 0),
+                            dias: lastComparisonResult.dias_facturados || 30
                         },
                         results: {
                             drk: comparisonMode === 'overall_best' ? {
                                 total: 0,
                                 total_anual: 0
                             } : {
-                                total: window.lastComparisonResult.totalAnnual / 12,
-                                total_anual: window.lastComparisonResult.totalAnnual
+                                total: lastComparisonResult.totalAnnual / 12,
+                                total_anual: lastComparisonResult.totalAnnual
                             },
                             powercup: comparisonMode === 'overall_best' ? {
-                                total: window.lastComparisonResult.totalAnnual / 12,
-                                total_anual: window.lastComparisonResult.totalAnnual
+                                total: lastComparisonResult.totalAnnual / 12,
+                                total_anual: lastComparisonResult.totalAnnual
                             } : {
                                 total: 0,
                                 total_anual: 0
@@ -14904,9 +14924,9 @@ Destinatarios:
             }
             
             // Verificar si estamos en contexto MultiCups
-            if (window.lastComparisonResult._multiCupsContext) {
+            if (lastComparisonResult._multiCupsContext) {
                 // Contexto MultiCups: Añadir a la lista (sin indexado)
-                addSupplyToMultiCupsList(window.lastComparisonResult, null);
+                addSupplyToMultiCupsList(lastComparisonResult, null);
             } else {
                 // NUEVO: Verificar si hay comparativo dual de potencias activo
                 if (window.lastDualPowerComparison) {
@@ -14915,7 +14935,7 @@ Destinatarios:
                     renderDualPowerResultsUI(dualComp.actual, dualComp.optimized, dualComp.brand);
                 } else {
                     // Contexto individual normal: Mostrar resultados (sin indexado)
-                    renderResultsUI(window.lastComparisonResult, null);
+                    renderResultsUI(lastComparisonResult, null);
                 }
                 
                 document.getElementById('initial-view').classList.add('hidden');
@@ -14998,21 +15018,21 @@ Destinatarios:
             console.log('⚡⚡⚡ selectBestOptionDirect LLAMADA ⚡⚡⚡');
             console.log('dualMode:', window.dualMode);
             console.log('compareWithIndexed:', compareWithIndexed);
-            console.log('window.lastComparisonResult exists:', !!window.lastComparisonResult);
+            console.log('lastComparisonResult exists:', !!lastComparisonResult);
             console.log('comparisonMode:', comparisonMode);
             console.log('=================================================');
             
             // Cerrar modal de decisión
             closeOfferDecisionModal();
             
-            // Usar el resultado que ya estaba calculado (window.lastComparisonResult)
-            if (!window.lastComparisonResult) {
-                console.error('❌ No hay window.lastComparisonResult');
+            // Usar el resultado que ya estaba calculado (lastComparisonResult)
+            if (!lastComparisonResult) {
+                console.error('❌ No hay lastComparisonResult');
                 window.showErrorModal('No hay resultado disponible');
                 return;
             }
             
-            console.log('✅ window.lastComparisonResult OK, continuando...');
+            console.log('✅ lastComparisonResult OK, continuando...');
             
             // ⚡⚡⚡ INTERCEPTOR MODO DUAL ⚡⚡⚡
             if (window.dualMode === true) {
@@ -15022,48 +15042,48 @@ Destinatarios:
                     // CREAR el objeto de suministro CON DESGLOSE COMPLETO
                     const newSupply = {
                         type: 'electricidad',
-                        cups: window.lastComparisonResult.cups || '',
-                        tariff: window.lastComparisonResult.tariffType || currentTariffType || '2.0TD',
+                        cups: lastComparisonResult.cups || '',
+                        tariff: lastComparisonResult.tariffType || currentTariffType || '2.0TD',
                         offer: {
-                            ...window.lastComparisonResult.offer,
-                            p1_power_price: window.lastComparisonResult.powerCosts?.[0]?.priceDay || window.lastComparisonResult.powerCosts?.[0]?.price_euro_kw_day,
-                            p2_power_price: window.lastComparisonResult.powerCosts?.[1]?.priceDay || window.lastComparisonResult.powerCosts?.[1]?.price_euro_kw_day,
-                            p1_price: window.lastComparisonResult.energyCosts?.[0]?.price || window.lastComparisonResult.energyCosts?.[0]?.price_euro_kwh,
-                            p2_price: window.lastComparisonResult.energyCosts?.[1]?.price || window.lastComparisonResult.energyCosts?.[1]?.price_euro_kwh,
-                            p3_price: window.lastComparisonResult.energyCosts?.[2]?.price || window.lastComparisonResult.energyCosts?.[2]?.price_euro_kwh,
-                            p4_price: window.lastComparisonResult.energyCosts?.[3]?.price || window.lastComparisonResult.energyCosts?.[3]?.price_euro_kwh,
-                            p5_price: window.lastComparisonResult.energyCosts?.[4]?.price || window.lastComparisonResult.energyCosts?.[4]?.price_euro_kwh,
-                            p6_price: window.lastComparisonResult.energyCosts?.[5]?.price || window.lastComparisonResult.energyCosts?.[5]?.price_euro_kwh
+                            ...lastComparisonResult.offer,
+                            p1_power_price: lastComparisonResult.powerCosts?.[0]?.priceDay || lastComparisonResult.powerCosts?.[0]?.price_euro_kw_day,
+                            p2_power_price: lastComparisonResult.powerCosts?.[1]?.priceDay || lastComparisonResult.powerCosts?.[1]?.price_euro_kw_day,
+                            p1_price: lastComparisonResult.energyCosts?.[0]?.price || lastComparisonResult.energyCosts?.[0]?.price_euro_kwh,
+                            p2_price: lastComparisonResult.energyCosts?.[1]?.price || lastComparisonResult.energyCosts?.[1]?.price_euro_kwh,
+                            p3_price: lastComparisonResult.energyCosts?.[2]?.price || lastComparisonResult.energyCosts?.[2]?.price_euro_kwh,
+                            p4_price: lastComparisonResult.energyCosts?.[3]?.price || lastComparisonResult.energyCosts?.[3]?.price_euro_kwh,
+                            p5_price: lastComparisonResult.energyCosts?.[4]?.price || lastComparisonResult.energyCosts?.[4]?.price_euro_kwh,
+                            p6_price: lastComparisonResult.energyCosts?.[5]?.price || lastComparisonResult.energyCosts?.[5]?.price_euro_kwh
                         },
-                        totalAnnual: window.lastComparisonResult.totalAnnual,
-                        originalBillAnnual: window.lastComparisonResult.originalBillAnnual || (window.lastComparisonResult.importe_total || 0) * 12,
-                        data: window.lastComparisonResult,
+                        totalAnnual: lastComparisonResult.totalAnnual,
+                        originalBillAnnual: lastComparisonResult.originalBillAnnual || (lastComparisonResult.importe_total || 0) * 12,
+                        data: lastComparisonResult,
                         electricityBreakdown: {
-                            energyCosts: window.lastComparisonResult.energyCosts || [],
-                            powerCosts: window.lastComparisonResult.powerCosts || [],
-                            subEnergy: window.lastComparisonResult.subEnergyNet || 0,
-                            subPower: window.lastComparisonResult.subPower || 0,
-                            subBase: window.lastComparisonResult.subBase || 0,
-                            costIE: window.lastComparisonResult.costIE || 0,
-                            baseImp: window.lastComparisonResult.baseImp || 0,
-                            costIVA: window.lastComparisonResult.costIVA || 0,
-                            totalPeriod: window.lastComparisonResult.totalPeriod || 0,
-                            totalAnnual: window.lastComparisonResult.totalAnnual || 0,
-                            ahorro_mensual: (window.lastComparisonResult.originalBillPeriod || 0) - (window.lastComparisonResult.totalPeriod || 0),
-                            ahorro_anual: (window.lastComparisonResult.originalBillAnnual || 0) - (window.lastComparisonResult.totalAnnual || 0),
-                            dias: window.lastComparisonResult.dias_facturados || 30
+                            energyCosts: lastComparisonResult.energyCosts || [],
+                            powerCosts: lastComparisonResult.powerCosts || [],
+                            subEnergy: lastComparisonResult.subEnergyNet || 0,
+                            subPower: lastComparisonResult.subPower || 0,
+                            subBase: lastComparisonResult.subBase || 0,
+                            costIE: lastComparisonResult.costIE || 0,
+                            baseImp: lastComparisonResult.baseImp || 0,
+                            costIVA: lastComparisonResult.costIVA || 0,
+                            totalPeriod: lastComparisonResult.totalPeriod || 0,
+                            totalAnnual: lastComparisonResult.totalAnnual || 0,
+                            ahorro_mensual: (lastComparisonResult.originalBillPeriod || 0) - (lastComparisonResult.totalPeriod || 0),
+                            ahorro_anual: (lastComparisonResult.originalBillAnnual || 0) - (lastComparisonResult.totalAnnual || 0),
+                            dias: lastComparisonResult.dias_facturados || 30
                         },
                         results: {
                             drk: comparisonMode === 'overall_best' ? {
                                 total: 0,
                                 total_anual: 0
                             } : {
-                                total: window.lastComparisonResult.totalAnnual / 12,
-                                total_anual: window.lastComparisonResult.totalAnnual
+                                total: lastComparisonResult.totalAnnual / 12,
+                                total_anual: lastComparisonResult.totalAnnual
                             },
                             powercup: comparisonMode === 'overall_best' ? {
-                                total: window.lastComparisonResult.totalAnnual / 12,
-                                total_anual: window.lastComparisonResult.totalAnnual
+                                total: lastComparisonResult.totalAnnual / 12,
+                                total_anual: lastComparisonResult.totalAnnual
                             } : {
                                 total: 0,
                                 total_anual: 0
@@ -15112,17 +15132,17 @@ Destinatarios:
             if (compareWithIndexed) {
                 console.log('🔧 Comparación FIJO vs INDEXADO activada');
                 
-                const tariffType = window.lastComparisonResult._multiCupsContext 
-                    ? window.lastComparisonResult._multiCupsContext.tariffType 
-                    : window.lastComparisonResult.originalTariffType || currentTariffType;
+                const tariffType = lastComparisonResult._multiCupsContext 
+                    ? lastComparisonResult._multiCupsContext.tariffType 
+                    : lastComparisonResult.originalTariffType || currentTariffType;
                 
-                const dataForCalc = window.lastComparisonResult._multiCupsContext 
-                    ? window.lastComparisonResult._multiCupsContext.dataForCalc 
-                    : window.lastComparisonResult;
+                const dataForCalc = lastComparisonResult._multiCupsContext 
+                    ? lastComparisonResult._multiCupsContext.dataForCalc 
+                    : lastComparisonResult;
                 
                 // CRÍTICO: Preservar _multiCupsContext ANTES de recalcular
-                const preservedContext = window.lastComparisonResult._multiCupsContext 
-                    ? JSON.parse(JSON.stringify(window.lastComparisonResult._multiCupsContext))
+                const preservedContext = lastComparisonResult._multiCupsContext 
+                    ? JSON.parse(JSON.stringify(lastComparisonResult._multiCupsContext))
                     : null;
                 
                 console.log('🔍 Contexto MULTICUPS preservado:', preservedContext ? 'SÍ' : 'NO');
@@ -15191,12 +15211,12 @@ Destinatarios:
                 
                 console.log('✅ Mejor oferta INDEXADA:', lastIndexedResult.offer.name, lastIndexedResult.totalAnnual);
                 
-                // PASO 3: Actualizar window.lastComparisonResult con la mejor FIJA
-                window.window.lastComparisonResult = mejorFija;
+                // PASO 3: Actualizar lastComparisonResult con la mejor FIJA
+                lastComparisonResult = mejorFija;
                 
                 // CRÍTICO: RESTAURAR el contexto preservado
                 if (preservedContext) {
-                    window.lastComparisonResult._multiCupsContext = preservedContext;
+                    lastComparisonResult._multiCupsContext = preservedContext;
                     console.log('✅ Contexto MULTICUPS restaurado correctamente');
                 } else {
                     console.log('⚠️  No había contexto MULTICUPS que restaurar');
@@ -15207,9 +15227,9 @@ Destinatarios:
             // ═══════════════════════════════════════════════════════════════
             
             // Verificar si estamos en contexto MultiCups
-            if (window.lastComparisonResult._multiCupsContext) {
+            if (lastComparisonResult._multiCupsContext) {
                 // Contexto MultiCups: Añadir a la lista
-                addSupplyToMultiCupsList(window.lastComparisonResult, lastIndexedResult);
+                addSupplyToMultiCupsList(lastComparisonResult, lastIndexedResult);
             } else {
                 // NUEVO: Verificar si hay comparativo dual de potencias activo
                 if (window.lastDualPowerComparison) {
@@ -15218,10 +15238,10 @@ Destinatarios:
                     renderDualPowerResultsUI(dualComp.actual, dualComp.optimized, dualComp.brand);
                 } else if (lastIndexedResult && compareWithIndexed) {
                     // Comparativa Fijo vs Indexado
-                    renderDualComparisonUI(window.lastComparisonResult, lastIndexedResult);
+                    renderDualComparisonUI(lastComparisonResult, lastIndexedResult);
                 } else {
                     // Contexto individual normal
-                    renderResultsUI(window.lastComparisonResult);
+                    renderResultsUI(lastComparisonResult);
                 }
                 
                 document.getElementById('initial-view').classList.add('hidden');
@@ -15236,8 +15256,8 @@ Destinatarios:
             closeOfferDecisionModal();
             
             // Mostrar modal de selección de ofertas
-            if (window.lastComparisonResult && availableOffers.length > 0) {
-                showOfferSelectionModal(window.lastComparisonResult.cups);
+            if (lastComparisonResult && availableOffers.length > 0) {
+                showOfferSelectionModal(lastComparisonResult.cups);
             } else {
                 window.showErrorModal('No hay ofertas disponibles para seleccionar');
             }
@@ -15739,7 +15759,7 @@ Destinatarios:
                 _needsOriginalLookup: true,
                 _tariffName: selectedOffer.offer.name,
                 _tariffDescription: selectedOffer.offer.description,
-                _tariffType: selectedOffer.originalTariffType || window.lastComparisonResult?.originalTariffType
+                _tariffType: selectedOffer.originalTariffType || lastComparisonResult?.originalTariffType
             };
             
             // Actualizar estilos visuales
@@ -15784,7 +15804,7 @@ Destinatarios:
         function continueWithSelectedOffer() {
             console.log('continueWithSelectedOffer called');
             console.log('manuallySelectedOffer:', manuallySelectedOffer);
-            console.log('window.lastComparisonResult:', window.lastComparisonResult);
+            console.log('lastComparisonResult:', lastComparisonResult);
             
             // NUEVO: Si hay optimización de potencias activa, recalcular con potencias actuales y optimizadas
             if (window.lastDualPowerComparison && manuallySelectedOffer) {
@@ -15812,9 +15832,9 @@ Destinatarios:
                 window.lastDualPowerComparison.actual = resultWithActualPowers;
                 window.lastDualPowerComparison.optimized = resultWithOptimizedPowers;
                 
-                // Actualizar window.lastComparisonResult para compatibilidad
-                window.window.lastComparisonResult = resultWithOptimizedPowers;
-                window.lastComparisonResult.isMulti = false;
+                // Actualizar lastComparisonResult para compatibilidad
+                lastComparisonResult = resultWithOptimizedPowers;
+                lastComparisonResult.isMulti = false;
                 
                 // Cerrar modales
                 document.getElementById('offer-decision-modal').classList.add('hidden');
@@ -15844,10 +15864,10 @@ Destinatarios:
             console.log('Result offer:', result.offer.name);
             
             // Verificar si estamos en contexto MultiCups
-            const isMultiCupsContext = window.lastComparisonResult && window.lastComparisonResult._multiCupsContext;
+            const isMultiCupsContext = lastComparisonResult && lastComparisonResult._multiCupsContext;
             
             if (isMultiCupsContext) {
-                // Contexto MultiCups: Necesitamos TODOS los datos de window.lastComparisonResult
+                // Contexto MultiCups: Necesitamos TODOS los datos de lastComparisonResult
                 // pero con la OFERTA seleccionada manualmente
                 console.log('MultiCups context: recalculating costs for selected offer');
                 
@@ -15855,7 +15875,7 @@ Destinatarios:
                 let offerToUse = result.offer;
                 
                 if (result._needsOriginalLookup) {
-                    const tariffType = window.lastComparisonResult.originalTariffType;
+                    const tariffType = lastComparisonResult.originalTariffType;
                     console.log('🔍 Looking up original tariff in currentTariffs[' + tariffType + ']');
                     console.log('Searching for:', result.offer.name, '/', result.offer.description);
                     
@@ -15872,13 +15892,13 @@ Destinatarios:
                 }
                 
                 // Usar la función centralizada para recalcular costes
-                const recalculated = recalculateCostsForOffer(window.lastComparisonResult, offerToUse);
+                const recalculated = recalculateCostsForOffer(lastComparisonResult, offerToUse);
                 
                 // CRÍTICO: Recalcular totalAnnual y savings usando los costes recalculados
                 // No usar result.totalAnnual que puede estar contaminado
                 const IVA_RATE = 0.21;
                 const IE_RATE = 0.05113;
-                const diasFacturados = window.lastComparisonResult.dias_facturados || 30;
+                const diasFacturados = lastComparisonResult.dias_facturados || 30;
                 const factorAnual = 365 / diasFacturados;
                 
                 const subBase = recalculated.subPower + recalculated.subEnergyNet;
@@ -15887,15 +15907,15 @@ Destinatarios:
                 const costIVA = baseImp * IVA_RATE;
                 const totalPeriod = baseImp + costIVA;
                 const totalAnnual = totalPeriod * factorAnual;
-                const originalBillAnnual = window.lastComparisonResult.originalBillAnnual;
+                const originalBillAnnual = lastComparisonResult.originalBillAnnual;
                 const savings = originalBillAnnual - totalAnnual;
                 
                 console.log('Recalculated totalAnnual:', totalAnnual, 'savings:', savings);
                 
-                // Crear un nuevo objeto combinando window.lastComparisonResult (datos base) 
+                // Crear un nuevo objeto combinando lastComparisonResult (datos base) 
                 // con la oferta elegida manualmente y los costes recalculados
                 const combinedResult = {
-                    ...window.lastComparisonResult,  // Todos los datos base (CUPS, consumos, potencias, etc.)
+                    ...lastComparisonResult,  // Todos los datos base (CUPS, consumos, potencias, etc.)
                     offer: deepCopyOffer(offerToUse),  // COPIA PROFUNDA de la oferta ORIGINAL
                     totalAnnual: totalAnnual,  // Coste anual RECALCULADO
                     totalPeriod: totalPeriod,  // Coste periodo RECALCULADO
@@ -15917,8 +15937,8 @@ Destinatarios:
                 
                 // IMPORTANTE: Si compareWithIndexed está activo, calcular resultado indexado ANTES de añadir a la lista
                 if (compareWithIndexed) {
-                    const tariffType = window.lastComparisonResult.originalTariffType;
-                    const dataForCalc = window.lastComparisonResult;
+                    const tariffType = lastComparisonResult.originalTariffType;
+                    const dataForCalc = lastComparisonResult;
                     const indexedResult = calculateIndexedOffer(dataForCalc, tariffType);
                     
                     if (indexedResult) {
@@ -15950,7 +15970,7 @@ Destinatarios:
                         indexedResult.savings = savingsIndexed;
                         indexedResult.dias_facturados = combinedResult.dias_facturados;
                         indexedResult.originalBillAnnual = originalBillAnnual;
-                        indexedResult.originalBillPeriod = window.lastComparisonResult.originalBillPeriod;
+                        indexedResult.originalBillPeriod = lastComparisonResult.originalBillPeriod;
                         indexedResult.cups = combinedResult.cups;
                         indexedResult.originalTariffType = combinedResult.originalTariffType; // CRÍTICO
                         indexedResult.ieRate = IE_RATE; // Añadir la tasa del impuesto eléctrico
@@ -15996,8 +16016,8 @@ Destinatarios:
                 activeBrand = brand;
                 
                 // Asignar como resultado final
-                window.window.lastComparisonResult = result;
-                window.lastComparisonResult.isMulti = false;
+                lastComparisonResult = result;
+                lastComparisonResult.isMulti = false;
                 
                 // Si compareWithIndexed está activo, calcular resultado indexado
                 let indexedResult = null;
@@ -16110,88 +16130,6 @@ Destinatarios:
         function handleManualOfferSelection(e) {
             // Esta función ya no se usa, pero la mantenemos por compatibilidad
         }
-
-        // --- FUNCIÓN GLOBAL: Event listeners para solicitar mejora a DRK ---
-        // IMPORTANTE: Esta función debe estar FUERA del DOMContentLoaded para estar disponible globalmente
-        window.attachImprovementListeners = function() {
-            console.log('🔧 attachImprovementListeners() llamada');
-            
-            // Event listener para electricidad
-            const requestBtn = document.getElementById('request-improvement-btn');
-            if (requestBtn) {
-                console.log('✅ Botón request-improvement-btn encontrado');
-                
-                // Agregar listener directamente usando onclick (más simple y directo)
-                requestBtn.onclick = function(e) {
-                    console.log('🔥🔥🔥 CLICK DETECTADO EN BOTÓN 🔥🔥🔥');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    console.log('Verificando window.window.lastComparisonResult:', window.window.lastComparisonResult);
-                    
-                    if (window.window.lastComparisonResult) {
-                        console.log('✅ Hay window.lastComparisonResult, abriendo modal...');
-                        const modal = document.getElementById('request-improvement-modal');
-                        console.log('Modal encontrado:', modal);
-                        if (modal) {
-                            modal.classList.remove('hidden');
-                            modal.classList.add('flex');
-                            console.log('✅✅✅ MODAL ABIERTO ✅✅✅');
-                        } else {
-                            console.error('❌ No se encontró el modal');
-                        }
-                    } else {
-                        console.warn('❌ No hay window.lastComparisonResult');
-                        if (typeof window.showErrorModal === 'function') {
-                            window.showErrorModal("Por favor, analice una factura primero.");
-                        } else {
-                            alert("Por favor, analice una factura primero.");
-                        }
-                    }
-                };
-                console.log('✅ Listener onclick asignado correctamente');
-            } else {
-                console.warn('❌ No se encontró el botón request-improvement-btn');
-            }
-            
-            // Event listener para GAS
-            const gasImprovementBtn = document.getElementById('gas-request-improvement-btn');
-            console.log('gas-request-improvement-btn encontrado:', gasImprovementBtn);
-            if (gasImprovementBtn) {
-                gasImprovementBtn.onclick = function(e) {
-                    console.log('🔥 Gas improvement button clicked');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (window.lastGasComparisonResult) {
-                        const modal = document.getElementById('request-improvement-modal');
-                        modal.classList.remove('hidden');
-                        modal.classList.add('flex');
-                    } else {
-                        window.showErrorModal("Por favor, analice una factura primero.");
-                    }
-                };
-            }
-            
-            // Event listener para DUAL
-            const dualImprovementBtn = document.getElementById('dual-request-improvement-btn');
-            console.log('dual-request-improvement-btn encontrado:', dualImprovementBtn);
-            if (dualImprovementBtn) {
-                dualImprovementBtn.onclick = function(e) {
-                    console.log('🔥 Dual improvement button clicked');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (window.dualGlobalResults && typeof dualSupplies !== 'undefined' && dualSupplies && dualSupplies.length >= 2) {
-                        const modal = document.getElementById('request-improvement-modal');
-                        modal.classList.remove('hidden');
-                        modal.classList.add('flex');
-                    } else {
-                        window.showErrorModal("Por favor, realice una comparación DUAL primero.");
-                    }
-                };
-            }
-            
-            console.log('🎯 attachImprovementListeners completada');
-        };
         
         // --- FIX: Cancelación del Escáner ---
         function cancelScanner() {
@@ -16411,7 +16349,7 @@ Destinatarios:
             // === FIN Event listeners Pegar Código Completo ===
 
             document.getElementById('send-offer-btn').onclick = () => {
-                if (window.lastComparisonResult) {
+                if (lastComparisonResult) {
                     document.getElementById('send-offer-modal').classList.remove('hidden');
                     document.getElementById('send-offer-modal').classList.add('flex');
                     // Aplicar focus ring de la marca a los inputs
@@ -16427,8 +16365,41 @@ Destinatarios:
             document.getElementById('execute-send-offer-btn').addEventListener('click', handleCopyOffer);
             document.getElementById('execute-pdf-offer-btn').addEventListener('click', handleGeneratePDF);
             
-            // Llamar a attachImprovementListeners inicialmente (la función está definida globalmente)
-            window.attachImprovementListeners();
+            // NUEVO: Event listeners para solicitar mejora a DRK
+            document.getElementById('request-improvement-btn').onclick = () => {
+                if (lastComparisonResult) {
+                    document.getElementById('request-improvement-modal').classList.remove('hidden');
+                    document.getElementById('request-improvement-modal').classList.add('flex');
+                } else {
+                    window.showErrorModal("Por favor, analice una factura primero.");
+                }
+            };
+            
+            // NUEVO: Event listener para botón de solicitar mejora en GAS
+            const gasImprovementBtn = document.getElementById('gas-request-improvement-btn');
+            if (gasImprovementBtn) {
+                gasImprovementBtn.onclick = () => {
+                    if (window.lastGasComparisonResult) {
+                        document.getElementById('request-improvement-modal').classList.remove('hidden');
+                        document.getElementById('request-improvement-modal').classList.add('flex');
+                    } else {
+                        window.showErrorModal("Por favor, analice una factura primero.");
+                    }
+                };
+            }
+            
+            // NUEVO: Event listener para botón de solicitar mejora en DUAL
+            const dualImprovementBtn = document.getElementById('dual-request-improvement-btn');
+            if (dualImprovementBtn) {
+                dualImprovementBtn.onclick = () => {
+                    if (window.dualGlobalResults && dualSupplies.length >= 2) {
+                        document.getElementById('request-improvement-modal').classList.remove('hidden');
+                        document.getElementById('request-improvement-modal').classList.add('flex');
+                    } else {
+                        window.showErrorModal("Por favor, realice una comparación DUAL primero.");
+                    }
+                };
+            }
             
             document.getElementById('execute-improvement-request-btn').addEventListener('click', handleRequestImprovement);
 
@@ -18442,7 +18413,7 @@ Destinatarios:
         function saveSupply(data, tariffType) {
             // CRÍTICO: Limpiar variables globales para evitar contaminación de CUPS anteriores
             availableOffers = [];
-            window.window.lastComparisonResult = null;
+            lastComparisonResult = null;
             manuallySelectedOffer = null;  // ← CRÍTICO: Limpiar selección manual anterior
             
             console.log('=== VERIFICACIÓN CURRENTTARIFFS ===');
@@ -18747,9 +18718,9 @@ Destinatarios:
                 console.log('MultiCups: Showing decision modal with', availableOffers.length, 'offers');
                 
                 // Guardar temporalmente el resultado para usarlo después
-                window.window.lastComparisonResult = finalIndividualResult;
-                window.lastComparisonResult.isMulti = false;
-                window.lastComparisonResult._multiCupsContext = {
+                lastComparisonResult = finalIndividualResult;
+                lastComparisonResult.isMulti = false;
+                lastComparisonResult._multiCupsContext = {
                     tariffType: tariffType,
                     dataForCalc: dataForCalc
                 };
@@ -19005,7 +18976,7 @@ Destinatarios:
             console.log('=== dualAddSupply - Iniciando nuevo suministro ===');
             console.log('Estado ANTES de limpiar:');
             console.log('- dualTempSupply:', dualTempSupply);
-            console.log('- window.lastComparisonResult:', window.lastComparisonResult);
+            console.log('- lastComparisonResult:', lastComparisonResult);
             console.log('- lastIndexedResult:', lastIndexedResult);
             console.log('- availableOffers:', availableOffers.length);
             console.log('- dualMode:', window.dualMode);
@@ -19015,7 +18986,7 @@ Destinatarios:
             
             // Limpiar variables anteriores para empezar limpio
             dualTempSupply = null;
-            window.window.lastComparisonResult = null;
+            lastComparisonResult = null;
             lastIndexedResult = null;
             availableOffers = [];
             compareWithIndexed = false;
@@ -19028,7 +18999,7 @@ Destinatarios:
             
             console.log('Estado DESPUÉS de limpiar:');
             console.log('- dualTempSupply:', dualTempSupply);
-            console.log('- window.lastComparisonResult:', window.lastComparisonResult);
+            console.log('- lastComparisonResult:', lastComparisonResult);
             console.log('- dualMode:', window.dualMode);
             console.log('=== FIN limpieza - estado listo para nuevo suministro ===');
             
@@ -19063,7 +19034,7 @@ Destinatarios:
             console.log('Tariff:', tariff);
             console.log('Estado ANTES:');
             console.log('- dualMode:', window.dualMode);
-            console.log('- window.lastComparisonResult:', window.lastComparisonResult ? 'EXISTS' : 'NULL');
+            console.log('- lastComparisonResult:', lastComparisonResult ? 'EXISTS' : 'NULL');
             console.log('- availableOffers:', availableOffers.length);
             console.log('=================================================');
             
@@ -19573,10 +19544,6 @@ Destinatarios:
                 if (allSuppliesWithoutSavings) {
                     dualImprovementBtn.style.display = 'block';
                     console.log('✅ DUAL: Mostrando botón SOLICITAR MEJORA (ambos sin ahorro)');
-                    // Re-asignar event listener
-                    if (typeof window.attachImprovementListeners === 'function') {
-                        window.attachImprovementListeners();
-                    }
                 } else {
                     dualImprovementBtn.style.display = 'none';
                     console.log('❌ DUAL: Ocultando botón (al menos uno tiene ahorro)');
@@ -21693,8 +21660,8 @@ ${clientName}
                 facturaActual = parseFloat(data.factura_actual_anual);
             } else if (results.originalBillAnnual) {
                 facturaActual = parseFloat(results.originalBillAnnual);
-            } else if (window.lastComparisonResult && window.lastComparisonResult.originalBillAnnual) {
-                facturaActual = parseFloat(window.lastComparisonResult.originalBillAnnual);
+            } else if (lastComparisonResult && lastComparisonResult.originalBillAnnual) {
+                facturaActual = parseFloat(lastComparisonResult.originalBillAnnual);
             }
             
             const ahorroAnual = facturaActual - mejorCoste;
@@ -21804,21 +21771,21 @@ ${clientName}
         // Función: Añadir resultado actual a DUAL
         window.addCurrentToDual = function() {
             console.log('=== AÑADIENDO A DUAL ===');
-            console.log('window.lastComparisonResult:', window.window.lastComparisonResult);
+            console.log('lastComparisonResult:', window.lastComparisonResult);
             console.log('gasCalculationParams:', window.gasCalculationParams);
             
             let type, tariff, data, results;
             
             // Intentar detectar si es electricidad
-            if (window.window.lastComparisonResult) {
-                const result = window.window.lastComparisonResult;
+            if (window.lastComparisonResult) {
+                const result = window.lastComparisonResult;
                 console.log('Tipo de resultado:', result);
                 
                 // Es electricidad
                 type = 'electricidad';
                 tariff = result.tariffType || currentTariffType || '2.0TD';
                 
-                // Construir data desde window.lastComparisonResult
+                // Construir data desde lastComparisonResult
                 data = {
                     tariff: tariff,
                     kwh_p1: parseFloat(result.kwh_p1) || 0,
@@ -22906,10 +22873,6 @@ ${clientName}
                 const gasImprovementContainer = document.getElementById('gas-request-improvement-container');
                 if (gasImprovementContainer) {
                     gasImprovementContainer.style.display = 'block';
-                    // Re-asignar event listener
-                    if (typeof window.attachImprovementListeners === 'function') {
-                        window.attachImprovementListeners();
-                    }
                 }
                 
             } else {

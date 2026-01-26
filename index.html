@@ -5640,11 +5640,24 @@
                 document.getElementById('price-columns').style.display = 'none';
                 
                 // NUEVO: Mostrar botón para solicitar mejora a DRK
-                document.getElementById('request-improvement-btn').style.display = 'flex';
+                console.log('🔴🔴🔴 MOSTRANDO BOTÓN DE SOLICITAR MEJORA 🔴🔴🔴');
+                const improvementBtn = document.getElementById('request-improvement-btn');
+                console.log('Botón encontrado:', improvementBtn);
+                if (improvementBtn) {
+                    improvementBtn.style.display = 'flex';
+                    console.log('Display cambiado a flex');
+                } else {
+                    console.error('❌ No se encontró el botón request-improvement-btn');
+                }
                 
                 // Re-asignar event listener
+                console.log('Verificando función attachImprovementListeners:', typeof window.attachImprovementListeners);
                 if (typeof window.attachImprovementListeners === 'function') {
+                    console.log('🔧 Llamando a attachImprovementListeners...');
                     window.attachImprovementListeners();
+                    console.log('✅ attachImprovementListeners ejecutada');
+                } else {
+                    console.error('❌ attachImprovementListeners NO está definida como función');
                 }
                 
                 newCostLabelEl.textContent = "TU COSTE ACTUAL";

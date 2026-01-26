@@ -8740,30 +8740,48 @@
         // --- SOLICITAR MEJORA A DRK (SIN AHORRO) ---
         
         async function handleRequestImprovement() {
-            console.log('handleRequestImprovement llamada');
+            console.log('🚀 ========== handleRequestImprovement INICIADA ==========');
+            console.log('📍 Timestamp:', new Date().toISOString());
             
             // Verificar si hay datos de ELECTRICIDAD, GAS o DUAL
             const hasElectricityData = lastComparisonResult !== null;
             const hasGasData = window.lastGasComparisonResult !== null;
             const hasDualData = window.dualGlobalResults !== null && typeof dualSupplies !== 'undefined' && dualSupplies && dualSupplies.length >= 2;
             
-            console.log('Verificando datos:', {hasElectricityData, hasGasData, hasDualData});
+            console.log('📊 Verificando datos disponibles:');
+            console.log('  ⚡ Electricidad:', hasElectricityData, lastComparisonResult);
+            console.log('  🔥 Gas:', hasGasData, window.lastGasComparisonResult);
+            console.log('  ⚡🔥 Dual:', hasDualData, window.dualGlobalResults);
             
             if (!hasElectricityData && !hasGasData && !hasDualData) {
+                console.error('❌ No hay datos de comparación disponibles');
                 return window.showErrorModal("Primero realice una comparación.");
             }
             
             // Validar campos obligatorios
-            const commercialCode = document.getElementById('improvement-comercial-code').value.trim();
-            const clientName = document.getElementById('improvement-client-name').value.trim();
-            const cups = document.getElementById('improvement-client-cups').value.trim();
-            const phone = document.getElementById('improvement-client-phone').value.trim();
-            const email = document.getElementById('improvement-client-email').value.trim();
-            const observations = document.getElementById('improvement-observations').value.trim();
+            console.log('📝 Obteniendo valores de campos del formulario...');
+            const commercialCode = document.getElementById('improvement-comercial-code')?.value?.trim() || '';
+            const clientName = document.getElementById('improvement-client-name')?.value?.trim() || '';
+            const cups = document.getElementById('improvement-client-cups')?.value?.trim() || '';
+            const phone = document.getElementById('improvement-client-phone')?.value?.trim() || '';
+            const email = document.getElementById('improvement-client-email')?.value?.trim() || '';
+            const observations = document.getElementById('improvement-observations')?.value?.trim() || '';
+            
+            console.log('📋 Valores del formulario:', {
+                commercialCode,
+                clientName,
+                cups,
+                phone,
+                email,
+                observations
+            });
             
             if (!commercialCode) {
+                console.error('❌ Código comercial vacío');
                 return window.showErrorModal("El Código Comercial es obligatorio.");
             }
+            
+            console.log('✅ Validaciones pasadas, continuando con el proceso...');
             
             try {
                 let htmlContent = '';
@@ -16401,7 +16419,22 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 };
             }
             
-            document.getElementById('execute-improvement-request-btn').addEventListener('click', handleRequestImprovement);
+            // NUEVO: Event listener para el botón de ejecutar solicitud de mejora
+            const executeImprovementBtn = document.getElementById('execute-improvement-request-btn');
+            if (executeImprovementBtn) {
+                executeImprovementBtn.addEventListener('click', async function() {
+                    console.log('🔘 Botón SOLICITAR MEJORA clickeado');
+                    try {
+                        await handleRequestImprovement();
+                    } catch (error) {
+                        console.error('❌ Error en handleRequestImprovement:', error);
+                        window.showErrorModal('Error al procesar la solicitud: ' + error.message);
+                    }
+                });
+                console.log('✅ Event listener para execute-improvement-request-btn asignado correctamente');
+            } else {
+                console.error('❌ No se encontró el botón execute-improvement-request-btn');
+            }
 
             document.getElementById('qr-toggle-checkbox').addEventListener('change', (e) => {
                 const wrapper = document.getElementById('qr-content-wrapper');

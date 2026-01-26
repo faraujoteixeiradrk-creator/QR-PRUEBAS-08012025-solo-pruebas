@@ -755,7 +755,15 @@
                     
                     <!-- NUEVO: Botón para solicitar mejora cuando no hay ahorro en GAS -->
                     <div id="gas-request-improvement-container" style="display:none;" class="mt-6">
-                        <button id="gas-request-improvement-btn" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3">
+                        <button id="gas-request-improvement-btn" onclick="
+                            console.log('🔘 Botón GAS SOLICITAR MEJORA clickeado');
+                            var modal = document.getElementById('request-improvement-modal');
+                            if (modal) {
+                                modal.classList.remove('hidden');
+                                modal.classList.add('flex');
+                                console.log('✅ Modal abierto desde GAS');
+                            }
+                        " class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                             <span id="gas-request-improvement-text">SOLICITAR MEJORA A DRK</span>
                         </button>
@@ -970,7 +978,15 @@
                     <div class="mt-6 flex flex-col gap-3">
                         <!-- NUEVO: Botón para solicitar mejora cuando NO hay ahorro en DUAL -->
                         <div id="dual-request-improvement-container" style="display:none;">
-                            <button id="dual-request-improvement-btn" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
+                            <button id="dual-request-improvement-btn" onclick="
+                                console.log('🔘 Botón DUAL SOLICITAR MEJORA clickeado');
+                                var modal = document.getElementById('request-improvement-modal');
+                                if (modal) {
+                                    modal.classList.remove('hidden');
+                                    modal.classList.add('flex');
+                                    console.log('✅ Modal abierto desde DUAL');
+                                }
+                            " class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                                 <span id="dual-request-improvement-text">SOLICITAR MEJORA A DRK</span>
                             </button>
@@ -1431,7 +1447,17 @@
                 </button>
                 
                 <!-- NUEVO: Botón para solicitar mejora cuando no hay ahorro -->
-                <button id="request-improvement-btn" style="display:none;" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
+                <button id="request-improvement-btn" style="display:none;" onclick="
+                    console.log('🔘 Botón SOLICITAR MEJORA clickeado desde onclick inline');
+                    var modal = document.getElementById('request-improvement-modal');
+                    if (modal) {
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                        console.log('✅ Modal abierto');
+                    } else {
+                        console.error('❌ Modal no encontrado');
+                    }
+                " class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     <span id="request-improvement-text">SOLICITAR MEJORA A DRK</span>
                 </button>

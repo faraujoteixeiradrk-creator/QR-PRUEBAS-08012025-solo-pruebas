@@ -4926,8 +4926,8 @@
                 document.getElementById('request-improvement-btn').style.display = 'flex';
                 
                 // Re-asignar event listener
-                if (typeof attachImprovementListeners === 'function') {
-                    attachImprovementListeners();
+                if (typeof window.attachImprovementListeners === 'function') {
+                    window.attachImprovementListeners();
                 }
                 
                 newCostLabelEl.textContent = "TU COSTE ACTUAL CONSOLIDADO";
@@ -5643,8 +5643,8 @@
                 document.getElementById('request-improvement-btn').style.display = 'flex';
                 
                 // Re-asignar event listener
-                if (typeof attachImprovementListeners === 'function') {
-                    attachImprovementListeners();
+                if (typeof window.attachImprovementListeners === 'function') {
+                    window.attachImprovementListeners();
                 }
                 
                 newCostLabelEl.textContent = "TU COSTE ACTUAL";
@@ -16376,39 +16376,52 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             document.getElementById('execute-pdf-offer-btn').addEventListener('click', handleGeneratePDF);
             
             // NUEVO: Event listeners para solicitar mejora a DRK
-            function attachImprovementListeners() {
+            window.attachImprovementListeners = function() {
                 console.log('attachImprovementListeners() llamada');
                 
                 // Event listener para electricidad
                 const requestBtn = document.getElementById('request-improvement-btn');
                 if (requestBtn) {
-                    console.log('Asignando listener a request-improvement-btn');
-                    requestBtn.onclick = (e) => {
+                    console.log('✅ Botón request-improvement-btn encontrado, asignando listener');
+                    // Remover listeners anteriores
+                    requestBtn.replaceWith(requestBtn.cloneNode(true));
+                    const newRequestBtn = document.getElementById('request-improvement-btn');
+                    newRequestBtn.addEventListener('click', (e) => {
                         e.preventDefault();
-                        console.log('Click en request-improvement-btn, lastComparisonResult:', lastComparisonResult);
+                        e.stopPropagation();
+                        console.log('🔥 CLICK en request-improvement-btn, lastComparisonResult:', lastComparisonResult);
                         if (lastComparisonResult) {
-                            document.getElementById('request-improvement-modal').classList.remove('hidden');
-                            document.getElementById('request-improvement-modal').classList.add('flex');
+                            const modal = document.getElementById('request-improvement-modal');
+                            console.log('Abriendo modal:', modal);
+                            modal.classList.remove('hidden');
+                            modal.classList.add('flex');
                         } else {
                             window.showErrorModal("Por favor, analice una factura primero.");
                         }
-                    };
+                    });
+                    console.log('✅ Listener asignado correctamente');
+                } else {
+                    console.warn('❌ No se encontró el botón request-improvement-btn');
                 }
                 
                 // Event listener para GAS
                 const gasImprovementBtn = document.getElementById('gas-request-improvement-btn');
                 console.log('gas-request-improvement-btn encontrado:', gasImprovementBtn);
                 if (gasImprovementBtn) {
-                    gasImprovementBtn.onclick = (e) => {
+                    gasImprovementBtn.replaceWith(gasImprovementBtn.cloneNode(true));
+                    const newGasBtn = document.getElementById('gas-request-improvement-btn');
+                    newGasBtn.addEventListener('click', (e) => {
                         e.preventDefault();
-                        console.log('Gas improvement button clicked, lastGasComparisonResult:', window.lastGasComparisonResult);
+                        e.stopPropagation();
+                        console.log('🔥 Gas improvement button clicked, lastGasComparisonResult:', window.lastGasComparisonResult);
                         if (window.lastGasComparisonResult) {
-                            document.getElementById('request-improvement-modal').classList.remove('hidden');
-                            document.getElementById('request-improvement-modal').classList.add('flex');
+                            const modal = document.getElementById('request-improvement-modal');
+                            modal.classList.remove('hidden');
+                            modal.classList.add('flex');
                         } else {
                             window.showErrorModal("Por favor, analice una factura primero.");
                         }
-                    };
+                    });
                 } else {
                     console.warn('No se encontró el botón gas-request-improvement-btn');
                 }
@@ -16417,23 +16430,27 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 const dualImprovementBtn = document.getElementById('dual-request-improvement-btn');
                 console.log('dual-request-improvement-btn encontrado:', dualImprovementBtn);
                 if (dualImprovementBtn) {
-                    dualImprovementBtn.onclick = (e) => {
+                    dualImprovementBtn.replaceWith(dualImprovementBtn.cloneNode(true));
+                    const newDualBtn = document.getElementById('dual-request-improvement-btn');
+                    newDualBtn.addEventListener('click', (e) => {
                         e.preventDefault();
-                        console.log('Dual improvement button clicked, dualGlobalResults:', window.dualGlobalResults, 'dualSupplies:', dualSupplies);
+                        e.stopPropagation();
+                        console.log('🔥 Dual improvement button clicked, dualGlobalResults:', window.dualGlobalResults, 'dualSupplies:', dualSupplies);
                         if (window.dualGlobalResults && typeof dualSupplies !== 'undefined' && dualSupplies && dualSupplies.length >= 2) {
-                            document.getElementById('request-improvement-modal').classList.remove('hidden');
-                            document.getElementById('request-improvement-modal').classList.add('flex');
+                            const modal = document.getElementById('request-improvement-modal');
+                            modal.classList.remove('hidden');
+                            modal.classList.add('flex');
                         } else {
                             window.showErrorModal("Por favor, realice una comparación DUAL primero.");
                         }
-                    };
+                    });
                 } else {
                     console.warn('No se encontró el botón dual-request-improvement-btn');
                 }
-            }
+            };
             
             // Llamar inicialmente
-            attachImprovementListeners();
+            window.attachImprovementListeners();
             
             document.getElementById('execute-improvement-request-btn').addEventListener('click', handleRequestImprovement);
 
@@ -19579,8 +19596,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     dualImprovementBtn.style.display = 'block';
                     console.log('✅ DUAL: Mostrando botón SOLICITAR MEJORA (ambos sin ahorro)');
                     // Re-asignar event listener
-                    if (typeof attachImprovementListeners === 'function') {
-                        attachImprovementListeners();
+                    if (typeof window.attachImprovementListeners === 'function') {
+                        window.attachImprovementListeners();
                     }
                 } else {
                     dualImprovementBtn.style.display = 'none';
@@ -22912,8 +22929,8 @@ ${clientName}
                 if (gasImprovementContainer) {
                     gasImprovementContainer.style.display = 'block';
                     // Re-asignar event listener
-                    if (typeof attachImprovementListeners === 'function') {
-                        attachImprovementListeners();
+                    if (typeof window.attachImprovementListeners === 'function') {
+                        window.attachImprovementListeners();
                     }
                 }
                 

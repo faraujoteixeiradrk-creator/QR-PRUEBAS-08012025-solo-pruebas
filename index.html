@@ -2230,7 +2230,6 @@
         let lastComparisonResult = null;
         let lastIndexedResult = null; // Para almacenar el resultado de tarifa indexada
         let comparisonMode = 'drk_only';
-        let pdfDropFlow = false; // Bandera para identificar flujo de PDF Drop
         let compareWithIndexed = false; // Control para comparación con tarifas indexadas
         let bestOptionTariffChoice = 'fija'; // NUEVO: Elección de tarifa para VER MEJOR OPCIÓN ('fija' o 'indexada')
         let isProcessingBestOption = false; // NUEVO: Bandera para prevenir llamadas concurrentes
@@ -4205,25 +4204,6 @@
                 console.log('Showing results view...');
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
-                
-                // CRÍTICO: Si el resultado tiene needsImprovementRequest, abrir automáticamente el modal
-                // SOLO en el flujo de PDF Drop (cuando el usuario arrastra un PDF)
-                if (final.needsImprovementRequest && pdfDropFlow) {
-                    console.log('🔔 NO HAY AHORRO DETECTADO (flujo PDF Drop) - Abriendo modal de solicitud de mejora automáticamente');
-                    console.log('📊 Modo de comparación:', comparisonMode);
-                    setTimeout(() => {
-                        const improvementModal = document.getElementById('request-improvement-modal');
-                        if (improvementModal) {
-                            improvementModal.classList.remove('hidden');
-                            improvementModal.classList.add('flex');
-                            console.log('✅ Modal de solicitud de mejora abierto');
-                        } else {
-                            console.error('❌ No se encontró el modal request-improvement-modal');
-                        }
-                        // Resetear la bandera después de usarla
-                        pdfDropFlow = false;
-                    }, 800); // Delay para que se muestre primero la pantalla de resultados
-                }
                 
                 // NUEVO: Si estamos en modo DUAL, mostrar confirmación en lugar de resultados
                 if (window.dualMode === true) {
@@ -16127,6 +16107,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('results-view').classList.remove('hidden');
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
                 
+                // CRÍTICO: Si el resultado tiene needsImprovementRequest, abrir automáticamente el modal
+                if (result.needsImprovementRequest && comparisonMode === 'drk_only') {
+                    console.log('🔔 DRK ÚNICAMENTE sin ahorro detectado - Abriendo modal de solicitud de mejora automáticamente');
+                    setTimeout(() => {
+                        const improvementModal = document.getElementById('request-improvement-modal');
+                        if (improvementModal) {
+                            improvementModal.classList.remove('hidden');
+                            improvementModal.classList.add('flex');
+                        }
+                    }, 500); // Pequeño delay para que se muestre primero la pantalla de resultados
+                }
+                
                 console.log('Done showing results');
             }
         }
@@ -18332,7 +18324,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 toggleMultiCupsInputPeriods(currentTariffType, 'input');
 
                 if (currentTariffType === '2.0TD' && currentTariffs['2.0TD'].length > 0) {
-                    pdfDropFlow = true; // Activar bandera de flujo PDF Drop
                     compareOffers(directData);
                 } else if (currentTariffs[currentTariffType]?.length > 0) {
                      window.showMessageModal(`QR leído. Por favor, revise y complete los datos faltantes para tarifas ${currentTariffType}.`, "Completar Datos Manuales");

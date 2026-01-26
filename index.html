@@ -1431,7 +1431,7 @@
                 </button>
                 
                 <!-- NUEVO: Botón para solicitar mejora cuando no hay ahorro -->
-                <button id="request-improvement-btn" style="display:none;" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3" onclick="document.getElementById('request-improvement-modal').classList.remove('hidden'); document.getElementById('request-improvement-modal').classList.add('flex');">
+                <button id="request-improvement-btn" style="display:none;" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     <span id="request-improvement-text">SOLICITAR MEJORA A DRK</span>
                 </button>
@@ -1745,18 +1745,7 @@
                     </div>
                 </div>
                 
-                <button id="execute-improvement-request-btn" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-black py-3 rounded-xl shadow-md mb-3" onclick="
-var c=document.getElementById('improvement-comercial-code').value.trim();
-var n=document.getElementById('improvement-client-name').value.trim();
-var u=document.getElementById('improvement-client-cups').value.trim();
-var t=document.getElementById('improvement-client-phone').value.trim();
-var e=document.getElementById('improvement-client-email').value.trim();
-var o=document.getElementById('improvement-observations').value.trim();
-if(!c){alert('El Código Comercial es obligatorio');return;}
-var b='Hola equipo de Back Office,\n\nSolicito revisión y mejora del siguiente comparativo que no presenta ahorro para el cliente.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n📋 DATOS DEL COMERCIAL\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nCódigo Comercial: '+c+'\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n👤 DATOS DEL CLIENTE\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nNombre: '+(n||'No proporcionado')+'\nCUPS: '+(u||'No proporcionado')+'\nTeléfono: '+(t||'No proporcionado')+'\nEmail: '+(e||'No proporcionado')+'\n'+(o?'\nObservaciones: '+o+'\n':'')+'\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n⚠️ RECORDATORIO IMPORTANTE\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nPor favor, adjuntar:\n📄 Factura utilizada para el estudio\n📄 Factura más actualizada del cliente\n(Si son la misma, adjuntar solo una vez)\n\nGracias';
-window.location.href='mailto:F.araujo@drk.es,rguerra@drk.es,l.grande@drk.es?subject='+encodeURIComponent('Solicitud Mejora Comparativo - '+(n||'Cliente')+' - Comercial '+c)+'&body='+encodeURIComponent(b);
-setTimeout(function(){document.getElementById('request-improvement-modal').classList.add('hidden');document.getElementById('request-improvement-modal').classList.remove('flex');document.getElementById('improvement-comercial-code').value='';document.getElementById('improvement-client-name').value='';document.getElementById('improvement-client-cups').value='';document.getElementById('improvement-client-phone').value='';document.getElementById('improvement-client-email').value='';document.getElementById('improvement-observations').value='';},100);
-" data-i18n="📧 ENVIAR SOLICITUD">
+                <button id="execute-improvement-request-btn" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-black py-3 rounded-xl shadow-md mb-3" data-i18n="📧 ENVIAR SOLICITUD">
                     📧 ENVIAR SOLICITUD
                 </button>
                 <button onclick="document.getElementById('request-improvement-modal').classList.add('hidden'); document.getElementById('request-improvement-modal').classList.remove('flex');" class="w-full bg-slate-200 font-bold py-3 rounded-xl text-sm" data-i18n="Cancelar">Cancelar</button>

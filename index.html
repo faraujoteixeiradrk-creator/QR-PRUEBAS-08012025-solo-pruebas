@@ -1430,10 +1430,10 @@
                     <span>LO QUIERO</span>
                 </button>
                 
-                <!-- NUEVO: Botón para solicitar mejora cuando no hay ahorro -->
-                <button id="request-improvement-btn" style="display:none;" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    <span id="request-improvement-text">SOLICITAR MEJORA A DRK</span>
+                <!-- BOTÓN SIMPLE: Solicitar mejora a DRK -->
+                <button id="request-improvement-btn" style="display:none;" onclick="abrirEmailMejora()" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    <span>SOLICITAR MEJORA A DRK</span>
                 </button>
                 
                 <button onclick="document.getElementById('details-container').classList.toggle('hidden'); return false;" class="w-full bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-300 text-blue-800 font-bold py-4 px-6 rounded-xl hover:from-blue-100 hover:to-cyan-100 transition flex items-center justify-center gap-2 text-lg shadow-md" id="details-toggle-btn">
@@ -8736,6 +8736,56 @@
             }
         }
 
+        
+        // --- FUNCIÓN SIMPLE: ABRIR EMAIL PARA SOLICITAR MEJORA ---
+        function abrirEmailMejora() {
+            console.log('🔔 Abriendo email para solicitar mejora a DRK');
+            
+            if (!lastComparisonResult) {
+                window.showErrorModal("No hay datos de comparación disponibles.");
+                return;
+            }
+            
+            // Preparar el asunto del email
+            const subject = '🚨 SOLICITUD DE MEJORA - Sin ahorro detectado';
+            
+            // Preparar el cuerpo del email con los datos básicos
+            let body = '¡Hola equipo de DRK!\n\n';
+            body += 'He realizado una comparación y NO se ha detectado ahorro.\n\n';
+            body += '📋 DATOS DE LA COMPARACIÓN:\n';
+            body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+            
+            if (lastComparisonResult.cups) {
+                body += `CUPS: ${lastComparisonResult.cups}\n`;
+            }
+            
+            if (lastComparisonResult.tariffType) {
+                body += `Tarifa: ${lastComparisonResult.tariffType}\n`;
+            }
+            
+            if (lastComparisonResult.originalBillAnnual) {
+                body += `Coste actual anual: ${lastComparisonResult.originalBillAnnual.toFixed(2)} €\n`;
+            }
+            
+            if (lastComparisonResult.totalAnnual) {
+                body += `Coste DRK anual: ${lastComparisonResult.totalAnnual.toFixed(2)} €\n`;
+            }
+            
+            body += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            body += '⚠️ Por favor, revisen este caso y busquen una mejor oferta.\n\n';
+            body += '📎 IMPORTANTE: Adjuntar la factura del cliente en el email.\n\n';
+            body += 'Gracias,\n';
+            body += 'Equipo Comercial';
+            
+            // Crear el mailto link con múltiples destinatarios
+            const recipients = 'F.araujo@drk.es,rguerra@drk.es,l.grande@drk.es';
+            const mailtoLink = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            
+            // Abrir el email
+            window.location.href = mailtoLink;
+            
+            console.log('✅ Email abierto correctamente');
+        }
         
         // --- SOLICITAR MEJORA A DRK (SIN AHORRO) ---
         
@@ -16366,16 +16416,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             document.getElementById('execute-pdf-offer-btn').addEventListener('click', handleGeneratePDF);
             
             // NUEVO: Event listeners para solicitar mejora a DRK
-            document.getElementById('request-improvement-btn').onclick = () => {
-                if (lastComparisonResult) {
-                    document.getElementById('request-improvement-modal').classList.remove('hidden');
-                    document.getElementById('request-improvement-modal').classList.add('flex');
-                } else {
-                    window.showErrorModal("Por favor, analice una factura primero.");
-                }
-            };
             
-            // NUEVO: Event listener para botón de solicitar mejora en GAS
+            // Event listeners de GAS y DUAL mantienen el flujo antiguo (si existen)
             const gasImprovementBtn = document.getElementById('gas-request-improvement-btn');
             if (gasImprovementBtn) {
                 gasImprovementBtn.onclick = () => {
@@ -16388,7 +16430,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 };
             }
             
-            // NUEVO: Event listener para botón de solicitar mejora en DUAL
             const dualImprovementBtn = document.getElementById('dual-request-improvement-btn');
             if (dualImprovementBtn) {
                 dualImprovementBtn.onclick = () => {
@@ -16402,6 +16443,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             }
             
             document.getElementById('execute-improvement-request-btn').addEventListener('click', handleRequestImprovement);
+
 
             document.getElementById('qr-toggle-checkbox').addEventListener('change', (e) => {
                 const wrapper = document.getElementById('qr-content-wrapper');

@@ -16157,41 +16157,42 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         // --- FUNCIÓN GLOBAL: Event listeners para solicitar mejora a DRK ---
         // IMPORTANTE: Esta función debe estar FUERA del DOMContentLoaded para estar disponible globalmente
         window.attachImprovementListeners = function() {
-            console.log('attachImprovementListeners() llamada');
+            console.log('🔧 attachImprovementListeners() llamada');
             
             // Event listener para electricidad
             const requestBtn = document.getElementById('request-improvement-btn');
             if (requestBtn) {
-                console.log('✅ Botón request-improvement-btn encontrado, asignando listener');
+                console.log('✅ Botón request-improvement-btn encontrado');
                 
-                // Remover listener anterior si existe
-                const newBtn = requestBtn.cloneNode(true);
-                requestBtn.parentNode.replaceChild(newBtn, requestBtn);
-                const btn = document.getElementById('request-improvement-btn');
-                
-                btn.addEventListener('click', function(e) {
+                // Agregar listener directamente usando onclick (más simple y directo)
+                requestBtn.onclick = function(e) {
+                    console.log('🔥🔥🔥 CLICK DETECTADO EN BOTÓN 🔥🔥🔥');
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('🔥 CLICK en request-improvement-btn detectado!');
-                    console.log('lastComparisonResult:', window.lastComparisonResult);
+                    
+                    console.log('Verificando window.lastComparisonResult:', window.lastComparisonResult);
                     
                     if (window.lastComparisonResult) {
-                        console.log('Intentando abrir modal...');
+                        console.log('✅ Hay lastComparisonResult, abriendo modal...');
                         const modal = document.getElementById('request-improvement-modal');
                         console.log('Modal encontrado:', modal);
                         if (modal) {
                             modal.classList.remove('hidden');
                             modal.classList.add('flex');
-                            console.log('✅ Modal abierto correctamente');
+                            console.log('✅✅✅ MODAL ABIERTO ✅✅✅');
                         } else {
-                            console.error('❌ No se encontró el modal request-improvement-modal');
+                            console.error('❌ No se encontró el modal');
                         }
                     } else {
-                        console.warn('No hay lastComparisonResult');
-                        window.showErrorModal("Por favor, analice una factura primero.");
+                        console.warn('❌ No hay lastComparisonResult');
+                        if (typeof window.showErrorModal === 'function') {
+                            window.showErrorModal("Por favor, analice una factura primero.");
+                        } else {
+                            alert("Por favor, analice una factura primero.");
+                        }
                     }
-                });
-                console.log('✅ Listener asignado correctamente');
+                };
+                console.log('✅ Listener onclick asignado correctamente');
             } else {
                 console.warn('❌ No se encontró el botón request-improvement-btn');
             }
@@ -16200,14 +16201,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const gasImprovementBtn = document.getElementById('gas-request-improvement-btn');
             console.log('gas-request-improvement-btn encontrado:', gasImprovementBtn);
             if (gasImprovementBtn) {
-                const newGasBtn = gasImprovementBtn.cloneNode(true);
-                gasImprovementBtn.parentNode.replaceChild(newGasBtn, gasImprovementBtn);
-                const gasBtn = document.getElementById('gas-request-improvement-btn');
-                
-                gasBtn.addEventListener('click', function(e) {
+                gasImprovementBtn.onclick = function(e) {
+                    console.log('🔥 Gas improvement button clicked');
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('🔥 Gas improvement button clicked');
                     if (window.lastGasComparisonResult) {
                         const modal = document.getElementById('request-improvement-modal');
                         modal.classList.remove('hidden');
@@ -16215,23 +16212,17 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     } else {
                         window.showErrorModal("Por favor, analice una factura primero.");
                     }
-                });
-            } else {
-                console.warn('No se encontró el botón gas-request-improvement-btn');
+                };
             }
             
             // Event listener para DUAL
             const dualImprovementBtn = document.getElementById('dual-request-improvement-btn');
             console.log('dual-request-improvement-btn encontrado:', dualImprovementBtn);
             if (dualImprovementBtn) {
-                const newDualBtn = dualImprovementBtn.cloneNode(true);
-                dualImprovementBtn.parentNode.replaceChild(newDualBtn, dualImprovementBtn);
-                const dualBtn = document.getElementById('dual-request-improvement-btn');
-                
-                dualBtn.addEventListener('click', function(e) {
+                dualImprovementBtn.onclick = function(e) {
+                    console.log('🔥 Dual improvement button clicked');
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('🔥 Dual improvement button clicked');
                     if (window.dualGlobalResults && typeof dualSupplies !== 'undefined' && dualSupplies && dualSupplies.length >= 2) {
                         const modal = document.getElementById('request-improvement-modal');
                         modal.classList.remove('hidden');
@@ -16239,10 +16230,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     } else {
                         window.showErrorModal("Por favor, realice una comparación DUAL primero.");
                     }
-                });
-            } else {
-                console.warn('No se encontró el botón dual-request-improvement-btn');
+                };
             }
+            
+            console.log('🎯 attachImprovementListeners completada');
         };
         
         // --- FIX: Cancelación del Escáner ---

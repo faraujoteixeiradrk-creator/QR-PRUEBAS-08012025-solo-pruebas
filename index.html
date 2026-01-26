@@ -1745,7 +1745,18 @@
                     </div>
                 </div>
                 
-                <button id="execute-improvement-request-btn" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-black py-3 rounded-xl shadow-md mb-3" onclick="enviarSolicitudMejora();" data-i18n="📧 ENVIAR SOLICITUD">
+                <button id="execute-improvement-request-btn" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-black py-3 rounded-xl shadow-md mb-3" onclick="
+var c=document.getElementById('improvement-comercial-code').value.trim();
+var n=document.getElementById('improvement-client-name').value.trim();
+var u=document.getElementById('improvement-client-cups').value.trim();
+var t=document.getElementById('improvement-client-phone').value.trim();
+var e=document.getElementById('improvement-client-email').value.trim();
+var o=document.getElementById('improvement-observations').value.trim();
+if(!c){alert('El Código Comercial es obligatorio');return;}
+var b='Hola equipo de Back Office,\n\nSolicito revisión y mejora del siguiente comparativo que no presenta ahorro para el cliente.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n📋 DATOS DEL COMERCIAL\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nCódigo Comercial: '+c+'\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n👤 DATOS DEL CLIENTE\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nNombre: '+(n||'No proporcionado')+'\nCUPS: '+(u||'No proporcionado')+'\nTeléfono: '+(t||'No proporcionado')+'\nEmail: '+(e||'No proporcionado')+'\n'+(o?'\nObservaciones: '+o+'\n':'')+'\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n⚠️ RECORDATORIO IMPORTANTE\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nPor favor, adjuntar:\n📄 Factura utilizada para el estudio\n📄 Factura más actualizada del cliente\n(Si son la misma, adjuntar solo una vez)\n\nGracias';
+window.location.href='mailto:F.araujo@drk.es,rguerra@drk.es,l.grande@drk.es?subject='+encodeURIComponent('Solicitud Mejora Comparativo - '+(n||'Cliente')+' - Comercial '+c)+'&body='+encodeURIComponent(b);
+setTimeout(function(){document.getElementById('request-improvement-modal').classList.add('hidden');document.getElementById('request-improvement-modal').classList.remove('flex');document.getElementById('improvement-comercial-code').value='';document.getElementById('improvement-client-name').value='';document.getElementById('improvement-client-cups').value='';document.getElementById('improvement-client-phone').value='';document.getElementById('improvement-client-email').value='';document.getElementById('improvement-observations').value='';},100);
+" data-i18n="📧 ENVIAR SOLICITUD">
                     📧 ENVIAR SOLICITUD
                 </button>
                 <button onclick="document.getElementById('request-improvement-modal').classList.add('hidden'); document.getElementById('request-improvement-modal').classList.remove('flex');" class="w-full bg-slate-200 font-bold py-3 rounded-xl text-sm" data-i18n="Cancelar">Cancelar</button>
@@ -8738,75 +8749,6 @@
 
         
         // --- SOLICITAR MEJORA A DRK (SIN AHORRO) ---
-        
-        // Función simple para enviar solicitud de mejora
-        function enviarSolicitudMejora() {
-            console.log('enviarSolicitudMejora() llamada');
-            
-            // Obtener datos del formulario
-            const codigo = document.getElementById('improvement-comercial-code').value.trim();
-            const nombre = document.getElementById('improvement-client-name').value.trim();
-            const cups = document.getElementById('improvement-client-cups').value.trim();
-            const telefono = document.getElementById('improvement-client-phone').value.trim();
-            const email = document.getElementById('improvement-client-email').value.trim();
-            const observaciones = document.getElementById('improvement-observations').value.trim();
-            
-            // Validar código comercial (obligatorio)
-            if (!codigo) {
-                alert('El Código Comercial es obligatorio');
-                return;
-            }
-            
-            // Construir el cuerpo del email
-            let emailBody = 'Hola equipo de Back Office,\n\n';
-            emailBody += 'Solicito revisión y mejora del siguiente comparativo que no presenta ahorro para el cliente.\n\n';
-            emailBody += '━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            emailBody += '📋 DATOS DEL COMERCIAL\n';
-            emailBody += '━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            emailBody += 'Código Comercial: ' + codigo + '\n\n';
-            emailBody += '━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            emailBody += '👤 DATOS DEL CLIENTE\n';
-            emailBody += '━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            emailBody += 'Nombre: ' + (nombre || 'No proporcionado') + '\n';
-            emailBody += 'CUPS: ' + (cups || 'No proporcionado') + '\n';
-            emailBody += 'Teléfono: ' + (telefono || 'No proporcionado') + '\n';
-            emailBody += 'Email: ' + (email || 'No proporcionado') + '\n';
-            if (observaciones) {
-                emailBody += '\nObservaciones: ' + observaciones + '\n';
-            }
-            emailBody += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            emailBody += '⚠️ RECORDATORIO IMPORTANTE\n';
-            emailBody += '━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            emailBody += 'Por favor, adjuntar:\n';
-            emailBody += '📄 Factura utilizada para el estudio\n';
-            emailBody += '📄 Factura más actualizada del cliente\n';
-            emailBody += '(Si son la misma, adjuntar solo una vez)\n\n';
-            emailBody += 'Gracias';
-            
-            const asunto = 'Solicitud Mejora Comparativo - ' + (nombre || 'Cliente') + ' - Comercial ' + codigo;
-            
-            // Crear mailto link
-            const mailtoLink = 'mailto:F.araujo@drk.es,rguerra@drk.es,l.grande@drk.es?subject=' + encodeURIComponent(asunto) + '&body=' + encodeURIComponent(emailBody);
-            
-            console.log('Abriendo email...');
-            
-            // Abrir email
-            window.location.href = mailtoLink;
-            
-            // Cerrar modal
-            setTimeout(function() {
-                document.getElementById('request-improvement-modal').classList.add('hidden');
-                document.getElementById('request-improvement-modal').classList.remove('flex');
-                
-                // Limpiar campos
-                document.getElementById('improvement-comercial-code').value = '';
-                document.getElementById('improvement-client-name').value = '';
-                document.getElementById('improvement-client-cups').value = '';
-                document.getElementById('improvement-client-phone').value = '';
-                document.getElementById('improvement-client-email').value = '';
-                document.getElementById('improvement-observations').value = '';
-            }, 100);
-        }
         
         async function handleRequestImprovement() {
             console.log('handleRequestImprovement llamada');

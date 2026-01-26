@@ -4912,6 +4912,9 @@
 
             if (res.savings <= 0) {
                 // Mensaje especial cuando no hay ahorro
+                console.log('🟠 ========== SIN AHORRO DETECTADO ==========');
+                console.log('📊 Ahorro calculado:', res.savings);
+                
                 document.getElementById('savings-label').textContent = "¡ENHORABUENA!";
                 savingsEl.innerHTML = `<div class="text-lg leading-tight font-bold">${tr("Actualmente estás en una buena tarifa.")}</div><div class="text-sm mt-3 leading-relaxed">${tr("Seguiremos estudiando el mercado y te avisaremos cuando encontremos alguna tarifa que se adapte a tu perfil de consumo.")}</div>`;
                 const colorClass = brand.PRIMARY_TEXT.replace('text-', '');
@@ -4923,7 +4926,15 @@
                 document.getElementById('price-columns').style.display = 'none';
                 
                 // NUEVO: Mostrar botón para solicitar mejora a DRK
-                document.getElementById('request-improvement-btn').style.display = 'flex';
+                console.log('🔍 Intentando mostrar botón request-improvement-btn...');
+                const requestImprovementBtn = document.getElementById('request-improvement-btn');
+                if (requestImprovementBtn) {
+                    requestImprovementBtn.style.display = 'flex';
+                    console.log('✅ Botón request-improvement-btn mostrado - display:', requestImprovementBtn.style.display);
+                    console.log('✅ Botón visible:', requestImprovementBtn.offsetParent !== null);
+                } else {
+                    console.error('❌ ERROR: No se encontró el elemento request-improvement-btn en el DOM');
+                }
                 
                 newCostLabelEl.textContent = "TU COSTE ACTUAL CONSOLIDADO";
                 oldCostPeriodEl.classList.remove('line-through');

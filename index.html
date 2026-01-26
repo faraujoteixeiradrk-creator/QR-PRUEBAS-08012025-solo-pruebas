@@ -755,15 +755,7 @@
                     
                     <!-- NUEVO: Botón para solicitar mejora cuando no hay ahorro en GAS -->
                     <div id="gas-request-improvement-container" style="display:none;" class="mt-6">
-                        <button id="gas-request-improvement-btn" onclick="
-                            console.log('🔘 Botón GAS SOLICITAR MEJORA clickeado');
-                            var modal = document.getElementById('request-improvement-modal');
-                            if (modal) {
-                                modal.classList.remove('hidden');
-                                modal.classList.add('flex');
-                                console.log('✅ Modal abierto desde GAS');
-                            }
-                        " class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3">
+                        <button id="gas-request-improvement-btn" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                             <span id="gas-request-improvement-text">SOLICITAR MEJORA A DRK</span>
                         </button>
@@ -978,15 +970,7 @@
                     <div class="mt-6 flex flex-col gap-3">
                         <!-- NUEVO: Botón para solicitar mejora cuando NO hay ahorro en DUAL -->
                         <div id="dual-request-improvement-container" style="display:none;">
-                            <button id="dual-request-improvement-btn" onclick="
-                                console.log('🔘 Botón DUAL SOLICITAR MEJORA clickeado');
-                                var modal = document.getElementById('request-improvement-modal');
-                                if (modal) {
-                                    modal.classList.remove('hidden');
-                                    modal.classList.add('flex');
-                                    console.log('✅ Modal abierto desde DUAL');
-                                }
-                            " class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
+                            <button id="dual-request-improvement-btn" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                                 <span id="dual-request-improvement-text">SOLICITAR MEJORA A DRK</span>
                             </button>
@@ -1447,17 +1431,7 @@
                 </button>
                 
                 <!-- NUEVO: Botón para solicitar mejora cuando no hay ahorro -->
-                <button id="request-improvement-btn" style="display:none;" onclick="
-                    console.log('🔘 Botón SOLICITAR MEJORA clickeado desde onclick inline');
-                    var modal = document.getElementById('request-improvement-modal');
-                    if (modal) {
-                        modal.classList.remove('hidden');
-                        modal.classList.add('flex');
-                        console.log('✅ Modal abierto');
-                    } else {
-                        console.error('❌ Modal no encontrado');
-                    }
-                " class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
+                <button id="request-improvement-btn" style="display:none;" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     <span id="request-improvement-text">SOLICITAR MEJORA A DRK</span>
                 </button>
@@ -4938,9 +4912,6 @@
 
             if (res.savings <= 0) {
                 // Mensaje especial cuando no hay ahorro
-                console.log('🟠 ========== SIN AHORRO DETECTADO ==========');
-                console.log('📊 Ahorro calculado:', res.savings);
-                
                 document.getElementById('savings-label').textContent = "¡ENHORABUENA!";
                 savingsEl.innerHTML = `<div class="text-lg leading-tight font-bold">${tr("Actualmente estás en una buena tarifa.")}</div><div class="text-sm mt-3 leading-relaxed">${tr("Seguiremos estudiando el mercado y te avisaremos cuando encontremos alguna tarifa que se adapte a tu perfil de consumo.")}</div>`;
                 const colorClass = brand.PRIMARY_TEXT.replace('text-', '');
@@ -4952,15 +4923,7 @@
                 document.getElementById('price-columns').style.display = 'none';
                 
                 // NUEVO: Mostrar botón para solicitar mejora a DRK
-                console.log('🔍 Intentando mostrar botón request-improvement-btn...');
-                const requestImprovementBtn = document.getElementById('request-improvement-btn');
-                if (requestImprovementBtn) {
-                    requestImprovementBtn.style.display = 'flex';
-                    console.log('✅ Botón request-improvement-btn mostrado - display:', requestImprovementBtn.style.display);
-                    console.log('✅ Botón visible:', requestImprovementBtn.offsetParent !== null);
-                } else {
-                    console.error('❌ ERROR: No se encontró el elemento request-improvement-btn en el DOM');
-                }
+                document.getElementById('request-improvement-btn').style.display = 'flex';
                 
                 newCostLabelEl.textContent = "TU COSTE ACTUAL CONSOLIDADO";
                 oldCostPeriodEl.classList.remove('line-through');
@@ -8777,48 +8740,30 @@
         // --- SOLICITAR MEJORA A DRK (SIN AHORRO) ---
         
         async function handleRequestImprovement() {
-            console.log('🚀 ========== handleRequestImprovement INICIADA ==========');
-            console.log('📍 Timestamp:', new Date().toISOString());
+            console.log('handleRequestImprovement llamada');
             
             // Verificar si hay datos de ELECTRICIDAD, GAS o DUAL
             const hasElectricityData = lastComparisonResult !== null;
             const hasGasData = window.lastGasComparisonResult !== null;
             const hasDualData = window.dualGlobalResults !== null && typeof dualSupplies !== 'undefined' && dualSupplies && dualSupplies.length >= 2;
             
-            console.log('📊 Verificando datos disponibles:');
-            console.log('  ⚡ Electricidad:', hasElectricityData, lastComparisonResult);
-            console.log('  🔥 Gas:', hasGasData, window.lastGasComparisonResult);
-            console.log('  ⚡🔥 Dual:', hasDualData, window.dualGlobalResults);
+            console.log('Verificando datos:', {hasElectricityData, hasGasData, hasDualData});
             
             if (!hasElectricityData && !hasGasData && !hasDualData) {
-                console.error('❌ No hay datos de comparación disponibles');
                 return window.showErrorModal("Primero realice una comparación.");
             }
             
             // Validar campos obligatorios
-            console.log('📝 Obteniendo valores de campos del formulario...');
-            const commercialCode = document.getElementById('improvement-comercial-code')?.value?.trim() || '';
-            const clientName = document.getElementById('improvement-client-name')?.value?.trim() || '';
-            const cups = document.getElementById('improvement-client-cups')?.value?.trim() || '';
-            const phone = document.getElementById('improvement-client-phone')?.value?.trim() || '';
-            const email = document.getElementById('improvement-client-email')?.value?.trim() || '';
-            const observations = document.getElementById('improvement-observations')?.value?.trim() || '';
-            
-            console.log('📋 Valores del formulario:', {
-                commercialCode,
-                clientName,
-                cups,
-                phone,
-                email,
-                observations
-            });
+            const commercialCode = document.getElementById('improvement-comercial-code').value.trim();
+            const clientName = document.getElementById('improvement-client-name').value.trim();
+            const cups = document.getElementById('improvement-client-cups').value.trim();
+            const phone = document.getElementById('improvement-client-phone').value.trim();
+            const email = document.getElementById('improvement-client-email').value.trim();
+            const observations = document.getElementById('improvement-observations').value.trim();
             
             if (!commercialCode) {
-                console.error('❌ Código comercial vacío');
                 return window.showErrorModal("El Código Comercial es obligatorio.");
             }
-            
-            console.log('✅ Validaciones pasadas, continuando con el proceso...');
             
             try {
                 let htmlContent = '';
@@ -16163,13 +16108,17 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 document.getElementById('results-view').classList.add('animate-fade-in-up');
                 
                 // CRÍTICO: Si el resultado tiene needsImprovementRequest, abrir automáticamente el modal
-                if (result.needsImprovementRequest && comparisonMode === 'drk_only') {
-                    console.log('🔔 DRK ÚNICAMENTE sin ahorro detectado - Abriendo modal de solicitud de mejora automáticamente');
+                if (result.needsImprovementRequest) {
+                    console.log('🔔 NO HAY AHORRO DETECTADO - Abriendo modal de solicitud de mejora automáticamente');
+                    console.log('📊 Modo de comparación:', comparisonMode);
                     setTimeout(() => {
                         const improvementModal = document.getElementById('request-improvement-modal');
                         if (improvementModal) {
                             improvementModal.classList.remove('hidden');
                             improvementModal.classList.add('flex');
+                            console.log('✅ Modal de solicitud de mejora abierto');
+                        } else {
+                            console.error('❌ No se encontró el modal request-improvement-modal');
                         }
                     }, 500); // Pequeño delay para que se muestre primero la pantalla de resultados
                 }
@@ -16456,22 +16405,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 };
             }
             
-            // NUEVO: Event listener para el botón de ejecutar solicitud de mejora
-            const executeImprovementBtn = document.getElementById('execute-improvement-request-btn');
-            if (executeImprovementBtn) {
-                executeImprovementBtn.addEventListener('click', async function() {
-                    console.log('🔘 Botón SOLICITAR MEJORA clickeado');
-                    try {
-                        await handleRequestImprovement();
-                    } catch (error) {
-                        console.error('❌ Error en handleRequestImprovement:', error);
-                        window.showErrorModal('Error al procesar la solicitud: ' + error.message);
-                    }
-                });
-                console.log('✅ Event listener para execute-improvement-request-btn asignado correctamente');
-            } else {
-                console.error('❌ No se encontró el botón execute-improvement-request-btn');
-            }
+            document.getElementById('execute-improvement-request-btn').addEventListener('click', handleRequestImprovement);
 
             document.getElementById('qr-toggle-checkbox').addEventListener('change', (e) => {
                 const wrapper = document.getElementById('qr-content-wrapper');

@@ -9284,141 +9284,98 @@ Desglose mensual estimado:
                     desglose = generateCalculationBreakdown(lastComparisonResult);
                 }
                 
-                // 3. Preparar el contenido del email (MUY CORTO para evitar límites de mailto)
-                const emailSubject = `Solicitud Mejora ${tipoSuministro} - ${clientName || 'Cliente'} - ${cups || 'Sin CUPS'}`;
+                // 3. Preparar el contenido del email SIMPLE Y DIRECTO
+                const emailSubject = `Solicitud Mejora Comparativo - ${clientName || 'Cliente'} - Comercial ${commercialCode}`;
                 
-                const emailBody = `SOLICITUD DE MEJORA - ${tipoSuministro}
+                // Crear cuerpo del email simple y profesional
+                const emailBody = `Hola equipo de Back Office,
 
-Comercial: ${commercialCode}
-Cliente: ${clientName || 'No proporcionado'}
+Solicito revisión y mejora del siguiente comparativo que no presenta ahorro para el cliente:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 DATOS DEL COMERCIAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Código Comercial: ${commercialCode}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 DATOS DEL CLIENTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Nombre: ${clientName || 'No proporcionado'}
 CUPS: ${cups || 'No proporcionado'}
+Teléfono: ${phone || 'No proporcionado'}
+Email: ${email || 'No proporcionado'}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ INSTRUCCIONES IMPORTANTES:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 TIPO DE SUMINISTRO
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+${tipoSuministro}
 
-1. PEGAR contenido completo (Ctrl+V) debajo de este texto
-   → El contenido está copiado en el portapapeles
+${observations ? `━━━━━━━━━━━━━━━━━━━━━━━━━━
+💬 OBSERVACIONES
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+${observations}
 
-2. ADJUNTAR facturas OBLIGATORIAS:
-   📄 Factura usada para el estudio
-   📄 Factura más actualizada del cliente
+` : ''}━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ RECORDATORIO IMPORTANTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Por favor, adjuntar:
+📄 Factura utilizada para el estudio
+📄 Factura más actualizada del cliente
+(Si son la misma, adjuntar solo una vez)
 
-3. ENVIAR email
+Gracias,
+${commercialCode}`;
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-[PEGAR AQUÍ EL CONTENIDO COMPLETO CON CTRL+V]
-
-`;
-
-                // 4. Crear mailto con múltiples destinatarios (LIMITADO para evitar cortes)
+                // 4. Crear mailto con múltiples destinatarios
                 const recipients = 'F.araujo@drk.es,rguerra@drk.es,l.grande@drk.es';
-                const mailtoLink = `mailto:${recipients}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody.substring(0, 900))}`;
+                const mailtoLink = `mailto:${recipients}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
                 
-                // 5. Copiar HTML completo al portapapeles para pegar en el email
-                const tempElement = document.createElement('div');
-                tempElement.contentEditable = true;
-                tempElement.innerHTML = `
-                    <div style="font-family: Arial, sans-serif;">
-                        <h2 style="color: #E50000;">SOLICITUD DE MEJORA DE COMPARATIVO - ${tipoSuministro}</h2>
-                        <p><strong>El comercial ${commercialCode} solicita una mejora de este comparativo.</strong></p>
-                        
-                        <div style="background-color: #E0F2FE; border-left: 4px solid #0EA5E9; padding: 12px; margin: 16px 0;">
-                            <p style="margin: 0; font-weight: bold;">📋 TIPO DE SUMINISTRO: ${tipoSuministro}</p>
-                        </div>
-                        
-                        <h3>DATOS DEL CLIENTE:</h3>
-                        <ul>
-                            <li><strong>Nombre:</strong> ${clientName || 'No proporcionado'}</li>
-                            <li><strong${tr("CUPS:")}</strong> ${cups || 'No proporcionado'}</li>
-                            <li><strong>Teléfono:</strong> ${phone || 'No proporcionado'}</li>
-                            <li><strong>Email:</strong> ${email || 'No proporcionado'}</li>
-                            ${observations ? `<li><strong>Observaciones:</strong> ${observations}</li>` : ''}
-                        </ul>
-                        
-                        <div style="background-color: #FEF3C7; border: 2px solid #F59E0B; border-radius: 8px; padding: 16px; margin: 20px 0;">
-                            <h3 style="margin: 0 0 12px 0; color: #92400E; font-size: 18px;">⚠️ IMPORTANTE - FACTURAS A ADJUNTAR:</h3>
-                            <div style="background-color: white; padding: 12px; border-radius: 6px; margin-bottom: 8px;">
-                                <p style="margin: 0; font-weight: bold; color: #92400E;">📄 1. La factura UTILIZADA para realizar este estudio</p>
-                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #78350F;">Esta es la factura que el comercial ha analizado para hacer la comparativa</p>
-                            </div>
-                            <div style="background-color: white; padding: 12px; border-radius: 6px;">
-                                <p style="margin: 0; font-weight: bold; color: #92400E;">📄 2. La factura MÁS ACTUALIZADA del cliente</p>
-                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #78350F;">Si es la misma factura que la del estudio, adjuntar solo una vez</p>
-                            </div>
-                            <p style="margin: 12px 0 0 0; font-size: 12px; color: #92400E; font-style: italic;">
-                                ℹ️ Estas facturas son necesarias para que Back Office pueda verificar los datos y mejorar el comparativo
-                            </p>
-                        </div>
-                        
-                        <hr style="margin: 24px 0;">
-                        
-                        <h3>COMPARATIVO:</h3>
-                        ${htmlContent}
-                        
-                        <hr style="margin: 24px 0;">
-                        
-                        <h3>DESGLOSE DETALLADO DE CÁLCULOS:</h3>
-                        <pre style="background-color: #f5f5f5; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 12px;">${desglose}</pre>
-                    </div>
-                `;
-                tempElement.style.position = 'fixed';
-                tempElement.style.left = '-9999px';
-                document.body.appendChild(tempElement);
+                console.log('📧 Abriendo email...');
+                console.log('Destinatarios:', recipients);
+                console.log('Asunto:', emailSubject);
                 
-                const range = document.createRange();
-                range.selectNodeContents(tempElement);
-                const sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(range);
-                
-                const success = document.execCommand('copy');
-                document.body.removeChild(tempElement);
-                
-                // 6. Abrir cliente de correo
+                // 5. Abrir cliente de correo directamente
+                console.log('🚀 Intentando abrir email con window.location.href...');
                 window.location.href = mailtoLink;
                 
+                // 6. Pequeño delay y luego intentar con window.open como respaldo
+                setTimeout(() => {
+                    console.log('🔄 Intentando también con window.open...');
+                    window.open(mailtoLink, '_blank');
+                }, 100);
+                
                 // 7. Mostrar mensaje de éxito
-                if (success) {
-                    window.showMessageModal(`✅ ¡LISTO! Email abierto y contenido copiado.
+                window.showMessageModal(`✅ ¡Email preparado!
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 PASOS PARA ENVIAR LA SOLICITUD:
+📧 SIGUIENTE PASO:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1️⃣ En el email que se acaba de abrir:
-   → Coloque el cursor debajo de "[PEGAR AQUÍ...]"
-   → Presione Ctrl+V (o Cmd+V en Mac)
-   → Se pegará TODO el comparativo completo
+Se ha abierto tu cliente de correo con:
+✓ Destinatarios: Back Office DRK
+✓ Asunto: Solicitud de mejora
+✓ Cuerpo del email con todos los datos
 
-2️⃣ ADJUNTE LAS FACTURAS (OBLIGATORIO):
-   📄 Factura usada para hacer el estudio
-   📄 Factura más actualizada del cliente
-   (Si son la misma, adjuntar solo una vez)
+⚠️ IMPORTANTE: Adjunta las facturas antes de enviar:
+📄 Factura utilizada para el estudio
+📄 Factura más actualizada del cliente
 
-3️⃣ Revise que todo esté correcto y ENVÍE
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
-
-⚠️ IMPORTANTE: Sin las facturas adjuntas, Back Office NO podrá procesar la solicitud.`);
-                    
-                    // Cerrar modal
-                    document.getElementById('request-improvement-modal').classList.add('hidden');
-                    document.getElementById('request-improvement-modal').classList.remove('flex');
-                    
-                    // Limpiar campos
-                    document.getElementById('improvement-comercial-code').value = '';
-                    document.getElementById('improvement-client-name').value = '';
-                    document.getElementById('improvement-client-cups').value = '';
-                    document.getElementById('improvement-client-phone').value = '';
-                    document.getElementById('improvement-client-email').value = '';
-                    document.getElementById('improvement-observations').value = '';
-                } else {
-                    window.showErrorModal("No se pudo copiar el contenido. Por favor, contacte a soporte.");
-                }
+Destinatarios:
+• Fernando Araujo (F.araujo@drk.es)
+• Rosa Guerra (rguerra@drk.es)  
+• Laura Grande (l.grande@drk.es)`);
+                
+                // 8. Cerrar modal
+                document.getElementById('request-improvement-modal').classList.add('hidden');
+                document.getElementById('request-improvement-modal').classList.remove('flex');
+                
+                // 9. Limpiar campos
+                document.getElementById('improvement-comercial-code').value = '';
+                document.getElementById('improvement-client-name').value = '';
+                document.getElementById('improvement-client-cups').value = '';
+                document.getElementById('improvement-client-phone').value = '';
+                document.getElementById('improvement-client-email').value = '';
+                document.getElementById('improvement-observations').value = '';
                 
             } catch (error) {
                 console.error('Error en handleRequestImprovement:', error);

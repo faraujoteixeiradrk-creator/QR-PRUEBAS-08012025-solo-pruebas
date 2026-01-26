@@ -16163,20 +16163,31 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const requestBtn = document.getElementById('request-improvement-btn');
             if (requestBtn) {
                 console.log('✅ Botón request-improvement-btn encontrado, asignando listener');
-                // Remover listeners anteriores clonando el botón
-                const newRequestBtn = requestBtn.cloneNode(true);
-                requestBtn.parentNode.replaceChild(newRequestBtn, requestBtn);
                 
-                newRequestBtn.addEventListener('click', (e) => {
+                // Remover listener anterior si existe
+                const newBtn = requestBtn.cloneNode(true);
+                requestBtn.parentNode.replaceChild(newBtn, requestBtn);
+                const btn = document.getElementById('request-improvement-btn');
+                
+                btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('🔥 CLICK en request-improvement-btn, lastComparisonResult:', lastComparisonResult);
-                    if (lastComparisonResult) {
+                    console.log('🔥 CLICK en request-improvement-btn detectado!');
+                    console.log('lastComparisonResult:', window.lastComparisonResult);
+                    
+                    if (window.lastComparisonResult) {
+                        console.log('Intentando abrir modal...');
                         const modal = document.getElementById('request-improvement-modal');
-                        console.log('Abriendo modal:', modal);
-                        modal.classList.remove('hidden');
-                        modal.classList.add('flex');
+                        console.log('Modal encontrado:', modal);
+                        if (modal) {
+                            modal.classList.remove('hidden');
+                            modal.classList.add('flex');
+                            console.log('✅ Modal abierto correctamente');
+                        } else {
+                            console.error('❌ No se encontró el modal request-improvement-modal');
+                        }
                     } else {
+                        console.warn('No hay lastComparisonResult');
                         window.showErrorModal("Por favor, analice una factura primero.");
                     }
                 });
@@ -16191,11 +16202,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             if (gasImprovementBtn) {
                 const newGasBtn = gasImprovementBtn.cloneNode(true);
                 gasImprovementBtn.parentNode.replaceChild(newGasBtn, gasImprovementBtn);
+                const gasBtn = document.getElementById('gas-request-improvement-btn');
                 
-                newGasBtn.addEventListener('click', (e) => {
+                gasBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('🔥 Gas improvement button clicked, lastGasComparisonResult:', window.lastGasComparisonResult);
+                    console.log('🔥 Gas improvement button clicked');
                     if (window.lastGasComparisonResult) {
                         const modal = document.getElementById('request-improvement-modal');
                         modal.classList.remove('hidden');
@@ -16214,11 +16226,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             if (dualImprovementBtn) {
                 const newDualBtn = dualImprovementBtn.cloneNode(true);
                 dualImprovementBtn.parentNode.replaceChild(newDualBtn, dualImprovementBtn);
+                const dualBtn = document.getElementById('dual-request-improvement-btn');
                 
-                newDualBtn.addEventListener('click', (e) => {
+                dualBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('🔥 Dual improvement button clicked, dualGlobalResults:', window.dualGlobalResults, 'dualSupplies:', dualSupplies);
+                    console.log('🔥 Dual improvement button clicked');
                     if (window.dualGlobalResults && typeof dualSupplies !== 'undefined' && dualSupplies && dualSupplies.length >= 2) {
                         const modal = document.getElementById('request-improvement-modal');
                         modal.classList.remove('hidden');

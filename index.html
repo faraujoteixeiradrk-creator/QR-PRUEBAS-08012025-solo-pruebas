@@ -16153,6 +16153,84 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         function handleManualOfferSelection(e) {
             // Esta función ya no se usa, pero la mantenemos por compatibilidad
         }
+
+        // --- FUNCIÓN GLOBAL: Event listeners para solicitar mejora a DRK ---
+        // IMPORTANTE: Esta función debe estar FUERA del DOMContentLoaded para estar disponible globalmente
+        window.attachImprovementListeners = function() {
+            console.log('attachImprovementListeners() llamada');
+            
+            // Event listener para electricidad
+            const requestBtn = document.getElementById('request-improvement-btn');
+            if (requestBtn) {
+                console.log('✅ Botón request-improvement-btn encontrado, asignando listener');
+                // Remover listeners anteriores clonando el botón
+                const newRequestBtn = requestBtn.cloneNode(true);
+                requestBtn.parentNode.replaceChild(newRequestBtn, requestBtn);
+                
+                newRequestBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔥 CLICK en request-improvement-btn, lastComparisonResult:', lastComparisonResult);
+                    if (lastComparisonResult) {
+                        const modal = document.getElementById('request-improvement-modal');
+                        console.log('Abriendo modal:', modal);
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                    } else {
+                        window.showErrorModal("Por favor, analice una factura primero.");
+                    }
+                });
+                console.log('✅ Listener asignado correctamente');
+            } else {
+                console.warn('❌ No se encontró el botón request-improvement-btn');
+            }
+            
+            // Event listener para GAS
+            const gasImprovementBtn = document.getElementById('gas-request-improvement-btn');
+            console.log('gas-request-improvement-btn encontrado:', gasImprovementBtn);
+            if (gasImprovementBtn) {
+                const newGasBtn = gasImprovementBtn.cloneNode(true);
+                gasImprovementBtn.parentNode.replaceChild(newGasBtn, gasImprovementBtn);
+                
+                newGasBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔥 Gas improvement button clicked, lastGasComparisonResult:', window.lastGasComparisonResult);
+                    if (window.lastGasComparisonResult) {
+                        const modal = document.getElementById('request-improvement-modal');
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                    } else {
+                        window.showErrorModal("Por favor, analice una factura primero.");
+                    }
+                });
+            } else {
+                console.warn('No se encontró el botón gas-request-improvement-btn');
+            }
+            
+            // Event listener para DUAL
+            const dualImprovementBtn = document.getElementById('dual-request-improvement-btn');
+            console.log('dual-request-improvement-btn encontrado:', dualImprovementBtn);
+            if (dualImprovementBtn) {
+                const newDualBtn = dualImprovementBtn.cloneNode(true);
+                dualImprovementBtn.parentNode.replaceChild(newDualBtn, dualImprovementBtn);
+                
+                newDualBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔥 Dual improvement button clicked, dualGlobalResults:', window.dualGlobalResults, 'dualSupplies:', dualSupplies);
+                    if (window.dualGlobalResults && typeof dualSupplies !== 'undefined' && dualSupplies && dualSupplies.length >= 2) {
+                        const modal = document.getElementById('request-improvement-modal');
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                    } else {
+                        window.showErrorModal("Por favor, realice una comparación DUAL primero.");
+                    }
+                });
+            } else {
+                console.warn('No se encontró el botón dual-request-improvement-btn');
+            }
+        };
         
         // --- FIX: Cancelación del Escáner ---
         function cancelScanner() {
@@ -16388,81 +16466,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             document.getElementById('execute-send-offer-btn').addEventListener('click', handleCopyOffer);
             document.getElementById('execute-pdf-offer-btn').addEventListener('click', handleGeneratePDF);
             
-            // NUEVO: Event listeners para solicitar mejora a DRK
-            window.attachImprovementListeners = function() {
-                console.log('attachImprovementListeners() llamada');
-                
-                // Event listener para electricidad
-                const requestBtn = document.getElementById('request-improvement-btn');
-                if (requestBtn) {
-                    console.log('✅ Botón request-improvement-btn encontrado, asignando listener');
-                    // Remover listeners anteriores
-                    requestBtn.replaceWith(requestBtn.cloneNode(true));
-                    const newRequestBtn = document.getElementById('request-improvement-btn');
-                    newRequestBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('🔥 CLICK en request-improvement-btn, lastComparisonResult:', lastComparisonResult);
-                        if (lastComparisonResult) {
-                            const modal = document.getElementById('request-improvement-modal');
-                            console.log('Abriendo modal:', modal);
-                            modal.classList.remove('hidden');
-                            modal.classList.add('flex');
-                        } else {
-                            window.showErrorModal("Por favor, analice una factura primero.");
-                        }
-                    });
-                    console.log('✅ Listener asignado correctamente');
-                } else {
-                    console.warn('❌ No se encontró el botón request-improvement-btn');
-                }
-                
-                // Event listener para GAS
-                const gasImprovementBtn = document.getElementById('gas-request-improvement-btn');
-                console.log('gas-request-improvement-btn encontrado:', gasImprovementBtn);
-                if (gasImprovementBtn) {
-                    gasImprovementBtn.replaceWith(gasImprovementBtn.cloneNode(true));
-                    const newGasBtn = document.getElementById('gas-request-improvement-btn');
-                    newGasBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('🔥 Gas improvement button clicked, lastGasComparisonResult:', window.lastGasComparisonResult);
-                        if (window.lastGasComparisonResult) {
-                            const modal = document.getElementById('request-improvement-modal');
-                            modal.classList.remove('hidden');
-                            modal.classList.add('flex');
-                        } else {
-                            window.showErrorModal("Por favor, analice una factura primero.");
-                        }
-                    });
-                } else {
-                    console.warn('No se encontró el botón gas-request-improvement-btn');
-                }
-                
-                // Event listener para DUAL
-                const dualImprovementBtn = document.getElementById('dual-request-improvement-btn');
-                console.log('dual-request-improvement-btn encontrado:', dualImprovementBtn);
-                if (dualImprovementBtn) {
-                    dualImprovementBtn.replaceWith(dualImprovementBtn.cloneNode(true));
-                    const newDualBtn = document.getElementById('dual-request-improvement-btn');
-                    newDualBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('🔥 Dual improvement button clicked, dualGlobalResults:', window.dualGlobalResults, 'dualSupplies:', dualSupplies);
-                        if (window.dualGlobalResults && typeof dualSupplies !== 'undefined' && dualSupplies && dualSupplies.length >= 2) {
-                            const modal = document.getElementById('request-improvement-modal');
-                            modal.classList.remove('hidden');
-                            modal.classList.add('flex');
-                        } else {
-                            window.showErrorModal("Por favor, realice una comparación DUAL primero.");
-                        }
-                    });
-                } else {
-                    console.warn('No se encontró el botón dual-request-improvement-btn');
-                }
-            };
-            
-            // Llamar inicialmente
+            // Llamar a attachImprovementListeners inicialmente (la función está definida globalmente)
             window.attachImprovementListeners();
             
             document.getElementById('execute-improvement-request-btn').addEventListener('click', handleRequestImprovement);

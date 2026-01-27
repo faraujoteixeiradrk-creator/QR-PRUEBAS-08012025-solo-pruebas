@@ -13306,9 +13306,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // NUEVO: Añadir línea de excedentes solares si está habilitado
             let solarSurplusRow = '';
+            console.log('📧 EMAIL HTML - Verificando excedentes:', {
+                hasSolarSurplus: !!bd.solarSurplus,
+                enabled: bd.solarSurplus?.enabled,
+                solarSurplusCompleto: bd.solarSurplus
+            });
             if (bd.solarSurplus && bd.solarSurplus.enabled) {
                 const totalEx = bd.solarSurplus.total;
                 const discount = bd.solarSurplus.monthlyDiscount;
+                console.log('✅ EMAIL HTML - Añadiendo línea excedentes:', `${totalEx} kWh = -${discount} €`);
                 solarSurplusRow = `<tr><td style="${rowLabel} font-family: monospace; font-size: 12px; color: #f97316;">${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</td><td style="${rowValue} font-family: monospace; font-size: 12px; color: #f97316; white-space: nowrap;">-${num(discount, 2)} €</td></tr>`;
             } else if (bd.solarSurplus && bd.solarSurplus.noPrice) {
                 solarSurplusRow = `<tr><td colspan="2" style="padding: 4px 8px; font-size: 10px; color: #9ca3af; font-style: italic;">${tr('Excedentes solares')} - ${tr('Sin compensación')}</td></tr>`;

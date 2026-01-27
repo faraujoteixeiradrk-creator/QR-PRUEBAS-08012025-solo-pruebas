@@ -5800,16 +5800,33 @@
                 });
                 
                 // NUEVO: Añadir línea de excedentes solares según el estado
+                // PROTECCIÓN: Verificar tanto en res.solarSurplus como en el estado global
+                const solarCheckbox = document.getElementById('solar-surplus-checkbox');
+                const hasCheckboxMarked = solarCheckbox && solarCheckbox.checked && solarSurplusEnabled;
+                
+                console.log('🔍 Renderizando breakdown - Excedentes:', {
+                    hasSolarSurplus: !!res.solarSurplus,
+                    solarSurplusEnabled: res.solarSurplus?.enabled,
+                    checkboxMarked: hasCheckboxMarked,
+                    globalData: solarSurplusData
+                });
+                
                 if (res.solarSurplus) {
                     if (res.solarSurplus.enabled) {
                         // Tiene compensación y se aplicó descuento
                         const totalEx = res.solarSurplus.total;
                         const discount = res.solarSurplus.monthlyDiscount;
-                        energyBreakdown += `<div class="flex justify-between text-orange-600"><span>☀️ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</span><span>-${num(discount, 2)} €</span></div>`;
+                        energyBreakdown += `<div class="flex justify-between text-orange-600 font-semibold"><span>☀️ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</span><span>-${num(discount, 2)} €</span></div>`;
+                        console.log('✅ Línea de excedentes añadida:', `${totalEx} kWh = -${discount} €`);
                     } else if (res.solarSurplus.noPrice) {
                         // No tiene compensación
                         energyBreakdown += `<div class="flex justify-between text-slate-400 italic text-xs"><span>☀️ ${tr('Excedentes solares')}</span><span>${tr('Sin compensación')}</span></div>`;
+                        console.log('⚠️ Sin compensación de excedentes');
                     }
+                } else if (hasCheckboxMarked && solarSurplusData.total > 0) {
+                    // FALLBACK: Si no hay res.solarSurplus pero el checkbox está marcado
+                    console.warn('⚠️ FALLBACK: res.solarSurplus no existe pero checkbox marcado - Usando datos globales');
+                    energyBreakdown += `<div class="flex justify-between text-orange-600 font-semibold"><span>☀️ ${tr('Excedentes solares')} (${num(solarSurplusData.total, 2)} kWh)</span><span>-${num(solarSurplusData.discount, 2)} €</span></div>`;
                 }
             }
 

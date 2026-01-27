@@ -13946,7 +13946,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // NUEVO: Mostrar/Ocultar checkbox de Excedentes Solares solo para tarifa 2.0TD
             const solarSurplusContainer = document.getElementById('solar-surplus-checkbox-container');
-            const currentTariffType = window.currentTariffType || '';
+            
+            console.log('🔍 Verificando visibilidad de Excedentes Solares:', {
+                currentTariffType: currentTariffType,
+                isDualMode: isDualMode,
+                shouldShow: currentTariffType === '2.0TD' && !isDualMode
+            });
             
             if (currentTariffType === '2.0TD' && !isDualMode) {
                 console.log('☀️ Tarifa 2.0TD detectada - Mostrando checkbox de Excedentes Solares');

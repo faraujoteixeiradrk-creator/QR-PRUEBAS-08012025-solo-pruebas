@@ -14265,14 +14265,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 const tariffType = currentTariffType;
                 let tariffsToCompare = currentTariffs[tariffType] || [];
                 
-                // CRÍTICO: Filtrar según el modo activo (DRK o POWER CUP)
-                const isDrkMode = activeBrand.NAME.includes('DRK');
-                if (isDrkMode) {
-                    // En modo DRK, solo calcular tarifas DRK
+                // CRÍTICO: Filtrar según el modo de comparación (comparisonMode)
+                console.log(`🔍 Modo de comparación actual: ${comparisonMode}`);
+                if (comparisonMode === 'drk_only') {
+                    // En modo DRK ÚNICAMENTE, solo calcular tarifas DRK
                     tariffsToCompare = tariffsToCompare.filter(t => t.isDrk === true);
-                    console.log(`🔍 Modo DRK: Filtrando solo tarifas DRK (${tariffsToCompare.length} de ${currentTariffs[tariffType].length})`);
+                    console.log(`🔵 DRK ÚNICAMENTE: Filtrando solo tarifas DRK (${tariffsToCompare.length} de ${currentTariffs[tariffType].length})`);
                 } else {
-                    console.log(`🔍 Modo POWER CUP: Calculando todas las tarifas (${tariffsToCompare.length})`);
+                    // En modo POWER CUP o DRK PRIORITARIO, calcular todas las tarifas
+                    console.log(`🟢 POWER CUP/DRK PRIORITARIO: Calculando todas las tarifas (${tariffsToCompare.length})`);
                 }
                 
                 availableOffers = tariffsToCompare.map(tariff => {
@@ -15453,14 +15454,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 const tariffType = currentTariffType;
                 let tariffsToCompare = currentTariffs[tariffType] || [];
                 
-                // CRÍTICO: Filtrar según el modo activo (DRK o POWER CUP)
-                const isDrkMode = activeBrand.NAME.includes('DRK');
-                if (isDrkMode) {
-                    // En modo DRK, solo calcular tarifas DRK
+                // CRÍTICO: Filtrar según el modo de comparación (comparisonMode)
+                console.log(`🔍 Modo de comparación actual: ${comparisonMode}`);
+                if (comparisonMode === 'drk_only') {
+                    // En modo DRK ÚNICAMENTE, solo calcular tarifas DRK
                     tariffsToCompare = tariffsToCompare.filter(t => t.isDrk === true);
-                    console.log(`🔍 Modo DRK: Filtrando solo tarifas DRK (${tariffsToCompare.length} de ${currentTariffs[tariffType].length})`);
+                    console.log(`🔵 DRK ÚNICAMENTE: Filtrando solo tarifas DRK (${tariffsToCompare.length} de ${currentTariffs[tariffType].length})`);
                 } else {
-                    console.log(`🔍 Modo POWER CUP: Calculando todas las tarifas (${tariffsToCompare.length})`);
+                    // En modo POWER CUP o DRK PRIORITARIO, calcular todas las tarifas
+                    console.log(`🟢 POWER CUP/DRK PRIORITARIO: Calculando todas las tarifas (${tariffsToCompare.length})`);
                 }
                 
                 availableOffers = tariffsToCompare.map(tariff => {

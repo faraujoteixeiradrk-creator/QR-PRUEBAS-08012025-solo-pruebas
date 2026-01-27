@@ -1431,7 +1431,7 @@
                 </button>
                 
                 <!-- BOTÓN SIMPLE: Solicitar mejora a DRK -->
-                <button id="request-improvement-btn" style="display:none;" onclick="abrirEmailMejora()" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
+                <button id="request-improvement-btn" style="display:none;" onclick="mostrarModalNuevo()" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     <span>SOLICITAR MEJORA A DRK</span>
                 </button>
@@ -8739,60 +8739,21 @@
         
         // --- FUNCIÓN SIMPLE: ABRIR EMAIL PARA SOLICITAR MEJORA ---
         function abrirEmailMejora() {
-            console.log('🔔 Abriendo modal para datos del cliente');
+            console.log('🔔 Abriendo email para solicitar mejora a DRK');
             
             if (!lastComparisonResult) {
                 window.showErrorModal("No hay datos de comparación disponibles.");
                 return;
             }
             
-            // Abrir el modal
-            document.getElementById('modal-datos-cliente').classList.remove('hidden');
-            document.getElementById('modal-datos-cliente').classList.add('flex');
-        }
-        
-        function cerrarModalDatos() {
-            document.getElementById('modal-datos-cliente').classList.add('hidden');
-            document.getElementById('modal-datos-cliente').classList.remove('flex');
-            
-            // Limpiar campos
-            document.getElementById('modal-nombre').value = '';
-            document.getElementById('modal-apellidos').value = '';
-            document.getElementById('modal-email').value = '';
-            document.getElementById('modal-telefono').value = '';
-            document.getElementById('modal-observaciones').value = '';
-        }
-        
-        function enviarEmailConDatos() {
-            console.log('📧 Preparando email con datos del cliente');
-            
-            // Obtener datos del modal
-            const nombre = document.getElementById('modal-nombre').value.trim();
-            const apellidos = document.getElementById('modal-apellidos').value.trim();
-            const email = document.getElementById('modal-email').value.trim();
-            const telefono = document.getElementById('modal-telefono').value.trim();
-            const observaciones = document.getElementById('modal-observaciones').value.trim();
-            
             // Preparar el asunto del email
             const subject = '🚨 SOLICITUD DE MEJORA - Sin ahorro detectado';
             
-            // Preparar el cuerpo del email
+            // Preparar el cuerpo del email con los datos básicos
             let body = '¡Hola equipo de DRK!\n\n';
             body += 'He realizado una comparación y NO se ha detectado ahorro.\n\n';
-            
-            // DATOS DEL CLIENTE (si se proporcionaron)
-            if (nombre || apellidos || email || telefono) {
-                body += '👤 DATOS DEL CLIENTE:\n';
-                body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-                if (nombre) body += `Nombre: ${nombre}\n`;
-                if (apellidos) body += `Apellidos: ${apellidos}\n`;
-                if (email) body += `Email: ${email}\n`;
-                if (telefono) body += `Teléfono: ${telefono}\n`;
-                body += '\n';
-            }
-            
             body += '📋 DATOS DE LA COMPARACIÓN:\n';
-            body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
             
             if (lastComparisonResult.cups) {
                 body += `CUPS: ${lastComparisonResult.cups}\n`;
@@ -8811,27 +8772,16 @@
             }
             
             body += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            
-            // Observaciones (si se proporcionaron)
-            if (observaciones) {
-                body += '\n📝 OBSERVACIONES:\n';
-                body += `${observaciones}\n\n`;
-                body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            }
-            
-            body += '\n⚠️ Por favor, revisen este caso y busquen una mejor oferta.\n\n';
+            body += '⚠️ Por favor, revisen este caso y busquen una mejor oferta.\n\n';
             body += '📎 IMPORTANTE: Adjuntar la factura del cliente en el email.\n\n';
             body += 'Gracias,\n';
             body += 'Equipo Comercial';
             
-            // Crear el mailto link
+            // Crear el mailto link con múltiples destinatarios
             const recipients = 'F.araujo@drk.es,rguerra@drk.es,l.grande@drk.es';
             const mailtoLink = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             
-            // Cerrar modal
-            cerrarModalDatos();
-            
-            // Abrir email
+            // Abrir el email
             window.location.href = mailtoLink;
             
             console.log('✅ Email abierto correctamente');
@@ -28446,31 +28396,104 @@ Gracias.`;
         }
     </script>
 
-    <!-- MODAL NUEVO: Datos del Cliente antes de enviar email -->
-    <div id="modal-datos-cliente" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full">
-            <h3 class="text-2xl font-bold text-amber-600 mb-2">📧 Solicitar Mejora a DRK</h3>
-            <p class="text-sm text-slate-600 mb-4">Complete los datos del cliente (todos opcionales):</p>
+    <!-- ==================== MODAL NUEVO PARA DATOS ==================== -->
+    <div id="miModalNuevo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:20px; max-width:500px; width:90%;">
+            <h2 style="color:#d97706; font-size:24px; font-weight:bold; margin-bottom:10px;">📧 Solicitar Mejora a DRK</h2>
+            <p style="color:#64748b; font-size:14px; margin-bottom:20px;">Complete los datos del cliente (todos opcionales):</p>
             
-            <input type="text" id="modal-nombre" placeholder="Nombre" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+            <input type="text" id="nuevoNombre" placeholder="Nombre" style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #ccc; border-radius:8px; font-size:14px;">
             
-            <input type="text" id="modal-apellidos" placeholder="Apellidos" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+            <input type="text" id="nuevoApellidos" placeholder="Apellidos" style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #ccc; border-radius:8px; font-size:14px;">
             
-            <input type="email" id="modal-email" placeholder="Email" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+            <input type="email" id="nuevoEmail" placeholder="Email" style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #ccc; border-radius:8px; font-size:14px;">
             
-            <input type="tel" id="modal-telefono" placeholder="Teléfono" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+            <input type="tel" id="nuevoTelefono" placeholder="Teléfono" style="width:100%; padding:12px; margin-bottom:12px; border:1px solid #ccc; border-radius:8px; font-size:14px;">
             
-            <textarea id="modal-observaciones" placeholder="Observaciones (opcional)" rows="3" class="w-full mb-4 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none resize-none"></textarea>
+            <textarea id="nuevoObservaciones" placeholder="Observaciones (opcional)" rows="3" style="width:100%; padding:12px; margin-bottom:20px; border:1px solid #ccc; border-radius:8px; font-size:14px; resize:none;"></textarea>
             
-            <div class="flex gap-3">
-                <button onclick="cerrarModalDatos()" class="flex-1 bg-slate-200 hover:bg-slate-300 font-bold py-3 rounded-xl text-sm transition">
+            <div style="display:flex; gap:10px;">
+                <button onclick="cerrarModalNuevo()" style="flex:1; padding:12px; background:#e2e8f0; border:none; border-radius:10px; font-weight:bold; cursor:pointer; font-size:14px;">
                     Cancelar
                 </button>
-                <button onclick="enviarEmailConDatos()" class="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 rounded-xl shadow-md transition">
+                <button onclick="enviarEmailNuevo()" style="flex:1; padding:12px; background:linear-gradient(to right, #f59e0b, #ea580c); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer; font-size:14px;">
                     📧 Enviar Email
                 </button>
             </div>
         </div>
     </div>
 
+    <script>
+        function mostrarModalNuevo() {
+            console.log('✅ Abriendo modal nuevo');
+            if (!lastComparisonResult) {
+                alert("No hay datos de comparación disponibles.");
+                return;
+            }
+            document.getElementById('miModalNuevo').style.display = 'flex';
+        }
+
+        function cerrarModalNuevo() {
+            console.log('❌ Cerrando modal');
+            document.getElementById('miModalNuevo').style.display = 'none';
+            document.getElementById('nuevoNombre').value = '';
+            document.getElementById('nuevoApellidos').value = '';
+            document.getElementById('nuevoEmail').value = '';
+            document.getElementById('nuevoTelefono').value = '';
+            document.getElementById('nuevoObservaciones').value = '';
+        }
+
+        function enviarEmailNuevo() {
+            console.log('📧 Enviando email');
+            
+            const nombre = document.getElementById('nuevoNombre').value.trim();
+            const apellidos = document.getElementById('nuevoApellidos').value.trim();
+            const email = document.getElementById('nuevoEmail').value.trim();
+            const telefono = document.getElementById('nuevoTelefono').value.trim();
+            const obs = document.getElementById('nuevoObservaciones').value.trim();
+            
+            let body = '¡Hola equipo de DRK!\n\nHe realizado una comparación y NO se ha detectado ahorro.\n\n';
+            
+            if (nombre || apellidos || email || telefono) {
+                body += '👤 DATOS DEL CLIENTE:\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+                if (nombre) body += 'Nombre: ' + nombre + '\n';
+                if (apellidos) body += 'Apellidos: ' + apellidos + '\n';
+                if (email) body += 'Email: ' + email + '\n';
+                if (telefono) body += 'Teléfono: ' + telefono + '\n';
+                body += '\n';
+            }
+            
+            body += '📋 DATOS DE LA COMPARACIÓN:\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            
+            if (lastComparisonResult.cups) {
+                body += 'CUPS: ' + lastComparisonResult.cups + '\n';
+            }
+            if (lastComparisonResult.tariffType) {
+                body += 'Tarifa: ' + lastComparisonResult.tariffType + '\n';
+            }
+            if (lastComparisonResult.originalBillAnnual) {
+                body += 'Coste actual anual: ' + lastComparisonResult.originalBillAnnual.toFixed(2) + ' €\n';
+            }
+            if (lastComparisonResult.totalAnnual) {
+                body += 'Coste DRK anual: ' + lastComparisonResult.totalAnnual.toFixed(2) + ' €\n';
+            }
+            
+            body += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            
+            if (obs) {
+                body += '\n📝 OBSERVACIONES:\n' + obs + '\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            }
+            
+            body += '\n⚠️ Por favor, revisen este caso y busquen una mejor oferta.\n\n';
+            body += '📎 IMPORTANTE: Adjuntar la factura del cliente en el email.\n\n';
+            body += 'Gracias,\nEquipo Comercial';
+            
+            const subject = '🚨 SOLICITUD DE MEJORA - Sin ahorro detectado';
+            const mailto = 'mailto:F.araujo@drk.es,rguerra@drk.es,l.grande@drk.es?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+            
+            cerrarModalNuevo();
+            window.location.href = mailto;
+            console.log('✅ Email enviado');
+        }
+    </script>
 </body>

@@ -213,23 +213,6 @@
 </head>
 <body class="flex flex-col min-h-screen text-slate-800 drk-active">
 
-    <!-- MODAL SOLICITAR MEJORA - DEBE ESTAR AL INICIO -->
-    <div id="modalClienteDatos" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999999;">
-        <div style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:30px; border-radius:15px; max-width:450px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.5);">
-            <h2 style="color:#ea580c; font-size:24px; font-weight:bold; margin:0 0 15px 0;">📧 Solicitar Mejora a DRK</h2>
-            <p style="color:#64748b; font-size:14px; margin:0 0 20px 0;">Complete los datos (todos opcionales):</p>
-            <input type="text" id="clienteNombre" placeholder="Nombre" style="width:100%; padding:12px; margin:0 0 12px 0; border:1px solid #d1d5db; border-radius:8px; font-size:14px; box-sizing:border-box;">
-            <input type="text" id="clienteApellidos" placeholder="Apellidos" style="width:100%; padding:12px; margin:0 0 12px 0; border:1px solid #d1d5db; border-radius:8px; font-size:14px; box-sizing:border-box;">
-            <input type="email" id="clienteEmail" placeholder="Email" style="width:100%; padding:12px; margin:0 0 12px 0; border:1px solid #d1d5db; border-radius:8px; font-size:14px; box-sizing:border-box;">
-            <input type="tel" id="clienteTelefono" placeholder="Teléfono" style="width:100%; padding:12px; margin:0 0 12px 0; border:1px solid #d1d5db; border-radius:8px; font-size:14px; box-sizing:border-box;">
-            <textarea id="clienteObservaciones" placeholder="Observaciones" rows="3" style="width:100%; padding:12px; margin:0 0 20px 0; border:1px solid #d1d5db; border-radius:8px; font-size:14px; resize:none; box-sizing:border-box;"></textarea>
-            <div style="display:flex; gap:12px;">
-                <button onclick="cerrarModalCliente()" style="flex:1; padding:12px; background:#e5e7eb; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px;">Cancelar</button>
-                <button onclick="enviarEmailConDatosCliente()" style="flex:1; padding:12px; background:linear-gradient(to right, #f59e0b, #ea580c); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px;">📧 Enviar</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Navbar -->
     <div id="navbar" class="w-full bg-drk-900 text-white p-4 shadow-md sticky top-0 z-50 transition-colors duration-300">
         <div class="max-w-lg mx-auto flex justify-between items-center">
@@ -2180,7 +2163,6 @@
             animation: pulse 2s ease-in-out infinite;
         }
     </style>
-
 
     <script>
         // Inicializar modo DUAL en false
@@ -8757,72 +8739,73 @@
         
         // --- FUNCIÓN SIMPLE: ABRIR EMAIL PARA SOLICITAR MEJORA ---
         function abrirEmailMejora() {
-            console.log('🔔 Intentando abrir modal');
+            console.log('🔔 Abriendo modal dinámico');
             
             if (!lastComparisonResult) {
                 window.showErrorModal("No hay datos de comparación disponibles.");
                 return;
             }
             
-            const modal = document.getElementById('modalClienteDatos');
-            console.log('Modal encontrado:', modal);
+            // CREAR EL MODAL DINÁMICAMENTE
+            const modalHTML = `
+                <div id="modalDinamico" style="display:block; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999999;">
+                    <div style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:30px; border-radius:15px; max-width:450px; width:90%;">
+                        <h2 style="color:#ea580c; font-size:24px; font-weight:bold; margin:0 0 15px 0;">📧 Solicitar Mejora a DRK</h2>
+                        <p style="color:#64748b; font-size:14px; margin:0 0 20px 0;">Complete los datos (todos opcionales):</p>
+                        <input type="text" id="dinamicoNombre" placeholder="Nombre" style="width:100%; padding:12px; margin:0 0 12px 0; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;">
+                        <input type="text" id="dinamicoApellidos" placeholder="Apellidos" style="width:100%; padding:12px; margin:0 0 12px 0; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;">
+                        <input type="email" id="dinamicoEmail" placeholder="Email" style="width:100%; padding:12px; margin:0 0 12px 0; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;">
+                        <input type="tel" id="dinamicoTelefono" placeholder="Teléfono" style="width:100%; padding:12px; margin:0 0 12px 0; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;">
+                        <textarea id="dinamicoObs" placeholder="Observaciones" rows="3" style="width:100%; padding:12px; margin:0 0 20px 0; border:1px solid #ccc; border-radius:8px; resize:none; box-sizing:border-box;"></textarea>
+                        <button onclick="cerrarModalDinamico()" style="width:48%; padding:12px; background:#ccc; border:none; border-radius:8px; cursor:pointer; margin-right:4%;">Cancelar</button>
+                        <button onclick="enviarEmailDinamico()" style="width:48%; padding:12px; background:#f59e0b; color:white; border:none; border-radius:8px; cursor:pointer;">📧 Enviar</button>
+                    </div>
+                </div>
+            `;
             
-            if (modal) {
-                modal.style.display = 'block';
-                console.log('✅ Modal abierto');
-            } else {
-                console.error('❌ No se encontró el modal');
-            }
+            // Agregar al body
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            console.log('✅ Modal creado y mostrado');
         }
         
-        function cerrarModalCliente() {
-            document.getElementById('modalClienteDatos').style.display = 'none';
-            document.getElementById('clienteNombre').value = '';
-            document.getElementById('clienteApellidos').value = '';
-            document.getElementById('clienteEmail').value = '';
-            document.getElementById('clienteTelefono').value = '';
-            document.getElementById('clienteObservaciones').value = '';
+        function cerrarModalDinamico() {
+            const modal = document.getElementById('modalDinamico');
+            if (modal) modal.remove();
         }
         
-        function enviarEmailConDatosCliente() {
-            const nombre = document.getElementById('clienteNombre').value.trim();
-            const apellidos = document.getElementById('clienteApellidos').value.trim();
-            const email = document.getElementById('clienteEmail').value.trim();
-            const telefono = document.getElementById('clienteTelefono').value.trim();
-            const observaciones = document.getElementById('clienteObservaciones').value.trim();
-            
-            const subject = '🚨 SOLICITUD DE MEJORA - Sin ahorro detectado';
+        function enviarEmailDinamico() {
+            const nombre = document.getElementById('dinamicoNombre').value.trim();
+            const apellidos = document.getElementById('dinamicoApellidos').value.trim();
+            const email = document.getElementById('dinamicoEmail').value.trim();
+            const telefono = document.getElementById('dinamicoTelefono').value.trim();
+            const obs = document.getElementById('dinamicoObs').value.trim();
             
             let body = '¡Hola equipo de DRK!\n\nHe realizado una comparación y NO se ha detectado ahorro.\n\n';
             
             if (nombre || apellidos || email || telefono) {
                 body += '👤 DATOS DEL CLIENTE:\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-                if (nombre) body += `Nombre: ${nombre}\n`;
-                if (apellidos) body += `Apellidos: ${apellidos}\n`;
-                if (email) body += `Email: ${email}\n`;
-                if (telefono) body += `Teléfono: ${telefono}\n`;
+                if (nombre) body += 'Nombre: ' + nombre + '\n';
+                if (apellidos) body += 'Apellidos: ' + apellidos + '\n';
+                if (email) body += 'Email: ' + email + '\n';
+                if (telefono) body += 'Teléfono: ' + telefono + '\n';
                 body += '\n';
             }
             
             body += '📋 DATOS DE LA COMPARACIÓN:\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            if (lastComparisonResult.cups) body += `CUPS: ${lastComparisonResult.cups}\n`;
-            if (lastComparisonResult.tariffType) body += `Tarifa: ${lastComparisonResult.tariffType}\n`;
-            if (lastComparisonResult.originalBillAnnual) body += `Coste actual anual: ${lastComparisonResult.originalBillAnnual.toFixed(2)} €\n`;
-            if (lastComparisonResult.totalAnnual) body += `Coste DRK anual: ${lastComparisonResult.totalAnnual.toFixed(2)} €\n`;
+            if (lastComparisonResult.cups) body += 'CUPS: ' + lastComparisonResult.cups + '\n';
+            if (lastComparisonResult.tariffType) body += 'Tarifa: ' + lastComparisonResult.tariffType + '\n';
+            if (lastComparisonResult.originalBillAnnual) body += 'Coste actual anual: ' + lastComparisonResult.originalBillAnnual.toFixed(2) + ' €\n';
+            if (lastComparisonResult.totalAnnual) body += 'Coste DRK anual: ' + lastComparisonResult.totalAnnual.toFixed(2) + ' €\n';
             body += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
             
-            if (observaciones) {
-                body += '\n📝 OBSERVACIONES:\n' + observaciones + '\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            }
+            if (obs) body += '\n📝 OBSERVACIONES:\n' + obs + '\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
             
             body += '\n⚠️ Por favor, revisen este caso y busquen una mejor oferta.\n\n📎 IMPORTANTE: Adjuntar la factura del cliente en el email.\n\nGracias,\nEquipo Comercial';
             
-            const recipients = 'F.araujo@drk.es,rguerra@drk.es,l.grande@drk.es';
-            const mailtoLink = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            const mailto = 'mailto:F.araujo@drk.es,rguerra@drk.es,l.grande@drk.es?subject=' + encodeURIComponent('🚨 SOLICITUD DE MEJORA - Sin ahorro detectado') + '&body=' + encodeURIComponent(body);
             
-            cerrarModalCliente();
-            window.location.href = mailtoLink;
-            console.log('✅ Email enviado');
+            cerrarModalDinamico();
+            window.location.href = mailto;
         }
         
         // --- SOLICITAR MEJORA A DRK (SIN AHORRO) ---

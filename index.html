@@ -5881,6 +5881,8 @@
                         <div class="text-center mt-2 ${brand.PRIMARY_TEXT} font-bold">${tr("Total Anual Estimado")}: ${eur(res.totalAnnual)}</div>
                     </div>
                 `;
+                
+                console.log('📄 Verificando breakdownHTML contiene excedentes:', breakdownHTML.includes('Excedentes solares'));
             } else {
                 // Si no hay datos válidos para el desglose
                 breakdownHTML = `

@@ -18393,7 +18393,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                      document.getElementById('manual-input-modal').classList.remove('hidden');
                      document.getElementById('manual-input-modal').classList.add('flex');
                 } else {
-                    window.showErrorModal("Las tarifas no han cargado aún. Por favor, intente de nuevo.");
+                    console.error('❌ Tarifas no cargadas. Estado:', {
+                        currentTariffType,
+                        tariffCount: currentTariffs[currentTariffType]?.length || 0,
+                        allTariffs: Object.keys(currentTariffs).map(k => ({type: k, count: currentTariffs[k]?.length || 0}))
+                    });
+                    window.showErrorModal("Las tarifas aún se están cargando. Por favor, espere 5 segundos y vuelva a escanear el código QR.");
                 }
             }
         }
@@ -28153,12 +28158,37 @@ ${clientName}
             window.addEventListener('load', () => {
                 setTimeout(() => window.LANG.retranslate(), 200);
                 
-                // Cargar tarifas 2.0TD directamente SIN cambiar de vista
+                // Mostrar indicador de carga
                 setTimeout(() => {
+                    const loadingEl = document.getElementById('loading-status');
+                    if (loadingEl) {
+                        loadingEl.textContent = '⏳ Cargando tarifas 2.0TD...';
+                        loadingEl.classList.remove('hidden');
+                    }
+                }, 500);
+                
+                // Cargar tarifas 2.0TD directamente SIN cambiar de vista
+                // Aumentado a 2500ms para asegurar carga completa
+                setTimeout(async () => {
                     console.log('🔄 Cargando tarifas 2.0TD para cliente...');
                     currentTariffType = '2.0TD';
-                    fetchTariffsFromSheet('2.0TD');
-                }, 800);
+                    await fetchTariffsFromSheet('2.0TD');
+                    
+                    // Ocultar indicador cuando termine
+                    const loadingEl = document.getElementById('loading-status');
+                    if (loadingEl) {
+                        loadingEl.classList.add('hidden');
+                    }
+                    
+                    // Mostrar cantidad de tarifas cargadas
+                    const count = currentTariffs['2.0TD']?.length || 0;
+                    console.log(`✅ Tarifas cargadas: ${count}`);
+                    if (count > 0) {
+                        console.log('🟢 Sistema listo para escanear QR');
+                    } else {
+                        console.error('🔴 No se cargaron tarifas. Recargar la página.');
+                    }
+                }, 2500);
             });
         })();
         

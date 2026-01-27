@@ -6737,6 +6737,19 @@
                                         <td align="right" style="padding:4px 0;color:#1e293b;font-size:11px;font-family:monospace;font-weight:bold;">${(e.price || 0).toFixed(6)}</td>
                                     </tr>
                                     `).join('') : ''}
+                                    ${res.solarSurplus && res.solarSurplus.enabled ? `
+                                    <tr>
+                                        <td colspan="2" style="padding:8px 0 4px 0;color:#f97316;font-size:12px;font-weight:bold;">${tr('太阳能盈余')}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:4px 0;color:#f97316;font-size:11px;">${tr('补偿')}:</td>
+                                        <td align="right" style="padding:4px 0;color:#f97316;font-size:11px;font-family:monospace;font-weight:bold;">${(res.solarSurplus.pricePerKwh || 0).toFixed(6)} €/kWh</td>
+                                    </tr>
+                                    ` : res.solarSurplus && res.solarSurplus.noPrice ? `
+                                    <tr>
+                                        <td colspan="2" style="padding:8px 0 4px 0;color:#9ca3af;font-size:11px;font-style:italic;">${tr('太阳能盈余')} - ${tr('无补偿')}</td>
+                                    </tr>
+                                    ` : ''}
                                     <tr>
                                         <td colspan="2" style="padding:10px 0 0 0;color:#64748b;font-size:10px;font-style:italic;">*${tr('显示的价格来自中标报价。')}</td>
                                     </tr>
@@ -13265,6 +13278,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 return '';
             }).join('');
             
+            // NUEVO: Añadir línea de excedentes solares si está habilitado
+            let solarSurplusRow = '';
+            if (bd.solarSurplus && bd.solarSurplus.enabled) {
+                const totalEx = bd.solarSurplus.total;
+                const discount = bd.solarSurplus.monthlyDiscount;
+                solarSurplusRow = `<tr><td style="${rowLabel} font-family: monospace; font-size: 12px; color: #f97316;">${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</td><td style="${rowValue} font-family: monospace; font-size: 12px; color: #f97316; white-space: nowrap;">-${num(discount, 2)} €</td></tr>`;
+            } else if (bd.solarSurplus && bd.solarSurplus.noPrice) {
+                solarSurplusRow = `<tr><td colspan="2" style="padding: 4px 8px; font-size: 10px; color: #9ca3af; font-style: italic;">${tr('Excedentes solares')} - ${tr('Sin compensación')}</td></tr>`;
+            }
+            
             const discountRowsHtml = bd.discountAmount > 0 ? `
                 <tr><td style="${rowLabel} font-weight: bold; color: #CC0000;">DESCUENTO COMERCIAL (${num(bd.discountRate * 100, 0)}%)</td><td style="${rowValue} font-weight: bold; color: #CC0000; white-space: nowrap;">-${num(bd.discountAmount, 2)} €</td></tr>
                 <tr><td style="${rowLabel} background-color: #eee; font-weight: bold; color: ${D_PRIMARY_DARK};">SUBTOTAL ENERGÍA (Neto)</td><td style="${rowValue} background-color: #eee; font-weight: bold; color: ${D_PRIMARY_DARK}; white-space: nowrap;">${num(bd.subEnergyNet, 2)} €</td></tr>
@@ -13277,7 +13300,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 <tr><td colspan="2"><div style="font-weight: bold; color: ${D_PRIMARY_MED}; padding: 10px 0 2px 0;">TÉRMINO ENERGÍA (Precios en €/kWh)</div></td></tr>
                 ${desgloseEnergia}
-                <tr><td style="${rowLabel} border-bottom: 2px solid #333; font-weight: bold; color: #555;"${tr("Subtotal Energía (Bruto)")}</td><td style="${rowValue} border-bottom: 2px solid #333; font-weight: bold; color: #555; white-space: nowrap;">${num(bd.subEnergy, 2)} €</td></tr>
+                ${solarSurplusRow}
+                <tr><td style="${rowLabel} border-bottom: 2px solid #333; font-weight: bold; color: #555;"${tr("Subtotal Energía (Bruto)")}</td><td style="${rowValue} border-bottom: 2px solid #333; font-weight: bold; color: #555; white-space: nowrap;">${num(bd.subEnergyGross !== undefined ? bd.subEnergyGross : bd.subEnergy, 2)} €</td></tr>
                 
                 ${discountRowsHtml}
                 
@@ -13536,6 +13560,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     return '';
                 }).join('');
                 
+                // NUEVO: Añadir línea de excedentes solares si está habilitado
+                let solarSurplusRow = '';
+                if (resItem.solarSurplus && resItem.solarSurplus.enabled) {
+                    const totalEx = resItem.solarSurplus.total;
+                    const discount = resItem.solarSurplus.monthlyDiscount;
+                    solarSurplusRow = `<tr><td style="padding: 5px 8px; font-family: monospace; font-size: 11px; color: #f97316;">${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</td><td style="padding: 5px 8px; font-family: monospace; font-size: 11px; font-weight: bold; color: #f97316; text-align: right; white-space: nowrap;">-${num(discount, 2)} €</td></tr>`;
+                } else if (resItem.solarSurplus && resItem.solarSurplus.noPrice) {
+                    solarSurplusRow = `<tr><td colspan="2" style="padding: 4px 8px; font-size: 10px; color: #9ca3af; font-style: italic;">${tr('Excedentes solares')} - ${tr('Sin compensación')}</td></tr>`;
+                }
+                
                 const discountRowsHtml = resItem.discountAmount > 0 ? `
                     <tr><td style="padding: 5px 8px; font-weight: bold; color: #CC0000;">DESCUENTO COMERCIAL (${num(resItem.discountRate * 100, 0)}%)</td><td style="padding: 5px 8px; text-align: right; font-weight: bold; color: #CC0000; white-space: nowrap;">-${num(resItem.discountAmount, 2)} €</td></tr>
                     ` : '';
@@ -13560,6 +13594,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             <tr><td colspan="2" style="height: 5px;"></td></tr>
                             <tr><td colspan="2" style="padding: 5px 8px; font-weight: bold; color: ${D_PRIMARY_MED};">ENERGÍA</td></tr>
                             ${desgloseEnergia}
+                            ${solarSurplusRow}
                             ${discountRowsHtml}
                             <tr><td colspan="2" style="height: 5px;"></td></tr>
                             <tr><td style="padding: 8px; background-color: ${BG_LIGHT}; font-weight: bold; color: ${D_PRIMARY_DARK};">TOTAL FACTURA (PERIODO)</td><td style="padding: 8px; background-color: ${BG_LIGHT}; font-weight: bold; color: ${D_PRIMARY_DARK}; text-align: right;">${eur(resItem.totalPeriod)}</td></tr>

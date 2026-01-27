@@ -237,8 +237,7 @@
                         </svg>
                     </div>
                 </div>
-                <!-- OCULTO: Subtítulo Selector -->
-                <span class="text-xs bg-drk-800 px-2 py-1 rounded text-drk-100" id="app-subtitle" style="display: none;">Selector</span>
+                <span class="text-xs bg-drk-800 px-2 py-1 rounded text-drk-100" id="app-subtitle">Selector</span>
             </div>
         </div>
     </div>
@@ -246,8 +245,8 @@
     <!-- Main Content Area -->
     <div id="app" class="w-full max-w-lg mx-auto p-4 md:p-6 flex-grow">
 
-        <!-- MODO DE COMPARACIÓN (Oculto - siempre en modo drk_only) -->
-        <div id="modo-comparacion-section" class="fade-in mb-6" style="display: none;">
+        <!-- MODO DE COMPARACIÓN (Siempre visible al inicio) -->
+        <div id="modo-comparacion-section" class="fade-in mb-6">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                 <p class="text-sm font-bold text-drk-800 mb-3 text-center uppercase tracking-wider">MODO DE COMPARACIÓN</p>
                 <div class="flex flex-wrap justify-center gap-2 text-sm">
@@ -255,13 +254,11 @@
                         <input type="radio" name="comparison_mode" value="drk_only" class="hidden" checked>
                         <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
                     </label>
-                    <!-- OCULTO: DRK Prioritario -->
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400" style="display: none;">
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400">
                         <input type="radio" name="comparison_mode" value="drk_prioritized" class="hidden">
                         <span class="font-semibold flex items-center justify-between w-full">DRK Prioritario<svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
                     </label>
-                    <!-- OCULTO: POWER CUP -->
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400" style="display: none;">
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400">
                         <input type="radio" name="comparison_mode" value="overall_best" class="hidden">
                         <span class="font-black flex flex-col items-center justify-center w-full leading-tight">
                             <span class="text-base">POWER CUP</span><span class="text-xs font-semibold -mt-0.5">Global</span>
@@ -273,7 +270,7 @@
         </div>
 
         <!-- PANTALLA INICIAL: Solo selector de servicio -->
-        <div id="screen-inicio" class="screen" style="display: none;">
+        <div id="screen-inicio" class="screen active">
             <div class="fade-in flex flex-col items-center justify-center min-h-[40vh] py-8">
                 <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                     <div class="w-16 h-16 bg-drk-50 rounded-full flex items-center justify-center mx-auto mb-4 text-drk-600 shadow-inner">
@@ -318,9 +315,9 @@
         </div>
 
         <!-- PANTALLA 2: ELECTRICIDAD (landing-view original) -->
-        <div id="screen-electricidad" class="screen active">
+        <div id="screen-electricidad" class="screen">
         <!-- 1. Landing View -->
-        <div id="landing-view" style="display: none;" class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8">
+        <div id="landing-view" class="fade-in flex flex-col items-center justify-center min-h-[60vh] py-8">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500" id="landing-card">
                 <div id="landing-icon-bg" class="w-16 h-16 bg-drk-50 rounded-full flex items-center justify-center mx-auto mb-4 text-drk-600 shadow-inner">
                     <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none">
@@ -336,8 +333,7 @@
                 
                 <!-- Tariff Selection Buttons -->
                 <div class="w-full space-y-4">
-                    <!-- OCULTO: MULTICUPS -->
-                    <button onclick="selectTariffType('MULTICUPS')" class="tariff-select-btn group" style="display: none;">
+                    <button onclick="selectTariffType('MULTICUPS')" class="tariff-select-btn group">
                         <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg>
                         </div>
@@ -359,8 +355,7 @@
                         <span class="arrow-icon group-hover:text-drk-500">&rarr;</span>
                     </button>
 
-                    <!-- OCULTO: 3.0TD -->
-                    <button onclick="selectTariffType('3.0TD')" class="tariff-select-btn group" style="display: none;">
+                    <button onclick="selectTariffType('3.0TD')" class="tariff-select-btn group">
                         <div class="icon-wrapper bg-drk-50 text-drk-600 group-hover:bg-drk-100">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.18a2 2 0 0 0 1.51-.72L11 1l2 2h3.18a2 2 0 0 1 1.51.72L20 5h1.18a2 2 0 0 1 2 2z"></path><path d="M14 9H8v8h8V9z"></path></svg>
                         </div>
@@ -386,107 +381,6 @@
                     </div>
                 </div>
 
-            </div>
-        </div>
-        
-        <!-- NUEVA: Vista directa cliente con diseño Extractor Inteligente -->
-        <div id="client-direct-view" class="fade-in flex flex-col items-center justify-center min-h-screen py-12" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-            <!-- Inputs ocultos necesarios -->
-            <input type="file" id="camera-capture-input" accept="image/*" capture="environment" class="hidden">
-            <input type="file" id="file-upload-input" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" class="hidden">
-            
-            <!-- Header DRK Power - Extractor Inteligente -->
-            <div class="w-full max-w-5xl mb-12 text-center px-4">
-                <div class="flex flex-col items-center justify-center gap-4 mb-6">
-                    <!-- Logo DRK arriba -->
-                    <div class="flex items-center gap-3">
-                        <!-- Logo circular DRK -->
-                        <svg class="w-16 h-16 md:w-20 md:h-20" viewBox="0 0 100 100" fill="none">
-                            <!-- Círculo con gradientes de colores -->
-                            <defs>
-                                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" style="stop-color:#E53935;stop-opacity:1" />
-                                    <stop offset="25%" style="stop-color:#FF8C00;stop-opacity:1" />
-                                </linearGradient>
-                                <linearGradient id="grad2" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#FF8C00;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:rgb(53,168,223);stop-opacity:1" />
-                                </linearGradient>
-                                <linearGradient id="grad3" x1="100%" y1="0%" x2="0%" y2="0%">
-                                    <stop offset="0%" style="stop-color:rgb(53,168,223);stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#4CAF50;stop-opacity:1" />
-                                </linearGradient>
-                                <linearGradient id="grad4" x1="0%" y1="100%" x2="0%" y2="0%">
-                                    <stop offset="0%" style="stop-color:#4CAF50;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#E53935;stop-opacity:1" />
-                                </linearGradient>
-                            </defs>
-                            <!-- Arco superior (rojo a naranja) -->
-                            <path d="M 50 5 A 45 45 0 0 1 95 50" stroke="url(#grad1)" stroke-width="6" fill="none" stroke-linecap="round"/>
-                            <!-- Arco derecho (naranja a azul) -->
-                            <path d="M 95 50 A 45 45 0 0 1 50 95" stroke="url(#grad2)" stroke-width="6" fill="none" stroke-linecap="round"/>
-                            <!-- Arco inferior (azul a verde) -->
-                            <path d="M 50 95 A 45 45 0 0 1 5 50" stroke="url(#grad3)" stroke-width="6" fill="none" stroke-linecap="round"/>
-                            <!-- Arco izquierdo (verde a rojo) -->
-                            <path d="M 5 50 A 45 45 0 0 1 50 5" stroke="url(#grad4)" stroke-width="6" fill="none" stroke-linecap="round"/>
-                        </svg>
-                        
-                        <!-- Texto DRK -->
-                        <h1 class="text-6xl md:text-7xl lg:text-8xl font-black tracking-tight" style="color: rgb(53,168,223);">DRK</h1>
-                    </div>
-                    
-                    <!-- POWER abajo -->
-                    <div class="bg-slate-800 px-6 md:px-8 py-2 md:py-3 rounded-lg">
-                        <h2 class="text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-wider">POWER</h2>
-                    </div>
-                </div>
-                <p class="text-slate-300 text-sm md:text-base lg:text-lg uppercase tracking-widest font-mono leading-relaxed">
-                    SOLO PARA FACTURAS PDF DIRECTAS<br class="md:hidden">
-                    <span class="hidden md:inline">DE LA COMERCIALIZADORA</span>
-                    <span class="md:hidden">DE LA COMERCIALIZADORA</span>
-                    <span class="block mt-2 text-xs md:text-sm" style="color: rgb(53,168,223);">(MULTIDIOMAS)</span>
-                </p>
-            </div>
-            
-            <!-- Selector de idiomas -->
-            <div class="w-full max-w-5xl mb-8 flex flex-wrap justify-center gap-3 px-4">
-                <button onclick="if(window.LANG) window.LANG.change('es')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:bg-slate-700 text-white font-semibold transition text-sm" style="border-color: rgb(53,168,223);">
-                    🇪🇸 ES
-                </button>
-                <button onclick="if(window.LANG) window.LANG.change('en')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:bg-slate-700 text-white font-semibold transition text-sm" style="border-color: rgb(53,168,223);">
-                    🇬🇧 EN
-                </button>
-                <button onclick="if(window.LANG) window.LANG.change('zh')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:bg-slate-700 text-white font-semibold transition text-sm" style="border-color: rgb(53,168,223);">
-                    🇨🇳 ZH
-                </button>
-                <button onclick="if(window.LANG) window.LANG.change('fr')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:bg-slate-700 text-white font-semibold transition text-sm" style="border-color: rgb(53,168,223);">
-                    🇫🇷 FR
-                </button>
-                <button onclick="if(window.LANG) window.LANG.change('de')" class="px-5 py-2.5 rounded-lg bg-slate-700/50 border-2 border-slate-600 hover:bg-slate-700 text-white font-semibold transition text-sm" style="border-color: rgb(53,168,223);">
-                    🇩🇪 DE
-                </button>
-            </div>
-            
-            <!-- Zona de Drag & Drop con diseño moderno -->
-            <div class="w-full max-w-5xl px-4">
-                <div id="drag-drop-zone-main" class="border-4 border-dashed border-blue-500/40 rounded-3xl p-12 md:p-20 text-center bg-slate-800/30 hover:bg-slate-800/50 hover:border-blue-400 transition-all duration-300 cursor-pointer backdrop-blur-sm">
-                    <!-- Iconos grandes -->
-                    <div class="flex items-center justify-center gap-8 mb-8">
-                        <svg class="w-20 h-20 md:w-28 md:h-28 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
-                            <path d="M14 2v6h6M10 13h4M10 17h4M10 9h1"/>
-                        </svg>
-                        <svg class="w-20 h-20 md:w-28 md:h-28 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                    </div>
-                    
-                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Arrastra el PDF de la factura original de la comercializadora</h2>
-                    <p class="text-slate-300 text-base md:text-lg">
-                        Válido para todas las comercializadoras de electricidad, <span class="font-bold text-red-400">excepto PVPC</span>.
-                    </p>
-                </div>
             </div>
         </div>
         </div> <!-- Cierre screen-electricidad -->
@@ -1230,8 +1124,8 @@
             </div>
         </div>
 
-        <!-- 3. Initial Input View (Scan/Manual) - OCULTO PARA CLIENTE -->
-        <div id="initial-view" style="display: none !important;" class="fade-in hidden">
+        <!-- 3. Initial Input View (Scan/Manual) -->
+        <div id="initial-view" class="fade-in hidden">
             <button onclick="currentTariffType === 'MULTICUPS' ? showMultiCupsSagaView() : goBackFromInitialView()" class="mb-4 text-sm text-slate-500 hover:text-drk-600 flex items-center gap-1">
                 &larr; Volver <span id="back-button-label">a selección</span>
             </button>
@@ -1425,23 +1319,18 @@
                     <span>AÑADIR A DUAL</span>
                 </button>
                 
-                <button onclick="sendClientEmail()" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-5 px-6 rounded-xl shadow-2xl transform transition active:scale-95 flex items-center justify-center gap-3 mb-3 text-xl">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                    <span>LO QUIERO</span>
+                <button id="send-offer-btn" class="w-full bg-cta-red-500 hover:bg-cta-red-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-2m-4-4l-4 4m0 0l-4-4m4 4V5"></path></svg>
+                    <span>COPIAR COMPARATIVO</span>
                 </button>
                 
-                <!-- BOTÓN SIMPLE: Solicitar mejora a DRK -->
-                <button id="request-improvement-btn" style="display:none;" onclick="abrirEmailMejora()" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                    <span>SOLICITAR MEJORA A DRK</span>
+                <!-- NUEVO: Botón para solicitar mejora cuando no hay ahorro -->
+                <button id="request-improvement-btn" style="display:none;" class="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <span id="request-improvement-text">SOLICITAR MEJORA A DRK</span>
                 </button>
                 
-                <button onclick="document.getElementById('details-container').classList.toggle('hidden'); return false;" class="w-full bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-300 text-blue-800 font-bold py-4 px-6 rounded-xl hover:from-blue-100 hover:to-cyan-100 transition flex items-center justify-center gap-2 text-lg shadow-md" id="details-toggle-btn">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                    </svg>
-                    <span id="details-toggle-text">Ver desglose detallado del cálculo</span>
-                </button>
+                <button onclick="document.getElementById('details-container').classList.toggle('hidden')" class="text-center text-drk-800 font-bold text-sm hover:underline flex items-center justify-center gap-1" id="details-toggle-btn"><span id="details-toggle-text"></span></button>
             </div>
             
             <div id="details-container" class="hidden space-y-6">
@@ -1559,8 +1448,7 @@
         <!-- 8. QR Options Modal (Upload/Paste) - CON DRAG & DROP -->
         <div id="qr-options-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
             <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full">
-                <!-- Título OCULTO -->
-                <h3 style="display: none;" class="text-xl font-bold text-drk-800 mb-4" id="modal-qr-title">Seleccione Opción QR</h3>
+                <h3 class="text-xl font-bold text-drk-800 mb-4" id="modal-qr-title">Seleccione Opción QR</h3>
                 
                 <!-- Input oculto para captura de foto -->
                 <input type="file" id="camera-capture-input" accept="image/*" capture="environment" class="hidden">
@@ -1578,29 +1466,27 @@
                     <p class="text-xs text-drk-600 mt-2 font-semibold">o haz clic para seleccionar</p>
                 </div>
                 
-                <!-- Botón Capturar Foto (OCULTO) -->
-                <button id="camera-capture-btn" style="display: none;" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 flex items-center justify-center gap-2">
+                <!-- Botón Capturar Foto (primera opción) -->
+                <button id="camera-capture-btn" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 flex items-center justify-center gap-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.125 3h3.75a2 2 0 011.664.89l.812 1.22a2 2 0 001.664.89H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     <span>Capturar Foto</span>
                 </button>
                 
-                <!-- Botón Subir desde Archivo (OCULTO) -->
-                <button id="modal-upload-file-btn" style="display: none;" class="w-full bg-drk-800 hover:bg-drk-900 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 flex items-center justify-center gap-2">
+                <!-- Botón Subir desde Archivo -->
+                <button id="modal-upload-file-btn" class="w-full bg-drk-800 hover:bg-drk-900 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 flex items-center justify-center gap-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                     <span>Subir desde Archivo</span>
                 </button>
                 
-                <!-- Pegar Imagen (OCULTO) -->
-                <button id="modal-paste-image-btn" style="display: none;" class="w-full bg-drk-600 hover:bg-drk-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3">Pegar Imagen (CTRL+V)</button>
+                <button id="modal-paste-image-btn" class="w-full bg-drk-600 hover:bg-drk-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3">Pegar Imagen (CTRL+V)</button>
                 
-                <!-- Opción Pegar Código Completo (OCULTO) -->
-                <button id="modal-paste-url-btn" style="display: none;" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-4 flex items-center justify-center gap-2">
+                <!-- Opción Pegar Código Completo -->
+                <button id="modal-paste-url-btn" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-4 flex items-center justify-center gap-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     <span>Pegar Código Completo</span>
                 </button>
                 
-                <!-- Botón Cancelar (OCULTO) -->
-                <button style="display: none;" onclick="document.getElementById('qr-options-modal').classList.add('hidden'); document.getElementById('qr-options-modal').classList.remove('flex');" class="w-full bg-slate-200 font-bold py-3 rounded-xl">Cancelar</button>
+                <button onclick="document.getElementById('qr-options-modal').classList.add('hidden'); document.getElementById('qr-options-modal').classList.remove('flex');" class="w-full bg-slate-200 font-bold py-3 rounded-xl">Cancelar</button>
             </div>
         </div>
 
@@ -1763,8 +1649,8 @@
                 
                 <!-- Content -->
                 <div class="p-6">
-                    <!-- NUEVO: Checkbox para comparación con tarifas indexadas (OCULTO EN VERSIÓN SIMPLE) -->
-                    <div id="powercup-indexed-comparison-checkbox" class="hidden" style="display: none !important;">
+                    <!-- NUEVO: Checkbox para comparación con tarifas indexadas (SOLO POWER CUP) -->
+                    <div id="powercup-indexed-comparison-checkbox" class="hidden mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl border-2 border-blue-200">
                         <label class="flex items-start gap-3 cursor-pointer group">
                             <input 
                                 type="checkbox" 
@@ -1781,6 +1667,89 @@
                                 </p>
                             </div>
                         </label>
+                    </div>
+                    
+                    <!-- NUEVO: Checkbox para Excedentes Solares (SOLO 2.0TD) -->
+                    <div id="solar-surplus-checkbox-container" class="hidden mb-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border-2 border-orange-200">
+                        <label class="flex items-start gap-3 cursor-pointer group">
+                            <input 
+                                type="checkbox" 
+                                id="solar-surplus-checkbox" 
+                                class="mt-1 w-5 h-5 text-orange-600 border-2 border-slate-300 rounded focus:ring-2 focus:ring-orange-500 cursor-pointer"
+                                onchange="toggleSolarSurplus(this.checked)"
+                            >
+                            <div class="flex-1">
+                                <p id="solar-surplus-title" class="font-black text-base text-slate-900 mb-1 group-hover:text-orange-600 transition">
+                                    ☀️ Excedentes solares
+                                </p>
+                                <p id="solar-surplus-desc" class="text-sm text-slate-600">
+                                    Calcula el descuento por compensación de excedentes de energía solar.
+                                </p>
+                            </div>
+                        </label>
+                        
+                        <!-- Campos de excedentes (ocultos por defecto) -->
+                        <div id="solar-surplus-fields" class="hidden mt-4 space-y-3 animate-fade-in-up">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div>
+                                    <label for="excedente-kwh-1" class="block text-xs font-bold text-slate-700 mb-1">
+                                        ☀️ Excedente kWh 1
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="excedente-kwh-1" 
+                                        class="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+                                        placeholder="0"
+                                        min="0"
+                                        step="0.01"
+                                        value="0"
+                                        oninput="calculateSolarSurplus()"
+                                    >
+                                </div>
+                                <div>
+                                    <label for="excedente-kwh-2" class="block text-xs font-bold text-slate-700 mb-1">
+                                        ☀️ Excedente kWh 2
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="excedente-kwh-2" 
+                                        class="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+                                        placeholder="0"
+                                        min="0"
+                                        step="0.01"
+                                        value="0"
+                                        oninput="calculateSolarSurplus()"
+                                    >
+                                </div>
+                                <div>
+                                    <label for="excedente-kwh-3" class="block text-xs font-bold text-slate-700 mb-1">
+                                        ☀️ Excedente kWh 3
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="excedente-kwh-3" 
+                                        class="w-full px-3 py-2 border-2 border-slate-300 rounded-lg focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition"
+                                        placeholder="0"
+                                        min="0"
+                                        step="0.01"
+                                        value="0"
+                                        oninput="calculateSolarSurplus()"
+                                    >
+                                </div>
+                            </div>
+                            
+                            <!-- Resumen del cálculo de excedentes -->
+                            <div id="solar-surplus-summary" class="hidden p-3 bg-white rounded-lg border-2 border-orange-200">
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="font-bold text-slate-700">Total Excedentes:</span>
+                                    <span id="total-excedentes-display" class="font-black text-orange-600">0 kWh</span>
+                                </div>
+                                <div class="flex items-center justify-between text-sm mt-2">
+                                    <span class="font-bold text-slate-700">Descuento Aplicado:</span>
+                                    <span id="descuento-excedentes-display" class="font-black text-green-600">-0,00 €</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="flex flex-col gap-4">
@@ -1843,8 +1812,8 @@
                             </div>
                         </div>
                         
-                        <!-- Opción 2: Elegir Manual (OCULTO EN VERSIÓN SIMPLE "MEJOR OPCIÓN") -->
-                        <button onclick="selectFromResults()" class="text-left p-6 rounded-xl border-2 border-slate-300 bg-white hover:border-drk-500 hover:bg-drk-50 transition group" style="display: none;">
+                        <!-- Opción 2: Elegir Manual -->
+                        <button onclick="selectFromResults()" class="text-left p-6 rounded-xl border-2 border-slate-300 bg-white hover:border-drk-500 hover:bg-drk-50 transition group">
                             <div class="flex items-start gap-4">
                                 <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200">
                                     📋
@@ -2172,7 +2141,7 @@
         // **ATENCIÓN: Los IDs de las hojas deben ser públicos para funcionar (CSV)**
         // Eliminamos 6.1TD de la configuración
         const TARIFF_CONFIG = {
-            '2.0TD': { sheetId: '1kLfQOZnTsBJ8lRXA0ab5RXk-QM3VeSRkDQsatL3-tVk', periods: 3, powerPeriods: 2, label: '2.0 TD', isHighVoltage: false, requiresQR: true, isMulti: false },
+            '2.0TD': { sheetId: '19CBiWVvxHoWW0fqdbSbLGs-hoISQGORAfebBztFYi3w', periods: 3, powerPeriods: 2, label: '2.0 TD', isHighVoltage: false, requiresQR: true, isMulti: false },
             '3.0TD': { sheetId: '18nieA7yMD9Ytc2Z3EnktoNDZokuMrBet_ETGyhNZDuo', periods: 6, powerPeriods: 6, label: '3.0 TD', isHighVoltage: true, requiresQR: false, isMulti: false },
             'MULTICUPS': { sheetId: 'MULTICUPS_MIXED_TARIF_SHEET_ID', periods: 6, powerPeriods: 6, label: 'MULTICUPS', isHighVoltage: false, requiresQR: true, isMulti: true, baseTariffType: '2.0TD' }
         };
@@ -2949,17 +2918,15 @@
                 fijaRadio.checked = true;
             }
             
-            // FORZAR modo DRK ÚNICAMENTE
-            comparisonMode = 'drk_only';
+            // Restaurar la marca activa según el modo de comparación
+            const brandToApply = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
+            applyBrandStyles(brandToApply);  
             
-            // Restaurar la marca activa (siempre DRK)
-            applyBrandStyles(BRANDS.DRK);  
-            
-            // Asegurarse de que el radio button de drk_only esté checked
-            const selectorInput = document.querySelector('input[name="comparison_mode"][value="drk_only"]');
+            // Asegurarse de que el radio button correcto esté checked
+            const selectorInput = document.querySelector(`input[name="comparison_mode"][value="${comparisonMode}"]`);
             if (selectorInput) {
                 selectorInput.checked = true;
-                updateComparisonMode('drk_only');
+                updateComparisonMode(comparisonMode);
             }
 
             // Ocultar vistas adicionales del flujo normal
@@ -2972,27 +2939,20 @@
             document.getElementById('multicups-finalize-btn-main')?.classList.add('hidden');
             document.getElementById('manual-tariff-selector-wrapper')?.classList.add('hidden');
             
-            // IMPORTANTE: Mostrar landing-view para que esté visible
+            // IMPORTANTE: Mostrar landing-view para que esté visible al volver a Electricidad/Gas
             document.getElementById('landing-view')?.classList.remove('hidden');
             
             document.querySelectorAll('.hidden-period').forEach(el => el.style.display = 'none');
+            document.getElementById('tariff-display-badge').textContent = '0';
             
-            // IR DIRECTO A 2.0TD (no mostrar screen-inicio)
-            document.getElementById('screen-inicio')?.classList.remove('active');
-            currentTariffType = '2.0TD';
-            document.getElementById('screen-electricidad')?.classList.add('active');
-            
-            // Actualizar badge de tarifas 2.0TD
-            const count = currentTariffs['2.0TD']?.length || 0;
-            document.getElementById('tariff-display-badge').textContent = count;
-            
-            // Ocultar selector de modo (ya está en drk_only)
+            // FINALMENTE: Mostrar pantalla inicial y selector de modo
+            document.getElementById('screen-inicio')?.classList.add('active');
             const modoComparacionSection = document.getElementById('modo-comparacion-section');
             if (modoComparacionSection) {
-                modoComparacionSection.style.display = 'none';
+                modoComparacionSection.style.display = 'block';
             }
             
-            console.log('✅ resetToLanding completada - Directo a 2.0TD en modo DRK Únicamente');
+            console.log('✅ resetToLanding completada - screen-inicio activa');
         };
         
         // NUEVA FUNCIÓN: Volver desde initial-view SIN hacer reset completo
@@ -3013,21 +2973,13 @@
         window.goBackFromMultiCupsSagaView = function() {
             console.log('🔙 goBackFromMultiCupsSagaView llamada');
             
-            // FORZAR modo DRK ÚNICAMENTE
-            comparisonMode = 'drk_only';
-            document.querySelector('input[name="comparison_mode"][value="drk_only"]').checked = true;
-            applyBrandStyles(BRANDS.DRK);
-            
-            // Ocultar multicups-saga-view
+            // Solo ocultar multicups-saga-view
             document.getElementById('multicups-saga-view')?.classList.add('hidden');
             
-            // IR DIRECTO A 2.0TD (mostrar landing-view que está dentro de screen-electricidad)
-            hideAllScreens();
-            currentTariffType = '2.0TD';
-            document.getElementById('screen-electricidad')?.classList.add('active');
+            // Mostrar la pantalla de selección de tarifa (landing-view)
             document.getElementById('landing-view')?.classList.remove('hidden');
             
-            console.log('✅ Vuelto a 2.0TD desde MultiCups en modo DRK ÚNICAMENTE');
+            console.log('✅ Vuelto a landing-view desde MultiCups');
         };
 
         function toggleMultiCupsInputPeriods(tariffType, prefix = 'input') {
@@ -3274,7 +3226,6 @@
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 document.getElementById('results-view').classList.remove('hidden');
-                setTimeout(() => showCleanResultsPage(), 800);
                 
                 console.log('=== COMPARACIÓN DUAL COMPLETADA ===');
                 
@@ -3945,6 +3896,40 @@
                 ieRate: IE_RATE
             };
             
+            // NUEVO: Aplicar descuento por excedentes solares si está habilitado y es tarifa 2.0TD
+            if (solarSurplusEnabled && tariffType === '2.0TD' && solarSurplusData.discount > 0) {
+                console.log(`☀️ Aplicando descuento de excedentes solares: -${solarSurplusData.discount.toFixed(2)} € mensuales`);
+                
+                // Calcular descuento anual
+                const monthlyDiscount = solarSurplusData.discount;
+                const annualDiscount = monthlyDiscount * 12;
+                
+                // Ajustar energía (el descuento se resta del subtotal de energía)
+                result.subEnergy = Math.max(0, result.subEnergy - monthlyDiscount);
+                result.subEnergyNet = Math.max(0, result.subEnergyNet - monthlyDiscount);
+                result.subBase = Math.max(0, result.subBase - monthlyDiscount);
+                
+                // Recalcular impuestos con el nuevo subtotal
+                result.costIE = result.subBase * IE_RATE;
+                result.baseImp = result.subBase + result.costIE;
+                result.costIVA = result.baseImp * IVA_RATE;
+                result.totalPeriod = result.baseImp + result.costIVA;
+                result.totalAnnual = result.totalPeriod * factorAnual;
+                
+                // Recalcular ahorros
+                result.savings = result.originalBillAnnual - result.totalAnnual;
+                
+                // Añadir información de excedentes al resultado
+                result.solarSurplus = {
+                    enabled: true,
+                    monthlyDiscount: monthlyDiscount,
+                    annualDiscount: annualDiscount,
+                    ...solarSurplusData
+                };
+                
+                console.log(`✅ Nuevo coste anual con excedentes: ${result.totalAnnual.toFixed(2)} €, Ahorro: ${result.savings.toFixed(2)} €`);
+            }
+            
             // Si el ahorro es negativo, marcar pero NO cambiar la oferta
             // MANTENER los datos de la tarifa calculada (DRK) para que se vean sus precios
             if (result.savings <= 0) {
@@ -4271,7 +4256,6 @@
                 } else {
                     // Flujo normal - mostrar resultados
                     document.getElementById('results-view').classList.remove('hidden');
-                    setTimeout(() => showCleanResultsPage(), 800);
                     document.getElementById('results-view').classList.add('animate-fade-in-up');
                     
                     // Detectar modo DUAL y mostrar botón si corresponde
@@ -4555,7 +4539,6 @@
             document.getElementById('initial-view').classList.add('hidden');
             document.getElementById('multicups-saga-view').classList.add('hidden');
             document.getElementById('scanner-view').classList.add('hidden');
-            setTimeout(() => showCleanResultsPage(), 800);
             document.getElementById('results-view').classList.remove('hidden');
             document.getElementById('results-view').classList.add('animate-fade-in-up');
         }
@@ -5699,142 +5682,18 @@
                 });
 
                 consumptionHTML = `
-                    <div class="space-y-4">
-                        <!-- Información Principal -->
-                        <div class="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-lg border-2 border-blue-200">
-                            <p class="text-xs font-bold text-blue-900 uppercase mb-2">${tr('Información del Suministro')}</p>
-                            <div class="grid grid-cols-1 gap-2">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs text-slate-600">CUPS:</span>
-                                    <span class="font-mono font-bold text-xs text-slate-900">${res.cups || 'N/A'}</span>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs text-slate-600">${tr('Importe Total:')}</span>
-                                    <span class="font-bold text-lg ${brand.PRIMARY_TEXT}">${num(res.importe_total || 0, 2)} €</span>
-                                </div>
-                            </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><p class="text-xs text-slate-500">${tr('Periodo')}</p><p class="font-bold text-slate-700">${res.dias_facturados} ${tr('días')}</p></div>
+                        <div><p class="text-xs text-slate-500">${tr('Fechas')}</p><p class="font-bold text-slate-700 text-xs">${res.fechas}</p></div>
+                        <div class="col-span-2 border-t pt-2 mt-2">
+                            <p class="font-bold ${brand.PRIMARY_TEXT} mb-2">${tr('Consumo por Periodo (kWh)')}</p>
+                            ${energyRows}
+                            <div class="flex justify-between font-bold ${brand.PRIMARY_TEXT} mt-1 border-t pt-1"><span>${tr('Total Consumo')}</span><span>${num(totalEnergy, 0)} kWh</span></div>  
                         </div>
-
-                        <!-- Periodo de Facturación -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-white p-3 rounded-lg border border-slate-200">
-                                <p class="text-xs text-slate-500 mb-1">${tr('Periodo')}</p>
-                                <p class="font-bold text-slate-900">${res.dias_facturados} ${tr('días')}</p>
-                            </div>
-                            <div class="bg-white p-3 rounded-lg border border-slate-200">
-                                <p class="text-xs text-slate-500 mb-1">${tr('Fechas')}</p>
-                                <p class="font-bold text-slate-900 text-xs">${res.fechas}</p>
-                            </div>
+                        <div class="col-span-2">
+                            <p class="font-bold ${brand.PRIMARY_TEXT} mb-2">${tr('Potencia Contratada (kW)')}</p>
+                            ${powerRows}
                         </div>
-
-                        <!-- Consumo de Energía -->
-                        <div class="bg-white p-4 rounded-lg border-2 border-green-200">
-                            <p class="font-bold ${brand.PRIMARY_TEXT} mb-3 flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                                </svg>
-                                ${tr('Consumo por Periodo (kWh)')}
-                            </p>
-                            <div class="space-y-1">
-                                ${energyRows}
-                            </div>
-                            <div class="flex justify-between font-bold ${brand.PRIMARY_TEXT} mt-3 pt-2 border-t-2 border-green-200">
-                                <span>${tr('Total Consumo')}</span>
-                                <span class="text-lg">${num(totalEnergy, 0)} kWh</span>
-                            </div>  
-                        </div>
-
-                        <!-- Potencia Contratada vs Uso Real -->
-                        <div class="bg-white p-4 rounded-lg border-2 border-amber-200">
-                            <p class="font-bold ${brand.PRIMARY_TEXT} mb-3 flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                                </svg>
-                                ${tr('Potencia Contratada (kW)')}
-                            </p>
-                            <div class="space-y-1">
-                                ${powerRows}
-                            </div>
-                            ${res.potencia_max_p1 || res.potencia_max_p2 ? `
-                                <div class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-300">
-                                    <p class="text-xs font-bold text-amber-900 mb-2">${tr('Picos Máximos Registrados:')}</p>
-                                    ${res.potencia_max_p1 ? `<div class="flex justify-between text-xs"><span>${tr('P1 (Punta):')}</span><span class="font-bold">${num(res.potencia_max_p1, 3)} kW</span></div>` : ''}
-                                    ${res.potencia_max_p2 ? `<div class="flex justify-between text-xs"><span>${tr('P2 (Valle):')}</span><span class="font-bold">${num(res.potencia_max_p2, 3)} kW</span></div>` : ''}
-                                    ${res.potencia_p1_kw && res.potencia_max_p1 ? `
-                                        <div class="mt-2 pt-2 border-t border-amber-200">
-                                            <p class="text-xs text-amber-800">
-                                                <span class="font-bold">${tr('Aprovechamiento:')}</span> ${num((res.potencia_max_p1 / res.potencia_p1_kw) * 100, 0)}% ${tr('de la potencia contratada')}
-                                            </p>
-                                            ${((res.potencia_max_p1 / res.potencia_p1_kw) * 100) < 50 ? `<p class="text-xs text-red-600 mt-1">${tr('Estás pagando por mucha más potencia de la que usas')}</p>` : ''}
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            ` : ''}
-                        </div>
-
-                        <!-- Costes Desglosados -->
-                        ${res.coste_potencia || res.coste_energia || res.otros_costes ? `
-                            <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border-2 border-purple-200">
-                                <p class="font-bold text-purple-900 mb-3 flex items-center gap-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    ${tr('Desglose de Costes')}
-                                </p>
-                                <div class="space-y-2">
-                                    ${res.coste_potencia ? `<div class="flex justify-between items-center bg-white p-2 rounded"><span class="text-sm text-slate-700">${tr('Término fijo (Potencia)')}</span><span class="font-bold text-purple-700">${num(res.coste_potencia, 2)} €</span></div>` : ''}
-                                    ${res.coste_energia ? `<div class="flex justify-between items-center bg-white p-2 rounded"><span class="text-sm text-slate-700">${tr('Término variable (Energía)')}</span><span class="font-bold text-purple-700">${num(res.coste_energia, 2)} €</span></div>` : ''}
-                                    ${res.otros_costes ? `<div class="flex justify-between items-center bg-white p-2 rounded"><span class="text-sm text-slate-700">${tr('Otros (Contador, etc.)')}</span><span class="font-bold text-purple-700">${num(res.otros_costes, 2)} €</span></div>` : ''}
-                                    ${res.coste_potencia && res.coste_energia ? `
-                                        <div class="flex justify-between items-center bg-purple-100 p-2 rounded border-t-2 border-purple-300 mt-2">
-                                            <span class="text-sm font-bold text-purple-900">${tr('Subtotal (sin impuestos)')}</span>
-                                            <span class="font-bold text-lg text-purple-900">${num((res.coste_potencia || 0) + (res.coste_energia || 0) + (res.otros_costes || 0), 2)} €</span>
-                                        </div>
-                                        <div class="text-xs text-slate-600 mt-2 bg-white p-2 rounded">
-                                            <p class="mb-1">${tr('El resto hasta')} <strong>${num(res.importe_total, 2)} €</strong> ${tr('corresponde a:')}</p>
-                                            <ul class="list-disc list-inside pl-2 space-y-1">
-                                                <li>${tr('Impuesto Eléctrico (5.11%)')}</li>
-                                                <li>${tr('IVA (21%)')}</li>
-                                            </ul>
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        ` : ''}
-
-                        <!-- Histórico Acumulado Anual -->
-                        ${res.consumo_anual_p1 || res.consumo_anual_p2 || res.consumo_anual_p3 ? `
-                            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg border-2 border-indigo-200">
-                                <p class="font-bold text-indigo-900 mb-3 flex items-center gap-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                                    </svg>
-                                    ${tr('Histórico Acumulado (Ciclo Anual)')}
-                                </p>
-                                <div class="space-y-2">
-                                    ${res.consumo_anual_p1 ? `<div class="flex justify-between text-sm"><span class="text-slate-700">${tr('P1 (Punta):')}</span><span class="font-bold text-indigo-700">${num(res.consumo_anual_p1, 0)} kWh</span></div>` : ''}
-                                    ${res.consumo_anual_p2 ? `<div class="flex justify-between text-sm"><span class="text-slate-700">${tr('P2 (Llano):')}</span><span class="font-bold text-indigo-700">${num(res.consumo_anual_p2, 0)} kWh</span></div>` : ''}
-                                    ${res.consumo_anual_p3 ? `<div class="flex justify-between text-sm"><span class="text-slate-700">${tr('P3 (Valle):')}</span><span class="font-bold text-indigo-700">${num(res.consumo_anual_p3, 0)} kWh</span></div>` : ''}
-                                    <div class="flex justify-between bg-indigo-100 p-2 rounded border-t-2 border-indigo-300 mt-2">
-                                        <span class="text-sm font-bold text-indigo-900">${tr('Total Acumulado:')}</span>
-                                        <span class="font-bold text-lg text-indigo-900">${num((res.consumo_anual_p1 || 0) + (res.consumo_anual_p2 || 0) + (res.consumo_anual_p3 || 0), 0)} kWh</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ` : ''}
-
-                        <!-- Información Adicional -->
-                        ${res.fecha_factura || res.comercializadora || res.fecha_fin_contrato ? `
-                            <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                                <p class="font-bold text-slate-800 mb-3 text-sm">${tr('Información Adicional')}</p>
-                                <div class="grid grid-cols-1 gap-2 text-xs">
-                                    ${res.fecha_factura ? `<div class="flex justify-between"><span class="text-slate-600">${tr('Fecha de factura:')}</span><span class="font-mono font-bold">${res.fecha_factura}</span></div>` : ''}
-                                    ${res.comercializadora ? `<div class="flex justify-between"><span class="text-slate-600">${tr('Comercializadora:')}</span><span class="font-bold">${res.comercializadora}</span></div>` : ''}
-                                    ${res.fecha_fin_contrato ? `<div class="flex justify-between"><span class="text-slate-600">${tr('Fin de contrato:')}</span><span class="font-mono font-bold">${res.fecha_fin_contrato}</span></div>` : ''}
-                                    ${res.tipo_contrato ? `<div class="flex justify-between"><span class="text-slate-600">${tr('Tipo de contrato:')}</span><span class="font-bold">${res.tipo_contrato}</span></div>` : ''}
-                                </div>
-                            </div>
-                        ` : ''}
                     </div>
                 `;
             } else {
@@ -6013,22 +5872,22 @@
                             
                             <!-- Contenedor de tabs con scroll -->
                             <div id="tabs-container" class="flex overflow-x-auto scrollbar-hide scroll-smooth" style="scroll-behavior: smooth;">
-                                <button onclick="event.preventDefault(); event.stopPropagation(); showSection('analisis'); return false;" id="btn-analisis"
+                                <button onclick="showSection('analisis')" id="btn-analisis"
                                         class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
                                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     ${tr('Análisis de Horarios')}
                                 </button>
-                                <button onclick="event.preventDefault(); event.stopPropagation(); showSection('datos-extraidos'); return false;" id="btn-datos-extraidos"
+                                <button onclick="showSection('datos-extraidos')" id="btn-datos-extraidos"
                                         class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
                                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     ${tr('Datos Extraídos')}
                                 </button>
-                                <button onclick="event.preventDefault(); event.stopPropagation(); showSection('precios'); return false;" id="btn-precios"
+                                <button onclick="showSection('precios')" id="btn-precios"
                                         class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
                                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     ${tr('Precios Ofertas')}
                                 </button>
-                                <button onclick="event.preventDefault(); event.stopPropagation(); showSection('calculo'); return false;" id="btn-calculo"
+                                <button onclick="showSection('calculo')" id="btn-calculo"
                                         class="section-tab flex-1 min-w-fit px-4 py-3 text-sm font-semibold text-slate-600 hover:text-drk-600 hover:bg-drk-50 border-b-3 border-transparent transition-all whitespace-nowrap">
                                     <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                                     ${tr('Cálculo Oficial')}
@@ -6204,10 +6063,6 @@
         
         // === FUNCIÓN PARA NAVEGACIÓN POR PESTAÑAS ===
         window.showSection = function(sectionName) {
-            // Guardar posición de scroll actual
-            const currentScrollY = window.scrollY || window.pageYOffset;
-            const currentScrollX = window.scrollX || window.pageXOffset;
-            
             // Ocultar todas las secciones
             const sections = document.querySelectorAll('.section-content');
             sections.forEach(section => {
@@ -6232,12 +6087,8 @@
                 activeButton.classList.add('active');
             }
             
-            // CRÍTICO: NO scrollear - mantener posición actual
-            setTimeout(() => {
-                window.scrollTo(currentScrollX, currentScrollY);
-            }, 0);
-            
-            return false;
+            // Scroll suave al inicio de la sección
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
         
         // === INICIALIZAR PRIMERA PESTAÑA ===
@@ -8736,77 +8587,6 @@
             }
         }
 
-        
-        // --- FUNCIÓN SIMPLE: ABRIR EMAIL PARA SOLICITAR MEJORA ---
-        function abrirEmailMejora() {
-            console.log('🔔 Abriendo modal dinámico');
-            
-            if (!lastComparisonResult) {
-                window.showErrorModal("No hay datos de comparación disponibles.");
-                return;
-            }
-            
-            // CREAR EL MODAL DINÁMICAMENTE
-            const modalHTML = `
-                <div id="modalDinamico" style="display:block; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:999999;">
-                    <div style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:30px; border-radius:15px; max-width:450px; width:90%;">
-                        <h2 style="color:#ea580c; font-size:24px; font-weight:bold; margin:0 0 15px 0;">📧 Solicitar Mejora a DRK</h2>
-                        <p style="color:#64748b; font-size:14px; margin:0 0 20px 0;">Complete los datos (todos opcionales):</p>
-                        <input type="text" id="dinamicoNombre" placeholder="Nombre" style="width:100%; padding:12px; margin:0 0 12px 0; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;">
-                        <input type="text" id="dinamicoApellidos" placeholder="Apellidos" style="width:100%; padding:12px; margin:0 0 12px 0; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;">
-                        <input type="email" id="dinamicoEmail" placeholder="Email" style="width:100%; padding:12px; margin:0 0 12px 0; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;">
-                        <input type="tel" id="dinamicoTelefono" placeholder="Teléfono" style="width:100%; padding:12px; margin:0 0 12px 0; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;">
-                        <textarea id="dinamicoObs" placeholder="Observaciones" rows="3" style="width:100%; padding:12px; margin:0 0 20px 0; border:1px solid #ccc; border-radius:8px; resize:none; box-sizing:border-box;"></textarea>
-                        <button onclick="cerrarModalDinamico()" style="width:48%; padding:12px; background:#ccc; border:none; border-radius:8px; cursor:pointer; margin-right:4%;">Cancelar</button>
-                        <button onclick="enviarEmailDinamico()" style="width:48%; padding:12px; background:#f59e0b; color:white; border:none; border-radius:8px; cursor:pointer;">📧 Enviar</button>
-                    </div>
-                </div>
-            `;
-            
-            // Agregar al body
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-            console.log('✅ Modal creado y mostrado');
-        }
-        
-        function cerrarModalDinamico() {
-            const modal = document.getElementById('modalDinamico');
-            if (modal) modal.remove();
-        }
-        
-        function enviarEmailDinamico() {
-            const nombre = document.getElementById('dinamicoNombre').value.trim();
-            const apellidos = document.getElementById('dinamicoApellidos').value.trim();
-            const email = document.getElementById('dinamicoEmail').value.trim();
-            const telefono = document.getElementById('dinamicoTelefono').value.trim();
-            const obs = document.getElementById('dinamicoObs').value.trim();
-            
-            let body = '¡Hola equipo de DRK!\n\nHe realizado una comparación y NO se ha detectado ahorro.\n\n';
-            
-            if (nombre || apellidos || email || telefono) {
-                body += '👤 DATOS DEL CLIENTE:\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-                if (nombre) body += 'Nombre: ' + nombre + '\n';
-                if (apellidos) body += 'Apellidos: ' + apellidos + '\n';
-                if (email) body += 'Email: ' + email + '\n';
-                if (telefono) body += 'Teléfono: ' + telefono + '\n';
-                body += '\n';
-            }
-            
-            body += '📋 DATOS DE LA COMPARACIÓN:\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            if (lastComparisonResult.cups) body += 'CUPS: ' + lastComparisonResult.cups + '\n';
-            if (lastComparisonResult.tariffType) body += 'Tarifa: ' + lastComparisonResult.tariffType + '\n';
-            if (lastComparisonResult.originalBillAnnual) body += 'Coste actual anual: ' + lastComparisonResult.originalBillAnnual.toFixed(2) + ' €\n';
-            if (lastComparisonResult.totalAnnual) body += 'Coste DRK anual: ' + lastComparisonResult.totalAnnual.toFixed(2) + ' €\n';
-            body += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            
-            if (obs) body += '\n📝 OBSERVACIONES:\n' + obs + '\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            
-            body += '\n⚠️ Por favor, revisen este caso y busquen una mejor oferta.\n\n📎 IMPORTANTE: Adjuntar la factura del cliente en el email.\n\nGracias,\nEquipo Comercial';
-            
-            const mailto = 'mailto:F.araujo@drk.es,rguerra@drk.es,l.grande@drk.es?subject=' + encodeURIComponent('🚨 SOLICITUD DE MEJORA - Sin ahorro detectado') + '&body=' + encodeURIComponent(body);
-            
-            cerrarModalDinamico();
-            window.location.href = mailto;
-        }
         
         // --- SOLICITAR MEJORA A DRK (SIN AHORRO) ---
         
@@ -14164,6 +13944,24 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 checkboxContainer?.classList.remove('hidden');
             }
             
+            // NUEVO: Mostrar/Ocultar checkbox de Excedentes Solares solo para tarifa 2.0TD
+            const solarSurplusContainer = document.getElementById('solar-surplus-checkbox-container');
+            const currentTariffType = window.currentTariffType || '';
+            
+            if (currentTariffType === '2.0TD' && !isDualMode) {
+                console.log('☀️ Tarifa 2.0TD detectada - Mostrando checkbox de Excedentes Solares');
+                solarSurplusContainer?.classList.remove('hidden');
+            } else {
+                console.log('❌ No es tarifa 2.0TD o es modo DUAL - Ocultando Excedentes Solares');
+                solarSurplusContainer?.classList.add('hidden');
+                // Reset checkbox and fields
+                const solarCheckbox = document.getElementById('solar-surplus-checkbox');
+                if (solarCheckbox) {
+                    solarCheckbox.checked = false;
+                    toggleSolarSurplus(false);
+                }
+            }
+            
             // NUEVO: Actualizar textos y colores del selector según la marca activa
             const isDrkMode = activeBrand.NAME.includes('DRK');
             const brandName = isDrkMode ? 'DRK' : 'POWER CUP';
@@ -15020,6 +14818,170 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             compareWithIndexed = checked;
             console.log('Comparación con indexadas:', compareWithIndexed ? 'ACTIVADA' : 'DESACTIVADA');
         }
+        
+        // ==================== FUNCIONES PARA EXCEDENTES SOLARES ====================
+        
+        // Variables globales para excedentes solares
+        let solarSurplusEnabled = false;
+        let solarSurplusData = {
+            excedente1: 0,
+            excedente2: 0,
+            excedente3: 0,
+            total: 0,
+            discount: 0,
+            pricePerKwh: 0
+        };
+        
+        // Toggle de la sección de excedentes solares
+        function toggleSolarSurplus(checked) {
+            solarSurplusEnabled = checked;
+            const fieldsContainer = document.getElementById('solar-surplus-fields');
+            
+            if (checked) {
+                console.log('☀️ Excedentes solares ACTIVADOS');
+                fieldsContainer?.classList.remove('hidden');
+                // Calcular inmediatamente si hay valores
+                calculateSolarSurplus();
+            } else {
+                console.log('❌ Excedentes solares DESACTIVADOS');
+                fieldsContainer?.classList.add('hidden');
+                // Reset values
+                document.getElementById('excedente-kwh-1').value = '0';
+                document.getElementById('excedente-kwh-2').value = '0';
+                document.getElementById('excedente-kwh-3').value = '0';
+                solarSurplusData = {
+                    excedente1: 0,
+                    excedente2: 0,
+                    excedente3: 0,
+                    total: 0,
+                    discount: 0,
+                    pricePerKwh: 0
+                };
+                document.getElementById('solar-surplus-summary')?.classList.add('hidden');
+            }
+        }
+        
+        // Calcular el descuento por excedentes solares
+        async function calculateSolarSurplus() {
+            if (!solarSurplusEnabled) {
+                return;
+            }
+            
+            // Obtener valores de los campos
+            const ex1 = parseFloat(document.getElementById('excedente-kwh-1')?.value || 0);
+            const ex2 = parseFloat(document.getElementById('excedente-kwh-2')?.value || 0);
+            const ex3 = parseFloat(document.getElementById('excedente-kwh-3')?.value || 0);
+            
+            // Calcular total
+            const totalExcedentes = ex1 + ex2 + ex3;
+            
+            console.log(`☀️ Calculando excedentes: ${ex1} + ${ex2} + ${ex3} = ${totalExcedentes} kWh`);
+            
+            // Si no hay excedentes, ocultar resumen
+            if (totalExcedentes === 0) {
+                document.getElementById('solar-surplus-summary')?.classList.add('hidden');
+                solarSurplusData = {
+                    excedente1: ex1,
+                    excedente2: ex2,
+                    excedente3: ex3,
+                    total: 0,
+                    discount: 0,
+                    pricePerKwh: 0
+                };
+                return;
+            }
+            
+            // Obtener precio de excedentes desde Google Sheets (columna EXCEDENTES)
+            // El valor está en formato: precio por cada 1000 kWh (ej: 40 = 0.04 €/kWh)
+            let precioExcedentes = 40; // Valor por defecto (40 / 1000 = 0.04 €/kWh)
+            
+            try {
+                // Intentar obtener el precio desde las tarifas 2.0TD ya cargadas
+                const tariffs20TD = currentTariffs['2.0TD'] || [];
+                if (tariffs20TD.length > 0) {
+                    // Buscar la columna EXCEDENTES en la primera tarifa
+                    // (todas deberían tener el mismo valor de compensación)
+                    const firstTariff = tariffs20TD[0];
+                    
+                    // El header se convierte a minúsculas en parseCSV, así que buscamos 'excedentes'
+                    if (firstTariff.excedentes !== undefined && firstTariff.excedentes !== null && firstTariff.excedentes !== '') {
+                        precioExcedentes = parseFloat(firstTariff.excedentes);
+                        console.log(`✅ Precio de excedentes obtenido de tarifa: ${precioExcedentes} (columna I del Sheet)`);
+                    } else {
+                        console.warn('⚠️ Columna EXCEDENTES no encontrada en la tarifa, usando valor por defecto: 40');
+                    }
+                } else {
+                    console.warn('⚠️ No hay tarifas 2.0TD cargadas, usando valor por defecto: 40');
+                }
+            } catch (error) {
+                console.warn('⚠️ Error al obtener precio de excedentes, usando valor por defecto:', error);
+            }
+            
+            // Calcular importe del descuento
+            // Fórmula: Total Excedentes × (Precio / 1000)
+            // Ejemplo: 50 kWh × (40 / 1000) = 50 × 0.04 = 2.00 €
+            const descuento = totalExcedentes * (precioExcedentes / 1000);
+            
+            console.log(`💰 Cálculo del descuento:`);
+            console.log(`   - Total excedentes: ${totalExcedentes} kWh`);
+            console.log(`   - Precio por kWh: ${precioExcedentes}/1000 = ${(precioExcedentes/1000).toFixed(4)} €/kWh`);
+            console.log(`   - Descuento: ${totalExcedentes} × ${(precioExcedentes/1000).toFixed(4)} = ${descuento.toFixed(2)} €`);
+            
+            // Guardar en variable global
+            solarSurplusData = {
+                excedente1: ex1,
+                excedente2: ex2,
+                excedente3: ex3,
+                total: totalExcedentes,
+                discount: descuento,
+                pricePerKwh: precioExcedentes / 1000
+            };
+            
+            // Actualizar UI del resumen
+            document.getElementById('total-excedentes-display').textContent = `${totalExcedentes.toFixed(2)} kWh`;
+            document.getElementById('descuento-excedentes-display').textContent = `-${descuento.toFixed(2)} €`;
+            document.getElementById('solar-surplus-summary')?.classList.remove('hidden');
+        }
+        
+        // Aplicar descuento por excedentes a un resultado de cálculo
+        function applySolarSurplusDiscount(result) {
+            if (!solarSurplusEnabled || solarSurplusData.discount === 0) {
+                return result;
+            }
+            
+            console.log(`☀️ Aplicando descuento por excedentes solares: -${solarSurplusData.discount.toFixed(2)} € al resultado`);
+            
+            // El descuento se resta del subtotal de energía
+            // Esto afectará tanto al coste mensual como anual
+            const monthlyDiscount = solarSurplusData.discount;
+            const annualDiscount = monthlyDiscount * 12;
+            
+            // Crear copia del resultado para no modificar el original
+            const adjustedResult = { ...result };
+            
+            // Ajustar costes
+            adjustedResult.energyMonthly = Math.max(0, (adjustedResult.energyMonthly || 0) - monthlyDiscount);
+            adjustedResult.energyAnnual = Math.max(0, (adjustedResult.energyAnnual || 0) - annualDiscount);
+            adjustedResult.totalMonthly = Math.max(0, (adjustedResult.totalMonthly || 0) - monthlyDiscount);
+            adjustedResult.totalAnnual = Math.max(0, (adjustedResult.totalAnnual || 0) - annualDiscount);
+            
+            // Recalcular ahorros
+            if (adjustedResult.originalBillAnnual) {
+                adjustedResult.savings = adjustedResult.originalBillAnnual - adjustedResult.totalAnnual;
+            }
+            
+            // Añadir información de excedentes al resultado
+            adjustedResult.solarSurplus = {
+                enabled: true,
+                ...solarSurplusData
+            };
+            
+            console.log(`✅ Descuento aplicado. Nuevo coste mensual: ${adjustedResult.totalMonthly.toFixed(2)} €, Ahorro: ${adjustedResult.savings.toFixed(2)} €`);
+            
+            return adjustedResult;
+        }
+        
+        // ==================== FIN FUNCIONES EXCEDENTES SOLARES ====================
         
         // Nueva función para calcular la mejor oferta indexada (DRK INDEX)
         function calculateIndexedOffer(data, tariffType) {
@@ -16303,45 +16265,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 }
             });
             
-            // === CONFIGURACIÓN DRAG & DROP PARA ZONA PRINCIPAL ===
-            const dragDropZoneMain = document.getElementById('drag-drop-zone-main');
-            
-            if (dragDropZoneMain) {
-                // Click en zona
-                dragDropZoneMain.addEventListener('click', () => {
-                    fileUploadInput.click();
-                });
-                
-                // Prevenir comportamiento por defecto
-                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                    dragDropZoneMain.addEventListener(eventName, (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    });
-                });
-                
-                // Efectos visuales
-                ['dragenter', 'dragover'].forEach(eventName => {
-                    dragDropZoneMain.addEventListener(eventName, () => {
-                        dragDropZoneMain.classList.add('border-drk-600', 'bg-drk-100');
-                    });
-                });
-                
-                ['dragleave', 'drop'].forEach(eventName => {
-                    dragDropZoneMain.addEventListener(eventName, () => {
-                        dragDropZoneMain.classList.remove('border-drk-600', 'bg-drk-100');
-                    });
-                });
-                
-                // Manejar drop
-                dragDropZoneMain.addEventListener('drop', (e) => {
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        handleFile(files[0]);
-                    }
-                });
-            }
-            
             // Manejar selección de archivo desde input
             fileUploadInput.addEventListener('change', (e) => {
                 if (e.target.files.length > 0) {
@@ -16437,8 +16360,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             document.getElementById('execute-pdf-offer-btn').addEventListener('click', handleGeneratePDF);
             
             // NUEVO: Event listeners para solicitar mejora a DRK
+            document.getElementById('request-improvement-btn').onclick = () => {
+                if (lastComparisonResult) {
+                    document.getElementById('request-improvement-modal').classList.remove('hidden');
+                    document.getElementById('request-improvement-modal').classList.add('flex');
+                } else {
+                    window.showErrorModal("Por favor, analice una factura primero.");
+                }
+            };
             
-            // Event listeners de GAS y DUAL mantienen el flujo antiguo (si existen)
+            // NUEVO: Event listener para botón de solicitar mejora en GAS
             const gasImprovementBtn = document.getElementById('gas-request-improvement-btn');
             if (gasImprovementBtn) {
                 gasImprovementBtn.onclick = () => {
@@ -16451,6 +16382,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 };
             }
             
+            // NUEVO: Event listener para botón de solicitar mejora en DUAL
             const dualImprovementBtn = document.getElementById('dual-request-improvement-btn');
             if (dualImprovementBtn) {
                 dualImprovementBtn.onclick = () => {
@@ -16464,7 +16396,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             }
             
             document.getElementById('execute-improvement-request-btn').addEventListener('click', handleRequestImprovement);
-
 
             document.getElementById('qr-toggle-checkbox').addEventListener('change', (e) => {
                 const wrapper = document.getElementById('qr-content-wrapper');
@@ -17329,10 +17260,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             addProcessingLog(`✓ PDF cargado: ${pdf.numPages} página(s)`, 'success');
             updateProcessingProgress(15);
             
-            // ========== ESTRATEGIA 1: Enlaces Digitales Incrustados + TOOLTIPS ==========
-            updateProcessingStatus('Buscando enlaces digitales incrustados y tooltips...');
+            // ========== ESTRATEGIA 1: Enlaces Digitales Incrustados ==========
+            updateProcessingStatus('Buscando enlaces digitales incrustados...');
             updateStrategyStatus(1, 'Analizando...', 'yellow');
-            addProcessingLog('🔍 ESTRATEGIA 1: Enlaces incrustados + Tooltips', 'working');
+            addProcessingLog('🔍 ESTRATEGIA 1: Enlaces incrustados', 'working');
             updateProcessingProgress(20);
             
             for (let i = 1; i <= pdf.numPages; i++) {
@@ -17342,28 +17273,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 addProcessingLog(`  Página ${i}/${pdf.numPages}: ${annotations.length} anotación(es)`, 'info');
                 
                 for (const ann of annotations) {
-                    // Check URL (Link normal)
                     if (ann.url && ann.url.includes('comparador.cnmc.gob.es')) {
                         addProcessingLog(`✓ ¡Enlace encontrado en página ${i}!`, 'success');
                         
                         const validUrl = processFoundUrl(ann.url, 'Enlace Digital', i);
-                        if (validUrl) {
-                            updateStrategyStatus(1, '¡Éxito!', 'green');
-                            updateProcessingProgress(100);
-                            
-                            setTimeout(() => {
-                                hideProcessingModal();
-                                handleQRRead(validUrl);
-                            }, 800);
-                            return;
-                        }
-                    }
-                    // NUEVO: Check Tooltips/Contents (Contenido oculto al pasar ratón)
-                    // A veces el contenido está en 'contents', otras veces en 'richContents'
-                    if (ann.contents && isCNMCData(ann.contents)) {
-                        addProcessingLog(`✓ ¡Datos encontrados en Tooltip (MouseOver) en página ${i}!`, 'success');
-                        
-                        const validUrl = processFoundUrl(ann.contents, 'Tooltip Oculto', i);
                         if (validUrl) {
                             updateStrategyStatus(1, '¡Éxito!', 'green');
                             updateProcessingProgress(100);
@@ -17450,137 +17363,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             updateStrategyStatus(2, 'Sin resultados', 'slate');
             addProcessingLog('⊘ No se encontró texto de URL CNMC válido', 'info');
             updateProcessingProgress(50);
-            
-            // ========== ESTRATEGIA 2.5: MINERÍA DE IMÁGENES NATIVAS (OPTIMIZADA) ==========
-            updateProcessingStatus('Iniciando Minería de Imágenes Nativa...');
-            addProcessingLog('🔍 ESTRATEGIA 2.5: Minería de Imágenes del PDF', 'working');
-            updateProcessingProgress(52);
-            
-            // Flag para detectar si encontramos algo y salir rápido
-            let foundInMining = false;
-            
-            for (let i = 1; i <= pdf.numPages && !foundInMining; i++) {
-                const page = await pdf.getPage(i);
-                try {
-                    const ops = await page.getOperatorList();
-                    
-                    addProcessingLog(`  Página ${i}: Buscando imágenes...`, 'working');
-                    
-                    let imagesProcessed = 0;
-                    const maxImagesPerPage = 10; // Límite para evitar PDFs con muchas imágenes
-                    
-                    for (let j = 0; j < ops.fnArray.length && imagesProcessed < maxImagesPerPage && !foundInMining; j++) {
-                        if (ops.fnArray[j] === pdfjsLib.OPS.paintImageXObject) {
-                            const imgName = ops.argsArray[j][0];
-                            
-                            try {
-                                // Timeout de 2 segundos por imagen
-                                const imagePromise = new Promise((resolve, reject) => {
-                                    const timeout = setTimeout(() => reject(new Error('timeout')), 2000);
-                                    
-                                    try {
-                                        page.objs.get(imgName, (imgData) => {
-                                            clearTimeout(timeout);
-                                            resolve(imgData);
-                                        });
-                                    } catch(e) {
-                                        clearTimeout(timeout);
-                                        reject(e);
-                                    }
-                                });
-                                
-                                const imgData = await imagePromise;
-                                
-                                if (imgData && imgData.width > 50 && imgData.height > 50) {
-                                    imagesProcessed++;
-                                    
-                                    // Renderizar solo si tiene tamaño razonable para un QR
-                                    if (imgData.width < 2000 && imgData.height < 2000) {
-                                        const tempCanvas = document.createElement('canvas');
-                                        tempCanvas.width = imgData.width;
-                                        tempCanvas.height = imgData.height;
-                                        const ctx = tempCanvas.getContext('2d');
-                                        
-                                        const imageDataObj = ctx.createImageData(imgData.width, imgData.height);
-                                        
-                                        // Manejar diferentes tipos de imagen
-                                        if (imgData.data) {
-                                            if (imgData.kind === 1 || imgData.kind === 2) { // RGB o RGBA
-                                                for(let k=0; k<Math.min(imgData.data.length, imageDataObj.data.length); k++) {
-                                                    imageDataObj.data[k] = imgData.data[k];
-                                                }
-                                            } else if (imgData.data.length === imgData.width * imgData.height) { // Grayscale
-                                                for(let k=0, p=0; k<imgData.data.length && p<imageDataObj.data.length; k++, p+=4) {
-                                                    const val = imgData.data[k];
-                                                    imageDataObj.data[p] = val;
-                                                    imageDataObj.data[p+1] = val;
-                                                    imageDataObj.data[p+2] = val;
-                                                    imageDataObj.data[p+3] = 255;
-                                                }
-                                            }
-                                            
-                                            ctx.putImageData(imageDataObj, 0, 0);
-                                            
-                                            // Validar que los datos sean correctos antes de escanear
-                                            const imgDataToScan = ctx.getImageData(0, 0, imgData.width, imgData.height);
-                                            
-                                            // Verificar integridad de los datos
-                                            if (imgDataToScan && imgDataToScan.data && 
-                                                imgDataToScan.data.length === imgData.width * imgData.height * 4) {
-                                                
-                                                try {
-                                                    const code = jsQR(imgDataToScan.data, imgData.width, imgData.height, { 
-                                                        inversionAttempts: "dontInvert" 
-                                                    });
-                                                    
-                                                    if (code && isCNMCData(code.data)) {
-                                                        addProcessingLog(`✓ ¡QR detectado por Minería en página ${i}!`, 'success');
-                                                        
-                                                        const validUrl = processFoundUrl(code.data, 'Minería de Imágenes', i);
-                                                        if (validUrl) {
-                                                            updateStrategyStatus(2, '¡Éxito Minería!', 'green');
-                                                            updateProcessingProgress(100);
-                                                            foundInMining = true;
-                                                            
-                                                            setTimeout(() => {
-                                                                hideProcessingModal();
-                                                                handleQRRead(validUrl);
-                                                            }, 800);
-                                                            return;
-                                                        }
-                                                    }
-                                                } catch(qrError) {
-                                                    console.warn('Error escaneando QR en imagen:', qrError);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } catch(imgError) {
-                                // Ignorar errores de imágenes individuales
-                                if (imgError.message !== 'timeout') {
-                                    console.log(`Imagen ${j} omitida:`, imgError.message);
-                                }
-                            }
-                        }
-                    }
-                    
-                    if (imagesProcessed > 0) {
-                        addProcessingLog(`  Página ${i}: ${imagesProcessed} imagen(es) analizadas`, 'info');
-                    }
-                } catch(e) { 
-                    console.log("Error minería página " + i + ":", e);
-                    addProcessingLog(`  Página ${i}: Error en minería (omitida)`, 'info');
-                }
-                
-                // Pequeña pausa entre páginas
-                await new Promise(r => setTimeout(r, 50));
-            }
-            
-            if (!foundInMining) {
-                addProcessingLog('⊘ No se encontró QR en imágenes nativas', 'info');
-                updateProcessingProgress(54);
-            }
             
             // ========== ESTRATEGIA 3: Búsqueda Visual QR (Microscopio Digital) ==========
             updateProcessingStatus('Iniciando escaneo visual de QR...');
@@ -17686,25 +17468,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         return;
                     }
                 }
-                
-                // NUEVO: Intento 6: Grid 3x3 Solapado (Francotirador)
-                addProcessingLog(`  Página ${i}: Escaneo Zonal 3x3 (Último recurso)`, 'working');
-                updateProcessingProgress(progressBase + 12);
-                qrUrl = await scanPageQuadrants(page, 4.0);
-                if (qrUrl) {
-                    const validUrl = processFoundUrl(qrUrl, 'Grid 3x3 Solapado', i);
-                    if (validUrl) {
-                        addProcessingLog(`✓ ¡QR detectado por Grid 3x3 en página ${i}!`, 'success');
-                        updateStrategyStatus(3, '¡Éxito Grid 3x3!', 'green');
-                        updateProcessingProgress(100);
-                        
-                        setTimeout(() => {
-                            hideProcessingModal();
-                            handleQRRead(validUrl);
-                        }, 800);
-                        return;
-                    }
-                }
             }
             
             updateStrategyStatus(3, 'Sin resultados', 'red');
@@ -17743,14 +17506,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             addProcessingLog(`✓ Imagen cargada: ${canvas.width}x${canvas.height}`, 'success');
             updateProcessingProgress(25);
             
-            // MEJORADO: Usar performDeepScan directamente que prueba múltiples técnicas
-            addProcessingLog('🔍 Aplicando Deep Scan (múltiples umbrales + inversión)', 'working');
-            updateProcessingProgress(35);
-            let qrUrl = performDeepScan(ctx, canvas.width, canvas.height);
+            // Intento 1: Escaneo directo
+            addProcessingLog('🔍 Intento 1: Escaneo directo', 'working');
+            updateProcessingProgress(30);
+            let qrUrl = attemptQRScanFromCanvas(ctx, canvas.width, canvas.height, false);
             if (qrUrl) {
-                const validUrl = processFoundUrl(qrUrl, 'Deep Scan en Imagen', 1);
+                const validUrl = processFoundUrl(qrUrl, 'Modo Directo', 1);
                 if (validUrl) {
-                    addProcessingLog('✓ ¡QR detectado con Deep Scan!', 'success');
+                    addProcessingLog('✓ ¡QR detectado en modo directo!', 'success');
                     updateStrategyStatus(3, '¡Éxito!', 'green');
                     updateProcessingProgress(100);
                     
@@ -17762,46 +17525,41 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 }
             }
             
-            // NUEVO: Intento con Grid 3x3 si la imagen es grande
-            if (canvas.width > 800 && canvas.height > 800) {
-                addProcessingLog('🔍 Imagen grande detectada - Aplicando Grid 3x3', 'working');
-                updateProcessingProgress(60);
-                
-                const w = canvas.width, h = canvas.height;
-                const zones = [
-                    { x: 0, y: 0, w: w/2, h: h/2 },
-                    { x: w/4, y: 0, w: w/2, h: h/2 },
-                    { x: w/2, y: 0, w: w/2, h: h/2 },
-                    { x: 0, y: h/4, w: w/2, h: h/2 },
-                    { x: w/4, y: h/4, w: w/2, h: h/2 },
-                    { x: w/2, y: h/4, w: w/2, h: h/2 },
-                    { x: 0, y: h/2, w: w/2, h: h/2 },
-                    { x: w/4, y: h/2, w: w/2, h: h/2 },
-                    { x: w/2, y: h/2, w: w/2, h: h/2 }
-                ];
-                
-                for (let z of zones) {
-                    const tempC = document.createElement('canvas');
-                    tempC.width = z.w;
-                    tempC.height = z.h;
-                    const tempCtx = tempC.getContext('2d');
-                    tempCtx.drawImage(canvas, z.x, z.y, z.w, z.h, 0, 0, z.w, z.h);
+            // Intento 2: Con filtro estándar
+            addProcessingLog('🔍 Intento 2: Filtro de contraste estándar', 'working');
+            updateProcessingProgress(50);
+            qrUrl = attemptQRScanFromCanvas(ctx, canvas.width, canvas.height, true, 160);
+            if (qrUrl) {
+                const validUrl = processFoundUrl(qrUrl, 'Filtro Estándar', 1);
+                if (validUrl) {
+                    addProcessingLog('✓ ¡QR detectado con filtro estándar!', 'success');
+                    updateStrategyStatus(3, '¡Éxito!', 'green');
+                    updateProcessingProgress(100);
                     
-                    const zoneData = performDeepScan(tempCtx, z.w, z.h);
-                    if (zoneData) {
-                        const validUrl = processFoundUrl(zoneData, 'Grid 3x3 en Imagen', 1);
-                        if (validUrl) {
-                            addProcessingLog('✓ ¡QR detectado en zona recortada!', 'success');
-                            updateStrategyStatus(3, '¡Éxito Grid 3x3!', 'green');
-                            updateProcessingProgress(100);
-                            
-                            setTimeout(() => {
-                                hideProcessingModal();
-                                handleQRRead(validUrl);
-                            }, 800);
-                            return;
-                        }
-                    }
+                    setTimeout(() => {
+                        hideProcessingModal();
+                        handleQRRead(validUrl);
+                    }, 800);
+                    return;
+                }
+            }
+            
+            // Intento 3: Con filtro oscuro
+            addProcessingLog('🔍 Intento 3: Filtro oscuro', 'working');
+            updateProcessingProgress(75);
+            qrUrl = attemptQRScanFromCanvas(ctx, canvas.width, canvas.height, true, 100);
+            if (qrUrl) {
+                const validUrl = processFoundUrl(qrUrl, 'Filtro Oscuro', 1);
+                if (validUrl) {
+                    addProcessingLog('✓ ¡QR detectado con filtro oscuro!', 'success');
+                    updateStrategyStatus(3, '¡Éxito!', 'green');
+                    updateProcessingProgress(100);
+                    
+                    setTimeout(() => {
+                        hideProcessingModal();
+                        handleQRRead(validUrl);
+                    }, 800);
+                    return;
                 }
             }
             
@@ -17838,200 +17596,31 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         
         // Intentar escanear QR desde canvas
         function attemptQRScanFromCanvas(context, width, height, enhanceContrast = false, threshold = 180) {
-            try {
-                // Validaciones de seguridad
-                if (!context || !width || !height || width <= 0 || height <= 0) {
-                    console.warn('attemptQRScanFromCanvas: Parámetros inválidos');
-                    return null;
+            const imageData = context.getImageData(0, 0, width, height);
+            let data = imageData.data;
+            
+            // Aplicar filtro de contraste si se solicita
+            if (enhanceContrast) {
+                const newData = new Uint8ClampedArray(data);
+                for (let i = 0; i < newData.length; i += 4) {
+                    const luma = 0.299 * newData[i] + 0.587 * newData[i + 1] + 0.114 * newData[i + 2];
+                    const val = luma < threshold ? 0 : 255;
+                    newData[i] = val;
+                    newData[i + 1] = val;
+                    newData[i + 2] = val;
                 }
-                
-                if (width > 10000 || height > 10000) {
-                    console.warn('attemptQRScanFromCanvas: Imagen demasiado grande');
-                    return null;
-                }
-                
-                const imageData = context.getImageData(0, 0, width, height);
-                let data = imageData.data;
-                
-                // Verificar que los datos sean válidos
-                if (!data || data.length !== width * height * 4) {
-                    console.warn('attemptQRScanFromCanvas: Datos inválidos');
-                    return null;
-                }
-                
-                // Aplicar filtro de contraste si se solicita
-                if (enhanceContrast) {
-                    const newData = new Uint8ClampedArray(data);
-                    for (let i = 0; i < newData.length; i += 4) {
-                        const luma = 0.299 * newData[i] + 0.587 * newData[i + 1] + 0.114 * newData[i + 2];
-                        const val = luma < threshold ? 0 : 255;
-                        newData[i] = val;
-                        newData[i + 1] = val;
-                        newData[i + 2] = val;
-                    }
-                    data = newData;
-                }
-                
-                const code = jsQR(data, width, height, {
-                    inversionAttempts: "dontInvert",
-                });
-                
-                if (code && code.data.includes('comparador.cnmc.gob.es')) {
-                    return code.data;
-                }
-            } catch(e) {
-                console.error('Error en attemptQRScanFromCanvas:', e);
+                data = newData;
+            }
+            
+            const code = jsQR(data, width, height, {
+                inversionAttempts: "dontInvert",
+            });
+            
+            if (code && code.data.includes('comparador.cnmc.gob.es')) {
+                return code.data;
             }
             return null;
         }
-        
-        // ========== TÉCNICAS AVANZADAS DE DEEP SCAN (NUEVAS) ==========
-        
-        // Función Maestra de Escaneo Profundo (Deep Scan)
-        // Prueba inversión de color y múltiples umbrales de contraste
-        function performDeepScan(ctx, width, height) {
-            try {
-                // Validaciones de seguridad
-                if (!ctx || !width || !height || width <= 0 || height <= 0) {
-                    console.warn('performDeepScan: Parámetros inválidos');
-                    return null;
-                }
-                
-                if (width > 10000 || height > 10000) {
-                    console.warn('performDeepScan: Imagen demasiado grande, omitiendo');
-                    return null;
-                }
-                
-                const imageData = ctx.getImageData(0, 0, width, height);
-                const originalData = imageData.data;
-                
-                // Verificar que los datos sean válidos
-                if (!originalData || originalData.length !== width * height * 4) {
-                    console.warn('performDeepScan: Datos de imagen inválidos');
-                    return null;
-                }
-
-                // 1. Intento Normal
-                try {
-                    let code = jsQR(originalData, width, height, { inversionAttempts: "dontInvert" });
-                    if (code && isCNMCData(code.data)) return code.data;
-                } catch(e) {
-                    console.warn('Error en intento normal:', e);
-                }
-
-                // 2. Intento Invertido
-                try {
-                    let code = jsQR(originalData, width, height, { inversionAttempts: "invertFirst" });
-                    if (code && isCNMCData(code.data)) return code.data;
-                } catch(e) {
-                    console.warn('Error en intento invertido:', e);
-                }
-
-                // 3. Barrido de Umbrales (Simulación de Auto-Exposición)
-                const thresholds = [80, 120, 160, 200]; // Oscuro -> Claro
-                
-                for (const threshold of thresholds) {
-                    try {
-                        const binarizedData = new Uint8ClampedArray(originalData.length);
-                        for (let i = 0; i < originalData.length; i += 4) {
-                            const luma = 0.299 * originalData[i] + 0.587 * originalData[i + 1] + 0.114 * originalData[i + 2];
-                            const val = luma < threshold ? 0 : 255;
-                            binarizedData[i] = val;
-                            binarizedData[i+1] = val;
-                            binarizedData[i+2] = val;
-                            binarizedData[i+3] = 255; 
-                        }
-                        
-                        const code = jsQR(binarizedData, width, height, { inversionAttempts: "dontInvert" });
-                        if (code && isCNMCData(code.data)) return code.data;
-                    } catch(e) {
-                        console.warn(`Error en umbral ${threshold}:`, e);
-                    }
-                }
-            } catch(e) {
-                console.error('Error general en performDeepScan:', e);
-            }
-
-            return null;
-        }
-        
-        // Función auxiliar para verificar si los datos son de CNMC
-        function isCNMCData(str) {
-            if (!str) return false;
-            if (str.includes('comparador.cnmc.gob.es')) return true;
-            // Detección laxa para datos en crudo (RAW)
-            if (str.includes('cups=') || str.includes('CUPS=')) {
-                if (str.includes('imp=') || str.includes('IMP=') || str.includes('cp=') || str.includes('CP=')) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        
-        // Escaneo por Cuadrantes Avanzado (3x3 Grid con Solapamiento)
-        async function scanPageQuadrants(page, scale) {
-            try {
-                const viewport = page.getViewport({ scale: scale });
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                
-                await page.render({ canvasContext: context, viewport: viewport }).promise;
-
-                const w = canvas.width, h = canvas.height;
-                
-                // Validar dimensiones
-                if (w <= 0 || h <= 0 || w > 15000 || h > 15000) {
-                    console.warn('scanPageQuadrants: Dimensiones inválidas');
-                    return null;
-                }
-                
-                // Creamos 9 zonas solapadas (3 columnas x 3 filas)
-                // Cada zona cubre el 50% del ancho/alto, moviéndose un 25% cada paso
-                // Esto asegura que ningún QR se corte por la mitad
-                const zones = [
-                    // Fila Superior
-                    { x: 0, y: 0, w: w/2, h: h/2 },
-                    { x: w/4, y: 0, w: w/2, h: h/2 },
-                    { x: w/2, y: 0, w: w/2, h: h/2 },
-                    // Fila Media
-                    { x: 0, y: h/4, w: w/2, h: h/2 },
-                    { x: w/4, y: h/4, w: w/2, h: h/2 }, // Centro puro
-                    { x: w/2, y: h/4, w: w/2, h: h/2 },
-                    // Fila Inferior
-                    { x: 0, y: h/2, w: w/2, h: h/2 },
-                    { x: w/4, y: h/2, w: w/2, h: h/2 },
-                    { x: w/2, y: h/2, w: w/2, h: h/2 }
-                ];
-
-                for (let z of zones) {
-                    try {
-                        // Validar zona
-                        if (z.w <= 0 || z.h <= 0) continue;
-                        
-                        const tempC = document.createElement('canvas');
-                        tempC.width = Math.floor(z.w);
-                        tempC.height = Math.floor(z.h);
-                        const tempCtx = tempC.getContext('2d');
-                        tempCtx.drawImage(canvas, z.x, z.y, z.w, z.h, 0, 0, tempC.width, tempC.height);
-                        
-                        const data = performDeepScan(tempCtx, tempC.width, tempC.height);
-                        if (data) {
-                            addProcessingLog('✓ ¡QR localizado en zona recortada (Grid 3x3)!', 'success');
-                            return data; 
-                        }
-                    } catch(zoneError) {
-                        console.warn('Error procesando zona:', zoneError);
-                    }
-                }
-            } catch(e) {
-                console.error('Error en scanPageQuadrants:', e);
-            }
-            return null;
-        }
-        
-        // ========== FIN TÉCNICAS AVANZADAS DE DEEP SCAN ==========
         
         // ==================== FIN FUNCIONES COMPLETAS ====================
         
@@ -18322,32 +17911,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const directData = {
                 cups: p.cups || 'QR SCAN',
                 dias_facturados: billingDays,
-                importe_total: parseFloat(p.imp || 0),
+                importe_total: parseFloat(p.imp || 0), // FIX: asegurar que es float, default a 0
                 potencia_p1_kw: parseFloat(p.pP1 || 0),
                 potencia_p2_kw: parseFloat(p.pP2 || 0),
+                // Solo se reciben 3 consumos del QR de la CNMC (P1, P2, P3 -> Punta, Llano, Valle)
                 consumo_punta: parseFloat(p.cfP1 || 0),
                 consumo_llano: parseFloat(p.cfP2 || 0),
                 consumo_valle: parseFloat(p.cfP3 || 0),
                 fechas: dateRangeStr,
-                // NUEVOS CAMPOS AMPLIADOS del QR
-                potencia_max_p1: parseFloat(p.pmaxP1 || 0),
-                potencia_max_p2: parseFloat(p.pmaxP2 || 0),
-                consumo_anual_p1: parseFloat(p.caP1 || 0),
-                consumo_anual_p2: parseFloat(p.caP2 || 0),
-                consumo_anual_p3: parseFloat(p.caP3 || 0),
-                coste_potencia: parseFloat(p.impPot || 0),
-                coste_energia: parseFloat(p.impEner || 0),
-                otros_costes: parseFloat(p.impOtrosSinIE || 0),
-                precio_potencia_p1: parseFloat(p.prP1 || 0),
-                precio_potencia_p2: parseFloat(p.prP2 || 0),
-                precio_energia_p1: parseFloat(p.prE1 || 0),
-                precio_energia_p2: parseFloat(p.prE2 || 0),
-                precio_energia_p3: parseFloat(p.prE3 || 0),
-                fecha_factura: p.fFact || '',
-                fecha_fin_contrato: p.finContrato || '',
-                tipo_contrato: p.tc || '',
-                tipo_factura: p.tf || '',
-                comercializadora: p.com || '',
                 rawQR: raw  
             };
             
@@ -18393,12 +17964,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                      document.getElementById('manual-input-modal').classList.remove('hidden');
                      document.getElementById('manual-input-modal').classList.add('flex');
                 } else {
-                    console.error('❌ Tarifas no cargadas. Estado:', {
-                        currentTariffType,
-                        tariffCount: currentTariffs[currentTariffType]?.length || 0,
-                        allTariffs: Object.keys(currentTariffs).map(k => ({type: k, count: currentTariffs[k]?.length || 0}))
-                    });
-                    window.showErrorModal("Las tarifas aún se están cargando. Por favor, espere 5 segundos y vuelva a escanear el código QR.");
+                    window.showErrorModal("Las tarifas no han cargado aún. Por favor, intente de nuevo.");
                 }
             }
         }
@@ -18839,25 +18405,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         }
         
         async function fetchTariffsFromSheet(tariffType) {
-            console.log(`🔄 Iniciando carga de ${tariffType}...`);
             const config = TARIFF_CONFIG[tariffType];
             const sheetId = config.sheetId;
 
             const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=0&t=${Date.now()}`;
-            console.log(`📡 URL: ${url}`);
 
             try {
-                console.log(`⏳ Haciendo fetch...`);
                 const response = await fetch(url);
-                console.log(`📥 Respuesta recibida. Status: ${response.status}`);
-                
-                if (!response.ok) throw new Error(`Error red para ${tariffType}: ${response.status}`);
-                
+                if (!response.ok) throw new Error(`Error red para ${tariffType}`);
                 const text = await response.text();
-                console.log(`📄 Texto recibido. Longitud: ${text.length} caracteres`);
-                
                 currentTariffs[tariffType] = parseCSV(text, tariffType);
-                console.log(`✅ ${tariffType} parseado: ${currentTariffs[tariffType].length} tarifas`);
                 
                 if (currentTariffType !== 'MULTICUPS' && tariffType === currentTariffType) {
                     const count = currentTariffs[currentTariffType].length;
@@ -18865,8 +18422,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 }
 
             } catch (e) {
-                console.error(`❌ Error al cargar ${tariffType}:`, e);
-                console.error(`Error completo:`, e.message, e.stack);
+                console.error(`Error al cargar ${tariffType}:`, e);
                 currentTariffs[tariffType] = [];  
                 if (currentTariffType !== 'MULTICUPS' && tariffType === currentTariffType) {
                     document.getElementById('tariff-display-badge').textContent = 'Error';
@@ -18973,19 +18529,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // Limpiar flag de modo DUAL
             window.dualMode = false;
             
-            // FORZAR modo DRK ÚNICAMENTE
-            comparisonMode = 'drk_only';
-            document.querySelector('input[name="comparison_mode"][value="drk_only"]').checked = true;
-            
-            // IR DIRECTO A 2.0TD (no mostrar pantalla de inicio)
             hideAllScreens();
-            currentTariffType = '2.0TD';
-            document.getElementById('screen-electricidad').classList.add('active');
-            
-            // Ocultar el modo de comparación (ya está seleccionado drk_only)
-            document.getElementById('modo-comparacion-section').style.display = 'none';
-            
-            console.log('✅ goToInicio → Directo a 2.0TD');
+            document.getElementById('screen-inicio').classList.add('active');
+            // Mostrar el modo de comparación
+            document.getElementById('modo-comparacion-section').style.display = 'block';
         }
 
         function goToElectricidad() {
@@ -27364,6 +26911,15 @@ ${clientName}
                 "⚡ Comparar FIJO vs INDEXADO": { en: "⚡ Compare FIXED vs INDEXED", zh: "⚡ 比较固定与指数", de: "⚡ FEST vs INDEXIERT vergleichen", fr: "⚡ Comparer FIXE vs INDEXÉ" },
                 "Genera comparativa dual: tarifa fija y tarifa indexada DRK INDEX (precio variable del mercado).": { en: "Generate dual comparison: fixed rate and DRK INDEX indexed rate (variable market price).", zh: "生成双重比较：固定费率和DRK INDEX指数费率（可变市场价格）。", de: "Dual-Vergleich generieren: Festpreis und DRK INDEX indexierter Tarif (variabler Marktpreis).", fr: "Générer une comparaison duale : tarif fixe et tarif indexé DRK INDEX (prix variable du marché)." },
                 
+                // Excedentes Solares
+                "☀️ Excedentes solares": { en: "☀️ Solar surplus", zh: "☀️ 太阳能盈余", de: "☀️ Solarüberschuss", fr: "☀️ Excédent solaire" },
+                "Calcula el descuento por compensación de excedentes de energía solar.": { en: "Calculate the discount for solar energy surplus compensation.", zh: "计算太阳能盈余补偿的折扣。", de: "Berechnen Sie den Rabatt für die Vergütung von Solarüberschuss.", fr: "Calculer la remise pour la compensation de l'excédent d'énergie solaire." },
+                "☀️ Excedente kWh 1": { en: "☀️ Surplus kWh 1", zh: "☀️ 盈余 kWh 1", de: "☀️ Überschuss kWh 1", fr: "☀️ Excédent kWh 1" },
+                "☀️ Excedente kWh 2": { en: "☀️ Surplus kWh 2", zh: "☀️ 盈余 kWh 2", de: "☀️ Überschuss kWh 2", fr: "☀️ Excédent kWh 2" },
+                "☀️ Excedente kWh 3": { en: "☀️ Surplus kWh 3", zh: "☀️ 盈余 kWh 3", de: "☀️ Überschuss kWh 3", fr: "☀️ Excédent kWh 3" },
+                "Total Excedentes:": { en: "Total Surplus:", zh: "总盈余：", de: "Gesamtüberschuss:", fr: "Excédent Total :" },
+                "Descuento Aplicado:": { en: "Discount Applied:", zh: "已应用折扣：", de: "Angewandter Rabatt:", fr: "Remise Appliquée :" },
+                
                 // Modal de selección de ofertas
                 "📋 SELECCIONA TU OFERTA": { en: "📋 SELECT YOUR OFFER", zh: "📋 选择您的报价", de: "📋 WÄHLEN SIE IHR ANGEBOT", fr: "📋 SÉLECTIONNEZ VOTRE OFFRE" },
                 "Hemos calculado todas las opciones con ahorro. Elige la que prefieras.": { en: "We have calculated all options with savings. Choose the one you prefer.", zh: "我们已计算所有节省选项。选择您喜欢的。", de: "Wir haben alle Optionen mit Einsparungen berechnet. Wählen Sie die, die Sie bevorzugen.", fr: "Nous avons calculé toutes les options avec des économies. Choisissez celle que vous préférez." },
@@ -27463,42 +27019,7 @@ ${clientName}
                 "Generar Comparativa →": { en: "Generate Comparison →", zh: "生成比较 →", de: "Vergleich erstellen →", fr: "Générer la Comparaison →" },
                 "SOLICITAR MEJORA A DRK": { en: "REQUEST IMPROVEMENT FROM DRK", zh: "向DRK请求改进", de: "VERBESSERUNG VON DRK ANFORDERN", fr: "DEMANDER UNE AMÉLIORATION À DRK" },
                 "Solicitar Mejora a DRK": { en: "Request Improvement from DRK", zh: "向DRK请求改进", de: "Verbesserung von DRK anfordern", fr: "Demander une Amélioration à DRK" },
-                "Ver desglose detallado del cálculo": { en: "View detailed calculation breakdown", zh: "查看详细计算明细", de: "Detaillierte Berechnungsaufschlüsselung anzeigen", fr: "Voir la répartition détaillée du calcul" },
-                
-                // NUEVAS: Traducciones para el informe de datos (sin emojis problemáticos)
-                "Información del Suministro": { en: "Supply Information", zh: "供应信息", de: "Versorgungsinformationen", fr: "Informations sur l'Approvisionnement" },
-                "Importe Total:": { en: "Total Amount:", zh: "总金额：", de: "Gesamtbetrag:", fr: "Montant Total:" },
-                "Fechas": { en: "Dates", zh: "日期", de: "Daten", fr: "Dates" },
-                "Periodo": { en: "Period", zh: "期间", de: "Zeitraum", fr: "Période" },
-                "días": { en: "days", zh: "天", de: "Tage", fr: "jours" },
-                "Picos Máximos Registrados:": { en: "Maximum Peaks Recorded:", zh: "记录的最大峰值：", de: "Maximal gemessene Spitzen:", fr: "Pics Maximaux Enregistrés:" },
-                "P1 (Punta):": { en: "P1 (Peak):", zh: "P1（峰值）：", de: "P1 (Spitzenlast):", fr: "P1 (Pointe):" },
-                "P2 (Valle):": { en: "P2 (Valley):", zh: "P2（谷段）：", de: "P2 (Schwachlast):", fr: "P2 (Creuse):" },
-                "Aprovechamiento:": { en: "Utilization:", zh: "利用率：", de: "Auslastung:", fr: "Utilisation:" },
-                "de la potencia contratada": { en: "of contracted power", zh: "合同功率", de: "der vertragl. Leistung", fr: "de la puissance contractée" },
-                "Estás pagando por mucha más potencia de la que usas": { en: "You are paying for much more power than you use", zh: "您支付的功率远超实际使用量", de: "Sie zahlen für viel mehr Leistung als Sie nutzen", fr: "Vous payez pour beaucoup plus de puissance que vous n'utilisez" },
-                "Desglose de Costes": { en: "Cost Breakdown", zh: "成本明细", de: "Kostenaufschlüsselung", fr: "Répartition des Coûts" },
-                "Término fijo (Potencia)": { en: "Fixed Term (Power)", zh: "固定费用（功率）", de: "Fixkosten (Leistung)", fr: "Terme Fixe (Puissance)" },
-                "Término variable (Energía)": { en: "Variable Term (Energy)", zh: "可变费用（能源）", de: "Variable Kosten (Energie)", fr: "Terme Variable (Énergie)" },
-                "Otros (Contador, etc.)": { en: "Others (Meter, etc.)", zh: "其他（电表等）", de: "Sonstige (Zähler usw.)", fr: "Autres (Compteur, etc.)" },
-                "Subtotal (sin impuestos)": { en: "Subtotal (before taxes)", zh: "小计（税前）", de: "Zwischensumme (vor Steuern)", fr: "Sous-total (hors taxes)" },
-                "El resto hasta": { en: "The rest up to", zh: "其余部分至", de: "Der Rest bis", fr: "Le reste jusqu'à" },
-                "corresponde a:": { en: "corresponds to:", zh: "对应于：", de: "entspricht:", fr: "correspond à:" },
-                "Impuesto Eléctrico (5.11%)": { en: "Electricity Tax (5.11%)", zh: "电费税（5.11%）", de: "Stromsteuer (5,11%)", fr: "Taxe sur l'Électricité (5,11%)" },
-                "IVA (21%)": { en: "VAT (21%)", zh: "增值税（21%）", de: "MwSt (21%)", fr: "TVA (21%)" },
-                "Histórico Acumulado (Ciclo Anual)": { en: "Cumulative History (Annual Cycle)", zh: "累计历史记录（年度周期）", de: "Kumulierte Historie (Jahreszyklus)", fr: "Historique Cumulé (Cycle Annuel)" },
-                "P1 (Punta):": { en: "P1 (Peak):", zh: "P1（峰值）：", de: "P1 (Spitzenlast):", fr: "P1 (Pointe):" },
-                "P2 (Llano):": { en: "P2 (Flat):", zh: "P2（平段）：", de: "P2 (Mittellast):", fr: "P2 (Pleine):" },
-                "P3 (Valle):": { en: "P3 (Valley):", zh: "P3（谷段）：", de: "P3 (Schwachlast):", fr: "P3 (Creuse):" },
-                "Total Acumulado:": { en: "Total Accumulated:", zh: "累计总计：", de: "Gesamtsumme:", fr: "Total Cumulé:" },
-                "Información Adicional": { en: "Additional Information", zh: "附加信息", de: "Zusätzliche Informationen", fr: "Informations Supplémentaires" },
-                "Fecha de factura:": { en: "Invoice date:", zh: "发票日期：", de: "Rechnungsdatum:", fr: "Date de facture:" },
-                "Comercializadora:": { en: "Supplier:", zh: "供应商：", de: "Versorger:", fr: "Fournisseur:" },
-                "Fin de contrato:": { en: "Contract end:", zh: "合同结束：", de: "Vertragsende:", fr: "Fin de contrat:" },
-                "Tipo de contrato:": { en: "Contract type:", zh: "合同类型：", de: "Vertragsart:", fr: "Type de contrat:" },
-                "Consumo por Periodo (kWh)": { en: "Consumption by Period (kWh)", zh: "按时段消耗（kWh）", de: "Verbrauch nach Zeitraum (kWh)", fr: "Consommation par Période (kWh)" },
-                "Total Consumo": { en: "Total Consumption", zh: "总消耗", de: "Gesamtverbrauch", fr: "Consommation Totale" },
-                "Potencia Contratada (kW)": { en: "Contracted Power (kW)", zh: "合同功率（kW）", de: "Vertragsleistung (kW)", fr: "Puissance Contractée (kW)" }
+                "Ver desglose detallado del cálculo": { en: "View detailed calculation breakdown", zh: "查看详细计算明细", de: "Detaillierte Berechnungsaufschlüsselung anzeigen", fr: "Voir la répartition détaillée du calcul" }
             };
 
             let lang = localStorage.getItem('appLanguage') || 'es';
@@ -28137,81 +27658,10 @@ ${clientName}
             window.addEventListener('DOMContentLoaded', () => {
                 const savedLang = localStorage.getItem('appLanguage') || 'es';
                 window.LANG.change(savedLang, true); // skipReload = true para carga inicial
-                
-                // INICIALIZACIÓN DIRECTA A 2.0TD
-                setTimeout(() => {
-                    // Forzar modo DRK Únicamente
-                    comparisonMode = 'drk_only';
-                    
-                    // Ocultar pantalla de inicio
-                    document.getElementById('screen-inicio')?.classList.remove('active');
-                    
-                    // Ir directo a electricidad 2.0TD
-                    currentTariffType = '2.0TD';
-                    document.getElementById('screen-electricidad')?.classList.add('active');
-                    
-                    // Ocultar selector de modo de comparación
-                    document.getElementById('modo-comparacion-section').style.display = 'none';
-                    
-                    // Aplicar branding DRK
-                    applyBrandStyles(BRANDS.DRK);
-                    
-                    // Actualizar badge de tarifas
-                    const count = currentTariffs['2.0TD']?.length || 0;
-                    const badge = document.getElementById('tariff-display-badge');
-                    if (badge) badge.textContent = count;
-                    
-                    console.log('✅ Inicializado directamente en 2.0TD - Modo DRK Únicamente');
-                }, 100);
             });
 
             window.addEventListener('load', () => {
                 setTimeout(() => window.LANG.retranslate(), 200);
-                
-                // Mostrar indicador de carga
-                setTimeout(() => {
-                    const loadingEl = document.getElementById('loading-status');
-                    if (loadingEl) {
-                        loadingEl.textContent = '⏳ Cargando tarifas 2.0TD...';
-                        loadingEl.classList.remove('hidden');
-                    }
-                }, 500);
-                
-                // Cargar tarifas 2.0TD - PRIMER INTENTO
-                setTimeout(async () => {
-                    console.log('🔄 [INTENTO 1] Cargando tarifas 2.0TD para cliente...');
-                    currentTariffType = '2.0TD';
-                    await fetchTariffsFromSheet('2.0TD');
-                    
-                    const count = currentTariffs['2.0TD']?.length || 0;
-                    console.log(`✅ Tarifas cargadas en intento 1: ${count}`);
-                    
-                    if (count > 0) {
-                        // Éxito
-                        const loadingEl = document.getElementById('loading-status');
-                        if (loadingEl) loadingEl.classList.add('hidden');
-                        console.log('🟢 Sistema listo para escanear QR');
-                    } else {
-                        // REINTENTO después de 2 segundos
-                        console.warn('⚠️ No se cargaron tarifas. Reintentando en 2 segundos...');
-                        setTimeout(async () => {
-                            console.log('🔄 [INTENTO 2] Reintentando carga de tarifas...');
-                            await fetchTariffsFromSheet('2.0TD');
-                            
-                            const count2 = currentTariffs['2.0TD']?.length || 0;
-                            const loadingEl = document.getElementById('loading-status');
-                            if (loadingEl) loadingEl.classList.add('hidden');
-                            
-                            if (count2 > 0) {
-                                console.log(`✅ Tarifas cargadas en intento 2: ${count2}`);
-                                console.log('🟢 Sistema listo para escanear QR');
-                            } else {
-                                console.error('🔴 FALLO: No se pudieron cargar las tarifas después de 2 intentos.');
-                                console.error('🔴 Por favor, verifica la URL de Google Sheets y la conexión a internet.');
-                            }
-                        }, 2000);
-                    }
-                }, 1000); // Reducido a 1 segundo para el primer intento
             });
         })();
         
@@ -28232,240 +27682,6 @@ ${clientName}
                     left: scrollAmount,
                     behavior: 'smooth'
                 });
-            }
-        }
-        
-        function sendClientEmail() {
-            const cups = document.getElementById('cups-value')?.textContent || 'Pendiente';
-            const lang = document.getElementById('language-selector')?.value || 'es';
-            const to = 'f.araujo@drk.es,rguerra@drk.es,s.caballero@drk.es';
-            const subject = 'Estimado DRK: Estoy interesado en los precios de la oferta';
-            const body = `Estimado DRK,
-
-Estoy interesado en los precios de la oferta. Adjunto la siguiente información para la contratación:
-
-- Foto DNI
-- Email de validación de contrato
-- Teléfono de validación de contrato
-- Número de cuenta bancaria
-- Factura eléctrica (no puede ser más antigua de 3 meses desde la fecha actual)
-
-CUPS: ${cups}
-Idioma: ${lang.toUpperCase()}
-
-Gracias.`;
-            window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        }
-        
-        function showCleanResultsPage() {
-            // Capturar TODO el contenido HTML del results-view antes de reemplazar
-            const resultsView = document.getElementById('results-view');
-            if (!resultsView) return;
-            
-            // Clonar todo el contenido
-            const fullContent = resultsView.innerHTML;
-            
-            // Reemplazar TODA la página con versión limpia que incluye TODO
-            document.body.innerHTML = `
-                <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; min-height: 100vh; padding: 2rem 1rem; }
-                    .clean-container { max-width: 56rem; margin: 0 auto; }
-                    .back-section { margin-bottom: 2rem; }
-                    .btn-back { background: #fff; border: 2px solid #e2e8f0; color: #475569; font-weight: 700; padding: .75rem 1.5rem; border-radius: .75rem; cursor: pointer; display: inline-flex; align-items: center; gap: .5rem; transition: all .2s; }
-                    .btn-back:hover { background: #f8fafc; border-color: #cbd5e1; }
-                    
-                    /* Mantener todos los estilos originales de Tailwind */
-                    .hidden { display: none !important; }
-                    .mb-8 { margin-bottom: 2rem; }
-                    .mb-6 { margin-bottom: 1.5rem; }
-                    .mb-4 { margin-bottom: 1rem; }
-                    .mb-3 { margin-bottom: 0.75rem; }
-                    .mb-2 { margin-bottom: 0.5rem; }
-                    .mb-1 { margin-bottom: 0.25rem; }
-                    .mt-8 { margin-top: 2rem; }
-                    .p-6 { padding: 1.5rem; }
-                    .p-3 { padding: 0.75rem; }
-                    .py-5 { padding-top: 1.25rem; padding-bottom: 1.25rem; }
-                    .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
-                    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
-                    .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
-                    .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
-                    .rounded-3xl { border-radius: 1.5rem; }
-                    .rounded-2xl { border-radius: 1rem; }
-                    .rounded-xl { border-radius: 0.75rem; }
-                    .rounded-full { border-radius: 9999px; }
-                    .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
-                    .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-                    .text-center { text-align: center; }
-                    .text-xl { font-size: 1.25rem; }
-                    .text-2xl { font-size: 1.5rem; }
-                    .text-5xl { font-size: 3rem; }
-                    .font-black { font-weight: 900; }
-                    .font-bold { font-weight: 700; }
-                    .text-slate-800 { color: #1e293b; }
-                    .text-slate-600 { color: #475569; }
-                    .text-slate-500 { color: #64748b; }
-                    .text-white { color: #fff; }
-                    .bg-white { background-color: #fff; }
-                    .bg-green-100 { background-color: #dcfce7; }
-                    .text-green-800 { color: #166534; }
-                    .bg-green-500 { background-color: #22c55e; }
-                    .border { border-width: 1px; }
-                    .border-2 { border-width: 2px; }
-                    .border-slate-100 { border-color: #f1f5f9; }
-                    .border-slate-200 { border-color: #e2e8f0; }
-                    .overflow-hidden { overflow: hidden; }
-                    .inline-flex { display: inline-flex; }
-                    .flex { display: flex; }
-                    .items-center { align-items: center; }
-                    .justify-center { justify-content: center; }
-                    .gap-2 { gap: 0.5rem; }
-                    .gap-3 { gap: 0.75rem; }
-                    .gap-6 { gap: 1.5rem; }
-                    .w-full { width: 100%; }
-                    .w-2 { width: 0.5rem; }
-                    .w-8 { width: 2rem; }
-                    .h-2 { height: 0.5rem; }
-                    .h-8 { height: 2rem; }
-                    .text-xs { font-size: 0.75rem; line-height: 1rem; }
-                    .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
-                    .uppercase { text-transform: uppercase; }
-                    .tracking-wider { letter-spacing: 0.05em; }
-                    .tracking-tight { letter-spacing: -0.025em; }
-                    .font-mono { font-family: ui-monospace, monospace; }
-                    .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-                    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-                    .bg-gradient-to-r { background-image: linear-gradient(to right, var(--tw-gradient-stops)); }
-                    .from-drk-800 { --tw-gradient-from: #075985; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(7, 89, 133, 0)); }
-                    .to-drk-600 { --tw-gradient-to: #0284c7; }
-                    .from-red-600 { --tw-gradient-from: #dc2626; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(220, 38, 38, 0)); }
-                    .to-red-700 { --tw-gradient-to: #b91c1c; }
-                    .hover\\:from-red-700:hover { --tw-gradient-from: #b91c1c; }
-                    .hover\\:to-red-800:hover { --tw-gradient-to: #991b1b; }
-                    .hover\\:underline:hover { text-decoration: underline; }
-                    .hover\\:border-drk-500:hover { border-color: #0ea5e9; }
-                    .hover\\:text-drk-800:hover { color: #075985; }
-                    .transition { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
-                    .active\\:scale-95:active { transform: scale(0.95); }
-                    .transform { transform: translateX(0) translateY(0) rotate(0) skewX(0) skewY(0) scaleX(1) scaleY(1); }
-                    .grid { display: grid; }
-                    .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-                    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-                    .gap-3 { gap: 0.75rem; }
-        
-        // Función para mostrar secciones del carrusel SIN scroll automático
-        window.showSection = function(sectionId) {
-            // PASO 1: Guardar la posición exacta del scroll
-            const savedScrollY = window.scrollY || window.pageYOffset;
-            const savedScrollX = window.scrollX || window.pageXOffset;
-            
-            // PASO 2: Bloquear temporalmente el scroll
-            const originalOverflow = document.body.style.overflow;
-            const originalPosition = document.documentElement.style.scrollBehavior;
-            
-            document.body.style.overflow = 'hidden';
-            document.documentElement.style.scrollBehavior = 'auto';
-            
-            // PASO 3: Hacer los cambios de UI
-            // Ocultar todas las secciones
-            document.querySelectorAll('.section-content').forEach(s => s.style.display = 'none');
-            
-            // Remover clase activa de todos los tabs
-            document.querySelectorAll('.section-tab').forEach(t => {
-                t.classList.remove('text-drk-600', 'bg-drk-50', 'border-drk-500');
-                t.classList.add('text-slate-600', 'border-transparent');
-            });
-            
-            // Mostrar sección seleccionada
-            const section = document.getElementById('section-' + sectionId);
-            if (section) {
-                section.style.display = 'block';
-            }
-            
-            // Activar tab correspondiente
-            const btn = document.getElementById('btn-' + sectionId);
-            if (btn) {
-                btn.classList.remove('text-slate-600', 'border-transparent');
-                btn.classList.add('text-drk-600', 'bg-drk-50', 'border-drk-500');
-            }
-            
-            // PASO 4: Forzar la posición del scroll múltiples veces
-            window.scrollTo(savedScrollX, savedScrollY);
-            
-            requestAnimationFrame(() => {
-                window.scrollTo(savedScrollX, savedScrollY);
-                
-                setTimeout(() => {
-                    window.scrollTo(savedScrollX, savedScrollY);
-                    
-                    // Desbloquear el scroll
-                    document.body.style.overflow = originalOverflow;
-                    document.documentElement.style.scrollBehavior = originalPosition;
-                    
-                    // Una última verificación
-                    window.scrollTo(savedScrollX, savedScrollY);
-                }, 10);
-            });
-            
-            // Prevenir cualquier comportamiento por defecto
-            return false;
-        };
-        
-        // Función para scroll del carrusel de tabs
-        window.scrollTabs = function(direction) {
-            const container = document.getElementById('tabs-container');
-            if (!container) return;
-            
-            const scrollAmount = 200;
-            if (direction === 'left') {
-                container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-            } else {
-                container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-            }
-        };
-                    .space-y-6 > * + * { margin-top: 1.5rem; }
-                    .border-b { border-bottom-width: 1px; }
-                    .pb-4 { padding-bottom: 1rem; }
-                    .pr-2 { padding-right: 0.5rem; }
-                    .pl-2 { padding-left: 0.5rem; }
-                    .border-r { border-right-width: 1px; }
-                    .line-through { text-decoration: line-through; }
-                    .decoration-2 { text-decoration-thickness: 2px; }
-                    .text-cta-green-500 { color: #16a34a; }
-                    .text-cta-red-500 { color: #dc2626; }
-                    .text-drk-800 { color: #075985; }
-                    .text-drk-900 { color: #0c4a6e; }
-                    .text-drk-100 { color: #e0f2fe; }
-                    .bg-drk-800 { background-color: #075985; }
-                    .bg-drk-600 { background-color: #0284c7; }
-                    .opacity-90 { opacity: 0.9; }
-                    .relative { position: relative; }
-                    .flex-col { flex-direction: column; }
-                </style>
-                
-                <div class="clean-container">
-                    <div class="back-section">
-                        <button class="btn-back" onclick="window.location.reload()">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                            </svg>
-                            Realizar Nueva Comparación
-                        </button>
-                    </div>
-                    
-                    <div id="results-content">
-                        ${fullContent}
-                    </div>
-                </div>
-            `;
-            
-            // Re-inicializar event listeners si es necesario
-            const detailsBtn = document.getElementById('details-toggle-btn');
-            if (detailsBtn) {
-                detailsBtn.onclick = function() {
-                    document.getElementById('details-container').classList.toggle('hidden');
-                };
             }
         }
     </script>

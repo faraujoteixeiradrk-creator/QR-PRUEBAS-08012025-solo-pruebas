@@ -5816,6 +5816,11 @@
                         // Tiene compensación y se aplicó descuento
                         const totalEx = res.solarSurplus.total;
                         const discount = res.solarSurplus.monthlyDiscount;
+                        console.log('💰 Valores antes de formatear:', {
+                            totalEx: totalEx,
+                            discount: discount,
+                            formatted: `-${num(discount, 2)} €`
+                        });
                         energyBreakdown += `<div class="flex justify-between text-orange-600 font-semibold"><span>☀️ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</span><span>-${num(discount, 2)} €</span></div>`;
                         console.log('✅ Línea de excedentes añadida:', `${totalEx} kWh = -${discount} €`);
                     } else if (res.solarSurplus.noPrice) {

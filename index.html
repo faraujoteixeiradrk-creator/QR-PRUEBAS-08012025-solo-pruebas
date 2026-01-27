@@ -3918,6 +3918,10 @@
                     
                     console.log(`💰 Aplicando descuento: ${totalExcedentes} kWh × ${precioExcedentesEstaOFERTA}/1000 = ${monthlyDiscount.toFixed(2)} € mensuales`);
                     
+                    // CRÍTICO: Guardar valores ORIGINALES antes de aplicar descuento (para PDF)
+                    result.subEnergyGross = result.subEnergy; // Guardar bruto REAL
+                    result.subBaseGross = result.subBase; // Guardar base bruta REAL
+                    
                     // Ajustar energía (el descuento se resta del subtotal de energía)
                     result.subEnergy = Math.max(0, result.subEnergy - monthlyDiscount);
                     result.subEnergyNet = Math.max(0, result.subEnergyNet - monthlyDiscount);
@@ -11867,12 +11871,35 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         }
                     });
                     
-                    // Subtotal energía bruto
+                    // Subtotal energía bruto - MOSTRAR EL VALOR BRUTO ORIGINAL (sin descuento de excedentes)
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(80, 80, 80);
+                    
+                    // Usar subEnergyGross si existe (cuando hay excedentes), sino usar subEnergy normal
+                    const displaySubEnergy = res.subEnergyGross !== undefined ? res.subEnergyGross : res.subEnergy;
+                    
                     doc.text('Subtotal Energía (Bruto)', margin + 2, yPos);
-                    doc.text(`${num(res.subEnergy, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
+                    doc.text(`${num(displaySubEnergy, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
                     yPos += 5;
+                    
+                    // NUEVO: Excedentes solares si está habilitado (DESPUÉS del subtotal bruto)
+                    if (res.solarSurplus && res.solarSurplus.enabled) {
+                        doc.setTextColor(255, 140, 0); // Naranja
+                        doc.setFont('helvetica', 'normal');
+                        const totalEx = res.solarSurplus.total;
+                        const discount = res.solarSurplus.monthlyDiscount;
+                        doc.text(`☀ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)`, margin + 2, yPos);
+                        doc.text(`-${num(discount, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
+                        yPos += 5;
+                    } else if (res.solarSurplus && res.solarSurplus.noPrice) {
+                        // Sin compensación
+                        doc.setTextColor(150, 150, 150); // Gris
+                        doc.setFont('helvetica', 'italic');
+                        doc.setFontSize(7);
+                        doc.text(`☀ ${tr('Excedentes solares')} - ${tr('Sin compensación')}`, margin + 2, yPos);
+                        yPos += 5;
+                        doc.setFontSize(8);
+                    }
                     
                     // Descuento si existe
                     if (res.discountAmount > 0) {

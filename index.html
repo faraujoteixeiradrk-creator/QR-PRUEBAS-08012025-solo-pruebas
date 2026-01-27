@@ -5821,7 +5821,7 @@
                             discount: discount,
                             formatted: `-${num(discount, 2)} €`
                         });
-                        energyBreakdown += `<div class="flex justify-between text-orange-600 font-semibold"><span>☀️ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</span><span>-${num(discount, 2)} €</span></div>`;
+                        energyBreakdown += `<div class="flex justify-between font-semibold" style="color: #f97316 !important; background-color: #fff7ed; padding: 4px 0; margin: 2px 0;"><span>☀️ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</span><span>-${num(discount, 2)} €</span></div>`;
                         console.log('✅ Línea de excedentes añadida:', `${totalEx} kWh = -${discount} €`);
                     } else if (res.solarSurplus.noPrice) {
                         // No tiene compensación
@@ -5831,7 +5831,7 @@
                 } else if (hasCheckboxMarked && solarSurplusData.total > 0) {
                     // FALLBACK: Si no hay res.solarSurplus pero el checkbox está marcado
                     console.warn('⚠️ FALLBACK: res.solarSurplus no existe pero checkbox marcado - Usando datos globales');
-                    energyBreakdown += `<div class="flex justify-between text-orange-600 font-semibold"><span>☀️ ${tr('Excedentes solares')} (${num(solarSurplusData.total, 2)} kWh)</span><span>-${num(solarSurplusData.discount, 2)} €</span></div>`;
+                    energyBreakdown += `<div class="flex justify-between font-semibold" style="color: #f97316 !important; background-color: #fff7ed; padding: 4px 0; margin: 2px 0;"><span>☀️ ${tr('Excedentes solares')} (${num(solarSurplusData.total, 2)} kWh)</span><span>-${num(solarSurplusData.discount, 2)} €</span></div>`;
                 }
             }
 

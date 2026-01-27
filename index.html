@@ -11888,7 +11888,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setFont('helvetica', 'normal');
                         const totalEx = res.solarSurplus.total;
                         const discount = res.solarSurplus.monthlyDiscount;
-                        doc.text(`☀ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)`, margin + 2, yPos);
+                        doc.text(`${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)`, margin + 2, yPos);
                         doc.text(`-${num(discount, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
                         yPos += 5;
                     } else if (res.solarSurplus && res.solarSurplus.noPrice) {
@@ -11896,7 +11896,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setTextColor(150, 150, 150); // Gris
                         doc.setFont('helvetica', 'italic');
                         doc.setFontSize(7);
-                        doc.text(`☀ ${tr('Excedentes solares')} - ${tr('Sin compensación')}`, margin + 2, yPos);
+                        doc.text(`${tr('Excedentes solares')} - ${tr('Sin compensación')}`, margin + 2, yPos);
                         yPos += 5;
                         doc.setFontSize(8);
                     }
@@ -27141,6 +27141,7 @@ ${clientName}
                 
                 // Excedentes Solares
                 "☀️ Excedentes solares": { en: "☀️ Solar surplus", zh: "☀️ 太阳能盈余", de: "☀️ Solarüberschuss", fr: "☀️ Excédent solaire" },
+                "Excedentes solares": { en: "Solar surplus", zh: "太阳能盈余", de: "Solarüberschuss", fr: "Excédent solaire" },
                 "Calcula el descuento por compensación de excedentes de energía solar.": { en: "Calculate the discount for solar energy surplus compensation.", zh: "计算太阳能盈余补偿的折扣。", de: "Berechnen Sie den Rabatt für die Vergütung von Solarüberschuss.", fr: "Calculer la remise pour la compensation de l'excédent d'énergie solaire." },
                 "☀️ Excedente kWh 1": { en: "☀️ Surplus kWh 1", zh: "☀️ 盈余 kWh 1", de: "☀️ Überschuss kWh 1", fr: "☀️ Excédent kWh 1" },
                 "☀️ Excedente kWh 2": { en: "☀️ Surplus kWh 2", zh: "☀️ 盈余 kWh 2", de: "☀️ Überschuss kWh 2", fr: "☀️ Excédent kWh 2" },

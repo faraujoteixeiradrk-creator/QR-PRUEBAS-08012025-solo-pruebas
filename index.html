@@ -5808,6 +5808,17 @@
                     : offer.name;
                 
                 if (tariffType === '2.0TD') {
+                    // NUEVO: Construir línea de excedentes solares si está habilitado
+                    let excedentesHTML = '';
+                    if (res.solarSurplus && res.solarSurplus.enabled) {
+                        const precioExcedente = res.solarSurplus.pricePerKwh;
+                        excedentesHTML = `
+                            <p class="text-slate-500 mt-2 col-span-2 font-bold text-orange-600">${tr('EXCEDENTES SOLARES')}</p>
+                            <p class="text-slate-500">☀️ ${tr('Compensación')}:</p>
+                            <p class="font-mono font-bold text-right text-orange-600">${numPriceFormula(precioExcedente)} €/kWh</p>
+                        `;
+                    }
+                    
                     preciosHTML = `
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm text-sm mb-6">
                             <h4 class="font-bold text-lg text-slate-800 mb-3">${tr('Precios de la Oferta Consolidada')}</h4>
@@ -5825,6 +5836,7 @@
                                     <p class="font-mono font-bold text-right">${numPriceFormula(res.energyCosts[1].price)}</p>
                                     <p class="text-slate-500">E3 (${tr('Valle')}):</p>
                                     <p class="font-mono font-bold text-right">${numPriceFormula(res.energyCosts[2].price)}</p>
+                                    ${excedentesHTML}
                                 </div>
                             </div>
                             <p class="text-xs text-slate-500 mt-2">*${tr('Los precios mostrados son de la oferta ganadora.')}</p>
@@ -26996,6 +27008,8 @@ ${clientName}
                 "☀️ Excedente kWh 3": { en: "☀️ Surplus kWh 3", zh: "☀️ 盈余 kWh 3", de: "☀️ Überschuss kWh 3", fr: "☀️ Excédent kWh 3" },
                 "Total Excedentes:": { en: "Total Surplus:", zh: "总盈余：", de: "Gesamtüberschuss:", fr: "Excédent Total :" },
                 "Descuento Aplicado:": { en: "Discount Applied:", zh: "已应用折扣：", de: "Angewandter Rabatt:", fr: "Remise Appliquée :" },
+                "EXCEDENTES SOLARES": { en: "SOLAR SURPLUS", zh: "太阳能盈余", de: "SOLARÜBERSCHUSS", fr: "EXCÉDENT SOLAIRE" },
+                "Compensación": { en: "Compensation", zh: "补偿", de: "Vergütung", fr: "Compensation" },
                 
                 // Modal de selección de ofertas
                 "📋 SELECCIONA TU OFERTA": { en: "📋 SELECT YOUR OFFER", zh: "📋 选择您的报价", de: "📋 WÄHLEN SIE IHR ANGEBOT", fr: "📋 SÉLECTIONNEZ VOTRE OFFRE" },

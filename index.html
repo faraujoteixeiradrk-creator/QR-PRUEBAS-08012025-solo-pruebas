@@ -6990,10 +6990,22 @@
                                     </tr>
                                     `).join('') : ''}
                                     
-                                    <tr style="border-top:1px dashed #cbd5e1;">
-                                        <td></td>
-                                        <td align="right" style="padding:8px;color:#1e293b;font-weight:bold;">${(res.subEnergyNet || 0).toFixed(2)} €</td>
+                                    ${res.solarSurplus && res.solarSurplus.enabled ? `
+                                    <tr>
+                                        <td style="padding:5px;color:#f97316;font-weight:600;">☀️ ${tr('Excedentes solares')} (${(res.solarSurplus.total || 0).toFixed(2)} kWh)</td>
+                                        <td align="right" style="padding:5px;color:#f97316;font-weight:bold;">-${(res.solarSurplus.monthlyDiscount || 0).toFixed(2)} €</td>
                                     </tr>
+                                    ` : res.solarSurplus && res.solarSurplus.noPrice ? `
+                                    <tr>
+                                        <td colspan="2" style="padding:5px;color:#9ca3af;font-style:italic;font-size:10px;">☀️ ${tr('Excedentes solares')} - ${tr('Sin compensación')}</td>
+                                    </tr>
+                                    ` : ''}
+                                    
+                                    <tr style="border-top:2px solid #16a34a;">
+                                        <td style="padding:8px;color:#16a34a;font-weight:bold;">${tr('Subtotal Energía (Bruto)')}</td>
+                                        <td align="right" style="padding:8px;color:#16a34a;font-weight:bold;">${(res.subEnergyGross !== undefined ? res.subEnergyGross : res.subEnergy || 0).toFixed(2)} €</td>
+                                    </tr>
+                                    
                                     <tr style="border-top:1px dashed #cbd5e1;">
                                         <td></td>
                                         <td align="right" style="padding:8px;color:#1e293b;font-weight:bold;">${(res.subtotalNet || 0).toFixed(2)} €</td>

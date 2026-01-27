@@ -3897,37 +3897,64 @@
             };
             
             // NUEVO: Aplicar descuento por excedentes solares si está habilitado y es tarifa 2.0TD
-            if (solarSurplusEnabled && tariffType === '2.0TD' && solarSurplusData.discount > 0) {
-                console.log(`☀️ Aplicando descuento de excedentes solares: -${solarSurplusData.discount.toFixed(2)} € mensuales`);
+            if (solarSurplusEnabled && tariffType === '2.0TD' && solarSurplusData.total > 0) {
+                // CRÍTICO: Obtener el precio de excedentes de ESTA tarifa específica, no el global
+                let precioExcedentesEstaOFERTA = 0;
                 
-                // Calcular descuento anual
-                const monthlyDiscount = solarSurplusData.discount;
-                const annualDiscount = monthlyDiscount * 12;
+                // Buscar el precio en la columna 'excedentes' de esta tarifa
+                if (tariff.excedentes !== undefined && tariff.excedentes !== null && tariff.excedentes !== '') {
+                    precioExcedentesEstaOFERTA = parseFloat(tariff.excedentes) || 0;
+                }
                 
-                // Ajustar energía (el descuento se resta del subtotal de energía)
-                result.subEnergy = Math.max(0, result.subEnergy - monthlyDiscount);
-                result.subEnergyNet = Math.max(0, result.subEnergyNet - monthlyDiscount);
-                result.subBase = Math.max(0, result.subBase - monthlyDiscount);
+                console.log(`☀️ Tarifa: ${tariff.name || 'N/A'} - Precio excedentes: ${precioExcedentesEstaOFERTA}`);
                 
-                // Recalcular impuestos con el nuevo subtotal
-                result.costIE = result.subBase * IE_RATE;
-                result.baseImp = result.subBase + result.costIE;
-                result.costIVA = result.baseImp * IVA_RATE;
-                result.totalPeriod = result.baseImp + result.costIVA;
-                result.totalAnnual = result.totalPeriod * factorAnual;
-                
-                // Recalcular ahorros
-                result.savings = result.originalBillAnnual - result.totalAnnual;
-                
-                // Añadir información de excedentes al resultado
-                result.solarSurplus = {
-                    enabled: true,
-                    monthlyDiscount: monthlyDiscount,
-                    annualDiscount: annualDiscount,
-                    ...solarSurplusData
-                };
-                
-                console.log(`✅ Nuevo coste anual con excedentes: ${result.totalAnnual.toFixed(2)} €, Ahorro: ${result.savings.toFixed(2)} €`);
+                // Solo aplicar descuento si esta tarifa tiene precio de excedentes > 0
+                if (precioExcedentesEstaOFERTA > 0) {
+                    // Calcular descuento específico para esta tarifa
+                    const totalExcedentes = solarSurplusData.total;
+                    const monthlyDiscount = totalExcedentes * (precioExcedentesEstaOFERTA / 1000);
+                    const annualDiscount = monthlyDiscount * 12;
+                    
+                    console.log(`💰 Aplicando descuento: ${totalExcedentes} kWh × ${precioExcedentesEstaOFERTA}/1000 = ${monthlyDiscount.toFixed(2)} € mensuales`);
+                    
+                    // Ajustar energía (el descuento se resta del subtotal de energía)
+                    result.subEnergy = Math.max(0, result.subEnergy - monthlyDiscount);
+                    result.subEnergyNet = Math.max(0, result.subEnergyNet - monthlyDiscount);
+                    result.subBase = Math.max(0, result.subBase - monthlyDiscount);
+                    
+                    // Recalcular impuestos con el nuevo subtotal
+                    result.costIE = result.subBase * IE_RATE;
+                    result.baseImp = result.subBase + result.costIE;
+                    result.costIVA = result.baseImp * IVA_RATE;
+                    result.totalPeriod = result.baseImp + result.costIVA;
+                    result.totalAnnual = result.totalPeriod * factorAnual;
+                    
+                    // Recalcular ahorros
+                    result.savings = result.originalBillAnnual - result.totalAnnual;
+                    
+                    // Añadir información de excedentes al resultado (con el precio específico de esta tarifa)
+                    result.solarSurplus = {
+                        enabled: true,
+                        monthlyDiscount: monthlyDiscount,
+                        annualDiscount: annualDiscount,
+                        total: totalExcedentes,
+                        excedente1: solarSurplusData.excedente1,
+                        excedente2: solarSurplusData.excedente2,
+                        excedente3: solarSurplusData.excedente3,
+                        pricePerKwh: precioExcedentesEstaOFERTA / 1000,
+                        discount: monthlyDiscount
+                    };
+                    
+                    console.log(`✅ Nuevo coste anual con excedentes: ${result.totalAnnual.toFixed(2)} €, Ahorro: ${result.savings.toFixed(2)} €`);
+                } else {
+                    console.log(`⚠️ Esta tarifa NO tiene precio de excedentes (columna I vacía o 0) - No se aplica descuento`);
+                    // Añadir marca de que se intentó pero no tiene precio
+                    result.solarSurplus = {
+                        enabled: false,
+                        noPrice: true,
+                        message: 'Esta comercializadora no ofrece compensación por excedentes'
+                    };
+                }
             }
             
             // Si el ahorro es negativo, marcar pero NO cambiar la oferta
@@ -5241,12 +5268,18 @@
                     }
                 });
                 
-                // NUEVO: Añadir línea de excedentes solares si está habilitado
+                // NUEVO: Añadir línea de excedentes solares según el estado
                 let solarSurplusLine = '';
-                if (resItem.solarSurplus && resItem.solarSurplus.enabled) {
-                    const totalEx = resItem.solarSurplus.total;
-                    const discount = resItem.solarSurplus.monthlyDiscount;
-                    solarSurplusLine = `<div class="flex justify-between text-orange-600"><span>☀️ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</span><span>-${num(discount, 2)} €</span></div>`;
+                if (resItem.solarSurplus) {
+                    if (resItem.solarSurplus.enabled) {
+                        // Tiene compensación y se aplicó descuento
+                        const totalEx = resItem.solarSurplus.total;
+                        const discount = resItem.solarSurplus.monthlyDiscount;
+                        solarSurplusLine = `<div class="flex justify-between text-orange-600"><span>☀️ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</span><span>-${num(discount, 2)} €</span></div>`;
+                    } else if (resItem.solarSurplus.noPrice) {
+                        // No tiene compensación
+                        solarSurplusLine = `<div class="flex justify-between text-slate-400 italic text-xs"><span>☀️ ${tr('Excedentes solares')}</span><span>${tr('Sin compensación')}</span></div>`;
+                    }
                 }
 
                 let powerBreakdown = '';
@@ -5737,11 +5770,17 @@
                     }
                 });
                 
-                // NUEVO: Añadir línea de excedentes solares si está habilitado
-                if (res.solarSurplus && res.solarSurplus.enabled) {
-                    const totalEx = res.solarSurplus.total;
-                    const discount = res.solarSurplus.monthlyDiscount;
-                    energyBreakdown += `<div class="flex justify-between text-orange-600"><span>☀️ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</span><span>-${num(discount, 2)} €</span></div>`;
+                // NUEVO: Añadir línea de excedentes solares según el estado
+                if (res.solarSurplus) {
+                    if (res.solarSurplus.enabled) {
+                        // Tiene compensación y se aplicó descuento
+                        const totalEx = res.solarSurplus.total;
+                        const discount = res.solarSurplus.monthlyDiscount;
+                        energyBreakdown += `<div class="flex justify-between text-orange-600"><span>☀️ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</span><span>-${num(discount, 2)} €</span></div>`;
+                    } else if (res.solarSurplus.noPrice) {
+                        // No tiene compensación
+                        energyBreakdown += `<div class="flex justify-between text-slate-400 italic text-xs"><span>☀️ ${tr('Excedentes solares')}</span><span>${tr('Sin compensación')}</span></div>`;
+                    }
                 }
             }
 
@@ -5808,15 +5847,29 @@
                     : offer.name;
                 
                 if (tariffType === '2.0TD') {
-                    // NUEVO: Construir línea de excedentes solares si está habilitado
+                    // NUEVO: Construir línea de excedentes solares según el estado
                     let excedentesHTML = '';
-                    if (res.solarSurplus && res.solarSurplus.enabled) {
-                        const precioExcedente = res.solarSurplus.pricePerKwh;
-                        excedentesHTML = `
-                            <p class="text-slate-500 mt-2 col-span-2 font-bold text-orange-600">${tr('EXCEDENTES SOLARES')}</p>
-                            <p class="text-slate-500">☀️ ${tr('Compensación')}:</p>
-                            <p class="font-mono font-bold text-right text-orange-600">${numPriceFormula(precioExcedente)} €/kWh</p>
-                        `;
+                    
+                    // Verificar si el checkbox de excedentes está marcado
+                    const solarCheckbox = document.getElementById('solar-surplus-checkbox');
+                    const isChecked = solarCheckbox && solarCheckbox.checked;
+                    
+                    if (isChecked) {
+                        if (res.solarSurplus && res.solarSurplus.enabled) {
+                            // Tiene precio de excedentes y se aplicó descuento
+                            const precioExcedente = res.solarSurplus.pricePerKwh;
+                            excedentesHTML = `
+                                <p class="text-slate-500 mt-2 col-span-2 font-bold text-orange-600">${tr('EXCEDENTES SOLARES')}</p>
+                                <p class="text-slate-500">☀️ ${tr('Compensación')}:</p>
+                                <p class="font-mono font-bold text-right text-orange-600">${numPriceFormula(precioExcedente)} €/kWh</p>
+                            `;
+                        } else if (res.solarSurplus && res.solarSurplus.noPrice) {
+                            // El checkbox está marcado pero esta tarifa NO tiene compensación
+                            excedentesHTML = `
+                                <p class="text-slate-500 mt-2 col-span-2 font-bold text-slate-400">${tr('EXCEDENTES SOLARES')}</p>
+                                <p class="text-slate-400 text-xs col-span-2 italic">⚠️ ${tr('Esta comercializadora no ofrece compensación')}</p>
+                            `;
+                        }
                     }
                     
                     preciosHTML = `
@@ -27010,6 +27063,8 @@ ${clientName}
                 "Descuento Aplicado:": { en: "Discount Applied:", zh: "已应用折扣：", de: "Angewandter Rabatt:", fr: "Remise Appliquée :" },
                 "EXCEDENTES SOLARES": { en: "SOLAR SURPLUS", zh: "太阳能盈余", de: "SOLARÜBERSCHUSS", fr: "EXCÉDENT SOLAIRE" },
                 "Compensación": { en: "Compensation", zh: "补偿", de: "Vergütung", fr: "Compensation" },
+                "Esta comercializadora no ofrece compensación": { en: "This supplier does not offer compensation", zh: "该供应商不提供补偿", de: "Dieser Anbieter bietet keine Vergütung", fr: "Ce fournisseur n'offre pas de compensation" },
+                "Sin compensación": { en: "No compensation", zh: "无补偿", de: "Keine Vergütung", fr: "Sans compensation" },
                 
                 // Modal de selección de ofertas
                 "📋 SELECCIONA TU OFERTA": { en: "📋 SELECT YOUR OFFER", zh: "📋 选择您的报价", de: "📋 WÄHLEN SIE IHR ANGEBOT", fr: "📋 SÉLECTIONNEZ VOTRE OFFRE" },

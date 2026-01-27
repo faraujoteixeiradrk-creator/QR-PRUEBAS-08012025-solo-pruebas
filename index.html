@@ -1752,6 +1752,33 @@
             </div>
         </div>
 
+        <!-- NUEVO MODAL SIMPLE: Datos del Cliente para Solicitar Mejora -->
+        <div id="simple-improvement-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+            <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full">
+                <h3 class="text-2xl font-bold text-amber-600 mb-2">📧 Solicitar Mejora a DRK</h3>
+                <p class="text-sm text-slate-600 mb-4">Complete los datos del cliente (todos opcionales):</p>
+                
+                <input type="text" id="simple-client-name" placeholder="Nombre" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                
+                <input type="text" id="simple-client-surname" placeholder="Apellidos" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                
+                <input type="email" id="simple-client-email" placeholder="Email" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                
+                <input type="tel" id="simple-client-phone" placeholder="Teléfono" class="w-full mb-3 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                
+                <textarea id="simple-observations" placeholder="Observaciones (opcional)" rows="3" class="w-full mb-4 p-3 rounded-lg border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none resize-none"></textarea>
+                
+                <div class="flex gap-3">
+                    <button onclick="cerrarModalSimple()" class="flex-1 bg-slate-200 hover:bg-slate-300 font-bold py-3 rounded-xl text-sm transition">
+                        Cancelar
+                    </button>
+                    <button onclick="enviarEmailMejora()" class="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold py-3 rounded-xl shadow-md transition">
+                        📧 Enviar Email
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- 9.8. Modal de Decisión (Mejor Opción vs Elegir) -->
         <div id="offer-decision-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
             <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
@@ -8737,14 +8764,43 @@
         }
 
         
-        // --- FUNCIÓN SIMPLE: ABRIR EMAIL PARA SOLICITAR MEJORA ---
+        // --- FUNCIÓN SIMPLE: ABRIR MODAL PARA SOLICITAR MEJORA ---
         function abrirEmailMejora() {
-            console.log('🔔 Abriendo email para solicitar mejora a DRK');
+            console.log('🔔 Abriendo modal para solicitar mejora a DRK');
             
             if (!lastComparisonResult) {
                 window.showErrorModal("No hay datos de comparación disponibles.");
                 return;
             }
+            
+            // Abrir el modal simple
+            document.getElementById('simple-improvement-modal').classList.remove('hidden');
+            document.getElementById('simple-improvement-modal').classList.add('flex');
+        }
+        
+        // --- CERRAR MODAL SIMPLE ---
+        function cerrarModalSimple() {
+            document.getElementById('simple-improvement-modal').classList.add('hidden');
+            document.getElementById('simple-improvement-modal').classList.remove('flex');
+            
+            // Limpiar campos
+            document.getElementById('simple-client-name').value = '';
+            document.getElementById('simple-client-surname').value = '';
+            document.getElementById('simple-client-email').value = '';
+            document.getElementById('simple-client-phone').value = '';
+            document.getElementById('simple-observations').value = '';
+        }
+        
+        // --- ENVIAR EMAIL CON LOS DATOS DEL MODAL ---
+        function enviarEmailMejora() {
+            console.log('📧 Preparando email con datos del cliente');
+            
+            // Obtener datos del modal
+            const nombre = document.getElementById('simple-client-name').value.trim();
+            const apellidos = document.getElementById('simple-client-surname').value.trim();
+            const email = document.getElementById('simple-client-email').value.trim();
+            const telefono = document.getElementById('simple-client-phone').value.trim();
+            const observaciones = document.getElementById('simple-observations').value.trim();
             
             // Preparar el asunto del email
             const subject = '🚨 SOLICITUD DE MEJORA - Sin ahorro detectado';
@@ -8752,8 +8808,20 @@
             // Preparar el cuerpo del email con los datos básicos
             let body = '¡Hola equipo de DRK!\n\n';
             body += 'He realizado una comparación y NO se ha detectado ahorro.\n\n';
+            
+            // DATOS DEL CLIENTE (si se proporcionaron)
+            if (nombre || apellidos || email || telefono) {
+                body += '👤 DATOS DEL CLIENTE:\n';
+                body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+                if (nombre) body += `Nombre: ${nombre}\n`;
+                if (apellidos) body += `Apellidos: ${apellidos}\n`;
+                if (email) body += `Email: ${email}\n`;
+                if (telefono) body += `Teléfono: ${telefono}\n`;
+                body += '\n';
+            }
+            
             body += '📋 DATOS DE LA COMPARACIÓN:\n';
-            body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+            body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
             
             if (lastComparisonResult.cups) {
                 body += `CUPS: ${lastComparisonResult.cups}\n`;
@@ -8772,7 +8840,15 @@
             }
             
             body += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
-            body += '⚠️ Por favor, revisen este caso y busquen una mejor oferta.\n\n';
+            
+            // Observaciones (si se proporcionaron)
+            if (observaciones) {
+                body += '\n📝 OBSERVACIONES:\n';
+                body += `${observaciones}\n\n`;
+                body += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            }
+            
+            body += '\n⚠️ Por favor, revisen este caso y busquen una mejor oferta.\n\n';
             body += '📎 IMPORTANTE: Adjuntar la factura del cliente en el email.\n\n';
             body += 'Gracias,\n';
             body += 'Equipo Comercial';
@@ -8780,6 +8856,9 @@
             // Crear el mailto link con múltiples destinatarios
             const recipients = 'F.araujo@drk.es,rguerra@drk.es,l.grande@drk.es';
             const mailtoLink = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            
+            // Cerrar el modal
+            cerrarModalSimple();
             
             // Abrir el email
             window.location.href = mailtoLink;

@@ -5672,9 +5672,33 @@
 
             } else {
                 document.getElementById('savings-label').textContent = "TU AHORRO ANUAL ESTIMADO";
-                savingsEl.textContent = eur(res.savings);
+                
+                // NUEVO: Mostrar desglose si hay excedentes solares
+                if (res.solarSurplus && res.solarSurplus.enabled) {
+                    const savingsBase = res.savings - (res.solarSurplus.annualDiscount || 0);
+                    const savingsSolar = res.solarSurplus.annualDiscount || 0;
+                    savingsEl.innerHTML = `
+                        <div class="flex flex-col items-center gap-1">
+                            <div class="text-lg font-bold text-green-600">${eur(savingsBase)}</div>
+                            <div class="text-sm font-semibold text-orange-600">+ ${eur(savingsSolar)} ☀️</div>
+                            <div class="w-16 border-t-2 border-green-300 my-1"></div>
+                            <div class="text-5xl font-black text-cta-green-500">${eur(res.savings)}</div>
+                        </div>
+                    `;
+                } else if (res.solarSurplus && res.solarSurplus.noPrice) {
+                    // Sin compensación de excedentes
+                    savingsEl.innerHTML = `
+                        <div class="flex flex-col items-center gap-1">
+                            <div class="text-5xl font-black text-cta-green-500">${eur(res.savings)}</div>
+                            <div class="text-xs text-slate-400 italic mt-2">☀️ ${tr('Sin compensación')}</div>
+                        </div>
+                    `;
+                } else {
+                    // Sin excedentes marcados
+                    savingsEl.textContent = eur(res.savings);
+                }
+                
                 savingsEl.classList.add('text-cta-green-500');
-                savingsEl.classList.add('text-5xl', 'font-black');
                 savingsEl.classList.remove('text-base');
                 
                 // Mostrar columnas de precios
@@ -15895,7 +15919,19 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                 <p class="text-sm font-bold text-green-600">${eur(offer.savingsActual)}</p>
                                 <p class="text-xs text-orange-600 font-semibold">+ ${eur(offer.ahorroAdicional)} opt.</p>
                                 <p class="text-xl font-black text-green-700">${eur(offer.ahorroTotal)}</p>
+                            ` : offer.solarSurplus && offer.solarSurplus.enabled ? `
+                                <!-- Tiene excedentes solares -->
+                                <p class="text-xs text-slate-500">${tr('Ahorro anual')}</p>
+                                <p class="text-sm font-bold text-green-600">${eur(offer.savings - (offer.solarSurplus.annualDiscount || 0))}</p>
+                                <p class="text-xs text-orange-600 font-semibold">+ ${eur(offer.solarSurplus.annualDiscount || 0)} ☀️</p>
+                                <p class="text-xl font-black text-green-700">${eur(offer.savings)}</p>
+                            ` : offer.solarSurplus && offer.solarSurplus.noPrice ? `
+                                <!-- No tiene compensación de excedentes -->
+                                <p class="text-xs text-slate-500">${tr('Ahorro anual')}</p>
+                                <p class="text-xl font-black text-green-600">${eur(offer.savings)}</p>
+                                <p class="text-xs text-slate-400 italic mt-1">☀️ ${tr('Sin compensación')}</p>
                             ` : `
+                                <!-- Sin excedentes marcados -->
                                 <p class="text-xs text-slate-500">${tr('Ahorro anual')}</p>
                                 <p class="text-xl font-black text-green-600">${eur(offer.savings)}</p>
                             `}

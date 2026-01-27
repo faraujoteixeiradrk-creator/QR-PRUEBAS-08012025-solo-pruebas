@@ -5808,7 +5808,8 @@
                     hasSolarSurplus: !!res.solarSurplus,
                     solarSurplusEnabled: res.solarSurplus?.enabled,
                     checkboxMarked: hasCheckboxMarked,
-                    globalData: solarSurplusData
+                    globalData: solarSurplusData,
+                    VALORES_COMPLETOS: res.solarSurplus
                 });
                 
                 if (res.solarSurplus) {
@@ -5819,10 +5820,11 @@
                         console.log('💰 Valores antes de formatear:', {
                             totalEx: totalEx,
                             discount: discount,
+                            'res.solarSurplus COMPLETO': res.solarSurplus,
                             formatted: `-${num(discount, 2)} €`
                         });
                         energyBreakdown += `<div class="flex justify-between font-semibold" style="color: #f97316 !important; background-color: #fff7ed; padding: 4px 0; margin: 2px 0;"><span>☀️ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</span><span>-${num(discount, 2)} €</span></div>`;
-                        console.log('✅ Línea de excedentes añadida:', `${totalEx} kWh = -${discount} €`);
+                        console.log('✅ Línea de excedentes añadida:', `${totalEx} kWh = -${discount} €`, 'HTML:', energyBreakdown.substring(energyBreakdown.length - 200));
                     } else if (res.solarSurplus.noPrice) {
                         // No tiene compensación
                         energyBreakdown += `<div class="flex justify-between text-slate-400 italic text-xs"><span>☀️ ${tr('Excedentes solares')}</span><span>${tr('Sin compensación')}</span></div>`;

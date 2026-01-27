@@ -1738,8 +1738,9 @@
                                 </div>
                             </div>
                             
-                            <!-- Resumen del cálculo de excedentes -->
-                            <div id="solar-surplus-summary" class="hidden p-3 bg-white rounded-lg border-2 border-orange-200">
+                            <!-- Resumen del cálculo de excedentes - OCULTO porque cada tarifa tiene su precio -->
+                            <!-- El desglose se verá en cada tarifa individual -->
+                            <div id="solar-surplus-summary" class="hidden p-3 bg-white rounded-lg border-2 border-orange-200" style="display: none !important;">
                                 <div class="flex items-center justify-between text-sm">
                                     <span class="font-bold text-slate-700">Total Excedentes:</span>
                                     <span id="total-excedentes-display" class="font-black text-orange-600">0 kWh</span>
@@ -14257,12 +14258,22 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // NUEVO: Si hay excedentes solares marcados, recalcular todas las ofertas primero
             const solarCheckbox = document.getElementById('solar-surplus-checkbox');
-            if (solarCheckbox && solarCheckbox.checked && solarSurplusEnabled && solarSurplusData.discount > 0) {
+            if (solarCheckbox && solarCheckbox.checked && solarSurplusEnabled && solarSurplusData.total > 0) {
                 console.log('☀️ Excedentes solares marcados - Recalculando ofertas...');
                 
                 // Recalcular availableOffers con el descuento de excedentes
                 const tariffType = currentTariffType;
-                const tariffsToCompare = currentTariffs[tariffType] || [];
+                let tariffsToCompare = currentTariffs[tariffType] || [];
+                
+                // CRÍTICO: Filtrar según el modo activo (DRK o POWER CUP)
+                const isDrkMode = activeBrand.NAME.includes('DRK');
+                if (isDrkMode) {
+                    // En modo DRK, solo calcular tarifas DRK
+                    tariffsToCompare = tariffsToCompare.filter(t => t.isDrk === true);
+                    console.log(`🔍 Modo DRK: Filtrando solo tarifas DRK (${tariffsToCompare.length} de ${currentTariffs[tariffType].length})`);
+                } else {
+                    console.log(`🔍 Modo POWER CUP: Calculando todas las tarifas (${tariffsToCompare.length})`);
+                }
                 
                 availableOffers = tariffsToCompare.map(tariff => {
                     const result = calculateTariffCost(tariff, lastComparisonResult || {}, tariffType);
@@ -15435,12 +15446,22 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         function selectFromResults() {
             // NUEVO: Si hay excedentes solares marcados, recalcular todas las ofertas primero
             const solarCheckbox = document.getElementById('solar-surplus-checkbox');
-            if (solarCheckbox && solarCheckbox.checked && solarSurplusEnabled && solarSurplusData.discount > 0) {
+            if (solarCheckbox && solarCheckbox.checked && solarSurplusEnabled && solarSurplusData.total > 0) {
                 console.log('☀️ Excedentes solares marcados - Recalculando ofertas antes de mostrar lista...');
                 
                 // Recalcular availableOffers con el descuento de excedentes
                 const tariffType = currentTariffType;
-                const tariffsToCompare = currentTariffs[tariffType] || [];
+                let tariffsToCompare = currentTariffs[tariffType] || [];
+                
+                // CRÍTICO: Filtrar según el modo activo (DRK o POWER CUP)
+                const isDrkMode = activeBrand.NAME.includes('DRK');
+                if (isDrkMode) {
+                    // En modo DRK, solo calcular tarifas DRK
+                    tariffsToCompare = tariffsToCompare.filter(t => t.isDrk === true);
+                    console.log(`🔍 Modo DRK: Filtrando solo tarifas DRK (${tariffsToCompare.length} de ${currentTariffs[tariffType].length})`);
+                } else {
+                    console.log(`🔍 Modo POWER CUP: Calculando todas las tarifas (${tariffsToCompare.length})`);
+                }
                 
                 availableOffers = tariffsToCompare.map(tariff => {
                     const result = calculateTariffCost(tariff, lastComparisonResult || {}, tariffType);

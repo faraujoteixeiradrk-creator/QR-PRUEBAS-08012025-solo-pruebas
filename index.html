@@ -5844,7 +5844,7 @@
                         <div class="mb-4">
                             <p class="font-bold text-slate-800 mb-1">${tr('ENERGÍA')} (€/kWh)</p>
                             ${energyBreakdown}
-                            <div class="flex justify-between font-bold ${brand.SECONDARY_TEXT} border-t mt-1 pt-1"><span${tr("Subtotal Energía (Bruto)")}</span><span>${num(res.subEnergy, 2)} €</span></div>
+                            <div class="flex justify-between font-bold ${brand.SECONDARY_TEXT} border-t mt-1 pt-1"><span${tr("Subtotal Energía (Bruto)")}</span><span>${num(res.subEnergyGross !== undefined ? res.subEnergyGross : res.subEnergy, 2)} €</span></div>
                             ${discountRowsHtml}
                         </div>
 
@@ -6607,7 +6607,7 @@
                         <!-- OFERTA -->
                         <tr>
                             <td bgcolor="${brandColor}" style="padding:15px;text-align:center;">
-                                <p style="margin:0;color:#ffffff;font-size:11px;">${tr('为您提供的最佳选择')}</p>
+                                <p style="margin:0;color:#ffffff;font-size:11px;">${tr('LA MEJOR OPCIÓN PARA TI ES')}</p>
                                 <h2 style="margin:5px 0 0 0;color:#ffffff;font-size:22px;">${offerName}</h2>
                             </td>
                         </tr>
@@ -6615,7 +6615,7 @@
                         <!-- AHORRO -->
                         <tr>
                             <td style="padding:25px;text-align:center;border-bottom:1px solid #e2e8f0;">
-                                <p style="margin:0 0 8px 0;color:#64748b;font-size:11px;font-weight:bold;">${tr('您的预计年度节省')}</p>
+                                <p style="margin:0 0 8px 0;color:#64748b;font-size:11px;font-weight:bold;">${tr('TU AHORRO ANUAL ESTIMADO')}</p>
                                 <p style="margin:0;color:#16a34a;font-size:42px;font-weight:bold;">${savingsAmount}</p>
                             </td>
                         </tr>
@@ -6626,11 +6626,11 @@
                                 <table width="100%" cellpadding="0" cellspacing="0">
                                     <tr>
                                         <td width="50%" style="padding:20px;text-align:center;border-right:1px solid #e2e8f0;">
-                                            <p style="margin:0 0 10px 0;color:#64748b;font-size:10px;font-weight:bold;">${tr('您的当前账单')}</p>
+                                            <p style="margin:0 0 10px 0;color:#64748b;font-size:10px;font-weight:bold;">${tr('TU FACTURA ACTUAL')}</p>
                                             <p style="margin:0;color:#dc2626;font-size:18px;font-weight:bold;text-decoration:line-through;">${oldCost}</p>
                                         </td>
                                         <td width="50%" style="padding:20px;text-align:center;">
-                                            <p style="margin:0 0 10px 0;color:${brandColor};font-size:10px;font-weight:bold;">${tr('您的新DRK成本')}</p>
+                                            <p style="margin:0 0 10px 0;color:${brandColor};font-size:10px;font-weight:bold;">${isDrk ? tr('TU NUEVO COSTE DRK') : tr('TU NUEVO COSTE POWER CUP')}</p>
                                             <p style="margin:0 0 5px 0;color:#1e293b;font-size:20px;font-weight:bold;">${monthlyText}</p>
                                             <p style="margin:0;color:#1e293b;font-size:16px;font-weight:bold;">${newCost}</p>
                                         </td>
@@ -6642,7 +6642,7 @@
                         <!-- DETALLES TÍTULO -->
                         <tr>
                             <td style="padding:20px 20px 10px 20px;">
-                                <h3 style="margin:0;padding-left:10px;border-left:4px solid ${brandColor};color:#1e293b;font-size:16px;">${tr('提取数据')}</h3>
+                                <h3 style="margin:0;padding-left:10px;border-left:4px solid ${brandColor};color:#1e293b;font-size:16px;">${tr('Datos extraídos')}</h3>
                             </td>
                         </tr>
                         
@@ -6652,11 +6652,11 @@
                                 <table width="100%" cellpadding="10" cellspacing="0" bgcolor="#f8fafc">
                                     <tr>
                                         <td width="50%">
-                                            <p style="margin:0 0 5px 0;color:#64748b;font-size:11px;">${tr('期间')}</p>
-                                            <p style="margin:0;color:#1e293b;font-size:14px;font-weight:bold;">${res.dias_facturados || 60} ${tr('天')}</p>
+                                            <p style="margin:0 0 5px 0;color:#64748b;font-size:11px;">${tr('Periodo')}</p>
+                                            <p style="margin:0;color:#1e293b;font-size:14px;font-weight:bold;">${res.dias_facturados || 60} ${tr('días')}</p>
                                         </td>
                                         <td width="50%">
-                                            <p style="margin:0 0 5px 0;color:#64748b;font-size:11px;">${tr('日期')}</p>
+                                            <p style="margin:0 0 5px 0;color:#64748b;font-size:11px;">${tr('Fecha')}</p>
                                             <p style="margin:0;color:#1e293b;font-size:12px;font-weight:bold;">${res.fechas || 'N/A'}</p>
                                         </td>
                                     </tr>
@@ -6667,7 +6667,7 @@
                         <!-- CONSUMOS -->
                         <tr>
                             <td style="padding:15px 20px 5px 20px;">
-                                <p style="margin:0;color:${brandColor};font-size:14px;font-weight:bold;">${tr('期间消耗 (kWh)')}</p>
+                                <p style="margin:0;color:${brandColor};font-size:14px;font-weight:bold;">${tr('Consumo del periodo (kWh)')}</p>
                             </td>
                         </tr>
                         <tr>
@@ -6675,12 +6675,12 @@
                                 <table width="100%" cellpadding="5" cellspacing="0" border="0">
                                     ${res.energyCosts ? res.energyCosts.map((e, i) => `
                                     <tr>
-                                        <td style="padding:5px 0;color:#64748b;font-size:12px;">E${e.period} (${i===0 ? tr('峰值') : i===1 ? tr('平段') : tr('谷段')})</td>
+                                        <td style="padding:5px 0;color:#64748b;font-size:12px;">E${e.period} (${i===0 ? tr('Punta') : i===1 ? tr('Llano') : tr('Valle')})</td>
                                         <td align="right" style="padding:5px 0;color:#1e293b;font-size:12px;font-weight:bold;">${e.kwh || 0} kWh</td>
                                     </tr>
                                     `).join('') : ''}
                                     <tr style="border-top:1px solid #e2e8f0;">
-                                        <td style="padding:8px 0;color:${brandColor};font-size:13px;font-weight:bold;">${tr('总消耗')}</td>
+                                        <td style="padding:8px 0;color:${brandColor};font-size:13px;font-weight:bold;">${tr('Consumo total')}</td>
                                         <td align="right" style="padding:8px 0;color:${brandColor};font-size:13px;font-weight:bold;">${res.energyCosts ? res.energyCosts.reduce((sum, e) => sum + (e.kwh || 0), 0) : 0} kWh</td>
                                     </tr>
                                 </table>
@@ -6690,7 +6690,7 @@
                         <!-- POTENCIAS -->
                         <tr>
                             <td style="padding:15px 20px 5px 20px;">
-                                <p style="margin:0;color:${brandColor};font-size:14px;font-weight:bold;">${tr('签约功率 (kW)')}</p>
+                                <p style="margin:0;color:${brandColor};font-size:14px;font-weight:bold;">${tr('Potencia contratada (kW)')}</p>
                             </td>
                         </tr>
                         <tr>
@@ -6709,7 +6709,7 @@
                         <!-- PRECIOS TÍTULO -->
                         <tr>
                             <td style="padding:20px 20px 10px 20px;">
-                                <h3 style="margin:0;padding-left:10px;border-left:4px solid ${brandColor};color:#1e293b;font-size:16px;">${tr('合并报价价格')}</h3>
+                                <h3 style="margin:0;padding-left:10px;border-left:4px solid ${brandColor};color:#1e293b;font-size:16px;">${tr('Precios de la oferta combinada')}</h3>
                             </td>
                         </tr>
                         
@@ -6719,39 +6719,39 @@
                                 <table width="100%" cellpadding="10" cellspacing="0" bgcolor="#f8fafc">
                                     <tr>
                                         <td colspan="2">
-                                            <p style="margin:0 0 10px 0;color:#1e293b;font-size:13px;font-weight:bold;">${tr('资费 2.0 TD')} - ${offerName}</p>
+                                            <p style="margin:0 0 10px 0;color:#1e293b;font-size:13px;font-weight:bold;">${tr('Tarifa 2.0 TD')} - ${offerName}</p>
                                         </td>
                                     </tr>
                                     ${res.powerCosts ? res.powerCosts.map(p => `
                                     <tr>
-                                        <td style="padding:4px 0;color:#64748b;font-size:11px;">P${p.period} (€/kW/${tr('日')}):</td>
+                                        <td style="padding:4px 0;color:#64748b;font-size:11px;">P${p.period} (€/kW/${tr('día')}):</td>
                                         <td align="right" style="padding:4px 0;color:#1e293b;font-size:11px;font-family:monospace;font-weight:bold;">${(p.priceDay || 0).toFixed(6)}</td>
                                     </tr>
                                     `).join('') : ''}
                                     <tr>
-                                        <td colspan="2" style="padding:8px 0 4px 0;color:#16a34a;font-size:12px;font-weight:bold;">${tr('能源 (€/kWh)')}</td>
+                                        <td colspan="2" style="padding:8px 0 4px 0;color:#16a34a;font-size:12px;font-weight:bold;">${tr('Energía (€/kWh)')}</td>
                                     </tr>
                                     ${res.energyCosts ? res.energyCosts.map((e, i) => `
                                     <tr>
-                                        <td style="padding:4px 0;color:#64748b;font-size:11px;">E${e.period} (${i===0 ? tr('峰值') : i===1 ? tr('平段') : tr('谷段')}):</td>
+                                        <td style="padding:4px 0;color:#64748b;font-size:11px;">E${e.period} (${i===0 ? tr('Punta') : i===1 ? tr('Llano') : tr('Valle')}):</td>
                                         <td align="right" style="padding:4px 0;color:#1e293b;font-size:11px;font-family:monospace;font-weight:bold;">${(e.price || 0).toFixed(6)}</td>
                                     </tr>
                                     `).join('') : ''}
                                     ${res.solarSurplus && res.solarSurplus.enabled ? `
                                     <tr>
-                                        <td colspan="2" style="padding:8px 0 4px 0;color:#f97316;font-size:12px;font-weight:bold;">${tr('太阳能盈余')}</td>
+                                        <td colspan="2" style="padding:8px 0 4px 0;color:#f97316;font-size:12px;font-weight:bold;">${tr('EXCEDENTES SOLARES')}</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding:4px 0;color:#f97316;font-size:11px;">${tr('补偿')}:</td>
+                                        <td style="padding:4px 0;color:#f97316;font-size:11px;">${tr('Compensación')}:</td>
                                         <td align="right" style="padding:4px 0;color:#f97316;font-size:11px;font-family:monospace;font-weight:bold;">${(res.solarSurplus.pricePerKwh || 0).toFixed(6)} €/kWh</td>
                                     </tr>
                                     ` : res.solarSurplus && res.solarSurplus.noPrice ? `
                                     <tr>
-                                        <td colspan="2" style="padding:8px 0 4px 0;color:#9ca3af;font-size:11px;font-style:italic;">${tr('太阳能盈余')} - ${tr('无补偿')}</td>
+                                        <td colspan="2" style="padding:8px 0 4px 0;color:#9ca3af;font-size:11px;font-style:italic;">${tr('Excedentes solares')} - ${tr('Sin compensación')}</td>
                                     </tr>
                                     ` : ''}
                                     <tr>
-                                        <td colspan="2" style="padding:10px 0 0 0;color:#64748b;font-size:10px;font-style:italic;">*${tr('显示的价格来自中标报价。')}</td>
+                                        <td colspan="2" style="padding:10px 0 0 0;color:#64748b;font-size:10px;font-style:italic;">*${tr('Los precios mostrados son de la oferta ganadora.')}</td>
                                     </tr>
                                 </table>
                             </td>
@@ -6936,7 +6936,7 @@
                                     <tr>
                                         <td colspan="2" bgcolor="#f8fafc" align="center" style="padding:10px;">
                                             <p style="margin:0;color:#1e293b;font-size:14px;font-weight:bold;">DRK</p>
-                                            <p style="margin:5px 0 0 0;color:#64748b;font-size:12px;">${tr('模拟')} ${res.dias_facturados || 60} ${tr('天')}</p>
+                                            <p style="margin:5px 0 0 0;color:#64748b;font-size:12px;">${tr('Simulación')} ${res.dias_facturados || 60} ${tr('días')}</p>
                                         </td>
                                     </tr>
                                     
@@ -6955,7 +6955,7 @@
                                     </tr>
                                     
                                     <tr bgcolor="#f8fafc">
-                                        <td colspan="2" style="padding:8px;color:#1e293b;font-size:12px;font-weight:bold;">${tr('能源 (€/kWh)')}</td>
+                                        <td colspan="2" style="padding:8px;color:#1e293b;font-size:12px;font-weight:bold;">${tr('Energía (€/kWh)')}</td>
                                     </tr>
                                     ${res.energyCosts ? res.energyCosts.map((e, i) => `
                                     <tr>
@@ -26418,6 +26418,7 @@ ${clientName}
                 "TU FACTURA ACTUAL": { en: "YOUR CURRENT BILL", zh: "您当前的账单", de: "IHRE AKTUELLE RECHNUNG", fr: "VOTRE FACTURE ACTUELLE" },
                 "Total Periodo": { en: "Period Total", zh: "期间总额", de: "Periodensumme", fr: "Total de la Période" },
                 "TU NUEVO COSTE DRK": { en: "YOUR NEW DRK COST", zh: "您的新DRK成本", de: "IHRE NEUEN DRK-KOSTEN", fr: "VOTRE NOUVEAU COÛT DRK" },
+                "TU NUEVO COSTE POWER CUP": { en: "YOUR NEW POWER CUP COST", zh: "您的新POWER CUP成本", de: "IHRE NEUEN POWER CUP-KOSTEN", fr: "VOTRE NOUVEAU COÛT POWER CUP" },
                 "Estimado Mensual": { en: "Monthly Estimate", zh: "每月估算", de: "Monatliche Schätzung", fr: "Estimation Mensuelle" },
                 "Datos del Comercial y Cliente": { en: "Sales Representative and Client Data", zh: "销售代表和客户数据", de: "Vertriebs- und Kundendaten", fr: "Données du Commercial et du Client" },
                 "Rellene sus datos. El resumen profesional de la oferta se copiará a su portapapeles (Ctrl+V).": { en: "Fill in your details. The professional offer summary will be copied to your clipboard (Ctrl+V).", zh: "填写您的详细信息。专业优惠摘要将复制到剪贴板（Ctrl+V）。", de: "Füllen Sie Ihre Daten aus. Die professionelle Angebotsübersicht wird in Ihre Zwischenablage kopiert (Strg+V).", fr: "Remplissez vos données. Le résumé professionnel de l'offre sera copié dans votre presse-papiers (Ctrl+V)." },

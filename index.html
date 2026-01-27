@@ -5240,6 +5240,14 @@
                         energyBreakdown += `<div class="flex justify-between"><span>${label} (${num(e.kwh, 0)} kWh x ${numPriceFormula(e.price)} €/kWh)</span><span>${num(e.cost, 2)} €</span></div>`;
                     }
                 });
+                
+                // NUEVO: Añadir línea de excedentes solares si está habilitado
+                let solarSurplusLine = '';
+                if (resItem.solarSurplus && resItem.solarSurplus.enabled) {
+                    const totalEx = resItem.solarSurplus.total;
+                    const discount = resItem.solarSurplus.monthlyDiscount;
+                    solarSurplusLine = `<div class="flex justify-between text-orange-600"><span>☀️ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</span><span>-${num(discount, 2)} €</span></div>`;
+                }
 
                 let powerBreakdown = '';
                 resItem.powerCosts.forEach(p => {
@@ -5277,6 +5285,7 @@
                                    
                                    <p class="font-bold text-slate-700 pt-2">${tr('ENERGÍA')}</p>
                                    ${energyBreakdown}
+                                   ${solarSurplusLine}
                                    <div class="flex justify-between font-bold text-slate-800 border-t pt-1"><span>${tr('Subtotal Energía (Neto)')}</span><span>${num(resItem.subEnergyNet, 2)} €</span></div>
                                    
                                    <div class="flex justify-between font-black ${brand.PRIMARY_TEXT} pt-2"><span>TOTAL CON IMPUESTOS</span><span>${eur(resItem.totalPeriod)}</span></div>
@@ -5727,6 +5736,13 @@
                         energyBreakdown += `<div class="flex justify-between"><span>${label} (${num(e.kwh, 0)} kWh x ${numPriceFormula(e.price)} €/kWh)</span><span>${num(e.cost, 2)} €</span></div>`;
                     }
                 });
+                
+                // NUEVO: Añadir línea de excedentes solares si está habilitado
+                if (res.solarSurplus && res.solarSurplus.enabled) {
+                    const totalEx = res.solarSurplus.total;
+                    const discount = res.solarSurplus.monthlyDiscount;
+                    energyBreakdown += `<div class="flex justify-between text-orange-600"><span>☀️ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</span><span>-${num(discount, 2)} €</span></div>`;
+                }
             }
 
             let discountRowsHtml = '';

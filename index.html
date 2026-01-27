@@ -18839,16 +18839,25 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         }
         
         async function fetchTariffsFromSheet(tariffType) {
+            console.log(`🔄 Iniciando carga de ${tariffType}...`);
             const config = TARIFF_CONFIG[tariffType];
             const sheetId = config.sheetId;
 
             const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=0&t=${Date.now()}`;
+            console.log(`📡 URL: ${url}`);
 
             try {
+                console.log(`⏳ Haciendo fetch...`);
                 const response = await fetch(url);
-                if (!response.ok) throw new Error(`Error red para ${tariffType}`);
+                console.log(`📥 Respuesta recibida. Status: ${response.status}`);
+                
+                if (!response.ok) throw new Error(`Error red para ${tariffType}: ${response.status}`);
+                
                 const text = await response.text();
+                console.log(`📄 Texto recibido. Longitud: ${text.length} caracteres`);
+                
                 currentTariffs[tariffType] = parseCSV(text, tariffType);
+                console.log(`✅ ${tariffType} parseado: ${currentTariffs[tariffType].length} tarifas`);
                 
                 if (currentTariffType !== 'MULTICUPS' && tariffType === currentTariffType) {
                     const count = currentTariffs[currentTariffType].length;
@@ -18856,7 +18865,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 }
 
             } catch (e) {
-                console.error(`Error al cargar ${tariffType}:`, e);
+                console.error(`❌ Error al cargar ${tariffType}:`, e);
+                console.error(`Error completo:`, e.message, e.stack);
                 currentTariffs[tariffType] = [];  
                 if (currentTariffType !== 'MULTICUPS' && tariffType === currentTariffType) {
                     document.getElementById('tariff-display-badge').textContent = 'Error';
@@ -28167,28 +28177,41 @@ ${clientName}
                     }
                 }, 500);
                 
-                // Cargar tarifas 2.0TD directamente SIN cambiar de vista
-                // Aumentado a 2500ms para asegurar carga completa
+                // Cargar tarifas 2.0TD - PRIMER INTENTO
                 setTimeout(async () => {
-                    console.log('🔄 Cargando tarifas 2.0TD para cliente...');
+                    console.log('🔄 [INTENTO 1] Cargando tarifas 2.0TD para cliente...');
                     currentTariffType = '2.0TD';
                     await fetchTariffsFromSheet('2.0TD');
                     
-                    // Ocultar indicador cuando termine
-                    const loadingEl = document.getElementById('loading-status');
-                    if (loadingEl) {
-                        loadingEl.classList.add('hidden');
-                    }
-                    
-                    // Mostrar cantidad de tarifas cargadas
                     const count = currentTariffs['2.0TD']?.length || 0;
-                    console.log(`✅ Tarifas cargadas: ${count}`);
+                    console.log(`✅ Tarifas cargadas en intento 1: ${count}`);
+                    
                     if (count > 0) {
+                        // Éxito
+                        const loadingEl = document.getElementById('loading-status');
+                        if (loadingEl) loadingEl.classList.add('hidden');
                         console.log('🟢 Sistema listo para escanear QR');
                     } else {
-                        console.error('🔴 No se cargaron tarifas. Recargar la página.');
+                        // REINTENTO después de 2 segundos
+                        console.warn('⚠️ No se cargaron tarifas. Reintentando en 2 segundos...');
+                        setTimeout(async () => {
+                            console.log('🔄 [INTENTO 2] Reintentando carga de tarifas...');
+                            await fetchTariffsFromSheet('2.0TD');
+                            
+                            const count2 = currentTariffs['2.0TD']?.length || 0;
+                            const loadingEl = document.getElementById('loading-status');
+                            if (loadingEl) loadingEl.classList.add('hidden');
+                            
+                            if (count2 > 0) {
+                                console.log(`✅ Tarifas cargadas en intento 2: ${count2}`);
+                                console.log('🟢 Sistema listo para escanear QR');
+                            } else {
+                                console.error('🔴 FALLO: No se pudieron cargar las tarifas después de 2 intentos.');
+                                console.error('🔴 Por favor, verifica la URL de Google Sheets y la conexión a internet.');
+                            }
+                        }, 2000);
                     }
-                }, 2500);
+                }, 1000); // Reducido a 1 segundo para el primer intento
             });
         })();
         

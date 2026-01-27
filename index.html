@@ -13962,6 +13962,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // NUEVO: Mostrar/Ocultar checkbox de Excedentes Solares solo para tarifa 2.0TD
             const solarSurplusContainer = document.getElementById('solar-surplus-checkbox-container');
+            const solarCheckbox = document.getElementById('solar-surplus-checkbox');
             
             console.log('🔍 Verificando visibilidad de Excedentes Solares:', {
                 currentTariffType: currentTariffType,
@@ -13972,11 +13973,30 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             if (currentTariffType === '2.0TD' && !isDualMode) {
                 console.log('☀️ Tarifa 2.0TD detectada - Mostrando checkbox de Excedentes Solares');
                 solarSurplusContainer?.classList.remove('hidden');
+                // CRÍTICO: Resetear checkbox a desmarcado cada vez que se abre el modal
+                if (solarCheckbox) {
+                    solarCheckbox.checked = false;
+                    solarSurplusEnabled = false;
+                    // Ocultar campos y resetear valores
+                    document.getElementById('solar-surplus-fields')?.classList.add('hidden');
+                    document.getElementById('excedente-kwh-1').value = '0';
+                    document.getElementById('excedente-kwh-2').value = '0';
+                    document.getElementById('excedente-kwh-3').value = '0';
+                    document.getElementById('solar-surplus-summary')?.classList.add('hidden');
+                    // Resetear datos globales
+                    solarSurplusData = {
+                        excedente1: 0,
+                        excedente2: 0,
+                        excedente3: 0,
+                        total: 0,
+                        discount: 0,
+                        pricePerKwh: 0
+                    };
+                }
             } else {
                 console.log('❌ No es tarifa 2.0TD o es modo DUAL - Ocultando Excedentes Solares');
                 solarSurplusContainer?.classList.add('hidden');
                 // Reset checkbox and fields
-                const solarCheckbox = document.getElementById('solar-surplus-checkbox');
                 if (solarCheckbox) {
                     solarCheckbox.checked = false;
                     toggleSolarSurplus(false);
@@ -14145,6 +14165,24 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             isProcessingBestOption = true;
             console.log('✅ Bandera isProcessingBestOption activada');
+            
+            // NUEVO: Si hay excedentes solares marcados, recalcular todas las ofertas primero
+            const solarCheckbox = document.getElementById('solar-surplus-checkbox');
+            if (solarCheckbox && solarCheckbox.checked && solarSurplusEnabled && solarSurplusData.discount > 0) {
+                console.log('☀️ Excedentes solares marcados - Recalculando ofertas...');
+                
+                // Recalcular availableOffers con el descuento de excedentes
+                const tariffType = currentTariffType;
+                const tariffsToCompare = currentTariffs[tariffType] || [];
+                
+                availableOffers = tariffsToCompare.map(tariff => {
+                    const result = calculateTariffCost(tariff, lastComparisonResult || {}, tariffType);
+                    // calculateTariffCost ya aplica el descuento de excedentes automáticamente
+                    return result;
+                }).filter(r => r.savings > 0);
+                
+                console.log(`✅ Ofertas recalculadas con excedentes: ${availableOffers.length} ofertas con ahorro positivo`);
+            }
             
             console.log('Elección:', bestOptionTariffChoice);
             console.log('dualMode:', window.dualMode);
@@ -15306,6 +15344,24 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         }
         
         function selectFromResults() {
+            // NUEVO: Si hay excedentes solares marcados, recalcular todas las ofertas primero
+            const solarCheckbox = document.getElementById('solar-surplus-checkbox');
+            if (solarCheckbox && solarCheckbox.checked && solarSurplusEnabled && solarSurplusData.discount > 0) {
+                console.log('☀️ Excedentes solares marcados - Recalculando ofertas antes de mostrar lista...');
+                
+                // Recalcular availableOffers con el descuento de excedentes
+                const tariffType = currentTariffType;
+                const tariffsToCompare = currentTariffs[tariffType] || [];
+                
+                availableOffers = tariffsToCompare.map(tariff => {
+                    const result = calculateTariffCost(tariff, lastComparisonResult || {}, tariffType);
+                    // calculateTariffCost ya aplica el descuento de excedentes automáticamente
+                    return result;
+                }).filter(r => r.savings > 0);
+                
+                console.log(`✅ Ofertas recalculadas con excedentes: ${availableOffers.length} ofertas con ahorro positivo`);
+            }
+            
             // Cerrar modal de decisión
             closeOfferDecisionModal();
             

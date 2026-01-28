@@ -245,8 +245,8 @@
     <!-- Main Content Area -->
     <div id="app" class="w-full max-w-lg mx-auto p-4 md:p-6 flex-grow">
 
-        <!-- MODO DE COMPARACIÓN (Siempre visible al inicio) -->
-        <div id="modo-comparacion-section" class="fade-in mb-6">
+        <!-- MODO DE COMPARACIÓN (Oculto - Versión DRK Únicamente) -->
+        <div id="modo-comparacion-section" class="fade-in mb-6" style="display: none;">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                 <p class="text-sm font-bold text-drk-800 mb-3 text-center uppercase tracking-wider">MODO DE COMPARACIÓN</p>
                 <div class="flex flex-wrap justify-center gap-2 text-sm">
@@ -254,11 +254,11 @@
                         <input type="radio" name="comparison_mode" value="drk_only" class="hidden" checked>
                         <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
                     </label>
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400">
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400" style="display: none;">
                         <input type="radio" name="comparison_mode" value="drk_prioritized" class="hidden">
                         <span class="font-semibold flex items-center justify-between w-full">DRK Prioritario<svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
                     </label>
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400">
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400" style="display: none;">
                         <input type="radio" name="comparison_mode" value="overall_best" class="hidden">
                         <span class="font-black flex flex-col items-center justify-center w-full leading-tight">
                             <span class="text-base">POWER CUP</span><span class="text-xs font-semibold -mt-0.5">Global</span>
@@ -2617,6 +2617,19 @@
         
         // Permitir confirmar con Enter
         document.addEventListener('DOMContentLoaded', function() {
+            // FORZADO: Versión DRK Únicamente - Ocultar selector y forzar modo
+            comparisonMode = 'drk_only';
+            const modoSection = document.getElementById('modo-comparacion-section');
+            if (modoSection) {
+                modoSection.style.display = 'none';
+            }
+            const drkOnlyRadio = document.querySelector('input[name="comparison_mode"][value="drk_only"]');
+            if (drkOnlyRadio) {
+                drkOnlyRadio.checked = true;
+            }
+            applyBrandStyles(BRANDS.DRK);
+            console.log('✅ Modo DRK Únicamente forzado al cargar');
+            
             const addressInput = document.getElementById('multicups-supply-address');
             if (addressInput) {
                 addressInput.addEventListener('keypress', function(e) {
@@ -2920,14 +2933,16 @@
             }
             
             // Restaurar la marca activa según el modo de comparación
-            const brandToApply = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
+            // FORZADO: Siempre DRK Únicamente en esta versión
+            comparisonMode = 'drk_only';
+            const brandToApply = BRANDS.DRK;
             applyBrandStyles(brandToApply);  
             
             // Asegurarse de que el radio button correcto esté checked
-            const selectorInput = document.querySelector(`input[name="comparison_mode"][value="${comparisonMode}"]`);
+            const selectorInput = document.querySelector(`input[name="comparison_mode"][value="drk_only"]`);
             if (selectorInput) {
                 selectorInput.checked = true;
-                updateComparisonMode(comparisonMode);
+                updateComparisonMode('drk_only');
             }
 
             // Ocultar vistas adicionales del flujo normal

@@ -16803,30 +16803,52 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // NUEVO: Event listeners para modal de pregunta fotovoltaica
             document.getElementById('solar-yes-btn')?.addEventListener('click', () => {
-                console.log('✅ Usuario tiene fotovoltaica - Mostrando resultados con opción de añadir excedentes');
+                console.log('✅ Usuario tiene fotovoltaica - Solicitando kWh de excedentes');
                 hideSolarQuestionModal();
                 
-                // Mostrar los resultados con la opción de añadir excedentes
-                if (tempNoSavingsResult) {
+                // Abrir un prompt simple para introducir excedentes
+                const tariffType = tempNoSavingsResult?.tariffType || tempNoSavingsResult?.originalTariffType || '2.0TD';
+                const is30TD = tariffType === '3.0TD';
+                
+                let promptText = '🌞 Por favor, introduce los kWh de excedentes solares por periodo:\n\n';
+                promptText += 'Punta (P1): ';
+                const ex1 = prompt(promptText) || '0';
+                
+                if (ex1 === null) return; // Usuario canceló
+                
+                promptText = 'Llano (P2): ';
+                const ex2 = prompt(promptText) || '0';
+                
+                if (ex2 === null) return;
+                
+                promptText = 'Valle (P3): ';
+                const ex3 = prompt(promptText) || '0';
+                
+                if (ex3 === null) return;
+                
+                // Guardar los excedentes
+                solarSurplusData.excedente1 = parseFloat(ex1) || 0;
+                solarSurplusData.excedente2 = parseFloat(ex2) || 0;
+                solarSurplusData.excedente3 = parseFloat(ex3) || 0;
+                solarSurplusData.total = solarSurplusData.excedente1 + solarSurplusData.excedente2 + solarSurplusData.excedente3;
+                
+                console.log('💡 Excedentes introducidos:', solarSurplusData);
+                
+                if (solarSurplusData.total > 0) {
+                    // Activar excedentes y recalcular
+                    solarSurplusEnabled = true;
+                    
+                    // Obtener los datos de la factura original
+                    const data = tempNoSavingsResult;
+                    
+                    // Recalcular con excedentes
+                    console.log('🔄 Recalculando con excedentes...');
+                    compareOffers(data);
+                } else {
+                    // No introdujo excedentes, mostrar resultado original
                     renderResultsUI(tempNoSavingsResult);
-                    // Mostrar la pantalla de resultados
                     document.getElementById('results-view').classList.remove('hidden');
                     document.getElementById('results-view').classList.add('animate-fade-in-up');
-                    
-                    // Hacer scroll suave al checkbox de excedentes después de un momento
-                    setTimeout(() => {
-                        const solarContainer = document.getElementById('solar-surplus-container');
-                        if (solarContainer && !solarContainer.classList.contains('hidden')) {
-                            solarContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            // Añadir efecto visual de pulsación
-                            solarContainer.style.animation = 'pulse 2s ease-in-out 3';
-                            setTimeout(() => {
-                                solarContainer.style.animation = '';
-                            }, 6000);
-                        } else {
-                            console.log('⚠️ Checkbox de excedentes no visible - puede que no sea 2.0TD/3.0TD');
-                        }
-                    }, 500);
                 }
             });
             

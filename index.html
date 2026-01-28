@@ -245,8 +245,8 @@
     <!-- Main Content Area -->
     <div id="app" class="w-full max-w-lg mx-auto p-4 md:p-6 flex-grow">
 
-        <!-- MODO DE COMPARACIÓN (Oculto - Versión DRK Únicamente) -->
-        <div id="modo-comparacion-section" class="fade-in mb-6" style="display: none;">
+        <!-- MODO DE COMPARACIÓN (Siempre visible al inicio) -->
+        <div id="modo-comparacion-section" class="fade-in mb-6">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                 <p class="text-sm font-bold text-drk-800 mb-3 text-center uppercase tracking-wider">MODO DE COMPARACIÓN</p>
                 <div class="flex flex-wrap justify-center gap-2 text-sm">
@@ -254,11 +254,11 @@
                         <input type="radio" name="comparison_mode" value="drk_only" class="hidden" checked>
                         <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
                     </label>
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400" style="display: none;">
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400">
                         <input type="radio" name="comparison_mode" value="drk_prioritized" class="hidden">
                         <span class="font-semibold flex items-center justify-between w-full">DRK Prioritario<svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
                     </label>
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400" style="display: none;">
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400">
                         <input type="radio" name="comparison_mode" value="overall_best" class="hidden">
                         <span class="font-black flex flex-col items-center justify-center w-full leading-tight">
                             <span class="text-base">POWER CUP</span><span class="text-xs font-semibold -mt-0.5">Global</span>
@@ -2028,6 +2028,26 @@
             </div>
         </div>
         
+        <!-- 10.5 Solar Panels Question Modal (when no savings detected) -->
+        <div id="solar-question-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+            <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full">
+                <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-800 mb-3 text-center">¿Tienes instalación fotovoltaica?</h3>
+                <p class="text-slate-600 text-sm mb-6 text-center">Detectamos que tu tarifa actual es buena. Pero si tienes paneles solares, podríamos encontrar mejores opciones con compensación de excedentes.</p>
+                <div class="space-y-3">
+                    <button id="solar-yes-btn" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 rounded-xl transition flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Sí, tengo paneles solares
+                    </button>
+                    <button id="solar-no-btn" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-4 rounded-xl transition">
+                        No, no tengo instalación fotovoltaica
+                    </button>
+                </div>
+            </div>
+        </div>
+        
         <!-- 11. Modal de Dirección de Suministro (Multicups) -->
         <div id="supply-address-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
             <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-md w-full">
@@ -2198,6 +2218,7 @@
         };
         let currentTariffType = '2.0TD';
         let lastComparisonResult = null;
+        let tempNoSavingsResult = null; // Para guardar resultado cuando no hay ahorro y se pregunta por fotovoltaica
         let lastIndexedResult = null; // Para almacenar el resultado de tarifa indexada
         let comparisonMode = 'drk_only';
         let compareWithIndexed = false; // Control para comparación con tarifas indexadas
@@ -2290,6 +2311,21 @@
             const secondaryBtn = document.getElementById('secondary-action-btn');
             if (secondaryBtn) secondaryBtn.classList.add('hidden');
             cleanupPasteCatcher();
+        };
+
+        // Funciones para modal de pregunta fotovoltaica
+        window.showSolarQuestionModal = (result) => {
+            console.log('🌞 Mostrando modal de pregunta fotovoltaica');
+            tempNoSavingsResult = result;
+            const modal = document.getElementById('solar-question-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.hideSolarQuestionModal = () => {
+            const modal = document.getElementById('solar-question-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
         };
 
         function setModalContent(msg, title, isError) {
@@ -2617,19 +2653,6 @@
         
         // Permitir confirmar con Enter
         document.addEventListener('DOMContentLoaded', function() {
-            // FORZADO: Versión DRK Únicamente - Ocultar selector y forzar modo
-            comparisonMode = 'drk_only';
-            const modoSection = document.getElementById('modo-comparacion-section');
-            if (modoSection) {
-                modoSection.style.display = 'none';
-            }
-            const drkOnlyRadio = document.querySelector('input[name="comparison_mode"][value="drk_only"]');
-            if (drkOnlyRadio) {
-                drkOnlyRadio.checked = true;
-            }
-            applyBrandStyles(BRANDS.DRK);
-            console.log('✅ Modo DRK Únicamente forzado al cargar');
-            
             const addressInput = document.getElementById('multicups-supply-address');
             if (addressInput) {
                 addressInput.addEventListener('keypress', function(e) {
@@ -2933,16 +2956,14 @@
             }
             
             // Restaurar la marca activa según el modo de comparación
-            // FORZADO: Siempre DRK Únicamente en esta versión
-            comparisonMode = 'drk_only';
-            const brandToApply = BRANDS.DRK;
+            const brandToApply = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
             applyBrandStyles(brandToApply);  
             
             // Asegurarse de que el radio button correcto esté checked
-            const selectorInput = document.querySelector(`input[name="comparison_mode"][value="drk_only"]`);
+            const selectorInput = document.querySelector(`input[name="comparison_mode"][value="${comparisonMode}"]`);
             if (selectorInput) {
                 selectorInput.checked = true;
-                updateComparisonMode('drk_only');
+                updateComparisonMode(comparisonMode);
             }
 
             // Ocultar vistas adicionales del flujo normal
@@ -7650,12 +7671,6 @@
                     // Mostrar precios de potencia reales (todos los períodos disponibles)
                     let potenciaY = y + 8;
                     const maxPowerPeriodsToShow = Math.min(res.powerCosts.length, 6); // Máximo 6 períodos
-                    console.log('📊 PDF Dual - Precios Potencia:', {
-                        tariffType: res.tariffType,
-                        powerCostsLength: res.powerCosts.length,
-                        maxPowerPeriodsToShow: maxPowerPeriodsToShow,
-                        powerCosts: res.powerCosts
-                    });
                     for (let i = 0; i < maxPowerPeriodsToShow; i++) {
                         if (res.powerCosts[i]) {
                             doc.text(`P${i + 1}: ${num(res.powerCosts[i].priceDay || 0, 6)} €/kW/día`, x + 3, potenciaY);
@@ -7672,12 +7687,6 @@
                     // Mostrar precios de energía reales (todos los períodos disponibles)
                     let energiaY = y + 8;
                     const maxEnergyPeriodsToShow = Math.min(res.energyCosts.length, 6); // Máximo 6 períodos
-                    console.log('📊 PDF Dual - Precios Energía:', {
-                        tariffType: res.tariffType,
-                        energyCostsLength: res.energyCosts.length,
-                        maxEnergyPeriodsToShow: maxEnergyPeriodsToShow,
-                        energyCosts: res.energyCosts
-                    });
                     for (let i = 0; i < maxEnergyPeriodsToShow; i++) {
                         if (res.energyCosts[i]) {
                             doc.text(`E${i + 1}: ${num(res.energyCosts[i].price || 0, 6)} €/kWh`, x + width/2, energiaY);
@@ -9926,7 +9935,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setFont('helvetica', 'normal');
                         doc.text(`Días: ${res.dias_facturados || 30}`, x + colWidth - 3, y + 9, { align: 'right' });
                         doc.setFontSize(6);
-                        const offerNamePDF1 = res.offer.name || 'Tarifa'; const isIndexPDF1 = offerNamePDF1.includes('INDEX'); doc.text(offerNamePDF1 + (isIndexPDF1 ? ' (VARIABLE)' : ''), x + 3, y + 9);
+                        const offerNamePDF1 = res.offer.name || 'Tarifa';
+                        const isIndexPDF1 = offerNamePDF1.includes('INDEX');
+                        doc.text(offerNamePDF1 + (isIndexPDF1 ? ' (VARIABLE)' : ''), x + 3, y + 9);
                         y += 17;
                         
                         // Precios aplicados
@@ -10070,7 +10081,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFont('helvetica', 'normal');
                     doc.text(`Días: ${resActual.dias_facturados || 30}`, pageWidth - margin - 3, y + 9, { align: 'right' });
                     doc.setFontSize(6);
-                    const offerNamePDF2 = resActual.offer.name || 'Tarifa'; const isIndexPDF2 = offerNamePDF2.includes('INDEX'); doc.text(offerNamePDF2 + (isIndexPDF2 ? ' (VARIABLE)' : ''), margin + 3, y + 9);
+                    const offerNamePDF2 = resActual.offer.name || 'Tarifa';
+                    const isIndexPDF2 = offerNamePDF2.includes('INDEX');
+                    doc.text(offerNamePDF2 + (isIndexPDF2 ? ' (VARIABLE)' : ''), margin + 3, y + 9);
                     y += 17;
                     
                     // Precios aplicados
@@ -16505,7 +16518,24 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     renderDualComparisonUI(result, indexedResult);
                 } else {
                     // Mostrar resultados normales
-                    renderResultsUI(result);
+                    // NUEVO: Si no hay ahorro y es 2.0TD/3.0TD, preguntar primero por fotovoltaica
+                    const tariffType = result.tariffType || result.originalTariffType || currentTariffType;
+                    const isTariff20or30 = tariffType === '2.0TD' || tariffType === '3.0TD';
+                    
+                    if (result.savings <= 0 && isTariff20or30) {
+                        console.log(`🌞 Sin ahorro detectado en tarifa ${tariffType} - Preguntando por fotovoltaica`);
+                        // Guardar resultado y mostrar modal de pregunta
+                        tempNoSavingsResult = result;
+                        showSolarQuestionModal(result);
+                        // NO mostrar results-view todavía, esperar respuesta del modal
+                        document.getElementById('loading-status').classList.add('hidden');
+                        document.getElementById('initial-view').classList.add('hidden');
+                        document.getElementById('scanner-view').classList.add('hidden');
+                        return; // Salir aquí, el modal manejará el resto
+                    } else {
+                        // Hay ahorro, o no es 2.0TD/3.0TD, mostrar resultados normalmente
+                        renderResultsUI(result);
+                    }
                 }
                 
                 console.log('Hiding initial-view and showing results-view');
@@ -16733,6 +16763,26 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             document.getElementById('execute-send-offer-btn').addEventListener('click', handleCopyOffer);
             document.getElementById('execute-pdf-offer-btn').addEventListener('click', handleGeneratePDF);
+            
+            // NUEVO: Event listeners para modal de pregunta fotovoltaica
+            document.getElementById('solar-yes-btn')?.addEventListener('click', () => {
+                console.log('✅ Usuario tiene fotovoltaica - Abriendo modal de excedentes');
+                hideSolarQuestionModal();
+                // Abrir el modal de "Cálculo Completado" para que pueda añadir excedentes
+                openCalculationCompletedModal();
+            });
+            
+            document.getElementById('solar-no-btn')?.addEventListener('click', () => {
+                console.log('❌ Usuario NO tiene fotovoltaica - Mostrando página Enhorabuena');
+                hideSolarQuestionModal();
+                // Continuar mostrando el mensaje de "ya estás en buena tarifa"
+                if (tempNoSavingsResult) {
+                    renderResultsUI(tempNoSavingsResult);
+                    // Mostrar la pantalla de resultados
+                    document.getElementById('results-view').classList.remove('hidden');
+                    document.getElementById('results-view').classList.add('animate-fade-in-up');
+                }
+            });
             
             // NUEVO: Event listeners para solicitar mejora a DRK
             document.getElementById('request-improvement-btn').onclick = () => {

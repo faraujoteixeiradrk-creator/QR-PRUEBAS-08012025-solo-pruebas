@@ -5014,7 +5014,9 @@
             oldCostPeriodEl.classList.remove('line-through', 'text-red-400', 'text-cta-green-500', 'decoration-red-400/50');
             oldCostAnnualEl.classList.remove('line-through', 'text-cta-red-500', 'text-cta-green-500', 'decoration-cta-red-500/50');
 
+            console.log('🔴 renderMultiResultsUI - Checking savings:', res.savings, '<= 0?', res.savings <= 0);
             if (res.savings <= 0) {
+                console.log('🔴🔴🔴 ENTRANDO EN ENHORABUENA (renderMultiResultsUI)');
                 // Mensaje especial cuando no hay ahorro
                 document.getElementById('savings-label').textContent = "¡ENHORABUENA!";
                 savingsEl.innerHTML = `<div class="text-lg leading-tight font-bold">${tr("Actualmente estás en una buena tarifa.")}</div><div class="text-sm mt-3 leading-relaxed">${tr("Seguiremos estudiando el mercado y te avisaremos cuando encontremos alguna tarifa que se adapte a tu perfil de consumo.")}</div>`;
@@ -5666,7 +5668,10 @@
             
             // Si no hay resultado indexado, renderizar como siempre
             try {
-                console.log('renderResultsUI called with:', res);
+                console.log('🔍🔍🔍 renderResultsUI called with:', res);
+                console.log('🔍 DEBUG renderResultsUI - savings:', res.savings, 'type:', typeof res.savings);
+                console.log('🔍 DEBUG renderResultsUI - savings <= 0?', res.savings <= 0);
+                console.log('🔍 DEBUG renderResultsUI - offerName:', res.offer?.name);
                 
                 const offer = res.offer;
                 const brand = activeBrand;
@@ -5753,7 +5758,9 @@
             oldCostPeriodEl.classList.remove('line-through', 'text-red-400', 'text-cta-green-500', 'decoration-red-400/50');
             oldCostAnnualEl.classList.remove('line-through', 'text-cta-red-500', 'text-cta-green-500', 'decoration-cta-red-500/50');
 
+            console.log('🟢 renderResultsUI - Checking isNegativeSavings:', res.isNegativeSavings, 'savings:', res.savings);
             if (res.isNegativeSavings) {
+                console.log('🟢🟢🟢 ENTRANDO EN ENHORABUENA (renderResultsUI)');
                 // Mensaje especial cuando no hay ahorro
                 document.getElementById('savings-label').textContent = "¡ENHORABUENA!";
                 savingsEl.innerHTML = `<div class="text-lg leading-tight font-bold">${tr("Actualmente estás en una buena tarifa.")}</div><div class="text-sm mt-3 leading-relaxed">${tr("Seguiremos estudiando el mercado y te avisaremos cuando encontremos alguna tarifa que se adapte a tu perfil de consumo.")}</div>`;

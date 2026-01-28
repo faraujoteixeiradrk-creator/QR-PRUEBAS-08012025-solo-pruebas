@@ -4281,8 +4281,15 @@
                     savingsIsZeroOrLess: final.savings <= 0,
                     tariffType: finalTariffType,
                     isTariff20or30: isTariff20or30,
-                    shouldShowModal: final.savings <= 0 && isTariff20or30 && !alreadyAskedAboutSolar
+                    hasSolarSurplus: !!(final.solarSurplus && final.solarSurplus.enabled),
+                    shouldShowModal: final.savings <= 0 && isTariff20or30 && !alreadyAskedAboutSolar && !(final.solarSurplus && final.solarSurplus.enabled)
                 });
+                
+                // CRÍTICO: Si ya hay excedentes solares en los datos, NO preguntar de nuevo
+                if (final.solarSurplus && final.solarSurplus.enabled) {
+                    console.log('✅ Excedentes solares ya presentes en datos - Saltando pregunta');
+                    alreadyAskedAboutSolar = true;
+                }
                 
                 if (final.savings <= 0 && isTariff20or30 && !alreadyAskedAboutSolar) {
                     console.log(`🌞 Sin ahorro detectado en tarifa ${finalTariffType} - Preguntando por fotovoltaica (desde compareOffers)`);
@@ -5783,8 +5790,15 @@
             oldCostAnnualEl.classList.remove('line-through', 'text-cta-red-500', 'text-cta-green-500', 'decoration-cta-red-500/50');
 
             console.log('🟢 renderResultsUI - Checking isNegativeSavings:', res.isNegativeSavings, 'savings:', res.savings);
+            console.log('🟢 renderResultsUI - solarSurplus:', res.solarSurplus);
+            
             if (res.isNegativeSavings) {
                 console.log('🟢🟢🟢 ENTRANDO EN ENHORABUENA (renderResultsUI)');
+                console.log('Verificando si debería estar aquí con excedentes:', {
+                    hasSolarSurplus: !!(res.solarSurplus && res.solarSurplus.enabled),
+                    savings: res.savings,
+                    solarDiscount: res.solarSurplus?.annualDiscount || 0
+                });
                 // Mensaje especial cuando no hay ahorro
                 document.getElementById('savings-label').textContent = "¡ENHORABUENA!";
                 savingsEl.innerHTML = `<div class="text-lg leading-tight font-bold">${tr("Actualmente estás en una buena tarifa.")}</div><div class="text-sm mt-3 leading-relaxed">${tr("Seguiremos estudiando el mercado y te avisaremos cuando encontremos alguna tarifa que se adapte a tu perfil de consumo.")}</div>`;
@@ -14534,33 +14548,51 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             isProcessingBestOption = true;
             console.log('✅ Bandera isProcessingBestOption activada');
             
-            // NUEVO: Si hay excedentes solares marcados, recalcular todas las ofertas primero
+            // ====================================================================
+            // NUEVO: DETECCIÓN DE EXCEDENTES SOLARES Y RECÁLCULO COMPLETO
+            // ====================================================================
             const solarCheckbox = document.getElementById('solar-surplus-checkbox');
-            if (solarCheckbox && solarCheckbox.checked && solarSurplusEnabled && solarSurplusData.total > 0) {
-                console.log('☀️ Excedentes solares marcados - Recalculando ofertas...');
+            const hasSolarSurplus = solarCheckbox && solarCheckbox.checked && solarSurplusEnabled && solarSurplusData.total > 0;
+            
+            if (hasSolarSurplus) {
+                console.log('☀️☀️☀️ EXCEDENTES SOLARES DETECTADOS - Iniciando recálculo completo');
+                console.log('Datos de excedentes:', solarSurplusData);
                 
-                // Recalcular availableOffers con el descuento de excedentes
-                const tariffType = currentTariffType;
-                let tariffsToCompare = currentTariffs[tariffType] || [];
+                // CRÍTICO: Resetear flags que pueden interferir
+                alreadyAskedAboutSolar = false; // Permitir que el flujo continúe normalmente
+                skipDecisionModal = false; // No saltar el modal de decisión
+                hideDecisionCheckboxes = false; // Permitir mostrar checkboxes
                 
-                // CRÍTICO: Filtrar según el modo de comparación (comparisonMode)
-                console.log(`🔍 Modo de comparación actual: ${comparisonMode}`);
-                if (comparisonMode === 'drk_only') {
-                    // En modo DRK ÚNICAMENTE, solo calcular tarifas DRK
-                    tariffsToCompare = tariffsToCompare.filter(t => t.isDrk === true);
-                    console.log(`🔵 DRK ÚNICAMENTE: Filtrando solo tarifas DRK (${tariffsToCompare.length} de ${currentTariffs[tariffType].length})`);
+                // CRÍTICO: Cerrar el modal de decisión
+                closeOfferDecisionModal();
+                
+                // IMPORTANTE: Recalcular COMPLETAMENTE usando compareOffers
+                // Esto asegura que todo el flujo se ejecute correctamente
+                if (lastComparisonResult) {
+                    console.log('🔄 Ejecutando compareOffers() con excedentes solares...');
+                    
+                    // Asegurarnos de que los datos de excedentes estén en lastComparisonResult
+                    lastComparisonResult.solarSurplus = {
+                        enabled: true,
+                        excedente1: solarSurplusData.excedente1,
+                        excedente2: solarSurplusData.excedente2,
+                        excedente3: solarSurplusData.excedente3,
+                        total: solarSurplusData.total,
+                        pricePerKwh: solarSurplusData.pricePerKwh
+                    };
+                    
+                    // Resetear bandera ANTES de llamar a compareOffers
+                    isProcessingBestOption = false;
+                    
+                    // Llamar a compareOffers para recalcular TODO
+                    compareOffers(lastComparisonResult);
+                    return; // SALIR aquí - compareOffers manejará el resto del flujo
                 } else {
-                    // En modo POWER CUP o DRK PRIORITARIO, calcular todas las tarifas
-                    console.log(`🟢 POWER CUP/DRK PRIORITARIO: Calculando todas las tarifas (${tariffsToCompare.length})`);
+                    console.error('❌ No hay lastComparisonResult disponible para recalcular');
+                    window.showErrorModal('Error: No se pueden aplicar los excedentes solares. Por favor, intente de nuevo.');
+                    isProcessingBestOption = false;
+                    return;
                 }
-                
-                availableOffers = tariffsToCompare.map(tariff => {
-                    const result = calculateTariffCost(tariff, lastComparisonResult || {}, tariffType);
-                    // calculateTariffCost ya aplica el descuento de excedentes automáticamente
-                    return result;
-                }).filter(r => r.savings > 0);
-                
-                console.log(`✅ Ofertas recalculadas con excedentes: ${availableOffers.length} ofertas con ahorro positivo`);
             }
             
             console.log('Elección:', bestOptionTariffChoice);
@@ -19143,6 +19175,25 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         }
 
         function goToElectricidad() {
+            console.log('🔵 Iniciando nuevo estudio de ELECTRICIDAD');
+            
+            // CRÍTICO: Resetear TODOS los flags y datos para evitar caché
+            alreadyAskedAboutSolar = false;
+            skipDecisionModal = false;
+            hideDecisionCheckboxes = false;
+            solarSurplusEnabled = false;
+            solarSurplusData = {
+                excedente1: 0,
+                excedente2: 0,
+                excedente3: 0,
+                total: 0,
+                discount: 0,
+                pricePerKwh: 0
+            };
+            tempNoSavingsResult = null;
+            
+            console.log('✅ Flags y caché limpiados para nuevo estudio');
+            
             // Desactivar modo DUAL (solo activo cuando se navega desde dualSelectTariff)
             window.dualMode = false;
             checkDualMode(); // Actualizar visibilidad del botón DUAL

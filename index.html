@@ -2224,6 +2224,7 @@
         let lastComparisonResult = null;
         let tempNoSavingsResult = null; // Para guardar resultado cuando no hay ahorro y se pregunta por fotovoltaica
         let skipDecisionModal = false; // Para saltar el modal de decisión cuando venimos del modal de fotovoltaica
+        let hideDecisionCheckboxes = false; // Para ocultar checkboxes en el modal cuando ya se introdujeron excedentes
         let lastIndexedResult = null; // Para almacenar el resultado de tarifa indexada
         let comparisonMode = 'drk_only';
         let compareWithIndexed = false; // Control para comparación con tarifas indexadas
@@ -4254,9 +4255,8 @@
                     
                     // Si venimos del modal de fotovoltaica, ocultar los checkboxes
                     if (skipDecisionModal) {
-                        console.log('⚠️ Ocultando checkboxes (venimos de modal fotovoltaica con excedentes ya introducidos)');
-                        document.getElementById('powercup-indexed-comparison-checkbox')?.classList.add('hidden');
-                        document.getElementById('solar-surplus-checkbox-container')?.classList.add('hidden');
+                        console.log('⚠️ Marcando flag para ocultar checkboxes (venimos de modal fotovoltaica con excedentes ya introducidos)');
+                        hideDecisionCheckboxes = true;
                         skipDecisionModal = false; // Resetear flag
                     }
                     
@@ -14257,7 +14257,13 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
             const isDualMode = window.dualMode === true;
             
-            if (window.optimizedPowerEnabled || isDualMode) {
+            // CRÍTICO: Si hideDecisionCheckboxes está activo, forzar ocultar AMBOS checkboxes
+            if (hideDecisionCheckboxes) {
+                console.log('🚫 Ocultando AMBOS checkboxes (excedentes ya introducidos desde modal fotovoltaica)');
+                checkboxContainer?.classList.add('hidden');
+                document.getElementById('solar-surplus-checkbox-container')?.classList.add('hidden');
+                hideDecisionCheckboxes = false; // Resetear flag después de usar
+            } else if (window.optimizedPowerEnabled || isDualMode) {
                 if (isDualMode) {
                     console.log('🔄 Modo DUAL activo - Ocultando checkbox Fijo & Indexado');
                 } else {
@@ -14276,45 +14282,48 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             }
             
             // NUEVO: Mostrar/Ocultar checkbox de Excedentes Solares solo para tarifa 2.0TD
-            const solarSurplusContainer = document.getElementById('solar-surplus-checkbox-container');
-            const solarCheckbox = document.getElementById('solar-surplus-checkbox');
-            
-            console.log('🔍 Verificando visibilidad de Excedentes Solares:', {
-                currentTariffType: currentTariffType,
-                isDualMode: isDualMode,
-                shouldShow: (currentTariffType === '2.0TD' || currentTariffType === '3.0TD') && !isDualMode
-            });
-            
-            if ((currentTariffType === '2.0TD' || currentTariffType === '3.0TD') && !isDualMode) {
-                console.log(`☀️ Tarifa ${currentTariffType} detectada - Mostrando checkbox de Excedentes Solares`);
-                solarSurplusContainer?.classList.remove('hidden');
-                // CRÍTICO: Resetear checkbox a desmarcado cada vez que se abre el modal
-                if (solarCheckbox) {
-                    solarCheckbox.checked = false;
-                    solarSurplusEnabled = false;
-                    // Ocultar campos y resetear valores
-                    document.getElementById('solar-surplus-fields')?.classList.add('hidden');
-                    document.getElementById('excedente-kwh-1').value = '0';
-                    document.getElementById('excedente-kwh-2').value = '0';
-                    document.getElementById('excedente-kwh-3').value = '0';
-                    document.getElementById('solar-surplus-summary')?.classList.add('hidden');
-                    // Resetear datos globales
-                    solarSurplusData = {
-                        excedente1: 0,
-                        excedente2: 0,
-                        excedente3: 0,
-                        total: 0,
-                        discount: 0,
-                        pricePerKwh: 0
-                    };
-                }
-            } else {
-                console.log('❌ No es tarifa 2.0TD o es modo DUAL - Ocultando Excedentes Solares');
-                solarSurplusContainer?.classList.add('hidden');
-                // Reset checkbox and fields
-                if (solarCheckbox) {
-                    solarCheckbox.checked = false;
-                    toggleSolarSurplus(false);
+            // PERO NO si hideDecisionCheckboxes está activo (ya se ocultó arriba)
+            if (!hideDecisionCheckboxes) {
+                const solarSurplusContainer = document.getElementById('solar-surplus-checkbox-container');
+                const solarCheckbox = document.getElementById('solar-surplus-checkbox');
+                
+                console.log('🔍 Verificando visibilidad de Excedentes Solares:', {
+                    currentTariffType: currentTariffType,
+                    isDualMode: isDualMode,
+                    shouldShow: (currentTariffType === '2.0TD' || currentTariffType === '3.0TD') && !isDualMode
+                });
+                
+                if ((currentTariffType === '2.0TD' || currentTariffType === '3.0TD') && !isDualMode) {
+                    console.log(`☀️ Tarifa ${currentTariffType} detectada - Mostrando checkbox de Excedentes Solares`);
+                    solarSurplusContainer?.classList.remove('hidden');
+                    // CRÍTICO: Resetear checkbox a desmarcado cada vez que se abre el modal
+                    if (solarCheckbox) {
+                        solarCheckbox.checked = false;
+                        solarSurplusEnabled = false;
+                        // Ocultar campos y resetear valores
+                        document.getElementById('solar-surplus-fields')?.classList.add('hidden');
+                        document.getElementById('excedente-kwh-1').value = '0';
+                        document.getElementById('excedente-kwh-2').value = '0';
+                        document.getElementById('excedente-kwh-3').value = '0';
+                        document.getElementById('solar-surplus-summary')?.classList.add('hidden');
+                        // Resetear datos globales
+                        solarSurplusData = {
+                            excedente1: 0,
+                            excedente2: 0,
+                            excedente3: 0,
+                            total: 0,
+                            discount: 0,
+                            pricePerKwh: 0
+                        };
+                    }
+                } else {
+                    console.log('❌ No es tarifa 2.0TD o es modo DUAL - Ocultando Excedentes Solares');
+                    solarSurplusContainer?.classList.add('hidden');
+                    // Reset checkbox and fields
+                    if (solarCheckbox) {
+                        solarCheckbox.checked = false;
+                        toggleSolarSurplus(false);
+                    }
                 }
             }
             

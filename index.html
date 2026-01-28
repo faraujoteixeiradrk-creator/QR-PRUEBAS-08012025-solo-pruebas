@@ -14601,7 +14601,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 // CRÍTICO: Resetear flags que pueden interferir
                 alreadyAskedAboutSolar = false; // Permitir que el flujo continúe normalmente
                 skipDecisionModal = false; // No saltar el modal de decisión
-                hideDecisionCheckboxes = false; // Permitir mostrar checkboxes
+                
+                // NUEVO: Activar hideDecisionCheckboxes para ocultar checkboxes en el próximo modal
+                hideDecisionCheckboxes = true;
+                console.log('✅ hideDecisionCheckboxes activado - Los checkboxes se ocultarán en el modal');
                 
                 // CRÍTICO: Cerrar el modal de decisión
                 closeOfferDecisionModal();

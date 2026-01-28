@@ -16623,6 +16623,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         console.log('📊 Mostrando resultados normalmente (con ahorro o no es 2.0TD/3.0TD)');
                         console.log('🔍 DEBUG antes de renderResultsUI:', {
                             savings: result.savings,
+                            isNegativeSavings: result.isNegativeSavings,
                             tariffType: result.tariffType || result.originalTariffType,
                             offerName: result.offer?.name
                         });
@@ -18448,6 +18449,20 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         
         function handleQRRead(raw) {
             stopScanner();
+            
+            // CRÍTICO: Resetear variables de estado al analizar nueva factura
+            alreadyAskedAboutSolar = false;
+            solarSurplusEnabled = false;
+            solarSurplusData = {
+                excedente1: 0,
+                excedente2: 0,
+                excedente3: 0,
+                total: 0,
+                discount: 0,
+                pricePerKwh: 0
+            };
+            console.log('🔄 Variables de estado reseteadas para nueva factura');
+            
             const p = {};
             raw.split('&').forEach(part => {  
                 let [key, ...rest] = part.split('=');

@@ -5651,7 +5651,9 @@
             `;
             
             // MODIFICACIÓN: Mostrar Comercializadora - Tarifa
-            document.getElementById('best-offer-name').textContent = `${offer.name || ''}`;
+            const isIndexTariff2 = offer.name && offer.name.includes('INDEX');
+            const tariffNameSuffix2 = isIndexTariff2 ? ' (VARIABLE)' : '';
+            document.getElementById('best-offer-name').textContent = `${offer.name || ''}${tariffNameSuffix2}`;
             document.getElementById('best-offer-desc').textContent = offer.description;
             
             const savingsEl = document.getElementById('savings-estimate');

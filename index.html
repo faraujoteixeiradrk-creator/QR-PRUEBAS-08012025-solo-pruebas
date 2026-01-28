@@ -4246,19 +4246,22 @@
                 console.log('currentTariffType:', currentTariffType);
                 
                 // NUEVA LÓGICA: Si hay ofertas con ahorro, mostrar modal de decisión
-                // PERO SOLO en modo individual, NO en MultiCups, Y NO si venimos del modal de fotovoltaica
+                // PERO SOLO en modo individual, NO en MultiCups
                 const isMultiCupsMode = currentTariffType === 'MULTICUPS';
                 
-                if (!isMultiCupsMode && availableOffers.length > 1 && !skipDecisionModal) {
+                if (!isMultiCupsMode && availableOffers.length > 1) {
                     console.log('Showing decision modal with', availableOffers.length, 'offers');
+                    
+                    // Si venimos del modal de fotovoltaica, ocultar los checkboxes
+                    if (skipDecisionModal) {
+                        console.log('⚠️ Ocultando checkboxes (venimos de modal fotovoltaica con excedentes ya introducidos)');
+                        document.getElementById('powercup-indexed-comparison-checkbox')?.classList.add('hidden');
+                        document.getElementById('solar-surplus-checkbox-container')?.classList.add('hidden');
+                        skipDecisionModal = false; // Resetear flag
+                    }
+                    
                     showOfferDecisionModal();
                     return; // No mostrar resultados todavía, esperar decisión del usuario
-                }
-                
-                // Resetear flag
-                if (skipDecisionModal) {
-                    console.log('⚠️ Saltando modal de decisión (venimos de modal fotovoltaica)');
-                    skipDecisionModal = false;
                 }
                 
                 // Si es MultiCups, solo hay 1 oferta, o ninguna, mostrar resultados directamente

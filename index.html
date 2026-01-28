@@ -16488,6 +16488,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 // Contexto individual: Mostrar resultados
                 console.log('Individual context, showing results');
                 
+                // CRÍTICO: Recalcular isNegativeSavings basado en savings actual
+                if (result.savings !== undefined && result.savings !== null) {
+                    result.isNegativeSavings = result.savings <= 0;
+                    console.log('✅ isNegativeSavings recalculado:', result.isNegativeSavings, 'basado en savings:', result.savings);
+                }
+                
                 // CRÍTICO: Aplicar branding según el modo de comparación
                 // Si el usuario eligió "POWER CUP Global", SIEMPRE usar POWER CUP
                 // Si eligió "DRK Prioritario", usar la marca de la tarifa ganadora

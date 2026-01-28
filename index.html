@@ -4297,6 +4297,19 @@
                     return; // Salir aquí, el modal manejará el resto
                 }
                 
+                console.log('📍 DEBUG antes de renderResultsUI en compareOffers:', {
+                    savings: final.savings,
+                    isNegativeSavings: final.isNegativeSavings,
+                    typeOfIsNegativeSavings: typeof final.isNegativeSavings
+                });
+                
+                // CRÍTICO: Corregir isNegativeSavings si es incorrecto
+                if (typeof final.isNegativeSavings === 'number' || final.isNegativeSavings === undefined) {
+                    console.warn('⚠️ COMPAREOFFERS: isNegativeSavings incorrecto:', final.isNegativeSavings, '- Corrigiendo...');
+                    final.isNegativeSavings = final.savings <= 0;
+                    console.log('✅ COMPAREOFFERS: isNegativeSavings corregido a:', final.isNegativeSavings);
+                }
+                
                 renderResultsUI(final);
                 
                 console.log('Showing results view...');
@@ -5672,6 +5685,17 @@
                 console.log('🔍 DEBUG renderResultsUI - savings:', res.savings, 'type:', typeof res.savings);
                 console.log('🔍 DEBUG renderResultsUI - savings <= 0?', res.savings <= 0);
                 console.log('🔍 DEBUG renderResultsUI - offerName:', res.offer?.name);
+                
+                // CRÍTICO: Corregir isNegativeSavings si es un número en lugar de booleano
+                if (typeof res.isNegativeSavings === 'number') {
+                    console.warn('⚠️ isNegativeSavings es un número:', res.isNegativeSavings, '- Corrigiendo...');
+                    res.isNegativeSavings = res.savings <= 0;
+                    console.log('✅ isNegativeSavings corregido a:', res.isNegativeSavings);
+                } else if (res.isNegativeSavings === undefined && res.savings !== undefined) {
+                    console.warn('⚠️ isNegativeSavings es undefined - Calculando...');
+                    res.isNegativeSavings = res.savings <= 0;
+                    console.log('✅ isNegativeSavings calculado:', res.isNegativeSavings);
+                }
                 
                 const offer = res.offer;
                 const brand = activeBrand;

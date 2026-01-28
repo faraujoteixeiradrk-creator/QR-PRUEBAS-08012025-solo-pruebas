@@ -7620,6 +7620,12 @@
                     // Mostrar precios de potencia reales (todos los períodos disponibles)
                     let potenciaY = y + 8;
                     const maxPowerPeriodsToShow = Math.min(res.powerCosts.length, 6); // Máximo 6 períodos
+                    console.log('📊 PDF Dual - Precios Potencia:', {
+                        tariffType: res.tariffType,
+                        powerCostsLength: res.powerCosts.length,
+                        maxPowerPeriodsToShow: maxPowerPeriodsToShow,
+                        powerCosts: res.powerCosts
+                    });
                     for (let i = 0; i < maxPowerPeriodsToShow; i++) {
                         if (res.powerCosts[i]) {
                             doc.text(`P${i + 1}: ${num(res.powerCosts[i].priceDay || 0, 6)} €/kW/día`, x + 3, potenciaY);
@@ -7636,6 +7642,12 @@
                     // Mostrar precios de energía reales (todos los períodos disponibles)
                     let energiaY = y + 8;
                     const maxEnergyPeriodsToShow = Math.min(res.energyCosts.length, 6); // Máximo 6 períodos
+                    console.log('📊 PDF Dual - Precios Energía:', {
+                        tariffType: res.tariffType,
+                        energyCostsLength: res.energyCosts.length,
+                        maxEnergyPeriodsToShow: maxEnergyPeriodsToShow,
+                        energyCosts: res.energyCosts
+                    });
                     for (let i = 0; i < maxEnergyPeriodsToShow; i++) {
                         if (res.energyCosts[i]) {
                             doc.text(`E${i + 1}: ${num(res.energyCosts[i].price || 0, 6)} €/kWh`, x + width/2, energiaY);

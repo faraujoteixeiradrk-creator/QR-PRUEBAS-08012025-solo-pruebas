@@ -16423,6 +16423,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 console.log('Energy costs periods:', combinedResult.energyCosts.length);
                 console.log('Power costs periods:', combinedResult.powerCosts.length);
                 
+                // CRÍTICO: Usar combinedResult como el resultado final
+                result = combinedResult;
+                
                 // IMPORTANTE: Si compareWithIndexed está activo, calcular resultado indexado ANTES de añadir a la lista
                 if (compareWithIndexed) {
                     const tariffType = lastComparisonResult.originalTariffType;

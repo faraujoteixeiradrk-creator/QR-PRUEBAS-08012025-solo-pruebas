@@ -4907,6 +4907,11 @@
             // MODIFICACIÓN: Mostrar Nombre y Descripción.
             // Si el nombre es genérico ("Tu Mejor Elección"), solo mostramos el nombre en H2 y la descripción en el párrafo.
             const isIndexTariff = offer.name && offer.name.includes('INDEX');
+            console.log('🔍 Detectando tarifa INDEX:', {
+                offerName: offer.name,
+                includesINDEX: offer.name?.includes('INDEX'),
+                isIndexTariff: isIndexTariff
+            });
             const tariffNameSuffix = isIndexTariff ? ' (VARIABLE)' : '';
             
             if (res.isMulti && res.savings > 0 && offer.name !== "Tu Tarifa Actual") {

@@ -16810,27 +16810,30 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 const tariffType = tempNoSavingsResult?.tariffType || tempNoSavingsResult?.originalTariffType || '2.0TD';
                 const is30TD = tariffType === '3.0TD';
                 
-                let promptText = '🌞 Por favor, introduce los kWh de excedentes solares por periodo:\n\n';
-                promptText += 'Punta (P1): ';
-                const ex1 = prompt(promptText) || '0';
+                let promptText = '🌞 Introduce los kWh de excedentes solares por periodo.\n\nPuedes poner 0 si no tienes excedentes en ese periodo.\n\nPunta (P1):';
+                const ex1Input = prompt(promptText, '0');
                 
-                if (ex1 === null) return; // Usuario canceló
+                // Si cancela en el primero, volver a mostrar modal
+                if (ex1Input === null) {
+                    showSolarQuestionModal(tempNoSavingsResult);
+                    return;
+                }
                 
-                promptText = 'Llano (P2): ';
-                const ex2 = prompt(promptText) || '0';
+                const ex1 = parseFloat(ex1Input) || 0;
                 
-                if (ex2 === null) return;
+                promptText = 'Llano (P2):';
+                const ex2Input = prompt(promptText, '0');
+                const ex2 = ex2Input === null ? 0 : (parseFloat(ex2Input) || 0);
                 
-                promptText = 'Valle (P3): ';
-                const ex3 = prompt(promptText) || '0';
-                
-                if (ex3 === null) return;
+                promptText = 'Valle (P3):';
+                const ex3Input = prompt(promptText, '0');
+                const ex3 = ex3Input === null ? 0 : (parseFloat(ex3Input) || 0);
                 
                 // Guardar los excedentes
-                solarSurplusData.excedente1 = parseFloat(ex1) || 0;
-                solarSurplusData.excedente2 = parseFloat(ex2) || 0;
-                solarSurplusData.excedente3 = parseFloat(ex3) || 0;
-                solarSurplusData.total = solarSurplusData.excedente1 + solarSurplusData.excedente2 + solarSurplusData.excedente3;
+                solarSurplusData.excedente1 = ex1;
+                solarSurplusData.excedente2 = ex2;
+                solarSurplusData.excedente3 = ex3;
+                solarSurplusData.total = ex1 + ex2 + ex3;
                 
                 console.log('💡 Excedentes introducidos:', solarSurplusData);
                 
@@ -16845,6 +16848,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     console.log('🔄 Recalculando con excedentes...');
                     compareOffers(data);
                 } else {
+                    console.log('⚠️ Total de excedentes = 0, mostrando resultado sin excedentes');
                     // No introdujo excedentes, mostrar resultado original
                     renderResultsUI(tempNoSavingsResult);
                     document.getElementById('results-view').classList.remove('hidden');

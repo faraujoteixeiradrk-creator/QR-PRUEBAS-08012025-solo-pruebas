@@ -4254,19 +4254,19 @@
                 console.log('About to render UI...');
                 
                 // NUEVO: Si no hay ahorro y es 2.0TD/3.0TD, preguntar primero por fotovoltaica
-                const tariffType = final.tariffType || final.originalTariffType || currentTariffType;
-                const isTariff20or30 = tariffType === '2.0TD' || tariffType === '3.0TD';
+                const finalTariffType = final.tariffType || final.originalTariffType || currentTariffType;
+                const isTariff20or30 = finalTariffType === '2.0TD' || finalTariffType === '3.0TD';
                 
                 console.log('🔍 DEBUG Modal Fotovoltaica (compareOffers):', {
                     savings: final.savings,
                     savingsIsZeroOrLess: final.savings <= 0,
-                    tariffType: tariffType,
+                    tariffType: finalTariffType,
                     isTariff20or30: isTariff20or30,
                     shouldShowModal: final.savings <= 0 && isTariff20or30
                 });
                 
                 if (final.savings <= 0 && isTariff20or30) {
-                    console.log(`🌞 Sin ahorro detectado en tarifa ${tariffType} - Preguntando por fotovoltaica (desde compareOffers)`);
+                    console.log(`🌞 Sin ahorro detectado en tarifa ${finalTariffType} - Preguntando por fotovoltaica (desde compareOffers)`);
                     // Guardar resultado y mostrar modal de pregunta
                     tempNoSavingsResult = final;
                     showSolarQuestionModal(final);

@@ -14333,6 +14333,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
         // --- NUEVO: Modal de Decisión (Mejor vs Elegir) ---
         
         function showOfferDecisionModal() {
+            // CRÍTICO: Log inmediato del estado de hideDecisionCheckboxes
+            console.log('🔍🔍🔍 showOfferDecisionModal LLAMADA');
+            console.log('Estado de hideDecisionCheckboxes:', hideDecisionCheckboxes);
+            console.log('Stack trace:');
+            console.trace();
+            
             document.getElementById('loading-status').classList.add('hidden');
             document.getElementById('offer-decision-modal').classList.remove('hidden');
             document.getElementById('offer-decision-modal').classList.add('flex');
@@ -14348,6 +14354,13 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // NUEVO: Si hay comparativo de potencias optimizadas activo O es modo DUAL, OCULTAR el checkbox de Fijo & Indexado
             const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
             const isDualMode = window.dualMode === true;
+            
+            // CRÍTICO DEBUG: Log del estado de hideDecisionCheckboxes
+            console.log('🔍 showOfferDecisionModal() - Estado de flags:', {
+                hideDecisionCheckboxes: hideDecisionCheckboxes,
+                isDualMode: isDualMode,
+                optimizedPowerEnabled: window.optimizedPowerEnabled
+            });
             
             // CRÍTICO: Si hideDecisionCheckboxes está activo, forzar ocultar AMBOS checkboxes Y saltar lógica restante
             if (hideDecisionCheckboxes) {
@@ -14598,13 +14611,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 console.log('☀️☀️☀️ EXCEDENTES SOLARES DETECTADOS - Iniciando recálculo completo');
                 console.log('Datos de excedentes:', solarSurplusData);
                 
-                // CRÍTICO: Resetear flags que pueden interferir
+                // CRÍTICO: Activar flags para ocultar checkboxes en el próximo modal
                 alreadyAskedAboutSolar = false; // Permitir que el flujo continúe normalmente
-                skipDecisionModal = false; // No saltar el modal de decisión
+                skipDecisionModal = true; // ✅ ACTIVAR para que compareOffers active hideDecisionCheckboxes
                 
-                // NUEVO: Activar hideDecisionCheckboxes para ocultar checkboxes en el próximo modal
+                // TAMBIÉN activar directamente hideDecisionCheckboxes por si acaso
                 hideDecisionCheckboxes = true;
-                console.log('✅ hideDecisionCheckboxes activado - Los checkboxes se ocultarán en el modal');
+                console.log('✅ Flags activados - Los checkboxes se ocultarán en el modal:', {
+                    skipDecisionModal: skipDecisionModal,
+                    hideDecisionCheckboxes: hideDecisionCheckboxes
+                });
                 
                 // CRÍTICO: Cerrar el modal de decisión
                 closeOfferDecisionModal();
@@ -16996,6 +17012,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 if (solarSurplusData.total > 0) {
                     // Activar excedentes y recalcular
                     solarSurplusEnabled = true;
+                    
+                    // CRÍTICO: Activar hideDecisionCheckboxes para ocultar checkboxes en el modal de decisión
+                    hideDecisionCheckboxes = true;
+                    console.log('✅ hideDecisionCheckboxes activado - Los checkboxes se ocultarán en el modal de decisión');
                     
                     // CRÍTICO: NO activar skipDecisionModal - queremos que el usuario vea el modal de decisión
                     // skipDecisionModal = true; // ❌ ELIMINADO - causaba que se saltara el modal

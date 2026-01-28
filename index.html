@@ -16522,6 +16522,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     const tariffType = result.tariffType || result.originalTariffType || currentTariffType;
                     const isTariff20or30 = tariffType === '2.0TD' || tariffType === '3.0TD';
                     
+                    console.log('🔍 DEBUG Modal Fotovoltaica:', {
+                        savings: result.savings,
+                        savingsIsZeroOrLess: result.savings <= 0,
+                        tariffType: tariffType,
+                        isTariff20or30: isTariff20or30,
+                        shouldShowModal: result.savings <= 0 && isTariff20or30
+                    });
+                    
                     if (result.savings <= 0 && isTariff20or30) {
                         console.log(`🌞 Sin ahorro detectado en tarifa ${tariffType} - Preguntando por fotovoltaica`);
                         // Guardar resultado y mostrar modal de pregunta
@@ -16533,6 +16541,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         document.getElementById('scanner-view').classList.add('hidden');
                         return; // Salir aquí, el modal manejará el resto
                     } else {
+                        console.log('📊 Mostrando resultados normalmente (con ahorro o no es 2.0TD/3.0TD)');
                         // Hay ahorro, o no es 2.0TD/3.0TD, mostrar resultados normalmente
                         renderResultsUI(result);
                     }

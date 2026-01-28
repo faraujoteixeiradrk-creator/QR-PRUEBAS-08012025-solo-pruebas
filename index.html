@@ -21150,7 +21150,10 @@ ${clientName}
                     yPos += 16;
                     
                     // CAJA CON TARIFA Y PRECIOS
-                    const preciosHeight = supply.type === 'electricidad' ? 32 : 25;
+                    // Determinar altura según tipo de tarifa
+                    const tariffType = supply.tariff || supply.originalTariffType || '2.0TD';
+                    const is30TD = tariffType === '3.0TD';
+                    const preciosHeight = supply.type === 'electricidad' ? (is30TD ? 50 : 32) : 25;
                     doc.setFillColor(255, 255, 255);
                     doc.rect(margin, yPos, contentWidth, preciosHeight, 'F');
                     doc.setDrawColor(226, 232, 240);
@@ -21197,23 +21200,38 @@ ${clientName}
                     let offerData = supply.offer || (supply.data && supply.data.offer) || (supply.data && supply.data.bestOffer);
                     
                     if (supply.type === 'electricidad') {
+                        // Determinar cuántos periodos mostrar según la tarifa
+                        const tariffType = supply.tariff || supply.originalTariffType || '2.0TD';
+                        const is30TD = tariffType === '3.0TD';
+                        const numPowerPeriods = is30TD ? 6 : 2;
+                        const numEnergyPeriods = is30TD ? 6 : 3;
+                        
                         doc.setFont('helvetica', 'bold');
                         doc.text(tr('POTENCIA:'), margin + 8, yPos + 17);
                         doc.setFont('helvetica', 'normal');
-                        const p1 = (offerData && offerData.p_potencia_1) ? offerData.p_potencia_1 / 365 : 0;
-                        const p2 = (offerData && offerData.p_potencia_2) ? offerData.p_potencia_2 / 365 : 0;
-                        doc.text(`P1: ${p1.toFixed(6)} EUR/kW/${tr('dia')}`, margin + 30, yPos + 17);
-                        doc.text(`P2: ${p2.toFixed(6)} EUR/kW/${tr('dia')}`, margin + 90, yPos + 17);
                         
+                        // Mostrar potencias dinámicamente
+                        let potY = yPos + 17;
+                        for (let i = 1; i <= numPowerPeriods; i++) {
+                            const pVal = (offerData && offerData[`p_potencia_${i}`]) ? offerData[`p_potencia_${i}`] / 365 : 0;
+                            const xPos = margin + 30 + ((i - 1) % 3) * 60;
+                            if ((i - 1) % 3 === 0 && i > 1) potY += 5;
+                            doc.text(`P${i}: ${pVal.toFixed(6)} EUR/kW/${tr('dia')}`, xPos, potY);
+                        }
+                        
+                        potY += 5;
                         doc.setFont('helvetica', 'bold');
-                        doc.text(tr('ENERGIA:'), margin + 8, yPos + 22);
+                        doc.text(tr('ENERGIA:'), margin + 8, potY);
                         doc.setFont('helvetica', 'normal');
-                        const e1 = (offerData && offerData.p1_price) ? offerData.p1_price : 0;
-                        const e2 = (offerData && offerData.p2_price) ? offerData.p2_price : 0;
-                        const e3 = (offerData && offerData.p3_price) ? offerData.p3_price : 0;
-                        doc.text(`E1: ${e1.toFixed(6)} EUR/kWh`, margin + 30, yPos + 22);
-                        doc.text(`E2: ${e2.toFixed(6)} EUR/kWh`, margin + 90, yPos + 22);
-                        doc.text(`E3: ${e3.toFixed(6)} EUR/kWh`, margin + 30, yPos + 27);
+                        potY += 5;
+                        
+                        // Mostrar energías dinámicamente
+                        for (let i = 1; i <= numEnergyPeriods; i++) {
+                            const eVal = (offerData && offerData[`p${i}_price`]) ? offerData[`p${i}_price`] : 0;
+                            const xPos = margin + 30 + ((i - 1) % 3) * 60;
+                            if ((i - 1) % 3 === 0 && i > 1) potY += 5;
+                            doc.text(`E${i}: ${eVal.toFixed(6)} EUR/kWh`, xPos, potY);
+                        }
                         
                     } else {
                         const termFijo = (offerData && offerData.p_fijo_diario) ? offerData.p_fijo_diario : 0;

@@ -2223,6 +2223,7 @@
         let currentTariffType = '2.0TD';
         let lastComparisonResult = null;
         let tempNoSavingsResult = null; // Para guardar resultado cuando no hay ahorro y se pregunta por fotovoltaica
+        let skipDecisionModal = false; // Para saltar el modal de decisión cuando venimos del modal de fotovoltaica
         let lastIndexedResult = null; // Para almacenar el resultado de tarifa indexada
         let comparisonMode = 'drk_only';
         let compareWithIndexed = false; // Control para comparación con tarifas indexadas
@@ -4245,13 +4246,19 @@
                 console.log('currentTariffType:', currentTariffType);
                 
                 // NUEVA LÓGICA: Si hay ofertas con ahorro, mostrar modal de decisión
-                // PERO SOLO en modo individual, NO en MultiCups
+                // PERO SOLO en modo individual, NO en MultiCups, Y NO si venimos del modal de fotovoltaica
                 const isMultiCupsMode = currentTariffType === 'MULTICUPS';
                 
-                if (!isMultiCupsMode && availableOffers.length > 1) {
+                if (!isMultiCupsMode && availableOffers.length > 1 && !skipDecisionModal) {
                     console.log('Showing decision modal with', availableOffers.length, 'offers');
                     showOfferDecisionModal();
                     return; // No mostrar resultados todavía, esperar decisión del usuario
+                }
+                
+                // Resetear flag
+                if (skipDecisionModal) {
+                    console.log('⚠️ Saltando modal de decisión (venimos de modal fotovoltaica)');
+                    skipDecisionModal = false;
                 }
                 
                 // Si es MultiCups, solo hay 1 oferta, o ninguna, mostrar resultados directamente
@@ -16840,6 +16847,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 if (solarSurplusData.total > 0) {
                     // Activar excedentes y recalcular
                     solarSurplusEnabled = true;
+                    
+                    // Activar flag para saltar el modal de decisión
+                    skipDecisionModal = true;
                     
                     // Obtener los datos de la factura original
                     const data = tempNoSavingsResult;

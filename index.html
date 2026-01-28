@@ -7602,7 +7602,8 @@
                     doc.setFont('helvetica', 'normal');
                     const comercializadora = res.offer.name || brand.NAME;
                     const nombreTarifa = res.offer.description || 'N/A';
-                    const nombreCompleto = `${comercializadora} - ${nombreTarifa}`;
+                    const isIndexPDF3 = comercializadora.includes('INDEX');
+                    const nombreCompleto = `${comercializadora}${isIndexPDF3 ? ' (VARIABLE)' : ''} - ${nombreTarifa}`;
                     doc.text(nombreCompleto, x + 3, y + 11);
                     
                     y += 16;
@@ -9898,7 +9899,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setFont('helvetica', 'normal');
                         doc.text(`Días: ${res.dias_facturados || 30}`, x + colWidth - 3, y + 9, { align: 'right' });
                         doc.setFontSize(6);
-                        doc.text(res.offer.name || 'Tarifa', x + 3, y + 9);
+                        const offerNamePDF1 = res.offer.name || 'Tarifa';
+                        const isIndexPDF1 = offerNamePDF1.includes('INDEX');
+                        doc.text(offerNamePDF1 + (isIndexPDF1 ? ' (VARIABLE)' : ''), x + 3, y + 9);
                         y += 17;
                         
                         // Precios aplicados
@@ -10042,7 +10045,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFont('helvetica', 'normal');
                     doc.text(`Días: ${resActual.dias_facturados || 30}`, pageWidth - margin - 3, y + 9, { align: 'right' });
                     doc.setFontSize(6);
-                    doc.text(resActual.offer.name || 'Tarifa', margin + 3, y + 9);
+                    const offerNamePDF2 = resActual.offer.name || 'Tarifa';
+                    const isIndexPDF2 = offerNamePDF2.includes('INDEX');
+                    doc.text(offerNamePDF2 + (isIndexPDF2 ? ' (VARIABLE)' : ''), margin + 3, y + 9);
                     y += 17;
                     
                     // Precios aplicados

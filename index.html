@@ -5653,6 +5653,12 @@
             // MODIFICACIÓN: Mostrar Comercializadora - Tarifa
             const isIndexTariff2 = offer.name && offer.name.includes('INDEX');
             const tariffNameSuffix2 = isIndexTariff2 ? ' (VARIABLE)' : '';
+            console.log('🔍 Segunda ubicación - Detectando INDEX:', {
+                offerName: offer.name,
+                isIndexTariff2: isIndexTariff2,
+                tariffNameSuffix2: tariffNameSuffix2,
+                finalName: `${offer.name || ''}${tariffNameSuffix2}`
+            });
             document.getElementById('best-offer-name').textContent = `${offer.name || ''}${tariffNameSuffix2}`;
             document.getElementById('best-offer-desc').textContent = offer.description;
             

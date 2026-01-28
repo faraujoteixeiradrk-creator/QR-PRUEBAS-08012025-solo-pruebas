@@ -4222,6 +4222,10 @@
                         // Mantener el branding según el modo seleccionado
                         brand = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
                     }
+                } else {
+                    // HAY ahorro - asegurar que NO se solicite mejora automáticamente
+                    final.needsImprovementRequest = false;
+                    console.log('✅ Hay ahorro (' + final.savings.toFixed(2) + ' €) - NO se solicita mejora automáticamente');
                 }
                 // Add originalTariffType for consistent logic in HTML generation
                 final.originalTariffType = tariffType;
@@ -14257,12 +14261,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
             const isDualMode = window.dualMode === true;
             
-            // CRÍTICO: Si hideDecisionCheckboxes está activo, forzar ocultar AMBOS checkboxes
+            // CRÍTICO: Si hideDecisionCheckboxes está activo, forzar ocultar AMBOS checkboxes Y saltar lógica restante
             if (hideDecisionCheckboxes) {
                 console.log('🚫 Ocultando AMBOS checkboxes (excedentes ya introducidos desde modal fotovoltaica)');
                 checkboxContainer?.classList.add('hidden');
                 document.getElementById('solar-surplus-checkbox-container')?.classList.add('hidden');
-                hideDecisionCheckboxes = false; // Resetear flag después de usar
+                // NO resetear aquí - se reseteará al final
             } else if (window.optimizedPowerEnabled || isDualMode) {
                 if (isDualMode) {
                     console.log('🔄 Modo DUAL activo - Ocultando checkbox Fijo & Indexado');
@@ -14325,6 +14329,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         toggleSolarSurplus(false);
                     }
                 }
+            }
+            
+            // Resetear flag después de toda la lógica de checkboxes
+            if (hideDecisionCheckboxes) {
+                hideDecisionCheckboxes = false;
+                console.log('✅ Flag hideDecisionCheckboxes reseteada');
             }
             
             // NUEVO: Actualizar textos y colores del selector según la marca activa

@@ -4255,7 +4255,8 @@
                 // PERO SOLO en modo individual, NO en MultiCups
                 const isMultiCupsMode = currentTariffType === 'MULTICUPS';
                 
-                if (!isMultiCupsMode && availableOffers.length > 1) {
+                // CRÍTICO: Mostrar modal si hay al menos 1 oferta con ahorro (cambio de >= 1 en lugar de > 1)
+                if (!isMultiCupsMode && availableOffers.length >= 1 && final.savings > 0) {
                     console.log('Showing decision modal with', availableOffers.length, 'offers');
                     
                     // Si venimos del modal de fotovoltaica, ocultar los checkboxes
@@ -4269,7 +4270,7 @@
                     return; // No mostrar resultados todavía, esperar decisión del usuario
                 }
                 
-                // Si es MultiCups, solo hay 1 oferta, o ninguna, mostrar resultados directamente
+                // Si es MultiCups, no hay ofertas, o no hay ahorro, mostrar resultados directamente
                 console.log('About to render UI...');
                 
                 // NUEVO: Si no hay ahorro y es 2.0TD/3.0TD, preguntar primero por fotovoltaica

@@ -4256,8 +4256,19 @@
                 const isMultiCupsMode = currentTariffType === 'MULTICUPS';
                 
                 // CRÍTICO: Mostrar modal si hay al menos 1 oferta con ahorro (cambio de >= 1 en lugar de > 1)
-                if (!isMultiCupsMode && availableOffers.length >= 1 && final.savings > 0) {
-                    console.log('Showing decision modal with', availableOffers.length, 'offers');
+                const hasOffersWithSavings = availableOffers.length >= 1 && final.savings > 0;
+                
+                console.log('🔍 DEBUG showOfferDecisionModal:', {
+                    isMultiCupsMode: isMultiCupsMode,
+                    availableOffersLength: availableOffers.length,
+                    finalSavings: final.savings,
+                    hasOffersWithSavings: hasOffersWithSavings,
+                    shouldShowModal: !isMultiCupsMode && hasOffersWithSavings,
+                    hasSolarSurplus: !!(final.solarSurplus && final.solarSurplus.enabled)
+                });
+                
+                if (!isMultiCupsMode && hasOffersWithSavings) {
+                    console.log('✅✅✅ MOSTRANDO MODAL DE DECISIÓN con', availableOffers.length, 'ofertas con ahorro');
                     
                     // Si venimos del modal de fotovoltaica, ocultar los checkboxes
                     if (skipDecisionModal) {
@@ -6056,26 +6067,30 @@
                     // NUEVO: Construir línea de excedentes solares según el estado
                     let excedentesHTML = '';
                     
-                    // Verificar si el checkbox de excedentes está marcado
-                    const solarCheckbox = document.getElementById('solar-surplus-checkbox');
-                    const isChecked = solarCheckbox && solarCheckbox.checked;
-                    
-                    if (isChecked) {
-                        if (res.solarSurplus && res.solarSurplus.enabled) {
-                            // Tiene precio de excedentes y se aplicó descuento
-                            const precioExcedente = res.solarSurplus.pricePerKwh;
-                            excedentesHTML = `
-                                <p class="text-slate-500 mt-2 col-span-2 font-bold text-orange-600">${tr('EXCEDENTES SOLARES')}</p>
-                                <p class="text-slate-500">☀️ ${tr('Compensación')}:</p>
-                                <p class="font-mono font-bold text-right text-orange-600">${numPriceFormula(precioExcedente)} €/kWh</p>
-                            `;
-                        } else if (res.solarSurplus && res.solarSurplus.noPrice) {
-                            // El checkbox está marcado pero esta tarifa NO tiene compensación
-                            excedentesHTML = `
-                                <p class="text-slate-500 mt-2 col-span-2 font-bold text-slate-400">${tr('EXCEDENTES SOLARES')}</p>
-                                <p class="text-slate-400 text-xs col-span-2 italic">⚠️ ${tr('Esta comercializadora no ofrece compensación')}</p>
-                            `;
-                        }
+                    // CRÍTICO: Verificar si hay datos de excedentes solares en el resultado
+                    // NO verificar el checkbox porque puede no estar marcado después del recálculo
+                    if (res.solarSurplus && res.solarSurplus.enabled) {
+                        // Tiene precio de excedentes y se aplicó descuento
+                        const precioExcedente = res.solarSurplus.pricePerKwh;
+                        const isIndexTariff = res.offer && res.offer.name && res.offer.name.includes('INDEX');
+                        
+                        // Advertencia especial para tarifas indexadas
+                        const warningHTML = isIndexTariff ? `
+                            <p class="text-orange-500 text-xs col-span-2 italic mt-1">⚠️ ${tr('Precio variable según mercado')}</p>
+                        ` : '';
+                        
+                        excedentesHTML = `
+                            <p class="text-slate-500 mt-2 col-span-2 font-bold text-orange-600">${tr('EXCEDENTES SOLARES')}</p>
+                            <p class="text-slate-500">☀️ ${tr('Compensación')}:</p>
+                            <p class="font-mono font-bold text-right text-orange-600">${numPriceFormula(precioExcedente)} €/kWh</p>
+                            ${warningHTML}
+                        `;
+                    } else if (res.solarSurplus && res.solarSurplus.noPrice) {
+                        // Hay excedentes marcados pero esta tarifa NO tiene compensación
+                        excedentesHTML = `
+                            <p class="text-slate-500 mt-2 col-span-2 font-bold text-slate-400">${tr('EXCEDENTES SOLARES')}</p>
+                            <p class="text-slate-400 text-xs col-span-2 italic">⚠️ ${tr('Esta comercializadora no ofrece compensación')}</p>
+                        `;
                     }
                     
                     preciosHTML = `
@@ -6111,6 +6126,29 @@
                         filasEnergia += `<p class="text-slate-500">E${i+1}:</p><p class="font-mono font-bold text-right">${numPriceFormula(res.energyCosts[i].price)}</p>`;
                     }
                     
+                    // NUEVO: Construir línea de excedentes solares para 3.0TD
+                    let excedentesHTML30 = '';
+                    if (res.solarSurplus && res.solarSurplus.enabled) {
+                        const precioExcedente = res.solarSurplus.pricePerKwh;
+                        const isIndexTariff = res.offer && res.offer.name && res.offer.name.includes('INDEX');
+                        
+                        const warningHTML = isIndexTariff ? `
+                            <p class="text-orange-500 text-xs col-span-2 md:col-span-4 italic mt-1">⚠️ ${tr('Precio variable según mercado')}</p>
+                        ` : '';
+                        
+                        excedentesHTML30 = `
+                            <div class="col-span-2 md:col-span-4 font-bold text-orange-600 mt-2 mb-1 border-t pt-2">${tr('EXCEDENTES SOLARES')}</div>
+                            <p class="text-slate-500">☀️ ${tr('Compensación')}:</p>
+                            <p class="font-mono font-bold text-right text-orange-600">${numPriceFormula(precioExcedente)} €/kWh</p>
+                            ${warningHTML}
+                        `;
+                    } else if (res.solarSurplus && res.solarSurplus.noPrice) {
+                        excedentesHTML30 = `
+                            <div class="col-span-2 md:col-span-4 font-bold text-slate-400 mt-2 mb-1 border-t pt-2">${tr('EXCEDENTES SOLARES')}</div>
+                            <p class="text-slate-400 text-xs col-span-2 md:col-span-4 italic">⚠️ ${tr('Esta comercializadora no ofrece compensación')}</p>
+                        `;
+                    }
+                    
                     preciosHTML = `
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm text-sm mb-6">
                             <h4 class="font-bold text-lg text-slate-800 mb-3">Precios de la Oferta Consolidada</h4>
@@ -6121,6 +6159,7 @@
                                     ${filasPotencia}
                                     <div class="col-span-2 md:col-span-4 font-bold text-green-600 mt-2 mb-1 border-t pt-2">${tr('ENERGÍA')} (€/kWh)</div>
                                     ${filasEnergia}
+                                    ${excedentesHTML30}
                                 </div>
                             </div>
                             <p class="text-xs text-slate-500 mt-2">*Los precios mostrados son de la oferta ganadora.</p>
@@ -16955,8 +16994,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     // Activar excedentes y recalcular
                     solarSurplusEnabled = true;
                     
-                    // Activar flag para saltar el modal de decisión
-                    skipDecisionModal = true;
+                    // CRÍTICO: NO activar skipDecisionModal - queremos que el usuario vea el modal de decisión
+                    // skipDecisionModal = true; // ❌ ELIMINADO - causaba que se saltara el modal
+                    console.log('✅ Excedentes activados - El modal de decisión se mostrará normalmente');
                     
                     // Obtener los datos de la factura original
                     const data = tempNoSavingsResult;

@@ -11968,6 +11968,17 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.text(`${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)`, margin + 2, yPos);
                         doc.text(`-${num(discount, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
                         yPos += 5;
+                        
+                        // Añadir aviso si es tarifa INDEX
+                        const isIndexPDF = res.offer && res.offer.name && res.offer.name.includes('INDEX');
+                        if (isIndexPDF) {
+                            doc.setTextColor(217, 119, 6); // Amber-600
+                            doc.setFont('helvetica', 'italic');
+                            doc.setFontSize(6);
+                            doc.text(`⚠️ ${tr('Excedentes liquidados a precio variable de mercado')}`, margin + 5, yPos);
+                            yPos += 4;
+                            doc.setFontSize(8);
+                        }
                     } else if (res.solarSurplus && res.solarSurplus.noPrice) {
                         // Sin compensación
                         doc.setTextColor(150, 150, 150); // Gris

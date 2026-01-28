@@ -2225,6 +2225,7 @@
         let tempNoSavingsResult = null; // Para guardar resultado cuando no hay ahorro y se pregunta por fotovoltaica
         let skipDecisionModal = false; // Para saltar el modal de decisión cuando venimos del modal de fotovoltaica
         let hideDecisionCheckboxes = false; // Para ocultar checkboxes en el modal cuando ya se introdujeron excedentes
+        let alreadyAskedAboutSolar = false; // Para no volver a preguntar por fotovoltaica en recálculos posteriores
         let lastIndexedResult = null; // Para almacenar el resultado de tarifa indexada
         let comparisonMode = 'drk_only';
         let compareWithIndexed = false; // Control para comparación con tarifas indexadas
@@ -4280,11 +4281,13 @@
                     savingsIsZeroOrLess: final.savings <= 0,
                     tariffType: finalTariffType,
                     isTariff20or30: isTariff20or30,
-                    shouldShowModal: final.savings <= 0 && isTariff20or30
+                    shouldShowModal: final.savings <= 0 && isTariff20or30 && !alreadyAskedAboutSolar
                 });
                 
-                if (final.savings <= 0 && isTariff20or30) {
+                if (final.savings <= 0 && isTariff20or30 && !alreadyAskedAboutSolar) {
                     console.log(`🌞 Sin ahorro detectado en tarifa ${finalTariffType} - Preguntando por fotovoltaica (desde compareOffers)`);
+                    // Marcar que ya preguntamos
+                    alreadyAskedAboutSolar = true;
                     // Guardar resultado y mostrar modal de pregunta
                     tempNoSavingsResult = final;
                     showSolarQuestionModal(final);
@@ -16584,11 +16587,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         savingsIsZeroOrLess: result.savings <= 0,
                         tariffType: tariffType,
                         isTariff20or30: isTariff20or30,
-                        shouldShowModal: result.savings <= 0 && isTariff20or30
+                        alreadyAsked: alreadyAskedAboutSolar,
+                        shouldShowModal: result.savings <= 0 && isTariff20or30 && !alreadyAskedAboutSolar
                     });
                     
-                    if (result.savings <= 0 && isTariff20or30) {
+                    if (result.savings <= 0 && isTariff20or30 && !alreadyAskedAboutSolar) {
                         console.log(`🌞 Sin ahorro detectado en tarifa ${tariffType} - Preguntando por fotovoltaica`);
+                        // Marcar que ya preguntamos
+                        alreadyAskedAboutSolar = true;
                         // Guardar resultado y mostrar modal de pregunta
                         tempNoSavingsResult = result;
                         showSolarQuestionModal(result);
@@ -16599,6 +16605,11 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         return; // Salir aquí, el modal manejará el resto
                     } else {
                         console.log('📊 Mostrando resultados normalmente (con ahorro o no es 2.0TD/3.0TD)');
+                        console.log('🔍 DEBUG antes de renderResultsUI:', {
+                            savings: result.savings,
+                            tariffType: result.tariffType || result.originalTariffType,
+                            offerName: result.offer?.name
+                        });
                         // Hay ahorro, o no es 2.0TD/3.0TD, mostrar resultados normalmente
                         renderResultsUI(result);
                     }

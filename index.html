@@ -17037,14 +17037,35 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             });
             
             document.getElementById('solar-no-btn')?.addEventListener('click', () => {
-                console.log('❌ Usuario NO tiene fotovoltaica - Mostrando página Enhorabuena');
+                console.log('❌ Usuario NO tiene fotovoltaica');
                 hideSolarQuestionModal();
-                // Continuar mostrando el mensaje de "ya estás en buena tarifa"
-                if (tempNoSavingsResult) {
-                    renderResultsUI(tempNoSavingsResult);
-                    // Mostrar la pantalla de resultados
-                    document.getElementById('results-view').classList.remove('hidden');
-                    document.getElementById('results-view').classList.add('animate-fade-in-up');
+                
+                // CRÍTICO: Verificar si estamos en modo DUAL
+                const isDualMode = window.dualMode === true;
+                console.log('🔍 Modo DUAL activo:', isDualMode);
+                
+                if (isDualMode) {
+                    // MODO DUAL: Continuar con el flujo normal, mostrar modal de decisión
+                    console.log('🔄 Modo DUAL - Continuando con modal de decisión (aunque sea negativo)');
+                    
+                    if (tempNoSavingsResult) {
+                        // Asegurar que el resultado tenga isNegativeSavings marcado
+                        tempNoSavingsResult.isNegativeSavings = true;
+                        tempNoSavingsResult.savings = tempNoSavingsResult.originalBillAnnual - tempNoSavingsResult.totalAnnual;
+                        
+                        // IMPORTANTE: En DUAL necesitamos el modal de decisión incluso sin ahorro
+                        // para poder continuar añadiendo suministros
+                        showOfferDecisionModal();
+                    }
+                } else {
+                    // MODO INDIVIDUAL: Mostrar página de Enhorabuena
+                    console.log('👤 Modo INDIVIDUAL - Mostrando página Enhorabuena');
+                    if (tempNoSavingsResult) {
+                        renderResultsUI(tempNoSavingsResult);
+                        // Mostrar la pantalla de resultados
+                        document.getElementById('results-view').classList.remove('hidden');
+                        document.getElementById('results-view').classList.add('animate-fade-in-up');
+                    }
                 }
             });
             
@@ -19327,6 +19348,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             console.log('- lastIndexedResult:', lastIndexedResult);
             console.log('- availableOffers:', availableOffers.length);
             console.log('- dualMode:', window.dualMode);
+            console.log('- solarSurplusData:', solarSurplusData);
             
             // CRÍTICO: Activar modo DUAL
             window.dualMode = true;
@@ -19338,6 +19360,21 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             availableOffers = [];
             compareWithIndexed = false;
             
+            // NUEVO: Limpiar TODOS los datos de excedentes solares del suministro anterior
+            alreadyAskedAboutSolar = false;
+            solarSurplusEnabled = false;
+            solarSurplusData = {
+                excedente1: 0,
+                excedente2: 0,
+                excedente3: 0,
+                total: 0,
+                discount: 0,
+                pricePerKwh: 0
+            };
+            tempNoSavingsResult = null;
+            
+            console.log('✅ Datos de excedentes solares limpiados');
+            
             // Limpiar el checkbox de comparación
             const checkbox = document.getElementById('compare-indexed-checkbox');
             if (checkbox) {
@@ -19348,6 +19385,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             console.log('- dualTempSupply:', dualTempSupply);
             console.log('- lastComparisonResult:', lastComparisonResult);
             console.log('- dualMode:', window.dualMode);
+            console.log('- solarSurplusData:', solarSurplusData);
             console.log('=== FIN limpieza - estado listo para nuevo suministro ===');
             
             hideAllScreens();

@@ -2608,6 +2608,21 @@
                     totalKwh: totalKwh,
                     dias: data.dias || 30
                 };
+                
+                // NUEVO: Añadir datos de excedentes solares si existen
+                if (finalResult?.solarSurplus && finalResult.solarSurplus.enabled) {
+                    supply.solarSurplus = {
+                        enabled: true,
+                        total: finalResult.solarSurplus.total || 0,
+                        excedente1: finalResult.solarSurplus.excedente1 || 0,
+                        excedente2: finalResult.solarSurplus.excedente2 || 0,
+                        excedente3: finalResult.solarSurplus.excedente3 || 0,
+                        pricePerKwh: finalResult.solarSurplus.pricePerKwh || 0,
+                        monthlyDiscount: finalResult.solarSurplus.monthlyDiscount || 0,
+                        annualDiscount: finalResult.solarSurplus.annualDiscount || 0
+                    };
+                    console.log('✅ Excedentes solares añadidos al suministro:', supply.solarSurplus);
+                }
             } else {
                 // Para gas, extraer correctamente los datos de finalResult
                 const energiaTotal = finalResult?.energia || finalResult?.total_energia || 0;

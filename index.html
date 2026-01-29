@@ -19735,6 +19735,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                 const eb = s.electricityBreakdown;
                                 const totalKwh = eb.energyCosts?.reduce((sum, e) => sum + (e.kwh || 0), 0) || 0;
                                 
+                                // NUEVO: Línea de excedentes solares si están presentes
+                                let solarSurplusRow = '';
+                                if (s.solarSurplus && s.solarSurplus.enabled && s.solarSurplus.total > 0) {
+                                    const monthlyDiscount = s.solarSurplus.monthlyDiscount || 0;
+                                    solarSurplusRow = `
+                                        <div class="flex justify-between text-orange-600">
+                                            <span>☀️ ${tr('Excedentes solares')} (${s.solarSurplus.total} kWh)</span>
+                                            <span>-${formatEuro(monthlyDiscount)}</span>
+                                        </div>
+                                    `;
+                                }
+                                
                                 return `
                                 <div class="bg-white rounded-lg p-3 border border-slate-200">
                                     <div class="flex items-center justify-between mb-2">
@@ -19756,6 +19768,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                             <span>${tr('Energía')} (${totalKwh.toFixed(0)} kWh)</span>
                                             <span>${formatEuro(eb.subEnergy)}</span>
                                         </div>
+                                        ${solarSurplusRow}
                                         <div class="flex justify-between">
                                             <span>${tr('Imp. eléctrico (5.113%)')}</span>
                                             <span>${formatEuro(eb.costIE)}</span>
@@ -21667,6 +21680,21 @@ ${clientName}
                             doc.text(`E${i}: ${eVal.toFixed(6)} EUR/kWh`, xPos, potY);
                         }
                         
+                        // NUEVO: Añadir línea de excedentes solares si están presentes
+                        if (supply.solarSurplus && supply.solarSurplus.enabled && supply.solarSurplus.total > 0) {
+                            potY += 5;
+                            doc.setFont('helvetica', 'bold');
+                            doc.setTextColor(255, 140, 0); // Naranja
+                            doc.text(tr('EXCEDENTES SOLARES:'), margin + 8, potY);
+                            doc.setFont('helvetica', 'normal');
+                            
+                            const precioExcedente = supply.solarSurplus.pricePerKwh || 0;
+                            const isIndexTariff = tarifaCompleta && tarifaCompleta.includes('INDEX');
+                            const advertencia = isIndexTariff ? ` (${tr('precio variable')})` : '';
+                            
+                            doc.text(`☀️ ${tr('Compensacion')}: ${precioExcedente.toFixed(6)} EUR/kWh${advertencia}`, margin + 30, potY);
+                        }
+                        
                     } else {
                         const termFijo = (offerData && offerData.p_fijo_diario) ? offerData.p_fijo_diario : 0;
                         const energia = (offerData && offerData.p1_price) ? offerData.p1_price : 0;
@@ -21810,6 +21838,20 @@ ${clientName}
                                     yPos += 6;
                                 }
                             });
+                            
+                            // NUEVO: Añadir línea de excedentes solares si están presentes
+                            if (supply.solarSurplus && supply.solarSurplus.enabled && supply.solarSurplus.total > 0) {
+                                doc.setFontSize(8);
+                                doc.setTextColor(255, 140, 0); // Naranja
+                                doc.setFont('helvetica', 'normal');
+                                const monthlyDiscount = supply.solarSurplus.monthlyDiscount || 0;
+                                const precioExcedente = supply.solarSurplus.pricePerKwh || 0;
+                                const label = `☀️ ${tr('Excedentes solares')} (${supply.solarSurplus.total} kWh x ${precioExcedente.toFixed(6)} EUR/kWh)`;
+                                doc.text(label, margin + 5, yPos + 4);
+                                doc.setFont('helvetica', 'bold');
+                                doc.text(`-${eur(monthlyDiscount)}`, pageWidth - margin - 5, yPos + 4, { align: 'right' });
+                                yPos += 6;
+                            }
                         } else {
                             doc.setFontSize(8);
                             doc.setTextColor(150, 150, 150);

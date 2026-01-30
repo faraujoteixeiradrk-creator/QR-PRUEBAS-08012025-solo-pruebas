@@ -2589,24 +2589,12 @@
                 originalBillAnnual: data.originalBillAnnual || 0,
                 timestamp: new Date().getTime(),
                 // NUEVO: Guardar información de excedentes si existen
-                solarSurplus: (solarSurplusEnabled && solarSurplusData && solarSurplusData.total > 0) ? {
-                    total: solarSurplusData.total || 0,
-                    excedente1: solarSurplusData.excedente1 || 0,
-                    excedente2: solarSurplusData.excedente2 || 0,
-                    excedente3: solarSurplusData.excedente3 || 0,
-                    // Calcular el descuento desde finalResult si existe, si no calcular manualmente
-                    discountAmount: (finalResult && finalResult.solarSurplus && finalResult.solarSurplus.annualDiscount) 
-                        ? finalResult.solarSurplus.annualDiscount 
-                        : 0
-                } : null
+                solarSurplus: window.pendingSolarSurplus || null
             };
             
             // DEBUG: Verificar si se guardaron los excedentes
             console.log('🔍 DEBUG excedentes:', {
-                solarSurplusEnabled: solarSurplusEnabled,
-                solarSurplusData: solarSurplusData,
-                finalResultHasSolarSurplus: !!(finalResult && finalResult.solarSurplus),
-                finalResultAnnualDiscount: finalResult?.solarSurplus?.annualDiscount,
+                windowPendingSolarSurplus: window.pendingSolarSurplus,
                 supplyHasSolarSurplus: !!supply.solarSurplus,
                 solarSurplusGuardado: supply.solarSurplus
             });
@@ -2667,6 +2655,7 @@
             
             // Limpiar finalResult pendiente
             window.pendingDualFinalResult = null;
+            window.pendingSolarSurplus = null;
             
             // Volver al gestor DUAL
             backToDualManager();
@@ -22439,6 +22428,19 @@ ${clientName}
             
             // NUEVO: Guardar finalResult para usarlo al procesar
             window.pendingDualFinalResult = finalResult;
+            
+            // NUEVO: Guardar también excedentes solares si están activos
+            window.pendingSolarSurplus = (solarSurplusEnabled && solarSurplusData && solarSurplusData.total > 0) ? {
+                enabled: true,
+                total: solarSurplusData.total,
+                excedente1: solarSurplusData.excedente1,
+                excedente2: solarSurplusData.excedente2,
+                excedente3: solarSurplusData.excedente3,
+                // Calcular descuento anual desde finalResult si existe
+                discountAmount: finalResult?.solarSurplus?.annualDiscount || 0
+            } : null;
+            
+            console.log('💾 Excedentes guardados:', window.pendingSolarSurplus);
             
             // NUEVO: Solicitar dirección del suministro antes de añadir
             console.log('🟢 Llamando a window.showDualSupplyAddressModal...');

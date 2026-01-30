@@ -4463,6 +4463,19 @@
                     
                     console.log('✅ Results construidos:', results);
                     
+                    // NUEVO: Si hay excedentes solares activos, mostrar modal de decisión
+                    if (solarSurplusEnabled && solarSurplusData.total > 0) {
+                        console.log('☀️ Excedentes solares activos en DUAL - Mostrando modal de decisión');
+                        
+                        // Guardar el resultado para usarlo en el modal
+                        lastComparisonResult = final;
+                        
+                        // Mostrar modal de decisión
+                        showOfferDecisionModal();
+                        
+                        return; // Salir aquí, el usuario elegirá en el modal
+                    }
+                    
                     console.log('Llamando a dualAddFromResults con:', { type: 'electricidad', tariff, data, results });
                     
                     // Usar el flujo con modal de dirección, pasando el objeto final completo

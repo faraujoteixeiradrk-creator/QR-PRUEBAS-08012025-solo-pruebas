@@ -4137,6 +4137,14 @@
                 
                 let final = bestOverall;
                 let brand = activeBrand;
+                
+                // DEBUG: Ver si final tiene excedentes
+                console.log('🔍 final seleccionado:', {
+                    hasSolarSurplus: !!final.solarSurplus,
+                    solarSurplus: final.solarSurplus,
+                    totalAnnual: final.totalAnnual,
+                    savings: final.savings
+                });
 
                 // --- LÓGICA DE SELECCIÓN Y BRANDING (Individual) ---
                 if (comparisonMode === 'overall_best') {

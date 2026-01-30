@@ -2589,15 +2589,19 @@
                 originalBillAnnual: data.originalBillAnnual || 0,
                 timestamp: new Date().getTime(),
                 // NUEVO: Guardar información de excedentes si existen
-                solarSurplus: window.pendingSolarSurplus || null
+                solarSurplus: window.lastAppliedSolarSurplus || window.pendingSolarSurplus || null
             };
             
             // DEBUG: Verificar si se guardaron los excedentes
             console.log('🔍 DEBUG excedentes:', {
+                windowLastAppliedSolarSurplus: window.lastAppliedSolarSurplus,
                 windowPendingSolarSurplus: window.pendingSolarSurplus,
                 supplyHasSolarSurplus: !!supply.solarSurplus,
                 solarSurplusGuardado: supply.solarSurplus
             });
+            
+            // Limpiar variables globales de excedentes
+            window.lastAppliedSolarSurplus = null;
             
             // Añadir breakdown específico según el tipo - usar finalResult si está disponible
             if (type === 'electricidad') {
@@ -4010,6 +4014,18 @@
                     };
                     
                     console.log(`✅ Nuevo coste anual con excedentes: ${result.totalAnnual.toFixed(2)} €, Ahorro: ${result.savings.toFixed(2)} €`);
+                    
+                    // CRÍTICO: Guardar excedentes globalmente para DUAL
+                    if (window.dualMode === true) {
+                        window.lastAppliedSolarSurplus = {
+                            total: totalExcedentes,
+                            excedente1: solarSurplusData.excedente1,
+                            excedente2: solarSurplusData.excedente2,
+                            excedente3: solarSurplusData.excedente3,
+                            discountAmount: annualDiscount
+                        };
+                        console.log('💾 Excedentes guardados globalmente:', window.lastAppliedSolarSurplus);
+                    }
                 } else {
                     console.log(`⚠️ Esta tarifa NO tiene precio de excedentes (columna I vacía o 0) - No se aplica descuento`);
                     // Añadir marca de que se intentó pero no tiene precio

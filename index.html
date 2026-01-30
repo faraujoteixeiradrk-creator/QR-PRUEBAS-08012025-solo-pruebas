@@ -19986,6 +19986,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                             <span>IVA (21%)</span>
                                             <span>${formatEuro(eb.costIVA)}</span>
                                         </div>
+                                        ${s.solarSurplus && s.solarSurplus.total > 0 ? `
+                                        <div class="flex justify-between text-amber-700 font-medium pt-1 border-t border-amber-200">
+                                            <span>☀ ${tr('Excedentes')} (${s.solarSurplus.total.toFixed(0)} kWh)</span>
+                                            <span>-${formatEuro(s.solarSurplus.discountAmount || 0)}</span>
+                                        </div>
+                                        ` : ''}
                                         <div class="flex justify-between font-semibold pt-1 border-t border-slate-200">
                                             <span>${tr('TOTAL PERIODO')}</span>
                                             <span>${formatEuro(eb.totalPeriod)}</span>
@@ -21644,6 +21650,15 @@ ${clientName}
                     doc.setTextColor(...verdeFuerte);
                     doc.setFontSize(9);
                     doc.text(eur(ahorro), pageWidth - margin - 12, yPos + 3.5, { align: 'right' });
+                    
+                    // NUEVO: Mostrar excedentes si existen
+                    if (supply.solarSurplus && supply.solarSurplus.total > 0) {
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(6);
+                        doc.setTextColor(245, 158, 11); // Color ámbar para excedentes
+                        const surplusText = `☀ ${supply.solarSurplus.total.toFixed(0)} kWh (-${eur(supply.solarSurplus.discountAmount || 0)})`;
+                        doc.text(surplusText, pageWidth - margin - 12, yPos + 6.5, { align: 'right' });
+                    }
                     
                     yPos += rowHeight;
                     

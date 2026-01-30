@@ -4093,20 +4093,31 @@
                 console.log('Best DRK:', bestDrk ? bestDrk.offer.name : 'None', bestDrk ? bestDrk.totalAnnual : 0);
                 
                 // --- GUARDAR OFERTAS CON AHORRO POSITIVO ---
+                // NUEVO: En modo DUAL, incluir también ofertas con ahorro negativo
+                const isDualMode = window.dualMode === true;
+                
                 availableOffers = results.filter(r => {
                     r.savings = r.originalBillAnnual - r.totalAnnual;
                     const hasPositiveSavings = r.savings > 0 && r.totalAnnual < r.originalBillAnnual;
                     
                     // Si modo es "DRK ÚNICAMENTE", filtrar solo ofertas DRK
                     if (comparisonMode === 'drk_only') {
+                        // En DUAL, incluir todas las ofertas DRK (incluso negativas)
+                        if (isDualMode) {
+                            return r.offer.isDrk;
+                        }
                         return hasPositiveSavings && r.offer.isDrk;
                     }
                     
-                    // En otros modos, mostrar todas las ofertas con ahorro
+                    // En DUAL, incluir todas las ofertas (positivas y negativas)
+                    if (isDualMode) {
+                        return true; // Incluir todas
+                    }
+                    
+                    // En modo individual, solo ofertas con ahorro positivo
                     return hasPositiveSavings;
                 });
-                console.log('Available offers with savings (filtered by mode):', availableOffers.length);
-                console.log('Comparison mode:', comparisonMode);
+                console.log('Available offers (mode:', comparisonMode, ', DUAL:', isDualMode, '):', availableOffers.length);
                 
                 let final = bestOverall;
                 let brand = activeBrand;

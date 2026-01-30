@@ -14893,24 +14893,74 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     
                     // Preparar datos para el flujo unificado
                     const tariff = lastComparisonResult.tariffType || currentTariffType || '2.0TD';
+                    
+                    // CRÍTICO: Extraer kWh desde energyCosts si no están disponibles directamente
+                    let kwh_p1 = parseFloat(lastComparisonResult.kwh_p1) || 0;
+                    let kwh_p2 = parseFloat(lastComparisonResult.kwh_p2) || 0;
+                    let kwh_p3 = parseFloat(lastComparisonResult.kwh_p3) || 0;
+                    let kwh_p4 = parseFloat(lastComparisonResult.kwh_p4) || 0;
+                    let kwh_p5 = parseFloat(lastComparisonResult.kwh_p5) || 0;
+                    let kwh_p6 = parseFloat(lastComparisonResult.kwh_p6) || 0;
+                    
+                    // Si los kWh no están disponibles, intentar extraerlos de energyCosts
+                    if ((kwh_p1 + kwh_p2 + kwh_p3 + kwh_p4 + kwh_p5 + kwh_p6) === 0 && lastComparisonResult.energyCosts) {
+                        console.log('⚠️ [MODAL DECISIÓN] kWh no disponibles directamente, extrayendo desde energyCosts');
+                        lastComparisonResult.energyCosts.forEach((ec, idx) => {
+                            const period = idx + 1;
+                            const kwh = ec.kwh || 0;
+                            console.log(`  Periodo ${period}: ${kwh} kWh`);
+                            if (period === 1) kwh_p1 = kwh;
+                            else if (period === 2) kwh_p2 = kwh;
+                            else if (period === 3) kwh_p3 = kwh;
+                            else if (period === 4) kwh_p4 = kwh;
+                            else if (period === 5) kwh_p5 = kwh;
+                            else if (period === 6) kwh_p6 = kwh;
+                        });
+                    }
+                    
+                    // Extraer potencias desde powerCosts si no están disponibles
+                    let p1 = parseFloat(lastComparisonResult.p1) || 0;
+                    let p2 = parseFloat(lastComparisonResult.p2) || 0;
+                    let p3 = parseFloat(lastComparisonResult.p3) || 0;
+                    let p4 = parseFloat(lastComparisonResult.p4) || 0;
+                    let p5 = parseFloat(lastComparisonResult.p5) || 0;
+                    let p6 = parseFloat(lastComparisonResult.p6) || 0;
+                    
+                    if ((p1 + p2 + p3 + p4 + p5 + p6) === 0 && lastComparisonResult.powerCosts) {
+                        console.log('⚠️ [MODAL DECISIÓN] Potencias no disponibles directamente, extrayendo desde powerCosts');
+                        lastComparisonResult.powerCosts.forEach((pc, idx) => {
+                            const period = idx + 1;
+                            const kw = pc.kw || 0;
+                            console.log(`  Potencia ${period}: ${kw} kW`);
+                            if (period === 1) p1 = kw;
+                            else if (period === 2) p2 = kw;
+                            else if (period === 3) p3 = kw;
+                            else if (period === 4) p4 = kw;
+                            else if (period === 5) p5 = kw;
+                            else if (period === 6) p6 = kw;
+                        });
+                    }
+                    
                     const data = {
                         cups: lastComparisonResult.cups || 'CUPS-ELECTRICIDAD',
                         tariff: tariff,
-                        kwh_p1: parseFloat(lastComparisonResult.kwh_p1) || 0,
-                        kwh_p2: parseFloat(lastComparisonResult.kwh_p2) || 0,
-                        kwh_p3: parseFloat(lastComparisonResult.kwh_p3) || 0,
-                        kwh_p4: parseFloat(lastComparisonResult.kwh_p4) || 0,
-                        kwh_p5: parseFloat(lastComparisonResult.kwh_p5) || 0,
-                        kwh_p6: parseFloat(lastComparisonResult.kwh_p6) || 0,
-                        p1: parseFloat(lastComparisonResult.p1) || 0,
-                        p2: parseFloat(lastComparisonResult.p2) || 0,
-                        p3: parseFloat(lastComparisonResult.p3) || 0,
-                        p4: parseFloat(lastComparisonResult.p4) || 0,
-                        p5: parseFloat(lastComparisonResult.p5) || 0,
-                        p6: parseFloat(lastComparisonResult.p6) || 0,
+                        kwh_p1: kwh_p1,
+                        kwh_p2: kwh_p2,
+                        kwh_p3: kwh_p3,
+                        kwh_p4: kwh_p4,
+                        kwh_p5: kwh_p5,
+                        kwh_p6: kwh_p6,
+                        p1: p1,
+                        p2: p2,
+                        p3: p3,
+                        p4: p4,
+                        p5: p5,
+                        p6: p6,
                         dias: parseInt(lastComparisonResult.dias) || 30,
                         originalBillAnnual: lastComparisonResult.originalBillAnnual || (lastComparisonResult.importe_total || 0) * 12
                     };
+                    
+                    console.log('✅ [MODAL DECISIÓN] Data construida con kWh:', data);
                     
                     // Determinar costos según modo de comparación
                     const drkCost = lastComparisonResult.totalAnnual || 0;

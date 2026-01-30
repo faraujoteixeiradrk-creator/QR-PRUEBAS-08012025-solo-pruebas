@@ -2448,12 +2448,24 @@
                 // Es DUAL - añadir dirección y procesar
                 let { type, tariff, data, results } = pendingDualSupply;
                 
-                // CRÍTICO: Extraer kWh desde lastComparisonResult si los data tienen todo en 0
-                if ((data.kwh_p1 + data.kwh_p2 + data.kwh_p3 + data.kwh_p4 + data.kwh_p5 + data.kwh_p6) === 0 && lastComparisonResult) {
-                    console.log('⚠️ [CONFIRM ADDRESS] kWh en 0, extrayendo desde lastComparisonResult');
+                // CRÍTICO: Usar pendingDualFinalResult si está disponible para obtener datos correctos
+                const finalResult = window.pendingDualFinalResult;
+                console.log('⚠️ [CONFIRM ADDRESS] Verificando datos...');
+                console.log('  data.kwh_p1:', data.kwh_p1);
+                console.log('  finalResult disponible:', !!finalResult);
+                
+                if (finalResult) {
+                    console.log('  finalResult.energyCosts:', finalResult.energyCosts);
+                    console.log('  finalResult.powerCosts:', finalResult.powerCosts);
+                }
+                
+                // Si los kWh están en 0 Y tenemos finalResult, extraer desde ahí
+                if ((data.kwh_p1 + data.kwh_p2 + data.kwh_p3 + data.kwh_p4 + data.kwh_p5 + data.kwh_p6) === 0 && finalResult) {
+                    console.log('⚠️ [CONFIRM ADDRESS] kWh en 0, extrayendo desde finalResult');
                     
-                    if (lastComparisonResult.energyCosts) {
-                        lastComparisonResult.energyCosts.forEach((ec, idx) => {
+                    // Extraer kWh desde energyCosts
+                    if (finalResult.energyCosts && finalResult.energyCosts.length > 0) {
+                        finalResult.energyCosts.forEach((ec, idx) => {
                             const period = idx + 1;
                             const kwh = ec.kwh || 0;
                             console.log(`  Periodo ${period}: ${kwh} kWh`);
@@ -2466,8 +2478,9 @@
                         });
                     }
                     
-                    if (lastComparisonResult.powerCosts && (data.p1 + data.p2 + data.p3 + data.p4 + data.p5 + data.p6) === 0) {
-                        lastComparisonResult.powerCosts.forEach((pc, idx) => {
+                    // Extraer potencias desde powerCosts
+                    if (finalResult.powerCosts && finalResult.powerCosts.length > 0 && (data.p1 + data.p2 + data.p3 + data.p4 + data.p5 + data.p6) === 0) {
+                        finalResult.powerCosts.forEach((pc, idx) => {
                             const period = idx + 1;
                             const kw = pc.kw || 0;
                             console.log(`  Potencia ${period}: ${kw} kW`);
@@ -2482,7 +2495,8 @@
                     
                     // Recalcular también originalBillAnnual si es 0
                     if (!data.originalBillAnnual || data.originalBillAnnual === 0) {
-                        data.originalBillAnnual = lastComparisonResult.originalBillAnnual || 0;
+                        data.originalBillAnnual = finalResult.originalBillAnnual || 0;
+                        console.log(`  originalBillAnnual: ${data.originalBillAnnual}`);
                     }
                     
                     console.log('✅ [CONFIRM ADDRESS] Data corregida:', data);
@@ -2492,7 +2506,7 @@
                 const addressToSave = address || 'No especificada';
                 
                 // Procesar el suministro DUAL con la dirección
-                processDualSupplyWithAddress(type, tariff, data, results, addressToSave);
+                processDualSupplyWithAddress(type, tariff, data, results, addressToSave, finalResult);
                 
                 // Limpiar datos temporales
                 pendingDualSupply = null;
@@ -2540,7 +2554,7 @@
         };
         
         // Nueva función para procesar suministro DUAL con dirección
-        function processDualSupplyWithAddress(type, tariff, data, results, supplyAddress) {
+        function processDualSupplyWithAddress(type, tariff, data, results, supplyAddress, finalResult = null) {
             console.log('=== processDualSupplyWithAddress ===');
             console.log('Type:', type);
             console.log('Tariff:', tariff);
@@ -17304,6 +17318,16 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         tempNoSavingsResult.savings = (tempNoSavingsResult.originalBillAnnual || 0) - (tempNoSavingsResult.totalAnnual || 0);
                         
                         console.log('💰 Ahorro calculado:', tempNoSavingsResult.savings, '(negativo = más caro)');
+                        
+                        // DEBUG: Ver qué datos tiene tempNoSavingsResult
+                        console.log('📊 DEBUG tempNoSavingsResult completo:', {
+                            energyCosts: tempNoSavingsResult.energyCosts,
+                            powerCosts: tempNoSavingsResult.powerCosts,
+                            kwh_p1: tempNoSavingsResult.kwh_p1,
+                            kwh_p2: tempNoSavingsResult.kwh_p2,
+                            totalAnnual: tempNoSavingsResult.totalAnnual,
+                            originalBillAnnual: tempNoSavingsResult.originalBillAnnual
+                        });
                         
                         // CRÍTICO: Asignar tempNoSavingsResult a lastComparisonResult para que el modal funcione
                         lastComparisonResult = tempNoSavingsResult;

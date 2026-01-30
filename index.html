@@ -2512,65 +2512,9 @@
             const finalResult = window.pendingDualFinalResult;
             console.log('FinalResult disponible:', finalResult);
             
-            // CRÍTICO: Si data tiene kWh en 0 pero finalResult tiene datos, corregir data
-            if (type === 'electricidad') {
-                const totalDataKwh = (parseFloat(data.kwh_p1) || 0) + (parseFloat(data.kwh_p2) || 0) + 
-                                     (parseFloat(data.kwh_p3) || 0) + (parseFloat(data.kwh_p4) || 0) + 
-                                     (parseFloat(data.kwh_p5) || 0) + (parseFloat(data.kwh_p6) || 0);
-                
-                if (totalDataKwh === 0 && finalResult && finalResult.energyCosts && finalResult.energyCosts.length > 0) {
-                    console.log('🔧 CORRECCIÓN: kWh en data son 0, extrayendo desde finalResult.energyCosts');
-                    
-                    finalResult.energyCosts.forEach((ec, idx) => {
-                        const kwh = ec.kwh || 0;
-                        console.log(`  P${idx+1}: ${kwh} kWh`);
-                        if (idx === 0) data.kwh_p1 = kwh;
-                        else if (idx === 1) data.kwh_p2 = kwh;
-                        else if (idx === 2) data.kwh_p3 = kwh;
-                        else if (idx === 3) data.kwh_p4 = kwh;
-                        else if (idx === 4) data.kwh_p5 = kwh;
-                        else if (idx === 5) data.kwh_p6 = kwh;
-                    });
-                    
-                    // También corregir potencias si están en 0
-                    const totalDataPower = (parseFloat(data.p1) || 0) + (parseFloat(data.p2) || 0) + 
-                                          (parseFloat(data.p3) || 0) + (parseFloat(data.p4) || 0) + 
-                                          (parseFloat(data.p5) || 0) + (parseFloat(data.p6) || 0);
-                    
-                    if (totalDataPower === 0 && finalResult.powerCosts && finalResult.powerCosts.length > 0) {
-                        finalResult.powerCosts.forEach((pc, idx) => {
-                            const kw = pc.kw || 0;
-                            console.log(`  Pot P${idx+1}: ${kw} kW`);
-                            if (idx === 0) data.p1 = kw;
-                            else if (idx === 1) data.p2 = kw;
-                            else if (idx === 2) data.p3 = kw;
-                            else if (idx === 3) data.p4 = kw;
-                            else if (idx === 4) data.p5 = kw;
-                            else if (idx === 5) data.p6 = kw;
-                        });
-                    }
-                    
-                    // Corregir originalBillAnnual si es 0
-                    if ((!data.originalBillAnnual || data.originalBillAnnual === 0) && finalResult.originalBillAnnual) {
-                        data.originalBillAnnual = finalResult.originalBillAnnual;
-                        console.log(`  originalBillAnnual: ${data.originalBillAnnual}`);
-                    }
-                    
-                    console.log('✅ Data corregida:', data);
-                }
-            }
-            
             if (results.drk.total_anual === 0 && results.powercup.total_anual === 0) {
                 console.error('⚠️⚠️⚠️ PROBLEMA: Ambos costes son 0 al añadir suministro');
                 console.error('Results completo:', JSON.stringify(results, null, 2));
-                
-                // NUEVO: Si tenemos finalResult con totalAnnual, usarlo
-                if (finalResult && finalResult.totalAnnual && finalResult.totalAnnual > 0) {
-                    console.log('🔧 CORRECCIÓN: Usando totalAnnual desde finalResult');
-                    results.drk.total_anual = finalResult.totalAnnual;
-                    results.drk.total = finalResult.totalAnnual / 12;
-                    console.log('✅ Results corregidos:', results);
-                }
             }
             
             // Calcular descripción según el tipo
@@ -4365,17 +4309,6 @@
                     alreadyAskedAboutSolar = true;
                     // Guardar resultado y mostrar modal de pregunta
                     tempNoSavingsResult = final;
-                    
-                    // DEBUG: Ver datos completos de tempNoSavingsResult
-                    console.log('📊 tempNoSavingsResult guardado:', {
-                        energyCosts: tempNoSavingsResult.energyCosts,
-                        powerCosts: tempNoSavingsResult.powerCosts,
-                        energyCostsLength: tempNoSavingsResult.energyCosts?.length,
-                        powerCostsLength: tempNoSavingsResult.powerCosts?.length,
-                        totalAnnual: tempNoSavingsResult.totalAnnual,
-                        savings: tempNoSavingsResult.savings
-                    });
-                    
                     showSolarQuestionModal(final);
                     // Ocultar pantallas iniciales pero NO mostrar results-view todavía
                     document.getElementById('initial-view').classList.add('hidden');
@@ -17116,23 +17049,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     console.log('🔄 Modo DUAL - Continuando con modal de decisión (aunque sea negativo)');
                     
                     if (tempNoSavingsResult) {
-                        // CRÍTICO: Asegurar que tempNoSavingsResult tenga totalAnnual correcto
-                        if (!tempNoSavingsResult.totalAnnual || tempNoSavingsResult.totalAnnual === 0) {
-                            // Calcular desde bestOffer si está disponible
-                            if (tempNoSavingsResult.bestOffer && tempNoSavingsResult.bestOffer.annual_cost) {
-                                tempNoSavingsResult.totalAnnual = tempNoSavingsResult.bestOffer.annual_cost;
-                            } else if (tempNoSavingsResult.totalPeriod) {
-                                // Calcular desde totalPeriod
-                                tempNoSavingsResult.totalAnnual = tempNoSavingsResult.totalPeriod * 12;
-                            }
-                            console.log('✅ totalAnnual calculado:', tempNoSavingsResult.totalAnnual);
-                        }
-                        
                         // Asegurar que el resultado tenga isNegativeSavings marcado
                         tempNoSavingsResult.isNegativeSavings = true;
-                        tempNoSavingsResult.savings = (tempNoSavingsResult.originalBillAnnual || 0) - (tempNoSavingsResult.totalAnnual || 0);
-                        
-                        console.log('💰 Ahorro calculado:', tempNoSavingsResult.savings, '(negativo = más caro)');
+                        tempNoSavingsResult.savings = tempNoSavingsResult.originalBillAnnual - tempNoSavingsResult.totalAnnual;
                         
                         // CRÍTICO: Asignar tempNoSavingsResult a lastComparisonResult para que el modal funcione
                         lastComparisonResult = tempNoSavingsResult;
@@ -19823,7 +19742,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                     
                                     <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-200">
                                         <span class="text-xs text-slate-600">${tr('Factura actual:')} ${formatEuro(originalBill / 12)}${tr('/mes')}</span>
-                                        <span class="text-xs font-semibold ${savings > 0 ? 'text-green-600' : 'text-red-600'}">${savings > 0 ? tr('Ahorro:') : tr('Diferencia:')} ${formatEuro(savings)}${tr('/año')}</span>
+                                        <span class="text-xs font-semibold ${savings > 0 ? 'text-green-600' : 'text-slate-500'}">${tr('Ahorro:')} ${formatEuro(Math.max(0, savings))}${tr('/año')}</span>
                                     </div>
                                 </div>
                             `;
@@ -19871,7 +19790,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                     
                                     <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-200">
                                         <span class="text-xs text-slate-600">${tr('Factura actual:')} ${formatEuro(originalBill / 12)}${tr('/mes')}</span>
-                                        <span class="text-xs font-semibold ${savings > 0 ? 'text-green-600' : 'text-red-600'}">${savings > 0 ? tr('Ahorro:') : tr('Diferencia:')} ${formatEuro(savings)}${tr('/año')}</span>
+                                        <span class="text-xs font-semibold ${savings > 0 ? 'text-green-600' : 'text-slate-500'}">${tr('Ahorro:')} ${formatEuro(Math.max(0, savings))}${tr('/año')}</span>
                                     </div>
                                 </div>
                             `;
@@ -19889,7 +19808,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span class="text-xs text-slate-700 font-medium">${tariffName}</span>
-                                    <span class="text-xs font-semibold ${savings > 0 ? 'text-green-600' : 'text-red-600'}">${savings > 0 ? tr('Ahorro') : tr('Diferencia')}: ${formatEuro(savings)}</span>
+                                    <span class="text-xs font-semibold ${savings > 0 ? 'text-green-600' : 'text-slate-500'}">${tr('Ahorro')}: ${formatEuro(Math.max(0, savings))}</span>
                                 </div>
                             </div>
                         `;

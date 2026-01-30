@@ -1759,7 +1759,7 @@
                     
                     <div class="flex flex-col gap-4">
                         <!-- Opción 1: Mejor Opción (CON SELECTOR PARA DRK) -->
-                        <div class="rounded-xl border-2 border-slate-300 bg-white overflow-hidden">
+                        <div id="best-option-container" class="rounded-xl border-2 border-slate-300 bg-white overflow-hidden">
                             <!-- Cabecera clickeable -->
                             <button onclick="handleBestOptionClick()" class="w-full text-left p-6 hover:bg-drk-50 transition group">
                                 <div class="flex items-start gap-4">
@@ -14375,6 +14375,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 optimizedPowerEnabled: window.optimizedPowerEnabled
             });
             
+            // NUEVO: Ocultar "Ver Mejor Opción" en modo DUAL cuando no hay ahorro
+            const bestOptionContainer = document.getElementById('best-option-container');
+            if (isDualMode && lastComparisonResult && lastComparisonResult.savings <= 0) {
+                console.log('🔄 DUAL sin ahorro - Ocultando "Ver Mejor Opción"');
+                bestOptionContainer?.classList.add('hidden');
+            } else {
+                bestOptionContainer?.classList.remove('hidden');
+            }
+            
             // CRÍTICO: Si hideDecisionCheckboxes está activo, forzar ocultar AMBOS checkboxes Y saltar lógica restante
             if (hideDecisionCheckboxes) {
                 console.log('🚫 Ocultando AMBOS checkboxes (excedentes ya introducidos desde modal fotovoltaica)');
@@ -16775,24 +16784,74 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     
                     // Preparar datos para el flujo unificado
                     const tariff = result.tariffType || result.originalTariffType || currentTariffType || '2.0TD';
+                    
+                    // CRÍTICO: Extraer kWh desde energyCosts si no están disponibles directamente
+                    let kwh_p1 = parseFloat(result.kwh_p1) || 0;
+                    let kwh_p2 = parseFloat(result.kwh_p2) || 0;
+                    let kwh_p3 = parseFloat(result.kwh_p3) || 0;
+                    let kwh_p4 = parseFloat(result.kwh_p4) || 0;
+                    let kwh_p5 = parseFloat(result.kwh_p5) || 0;
+                    let kwh_p6 = parseFloat(result.kwh_p6) || 0;
+                    
+                    // Si los kWh no están disponibles, intentar extraerlos de energyCosts
+                    if ((kwh_p1 + kwh_p2 + kwh_p3 + kwh_p4 + kwh_p5 + kwh_p6) === 0 && result.energyCosts) {
+                        console.log('⚠️ [SELECCIÓN MANUAL] kWh no disponibles directamente, extrayendo desde energyCosts');
+                        result.energyCosts.forEach((ec, idx) => {
+                            const period = idx + 1;
+                            const kwh = ec.kwh || 0;
+                            console.log(`  Periodo ${period}: ${kwh} kWh`);
+                            if (period === 1) kwh_p1 = kwh;
+                            else if (period === 2) kwh_p2 = kwh;
+                            else if (period === 3) kwh_p3 = kwh;
+                            else if (period === 4) kwh_p4 = kwh;
+                            else if (period === 5) kwh_p5 = kwh;
+                            else if (period === 6) kwh_p6 = kwh;
+                        });
+                    }
+                    
+                    // Extraer potencias desde powerCosts si no están disponibles
+                    let p1 = parseFloat(result.p1) || 0;
+                    let p2 = parseFloat(result.p2) || 0;
+                    let p3 = parseFloat(result.p3) || 0;
+                    let p4 = parseFloat(result.p4) || 0;
+                    let p5 = parseFloat(result.p5) || 0;
+                    let p6 = parseFloat(result.p6) || 0;
+                    
+                    if ((p1 + p2 + p3 + p4 + p5 + p6) === 0 && result.powerCosts) {
+                        console.log('⚠️ [SELECCIÓN MANUAL] Potencias no disponibles directamente, extrayendo desde powerCosts');
+                        result.powerCosts.forEach((pc, idx) => {
+                            const period = idx + 1;
+                            const kw = pc.kw || 0;
+                            console.log(`  Potencia ${period}: ${kw} kW`);
+                            if (period === 1) p1 = kw;
+                            else if (period === 2) p2 = kw;
+                            else if (period === 3) p3 = kw;
+                            else if (period === 4) p4 = kw;
+                            else if (period === 5) p5 = kw;
+                            else if (period === 6) p6 = kw;
+                        });
+                    }
+                    
                     const data = {
                         cups: result.cups || 'CUPS-ELECTRICIDAD',
                         tariff: tariff,
-                        kwh_p1: parseFloat(result.kwh_p1) || 0,
-                        kwh_p2: parseFloat(result.kwh_p2) || 0,
-                        kwh_p3: parseFloat(result.kwh_p3) || 0,
-                        kwh_p4: parseFloat(result.kwh_p4) || 0,
-                        kwh_p5: parseFloat(result.kwh_p5) || 0,
-                        kwh_p6: parseFloat(result.kwh_p6) || 0,
-                        p1: parseFloat(result.p1) || 0,
-                        p2: parseFloat(result.p2) || 0,
-                        p3: parseFloat(result.p3) || 0,
-                        p4: parseFloat(result.p4) || 0,
-                        p5: parseFloat(result.p5) || 0,
-                        p6: parseFloat(result.p6) || 0,
+                        kwh_p1: kwh_p1,
+                        kwh_p2: kwh_p2,
+                        kwh_p3: kwh_p3,
+                        kwh_p4: kwh_p4,
+                        kwh_p5: kwh_p5,
+                        kwh_p6: kwh_p6,
+                        p1: p1,
+                        p2: p2,
+                        p3: p3,
+                        p4: p4,
+                        p5: p5,
+                        p6: p6,
                         dias: parseInt(result.dias) || 30,
                         originalBillAnnual: result.originalBillAnnual || (result.importe_total || 0) * 12
                     };
+                    
+                    console.log('✅ [SELECCIÓN MANUAL] Data construida con kWh:', data);
                     
                     const drkCost = result.totalAnnual || 0;
                     const powercupCost = indexedResult ? (indexedResult.totalAnnual || 0) : 0;

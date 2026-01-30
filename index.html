@@ -17057,9 +17057,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         lastComparisonResult = tempNoSavingsResult;
                         
                         // NUEVO: Asegurar que availableOffers tenga al menos la oferta actual
-                        if (availableOffers.length === 0 && tempNoSavingsResult.offer) {
+                        // IMPORTANTE: availableOffers espera objetos con estructura {offer: {...}, ...}
+                        if (availableOffers.length === 0) {
                             console.log('⚠️ availableOffers vacío - Añadiendo oferta actual para modo DUAL');
-                            availableOffers = [tempNoSavingsResult.offer];
+                            // Crear un objeto de oferta con la estructura correcta
+                            const offerWrapper = {
+                                offer: tempNoSavingsResult.offer || tempNoSavingsResult.bestOffer,
+                                annual_cost: tempNoSavingsResult.totalAnnual || 0,
+                                total_cost_period: tempNoSavingsResult.totalPeriod || 0,
+                                savings: tempNoSavingsResult.savings || 0
+                            };
+                            availableOffers = [offerWrapper];
+                            console.log('✅ Oferta añadida a availableOffers:', offerWrapper);
                         }
                         
                         // IMPORTANTE: En DUAL necesitamos el modal de decisión incluso sin ahorro

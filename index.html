@@ -2589,44 +2589,27 @@
                 originalBillAnnual: data.originalBillAnnual || 0,
                 timestamp: new Date().getTime(),
                 // NUEVO: Guardar información de excedentes si existen
-                // Combinar: kWh desde variables globales, descuento desde finalResult
-                solarSurplus: ((solarSurplusEnabled && solarSurplusData && solarSurplusData.total > 0) || 
-                              (finalResult && finalResult.solarSurplus)) ? {
-                    total: solarSurplusData?.total || finalResult?.solarSurplus?.total || 0,
-                    excedente1: solarSurplusData?.excedente1 || finalResult?.solarSurplus?.excedente1 || 0,
-                    excedente2: solarSurplusData?.excedente2 || finalResult?.solarSurplus?.excedente2 || 0,
-                    excedente3: solarSurplusData?.excedente3 || finalResult?.solarSurplus?.excedente3 || 0,
-                    discountAmount: finalResult?.solarSurplus?.annualDiscount 
-                        || finalResult?.solarSurplus?.discountAmount 
-                        || window.lastAppliedSolarSurplus?.discountAmount 
-                        || 0
+                solarSurplus: (solarSurplusEnabled && solarSurplusData && solarSurplusData.total > 0) ? {
+                    total: solarSurplusData.total || 0,
+                    excedente1: solarSurplusData.excedente1 || 0,
+                    excedente2: solarSurplusData.excedente2 || 0,
+                    excedente3: solarSurplusData.excedente3 || 0,
+                    // Calcular el descuento desde finalResult si existe, si no calcular manualmente
+                    discountAmount: (finalResult && finalResult.solarSurplus && finalResult.solarSurplus.annualDiscount) 
+                        ? finalResult.solarSurplus.annualDiscount 
+                        : 0
                 } : null
             };
             
             // DEBUG: Verificar si se guardaron los excedentes
             console.log('🔍 DEBUG excedentes:', {
                 solarSurplusEnabled: solarSurplusEnabled,
-                solarSurplusDataTotal: solarSurplusData?.total,
-                finalResultExists: !!finalResult,
+                solarSurplusData: solarSurplusData,
                 finalResultHasSolarSurplus: !!(finalResult && finalResult.solarSurplus),
                 finalResultAnnualDiscount: finalResult?.solarSurplus?.annualDiscount,
-                finalResultDiscountAmount: finalResult?.solarSurplus?.discountAmount,
-                windowLastApplied: window.lastAppliedSolarSurplus,
                 supplyHasSolarSurplus: !!supply.solarSurplus,
                 solarSurplusGuardado: supply.solarSurplus
             });
-            
-            if (supply.solarSurplus) {
-                console.log('✅ Supply tiene excedentes:', supply.solarSurplus);
-            } else {
-                console.log('❌ Supply NO tiene excedentes');
-                console.log('   - solarSurplusEnabled:', solarSurplusEnabled);
-                console.log('   - solarSurplusData:', solarSurplusData);
-                console.log('   - finalResult:', finalResult);
-            }
-            
-            // Limpiar variables globales de excedentes
-            window.lastAppliedSolarSurplus = null;
             
             // Añadir breakdown específico según el tipo - usar finalResult si está disponible
             if (type === 'electricidad') {
@@ -2684,7 +2667,6 @@
             
             // Limpiar finalResult pendiente
             window.pendingDualFinalResult = null;
-            window.pendingSolarSurplus = null;
             
             // Volver al gestor DUAL
             backToDualManager();
@@ -4039,18 +4021,6 @@
                     };
                     
                     console.log(`✅ Nuevo coste anual con excedentes: ${result.totalAnnual.toFixed(2)} €, Ahorro: ${result.savings.toFixed(2)} €`);
-                    
-                    // CRÍTICO: Guardar excedentes globalmente para DUAL
-                    if (window.dualMode === true) {
-                        window.lastAppliedSolarSurplus = {
-                            total: totalExcedentes,
-                            excedente1: solarSurplusData.excedente1,
-                            excedente2: solarSurplusData.excedente2,
-                            excedente3: solarSurplusData.excedente3,
-                            discountAmount: annualDiscount
-                        };
-                        console.log('💾 Excedentes guardados globalmente:', window.lastAppliedSolarSurplus);
-                    }
                 } else {
                     console.log(`⚠️ Esta tarifa NO tiene precio de excedentes (columna I vacía o 0) - No se aplica descuento`);
                     // Añadir marca de que se intentó pero no tiene precio
@@ -4178,14 +4148,6 @@
                 
                 let final = bestOverall;
                 let brand = activeBrand;
-                
-                // DEBUG: Ver si final tiene excedentes
-                console.log('🔍 final seleccionado:', {
-                    hasSolarSurplus: !!final.solarSurplus,
-                    solarSurplus: final.solarSurplus,
-                    totalAnnual: final.totalAnnual,
-                    savings: final.savings
-                });
 
                 // --- LÓGICA DE SELECCIÓN Y BRANDING (Individual) ---
                 if (comparisonMode === 'overall_best') {
@@ -8690,6 +8652,7 @@
                     // CRÍTICO: Si resultado no tiene solarSurplus pero supply sí, copiar desde supply
                     if (!resultado.solarSurplus && supply.solarSurplus) {
                         resultado.solarSurplus = supply.solarSurplus;
+                        console.log('📋 Copiado solarSurplus desde supply a resultado:', resultado.solarSurplus);
                     }
                     
                     // VERIFICACIÓN CRÍTICA: Asegurar que resultado tiene los datos necesarios
@@ -16612,12 +16575,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 _needsOriginalLookup: true,
                 _tariffName: selectedOffer.offer.name,
                 _tariffDescription: selectedOffer.offer.description,
-                _tariffType: selectedOffer.originalTariffType || lastComparisonResult?.originalTariffType,
-                // NUEVO: Preservar solarSurplus si existe
-                solarSurplus: selectedOffer.solarSurplus || window.lastAppliedSolarSurplus || null
+                _tariffType: selectedOffer.originalTariffType || lastComparisonResult?.originalTariffType
             };
-            
-            console.log('✅ manuallySelectedOffer guardado con solarSurplus:', manuallySelectedOffer.solarSurplus);
             
             // Actualizar estilos visuales
             document.querySelectorAll('.offer-radio-card').forEach((card) => {
@@ -22481,19 +22440,6 @@ ${clientName}
             
             // NUEVO: Guardar finalResult para usarlo al procesar
             window.pendingDualFinalResult = finalResult;
-            
-            // NUEVO: Guardar también excedentes solares si están activos
-            window.pendingSolarSurplus = (solarSurplusEnabled && solarSurplusData && solarSurplusData.total > 0) ? {
-                enabled: true,
-                total: solarSurplusData.total,
-                excedente1: solarSurplusData.excedente1,
-                excedente2: solarSurplusData.excedente2,
-                excedente3: solarSurplusData.excedente3,
-                // Calcular descuento anual desde finalResult si existe
-                discountAmount: finalResult?.solarSurplus?.annualDiscount || 0
-            } : null;
-            
-            console.log('💾 Excedentes guardados:', window.pendingSolarSurplus);
             
             // NUEVO: Solicitar dirección del suministro antes de añadir
             console.log('🟢 Llamando a window.showDualSupplyAddressModal...');

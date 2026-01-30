@@ -2589,26 +2589,27 @@
                 originalBillAnnual: data.originalBillAnnual || 0,
                 timestamp: new Date().getTime(),
                 // NUEVO: Guardar información de excedentes si existen
-                solarSurplus: (finalResult && finalResult.solarSurplus) ? {
-                    total: finalResult.solarSurplus.total || 0,
-                    excedente1: finalResult.solarSurplus.excedente1 || 0,
-                    excedente2: finalResult.solarSurplus.excedente2 || 0,
-                    excedente3: finalResult.solarSurplus.excedente3 || 0,
-                    discountAmount: finalResult.discountAmount || 0
+                solarSurplus: (solarSurplusEnabled && solarSurplusData && solarSurplusData.total > 0) ? {
+                    total: solarSurplusData.total || 0,
+                    excedente1: solarSurplusData.excedente1 || 0,
+                    excedente2: solarSurplusData.excedente2 || 0,
+                    excedente3: solarSurplusData.excedente3 || 0,
+                    // Calcular el descuento desde finalResult si existe, si no calcular manualmente
+                    discountAmount: (finalResult && finalResult.solarSurplus && finalResult.solarSurplus.annualDiscount) 
+                        ? finalResult.solarSurplus.annualDiscount 
+                        : 0
                 } : null
             };
             
             // DEBUG: Verificar si se guardaron los excedentes
-            if (finalResult) {
-                console.log('🔍 DEBUG finalResult:', {
-                    hasSolarSurplus: !!finalResult.solarSurplus,
-                    solarSurplus: finalResult.solarSurplus,
-                    discountAmount: finalResult.discountAmount,
-                    subEnergy: finalResult.subEnergy,
-                    subEnergyNet: finalResult.subEnergyNet
-                });
-                console.log('🔍 Supply.solarSurplus guardado:', supply.solarSurplus);
-            }
+            console.log('🔍 DEBUG excedentes:', {
+                solarSurplusEnabled: solarSurplusEnabled,
+                solarSurplusData: solarSurplusData,
+                finalResultHasSolarSurplus: !!(finalResult && finalResult.solarSurplus),
+                finalResultAnnualDiscount: finalResult?.solarSurplus?.annualDiscount,
+                supplyHasSolarSurplus: !!supply.solarSurplus,
+                solarSurplusGuardado: supply.solarSurplus
+            });
             
             // Añadir breakdown específico según el tipo - usar finalResult si está disponible
             if (type === 'electricidad') {

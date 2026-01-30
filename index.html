@@ -17285,7 +17285,11 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         
                         // IMPORTANTE: En DUAL necesitamos el modal de decisión incluso sin ahorro
                         // para poder continuar añadiendo suministros
+                        console.log('🚀 A PUNTO DE LLAMAR showOfferDecisionModal()');
+                        console.log('   lastComparisonResult:', lastComparisonResult);
+                        console.log('   lastComparisonResult.savings:', lastComparisonResult?.savings);
                         showOfferDecisionModal();
+                        console.log('✅ showOfferDecisionModal() ejecutada');
                     }
                 } else {
                     // MODO INDIVIDUAL: Mostrar página de Enhorabuena

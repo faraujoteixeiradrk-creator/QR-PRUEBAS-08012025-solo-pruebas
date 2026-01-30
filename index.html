@@ -2607,6 +2607,7 @@
             console.log('🔍 DEBUG excedentes:', {
                 solarSurplusEnabled: solarSurplusEnabled,
                 solarSurplusDataTotal: solarSurplusData?.total,
+                finalResultExists: !!finalResult,
                 finalResultHasSolarSurplus: !!(finalResult && finalResult.solarSurplus),
                 finalResultAnnualDiscount: finalResult?.solarSurplus?.annualDiscount,
                 finalResultDiscountAmount: finalResult?.solarSurplus?.discountAmount,
@@ -2614,6 +2615,15 @@
                 supplyHasSolarSurplus: !!supply.solarSurplus,
                 solarSurplusGuardado: supply.solarSurplus
             });
+            
+            if (supply.solarSurplus) {
+                console.log('✅ Supply tiene excedentes:', supply.solarSurplus);
+            } else {
+                console.log('❌ Supply NO tiene excedentes');
+                console.log('   - solarSurplusEnabled:', solarSurplusEnabled);
+                console.log('   - solarSurplusData:', solarSurplusData);
+                console.log('   - finalResult:', finalResult);
+            }
             
             // Limpiar variables globales de excedentes
             window.lastAppliedSolarSurplus = null;

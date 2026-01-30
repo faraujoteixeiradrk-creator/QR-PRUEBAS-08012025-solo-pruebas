@@ -2512,46 +2512,9 @@
             const finalResult = window.pendingDualFinalResult;
             console.log('FinalResult disponible:', finalResult);
             
-            // CORRECCIÓN: Si data tiene kWh en 0 pero finalResult tiene datos, extraerlos
-            if (type === 'electricidad' && finalResult && finalResult.energyCosts) {
-                const sumKwh = (data.kwh_p1||0) + (data.kwh_p2||0) + (data.kwh_p3||0) + (data.kwh_p4||0) + (data.kwh_p5||0) + (data.kwh_p6||0);
-                if (sumKwh === 0 && finalResult.energyCosts.length > 0) {
-                    console.log('🔧 Extrayendo kWh desde finalResult');
-                    finalResult.energyCosts.forEach((ec, i) => {
-                        const kwh = ec.kwh || 0;
-                        if (i === 0) data.kwh_p1 = kwh;
-                        else if (i === 1) data.kwh_p2 = kwh;
-                        else if (i === 2) data.kwh_p3 = kwh;
-                        else if (i === 3) data.kwh_p4 = kwh;
-                        else if (i === 4) data.kwh_p5 = kwh;
-                        else if (i === 5) data.kwh_p6 = kwh;
-                    });
-                    if (finalResult.powerCosts) {
-                        finalResult.powerCosts.forEach((pc, i) => {
-                            const kw = pc.kw || 0;
-                            if (i === 0) data.p1 = kw;
-                            else if (i === 1) data.p2 = kw;
-                            else if (i === 2) data.p3 = kw;
-                            else if (i === 3) data.p4 = kw;
-                            else if (i === 4) data.p5 = kw;
-                            else if (i === 5) data.p6 = kw;
-                        });
-                    }
-                    if (!data.originalBillAnnual && finalResult.originalBillAnnual) {
-                        data.originalBillAnnual = finalResult.originalBillAnnual;
-                    }
-                }
-            }
-            
             if (results.drk.total_anual === 0 && results.powercup.total_anual === 0) {
                 console.error('⚠️⚠️⚠️ PROBLEMA: Ambos costes son 0 al añadir suministro');
                 console.error('Results completo:', JSON.stringify(results, null, 2));
-                // CORRECCIÓN: Si finalResult tiene totalAnnual, usarlo
-                if (finalResult && finalResult.totalAnnual > 0) {
-                    console.log('🔧 Usando totalAnnual desde finalResult');
-                    results.drk.total_anual = finalResult.totalAnnual;
-                    results.drk.total = finalResult.totalAnnual / 12;
-                }
             }
             
             // Calcular descripción según el tipo
@@ -4378,23 +4341,68 @@
                     
                     // Extraer datos para DUAL
                     const tariff = final.tariffType || currentTariffType || '2.0TD';
+                    
+                    // CRÍTICO: Extraer kWh desde energyCosts si no están en final directamente
+                    let kwh_p1 = parseFloat(final.kwh_p1) || 0;
+                    let kwh_p2 = parseFloat(final.kwh_p2) || 0;
+                    let kwh_p3 = parseFloat(final.kwh_p3) || 0;
+                    let kwh_p4 = parseFloat(final.kwh_p4) || 0;
+                    let kwh_p5 = parseFloat(final.kwh_p5) || 0;
+                    let kwh_p6 = parseFloat(final.kwh_p6) || 0;
+                    
+                    if ((kwh_p1 + kwh_p2 + kwh_p3 + kwh_p4 + kwh_p5 + kwh_p6) === 0 && final.energyCosts) {
+                        console.log('⚠️ Extrayendo kWh desde final.energyCosts');
+                        final.energyCosts.forEach((ec, i) => {
+                            const kwh = ec.kwh || 0;
+                            if (i === 0) kwh_p1 = kwh;
+                            else if (i === 1) kwh_p2 = kwh;
+                            else if (i === 2) kwh_p3 = kwh;
+                            else if (i === 3) kwh_p4 = kwh;
+                            else if (i === 4) kwh_p5 = kwh;
+                            else if (i === 5) kwh_p6 = kwh;
+                        });
+                    }
+                    
+                    let p1 = parseFloat(final.p1) || 0;
+                    let p2 = parseFloat(final.p2) || 0;
+                    let p3 = parseFloat(final.p3) || 0;
+                    let p4 = parseFloat(final.p4) || 0;
+                    let p5 = parseFloat(final.p5) || 0;
+                    let p6 = parseFloat(final.p6) || 0;
+                    
+                    if ((p1 + p2 + p3 + p4 + p5 + p6) === 0 && final.powerCosts) {
+                        console.log('⚠️ Extrayendo potencias desde final.powerCosts');
+                        final.powerCosts.forEach((pc, i) => {
+                            const kw = pc.kw || 0;
+                            if (i === 0) p1 = kw;
+                            else if (i === 1) p2 = kw;
+                            else if (i === 2) p3 = kw;
+                            else if (i === 3) p4 = kw;
+                            else if (i === 4) p5 = kw;
+                            else if (i === 5) p6 = kw;
+                        });
+                    }
+                    
                     const data = {
                         cups: final.cups || 'CUPS-ELECTRICIDAD',
                         tariff: tariff,
-                        kwh_p1: parseFloat(final.kwh_p1) || 0,
-                        kwh_p2: parseFloat(final.kwh_p2) || 0,
-                        kwh_p3: parseFloat(final.kwh_p3) || 0,
-                        kwh_p4: parseFloat(final.kwh_p4) || 0,
-                        kwh_p5: parseFloat(final.kwh_p5) || 0,
-                        kwh_p6: parseFloat(final.kwh_p6) || 0,
-                        p1: parseFloat(final.p1) || 0,
-                        p2: parseFloat(final.p2) || 0,
-                        p3: parseFloat(final.p3) || 0,
-                        p4: parseFloat(final.p4) || 0,
-                        p5: parseFloat(final.p5) || 0,
-                        p6: parseFloat(final.p6) || 0,
-                        dias: parseInt(final.dias) || 30
+                        kwh_p1: kwh_p1,
+                        kwh_p2: kwh_p2,
+                        kwh_p3: kwh_p3,
+                        kwh_p4: kwh_p4,
+                        kwh_p5: kwh_p5,
+                        kwh_p6: kwh_p6,
+                        p1: p1,
+                        p2: p2,
+                        p3: p3,
+                        p4: p4,
+                        p5: p5,
+                        p6: p6,
+                        dias: parseInt(final.dias) || 30,
+                        originalBillAnnual: final.originalBillAnnual || 0
                     };
+                    
+                    console.log('✅ Data construida:', data);
                     
                     let drkCost = 0;
                     let powercupCost = 0;
@@ -4419,6 +4427,12 @@
                         drkCost = parseFloat(final.offer.annual_cost) || 0;
                     }
                     
+                    // Si aún es 0, intentar desde totalAnnual
+                    if (drkCost === 0 && final.totalAnnual) {
+                        drkCost = parseFloat(final.totalAnnual) || 0;
+                        console.log('⚠️ Usando final.totalAnnual:', drkCost);
+                    }
+                    
                     const results = {
                         drk: {
                             total: drkCost / 12,
@@ -4429,6 +4443,8 @@
                             total_anual: powercupCost
                         }
                     };
+                    
+                    console.log('✅ Results construidos:', results);
                     
                     console.log('Llamando a dualAddFromResults con:', { type: 'electricidad', tariff, data, results });
                     

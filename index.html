@@ -2446,7 +2446,47 @@
             // Verificar si es DUAL o Multicups
             if (pendingDualSupply) {
                 // Es DUAL - añadir dirección y procesar
-                const { type, tariff, data, results } = pendingDualSupply;
+                let { type, tariff, data, results } = pendingDualSupply;
+                
+                // CRÍTICO: Extraer kWh desde lastComparisonResult si los data tienen todo en 0
+                if ((data.kwh_p1 + data.kwh_p2 + data.kwh_p3 + data.kwh_p4 + data.kwh_p5 + data.kwh_p6) === 0 && lastComparisonResult) {
+                    console.log('⚠️ [CONFIRM ADDRESS] kWh en 0, extrayendo desde lastComparisonResult');
+                    
+                    if (lastComparisonResult.energyCosts) {
+                        lastComparisonResult.energyCosts.forEach((ec, idx) => {
+                            const period = idx + 1;
+                            const kwh = ec.kwh || 0;
+                            console.log(`  Periodo ${period}: ${kwh} kWh`);
+                            if (period === 1) data.kwh_p1 = kwh;
+                            else if (period === 2) data.kwh_p2 = kwh;
+                            else if (period === 3) data.kwh_p3 = kwh;
+                            else if (period === 4) data.kwh_p4 = kwh;
+                            else if (period === 5) data.kwh_p5 = kwh;
+                            else if (period === 6) data.kwh_p6 = kwh;
+                        });
+                    }
+                    
+                    if (lastComparisonResult.powerCosts && (data.p1 + data.p2 + data.p3 + data.p4 + data.p5 + data.p6) === 0) {
+                        lastComparisonResult.powerCosts.forEach((pc, idx) => {
+                            const period = idx + 1;
+                            const kw = pc.kw || 0;
+                            console.log(`  Potencia ${period}: ${kw} kW`);
+                            if (period === 1) data.p1 = kw;
+                            else if (period === 2) data.p2 = kw;
+                            else if (period === 3) data.p3 = kw;
+                            else if (period === 4) data.p4 = kw;
+                            else if (period === 5) data.p5 = kw;
+                            else if (period === 6) data.p6 = kw;
+                        });
+                    }
+                    
+                    // Recalcular también originalBillAnnual si es 0
+                    if (!data.originalBillAnnual || data.originalBillAnnual === 0) {
+                        data.originalBillAnnual = lastComparisonResult.originalBillAnnual || 0;
+                    }
+                    
+                    console.log('✅ [CONFIRM ADDRESS] Data corregida:', data);
+                }
                 
                 // Añadir la dirección a los datos
                 const addressToSave = address || 'No especificada';

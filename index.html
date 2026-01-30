@@ -2589,18 +2589,28 @@
                 originalBillAnnual: data.originalBillAnnual || 0,
                 timestamp: new Date().getTime(),
                 // NUEVO: Guardar información de excedentes si existen
-                // Prioridad: 1) finalResult.solarSurplus, 2) window.lastAppliedSolarSurplus, 3) window.pendingSolarSurplus
-                solarSurplus: (finalResult && finalResult.solarSurplus) 
-                    ? finalResult.solarSurplus 
-                    : (window.lastAppliedSolarSurplus || window.pendingSolarSurplus || null)
+                // Combinar: kWh desde variables globales, descuento desde finalResult
+                solarSurplus: ((solarSurplusEnabled && solarSurplusData && solarSurplusData.total > 0) || 
+                              (finalResult && finalResult.solarSurplus)) ? {
+                    total: solarSurplusData?.total || finalResult?.solarSurplus?.total || 0,
+                    excedente1: solarSurplusData?.excedente1 || finalResult?.solarSurplus?.excedente1 || 0,
+                    excedente2: solarSurplusData?.excedente2 || finalResult?.solarSurplus?.excedente2 || 0,
+                    excedente3: solarSurplusData?.excedente3 || finalResult?.solarSurplus?.excedente3 || 0,
+                    discountAmount: finalResult?.solarSurplus?.annualDiscount 
+                        || finalResult?.solarSurplus?.discountAmount 
+                        || window.lastAppliedSolarSurplus?.discountAmount 
+                        || 0
+                } : null
             };
             
             // DEBUG: Verificar si se guardaron los excedentes
             console.log('🔍 DEBUG excedentes:', {
+                solarSurplusEnabled: solarSurplusEnabled,
+                solarSurplusDataTotal: solarSurplusData?.total,
                 finalResultHasSolarSurplus: !!(finalResult && finalResult.solarSurplus),
-                finalResultSolarSurplus: finalResult?.solarSurplus,
-                windowLastAppliedSolarSurplus: window.lastAppliedSolarSurplus,
-                windowPendingSolarSurplus: window.pendingSolarSurplus,
+                finalResultAnnualDiscount: finalResult?.solarSurplus?.annualDiscount,
+                finalResultDiscountAmount: finalResult?.solarSurplus?.discountAmount,
+                windowLastApplied: window.lastAppliedSolarSurplus,
                 supplyHasSolarSurplus: !!supply.solarSurplus,
                 solarSurplusGuardado: supply.solarSurplus
             });

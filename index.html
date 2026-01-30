@@ -8649,6 +8649,11 @@
                 function generarDesgloseDetalladoCUPS(supply, x, width, color, titulo, usarIndexado = false) {
                     const resultado = usarIndexado && supply.indexedComparison ? supply.indexedComparison : supply;
                     
+                    // CRÍTICO: Si resultado no tiene solarSurplus pero supply sí, copiar desde supply
+                    if (!resultado.solarSurplus && supply.solarSurplus) {
+                        resultado.solarSurplus = supply.solarSurplus;
+                    }
+                    
                     // VERIFICACIÓN CRÍTICA: Asegurar que resultado tiene los datos necesarios
                     if (!resultado || !resultado.powerCosts || !resultado.energyCosts) {
                         console.error('ERROR: resultado no tiene la estructura necesaria', resultado);

@@ -2654,7 +2654,13 @@
             setTimeout(() => {
                 const drkCost = supply.results.drk.total_anual;
                 const pcCost = supply.results.powercup.total_anual;
-                alert(`✅ Suministro añadido correctamente\n\nTipo: ${type === 'electricidad' ? 'Electricidad' : 'Gas'}\nTarifa: ${tariff}\n${description}\n\nDRK anual: ${drkCost.toFixed(2)} €\nPowerCup anual: ${pcCost.toFixed(2)} €\n\nTotal: ${dualSupplies.length} suministro(s)`);
+                
+                // En modo DRK ÚNICAMENTE, solo mostrar DRK
+                if (comparisonMode === 'drk_only') {
+                    alert(`✅ Suministro añadido correctamente\n\nTipo: ${type === 'electricidad' ? 'Electricidad' : 'Gas'}\nTarifa: ${tariff}\n${description}\n\nDRK anual: ${drkCost.toFixed(2)} €\n\nTotal: ${dualSupplies.length} suministro(s)`);
+                } else {
+                    alert(`✅ Suministro añadido correctamente\n\nTipo: ${type === 'electricidad' ? 'Electricidad' : 'Gas'}\nTarifa: ${tariff}\n${description}\n\nDRK anual: ${drkCost.toFixed(2)} €\nPowerCup anual: ${pcCost.toFixed(2)} €\n\nTotal: ${dualSupplies.length} suministro(s)`);
+                }
             }, 100);
         }
         

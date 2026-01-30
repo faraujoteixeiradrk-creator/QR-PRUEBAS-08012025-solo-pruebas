@@ -14450,6 +14450,20 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 console.log('🚫 Ocultando AMBOS checkboxes (excedentes ya introducidos desde modal fotovoltaica)');
                 checkboxContainer?.classList.add('hidden');
                 document.getElementById('solar-surplus-checkbox-container')?.classList.add('hidden');
+                
+                // NUEVO: También ocultar "Ver Mejor Opción" si estamos en DUAL y no hay ahorro
+                if (isDualMode) {
+                    const bestOptionContainer = document.getElementById('best-option-container');
+                    const hasSavings = lastComparisonResult && lastComparisonResult.savings > 0;
+                    
+                    if (!hasSavings) {
+                        console.log('❌ DUAL con excedentes sin ahorro - Ocultando "Ver Mejor Opción"');
+                        bestOptionContainer?.classList.add('hidden');
+                    } else {
+                        console.log('✅ DUAL con excedentes con ahorro - Mostrando "Ver Mejor Opción"');
+                        bestOptionContainer?.classList.remove('hidden');
+                    }
+                }
                 // NO resetear aquí - se reseteará al final
             } else if (window.optimizedPowerEnabled || isDualMode) {
                 if (isDualMode) {

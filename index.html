@@ -2589,24 +2589,31 @@
                 originalBillAnnual: data.originalBillAnnual || 0,
                 timestamp: new Date().getTime(),
                 // NUEVO: Guardar información de excedentes si existen
-                solarSurplus: (solarSurplusEnabled && solarSurplusData && solarSurplusData.total > 0) ? {
-                    total: solarSurplusData.total || 0,
-                    excedente1: solarSurplusData.excedente1 || 0,
-                    excedente2: solarSurplusData.excedente2 || 0,
-                    excedente3: solarSurplusData.excedente3 || 0,
-                    // Calcular el descuento desde finalResult si existe, si no calcular manualmente
+                // Usar múltiples fuentes: solarSurplusData, finalResult, lastComparisonResult
+                solarSurplus: ((solarSurplusEnabled && solarSurplusData && solarSurplusData.total > 0) || 
+                              (finalResult && finalResult.solarSurplus) ||
+                              (lastComparisonResult && lastComparisonResult.solarSurplus)) ? {
+                    total: solarSurplusData?.total || finalResult?.solarSurplus?.total || lastComparisonResult?.solarSurplus?.total || 0,
+                    excedente1: solarSurplusData?.excedente1 || finalResult?.solarSurplus?.excedente1 || lastComparisonResult?.solarSurplus?.excedente1 || 0,
+                    excedente2: solarSurplusData?.excedente2 || finalResult?.solarSurplus?.excedente2 || lastComparisonResult?.solarSurplus?.excedente2 || 0,
+                    excedente3: solarSurplusData?.excedente3 || finalResult?.solarSurplus?.excedente3 || lastComparisonResult?.solarSurplus?.excedente3 || 0,
+                    // Calcular el descuento desde finalResult o lastComparisonResult
                     discountAmount: (finalResult && finalResult.solarSurplus && finalResult.solarSurplus.annualDiscount) 
                         ? finalResult.solarSurplus.annualDiscount 
-                        : 0
+                        : ((lastComparisonResult && lastComparisonResult.solarSurplus && lastComparisonResult.solarSurplus.annualDiscount)
+                            ? lastComparisonResult.solarSurplus.annualDiscount
+                            : 0)
                 } : null
             };
             
             // DEBUG: Verificar si se guardaron los excedentes
             console.log('🔍 DEBUG excedentes:', {
                 solarSurplusEnabled: solarSurplusEnabled,
-                solarSurplusData: solarSurplusData,
+                solarSurplusDataTotal: solarSurplusData?.total,
                 finalResultHasSolarSurplus: !!(finalResult && finalResult.solarSurplus),
                 finalResultAnnualDiscount: finalResult?.solarSurplus?.annualDiscount,
+                lastComparisonHasSolarSurplus: !!(lastComparisonResult && lastComparisonResult.solarSurplus),
+                lastComparisonAnnualDiscount: lastComparisonResult?.solarSurplus?.annualDiscount,
                 supplyHasSolarSurplus: !!supply.solarSurplus,
                 solarSurplusGuardado: supply.solarSurplus
             });

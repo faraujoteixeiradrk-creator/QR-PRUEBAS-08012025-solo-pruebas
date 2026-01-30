@@ -15097,6 +15097,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             console.log('  - result.consumo_punta:', result?.consumo_punta);
             console.log('  - result.totalAnnual:', result?.totalAnnual);
             console.log('  - result.tariffType:', result?.tariffType);
+            console.log('🔍 DEBUG: Estructura completa de result:', Object.keys(result || {}));
+            console.log('🔍 DEBUG: result.energyCosts existe?', !!result?.energyCosts);
+            console.log('🔍 DEBUG: result.energyCosts length:', result?.energyCosts?.length);
             
             // Intentar múltiples ubicaciones
             let kwh_p1 = 0, kwh_p2 = 0, kwh_p3 = 0, kwh_p4 = 0, kwh_p5 = 0, kwh_p6 = 0;

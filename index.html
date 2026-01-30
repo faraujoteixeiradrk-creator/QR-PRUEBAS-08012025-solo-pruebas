@@ -17049,9 +17049,23 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     console.log('🔄 Modo DUAL - Continuando con modal de decisión (aunque sea negativo)');
                     
                     if (tempNoSavingsResult) {
+                        // CRÍTICO: Asegurar que tempNoSavingsResult tenga totalAnnual correcto
+                        if (!tempNoSavingsResult.totalAnnual || tempNoSavingsResult.totalAnnual === 0) {
+                            // Calcular desde bestOffer si está disponible
+                            if (tempNoSavingsResult.bestOffer && tempNoSavingsResult.bestOffer.annual_cost) {
+                                tempNoSavingsResult.totalAnnual = tempNoSavingsResult.bestOffer.annual_cost;
+                            } else if (tempNoSavingsResult.totalPeriod) {
+                                // Calcular desde totalPeriod
+                                tempNoSavingsResult.totalAnnual = tempNoSavingsResult.totalPeriod * 12;
+                            }
+                            console.log('✅ totalAnnual calculado:', tempNoSavingsResult.totalAnnual);
+                        }
+                        
                         // Asegurar que el resultado tenga isNegativeSavings marcado
                         tempNoSavingsResult.isNegativeSavings = true;
-                        tempNoSavingsResult.savings = tempNoSavingsResult.originalBillAnnual - tempNoSavingsResult.totalAnnual;
+                        tempNoSavingsResult.savings = (tempNoSavingsResult.originalBillAnnual || 0) - (tempNoSavingsResult.totalAnnual || 0);
+                        
+                        console.log('💰 Ahorro calculado:', tempNoSavingsResult.savings, '(negativo = más caro)');
                         
                         // CRÍTICO: Asignar tempNoSavingsResult a lastComparisonResult para que el modal funcione
                         lastComparisonResult = tempNoSavingsResult;

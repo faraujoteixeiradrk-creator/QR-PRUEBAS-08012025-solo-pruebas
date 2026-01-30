@@ -14372,15 +14372,30 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             console.log('🔍 showOfferDecisionModal() - Estado de flags:', {
                 hideDecisionCheckboxes: hideDecisionCheckboxes,
                 isDualMode: isDualMode,
-                optimizedPowerEnabled: window.optimizedPowerEnabled
+                optimizedPowerEnabled: window.optimizedPowerEnabled,
+                lastComparisonResult: lastComparisonResult,
+                savings: lastComparisonResult?.savings
             });
             
             // NUEVO: Ocultar "Ver Mejor Opción" en modo DUAL cuando no hay ahorro
             const bestOptionContainer = document.getElementById('best-option-container');
-            if (isDualMode && lastComparisonResult && lastComparisonResult.savings <= 0) {
-                console.log('🔄 DUAL sin ahorro - Ocultando "Ver Mejor Opción"');
-                bestOptionContainer?.classList.add('hidden');
+            if (isDualMode) {
+                const hasSavings = lastComparisonResult && lastComparisonResult.savings > 0;
+                console.log('🔄 DUAL detectado - Verificando ahorro:', {
+                    hasSavings: hasSavings,
+                    savings: lastComparisonResult?.savings,
+                    shouldHideBestOption: !hasSavings
+                });
+                
+                if (!hasSavings) {
+                    console.log('❌ DUAL sin ahorro - Ocultando "Ver Mejor Opción"');
+                    bestOptionContainer?.classList.add('hidden');
+                } else {
+                    console.log('✅ DUAL con ahorro - Mostrando "Ver Mejor Opción"');
+                    bestOptionContainer?.classList.remove('hidden');
+                }
             } else {
+                console.log('👤 Modo INDIVIDUAL - Mostrando "Ver Mejor Opción"');
                 bestOptionContainer?.classList.remove('hidden');
             }
             

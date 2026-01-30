@@ -17056,6 +17056,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         // CRÍTICO: Asignar tempNoSavingsResult a lastComparisonResult para que el modal funcione
                         lastComparisonResult = tempNoSavingsResult;
                         
+                        // NUEVO: Asegurar que availableOffers tenga al menos la oferta actual
+                        if (availableOffers.length === 0 && tempNoSavingsResult.offer) {
+                            console.log('⚠️ availableOffers vacío - Añadiendo oferta actual para modo DUAL');
+                            availableOffers = [tempNoSavingsResult.offer];
+                        }
+                        
                         // IMPORTANTE: En DUAL necesitamos el modal de decisión incluso sin ahorro
                         // para poder continuar añadiendo suministros
                         showOfferDecisionModal();

@@ -1759,7 +1759,7 @@
                     
                     <div class="flex flex-col gap-4">
                         <!-- Opción 1: Mejor Opción (CON SELECTOR PARA DRK) -->
-                        <div class="rounded-xl border-2 border-slate-300 bg-white overflow-hidden">
+                        <div id="best-option-container" class="rounded-xl border-2 border-slate-300 bg-white overflow-hidden">
                             <!-- Cabecera clickeable -->
                             <button onclick="handleBestOptionClick()" class="w-full text-left p-6 hover:bg-drk-50 transition group">
                                 <div class="flex items-start gap-4">
@@ -14424,6 +14424,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             } else if (window.optimizedPowerEnabled || isDualMode) {
                 if (isDualMode) {
                     console.log('🔄 Modo DUAL activo - Ocultando checkbox Fijo & Indexado');
+                    
+                    // NUEVO: Ocultar "Ver Mejor Opción" si no hay ahorro
+                    const bestOptionContainer = document.getElementById('best-option-container');
+                    const hasSavings = lastComparisonResult && lastComparisonResult.savings > 0;
+                    
+                    if (!hasSavings) {
+                        console.log('❌ DUAL sin ahorro - Ocultando "Ver Mejor Opción"');
+                        bestOptionContainer?.classList.add('hidden');
+                    } else {
+                        console.log('✅ DUAL con ahorro - Mostrando "Ver Mejor Opción"');
+                        bestOptionContainer?.classList.remove('hidden');
+                    }
                 } else {
                     console.log('⚡ Optimización de potencias activa - Ocultando checkbox Fijo & Indexado');
                 }
@@ -15123,6 +15135,34 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 console.log('  - dias:', dias);
             } else {
                 console.error('  ❌ NO se encontró ninguna opción válida');
+            }
+            
+            // Opción 3: Extraer desde energyCosts si todo sigue en 0
+            if ((kwh_p1 + kwh_p2 + kwh_p3 + kwh_p4 + kwh_p5 + kwh_p6) === 0 && result.energyCosts && result.energyCosts.length > 0) {
+                console.log('  ✅ Usando Opción 3: result.energyCosts');
+                result.energyCosts.forEach((ec, i) => {
+                    const kwh = ec.kwh || 0;
+                    if (i === 0) kwh_p1 = kwh;
+                    else if (i === 1) kwh_p2 = kwh;
+                    else if (i === 2) kwh_p3 = kwh;
+                    else if (i === 3) kwh_p4 = kwh;
+                    else if (i === 4) kwh_p5 = kwh;
+                    else if (i === 5) kwh_p6 = kwh;
+                });
+            }
+            
+            // Extraer potencias desde powerCosts si todo sigue en 0
+            if ((p1 + p2 + p3 + p4 + p5 + p6) === 0 && result.powerCosts && result.powerCosts.length > 0) {
+                console.log('  ✅ Extrayendo potencias desde result.powerCosts');
+                result.powerCosts.forEach((pc, i) => {
+                    const kw = pc.kw || 0;
+                    if (i === 0) p1 = kw;
+                    else if (i === 1) p2 = kw;
+                    else if (i === 2) p3 = kw;
+                    else if (i === 3) p4 = kw;
+                    else if (i === 4) p5 = kw;
+                    else if (i === 5) p6 = kw;
+                });
             }
             
             // Capturar factura actual del cliente

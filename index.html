@@ -22113,6 +22113,46 @@ ${clientName}
                             yPos += 6;
                         }
                         
+                        // NUEVO: Mostrar excedentes solares si existen
+                        if (supply.solarSurplus && supply.solarSurplus.total > 0) {
+                            yPos += 2;
+                            
+                            // Cabecera de excedentes
+                            doc.setFillColor(254, 243, 199); // Fondo ámbar claro
+                            doc.rect(margin, yPos, contentWidth, 8, 'F');
+                            doc.setTextColor(146, 64, 14); // Texto ámbar oscuro
+                            doc.setFontSize(8);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('☀ ' + tr('EXCEDENTES SOLARES'), margin + 5, yPos + 5);
+                            yPos += 10;
+                            
+                            // Desglose de excedentes
+                            doc.setTextColor(0, 0, 0);
+                            doc.setFontSize(7);
+                            doc.setFont('helvetica', 'normal');
+                            
+                            if (supply.solarSurplus.excedente1 > 0) {
+                                doc.text(`E1 (${tr('Punta')}): ${supply.solarSurplus.excedente1.toFixed(0)} kWh`, margin + 5, yPos);
+                                yPos += 5;
+                            }
+                            if (supply.solarSurplus.excedente2 > 0) {
+                                doc.text(`E2 (${tr('Llano')}): ${supply.solarSurplus.excedente2.toFixed(0)} kWh`, margin + 5, yPos);
+                                yPos += 5;
+                            }
+                            if (supply.solarSurplus.excedente3 > 0) {
+                                doc.text(`E3 (${tr('Valle')}): ${supply.solarSurplus.excedente3.toFixed(0)} kWh`, margin + 5, yPos);
+                                yPos += 5;
+                            }
+                            
+                            // Total y descuento
+                            doc.setFont('helvetica', 'bold');
+                            doc.setTextColor(146, 64, 14);
+                            const totalLabel = tr('Total') + `: ${supply.solarSurplus.total.toFixed(0)} kWh`;
+                            doc.text(totalLabel, margin + 5, yPos);
+                            doc.text(`-${eur(supply.solarSurplus.discountAmount || 0)}`, pageWidth - margin - 5, yPos, { align: 'right' });
+                            yPos += 3;
+                        }
+                        
                         yPos += 2;
                         
                     } else {

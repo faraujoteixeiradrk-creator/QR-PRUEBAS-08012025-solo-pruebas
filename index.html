@@ -8656,10 +8656,23 @@
                 function generarDesgloseDetalladoCUPS(supply, x, width, color, titulo, usarIndexado = false) {
                     const resultado = usarIndexado && supply.indexedComparison ? supply.indexedComparison : supply;
                     
+                    console.log('🔍 PDF generarDesgloseDetalladoCUPS:', {
+                        usarIndexado: usarIndexado,
+                        supplyHasSolarSurplus: !!supply.solarSurplus,
+                        supplySolarSurplus: supply.solarSurplus,
+                        resultadoHasSolarSurplus: !!resultado.solarSurplus
+                    });
+                    
                     // CRÍTICO: Si resultado no tiene solarSurplus pero supply sí, copiar desde supply
                     if (!resultado.solarSurplus && supply.solarSurplus) {
                         resultado.solarSurplus = supply.solarSurplus;
                         console.log('📋 Copiado solarSurplus desde supply a resultado:', resultado.solarSurplus);
+                    }
+                    
+                    if (!resultado.solarSurplus) {
+                        console.log('❌ resultado NO tiene solarSurplus después de intentar copiar');
+                    } else {
+                        console.log('✅ resultado tiene solarSurplus:', resultado.solarSurplus);
                     }
                     
                     // VERIFICACIÓN CRÍTICA: Asegurar que resultado tiene los datos necesarios

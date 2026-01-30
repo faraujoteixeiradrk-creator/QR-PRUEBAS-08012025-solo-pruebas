@@ -17053,6 +17053,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         tempNoSavingsResult.isNegativeSavings = true;
                         tempNoSavingsResult.savings = tempNoSavingsResult.originalBillAnnual - tempNoSavingsResult.totalAnnual;
                         
+                        // CRÍTICO: Asignar tempNoSavingsResult a lastComparisonResult para que el modal funcione
+                        lastComparisonResult = tempNoSavingsResult;
+                        
                         // IMPORTANTE: En DUAL necesitamos el modal de decisión incluso sin ahorro
                         // para poder continuar añadiendo suministros
                         showOfferDecisionModal();

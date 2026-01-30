@@ -2598,6 +2598,18 @@
                 } : null
             };
             
+            // DEBUG: Verificar si se guardaron los excedentes
+            if (finalResult) {
+                console.log('🔍 DEBUG finalResult:', {
+                    hasSolarSurplus: !!finalResult.solarSurplus,
+                    solarSurplus: finalResult.solarSurplus,
+                    discountAmount: finalResult.discountAmount,
+                    subEnergy: finalResult.subEnergy,
+                    subEnergyNet: finalResult.subEnergyNet
+                });
+                console.log('🔍 Supply.solarSurplus guardado:', supply.solarSurplus);
+            }
+            
             // Añadir breakdown específico según el tipo - usar finalResult si está disponible
             if (type === 'electricidad') {
                 supply.electricityBreakdown = {

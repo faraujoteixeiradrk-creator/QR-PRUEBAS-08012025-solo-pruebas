@@ -19756,7 +19756,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                     
                                     <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-200">
                                         <span class="text-xs text-slate-600">${tr('Factura actual:')} ${formatEuro(originalBill / 12)}${tr('/mes')}</span>
-                                        <span class="text-xs font-semibold ${savings > 0 ? 'text-green-600' : 'text-slate-500'}">${tr('Ahorro:')} ${formatEuro(Math.max(0, savings))}${tr('/año')}</span>
+                                        <span class="text-xs font-semibold ${savings > 0 ? 'text-green-600' : 'text-red-600'}">${savings > 0 ? tr('Ahorro:') : tr('Diferencia:')} ${formatEuro(savings)}${tr('/año')}</span>
                                     </div>
                                 </div>
                             `;
@@ -19804,7 +19804,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                     
                                     <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-200">
                                         <span class="text-xs text-slate-600">${tr('Factura actual:')} ${formatEuro(originalBill / 12)}${tr('/mes')}</span>
-                                        <span class="text-xs font-semibold ${savings > 0 ? 'text-green-600' : 'text-slate-500'}">${tr('Ahorro:')} ${formatEuro(Math.max(0, savings))}${tr('/año')}</span>
+                                        <span class="text-xs font-semibold ${savings > 0 ? 'text-green-600' : 'text-red-600'}">${savings > 0 ? tr('Ahorro:') : tr('Diferencia:')} ${formatEuro(savings)}${tr('/año')}</span>
                                     </div>
                                 </div>
                             `;
@@ -19822,7 +19822,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span class="text-xs text-slate-700 font-medium">${tariffName}</span>
-                                    <span class="text-xs font-semibold ${savings > 0 ? 'text-green-600' : 'text-slate-500'}">${tr('Ahorro')}: ${formatEuro(Math.max(0, savings))}</span>
+                                    <span class="text-xs font-semibold ${savings > 0 ? 'text-green-600' : 'text-red-600'}">${savings > 0 ? tr('Ahorro') : tr('Diferencia')}: ${formatEuro(savings)}</span>
                                 </div>
                             </div>
                         `;

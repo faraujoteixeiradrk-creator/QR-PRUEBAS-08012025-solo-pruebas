@@ -4309,6 +4309,19 @@
                     alreadyAskedAboutSolar = true;
                     // Guardar resultado y mostrar modal de pregunta
                     tempNoSavingsResult = final;
+                    
+                    // DEBUG: Ver qué datos tiene tempNoSavingsResult
+                    console.log('🔍 DEBUG tempNoSavingsResult guardado:', {
+                        kwh_p1: tempNoSavingsResult.kwh_p1,
+                        kwh_p2: tempNoSavingsResult.kwh_p2,
+                        kwh_p3: tempNoSavingsResult.kwh_p3,
+                        totalAnnual: tempNoSavingsResult.totalAnnual,
+                        totalPeriod: tempNoSavingsResult.totalPeriod,
+                        originalBillAnnual: tempNoSavingsResult.originalBillAnnual,
+                        energyCosts: tempNoSavingsResult.energyCosts,
+                        powerCosts: tempNoSavingsResult.powerCosts
+                    });
+                    
                     showSolarQuestionModal(final);
                     // Ocultar pantallas iniciales pero NO mostrar results-view todavía
                     document.getElementById('initial-view').classList.add('hidden');

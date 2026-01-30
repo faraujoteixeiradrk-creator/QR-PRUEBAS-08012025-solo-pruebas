@@ -8615,6 +8615,16 @@
                     doc.setTextColor(...colorSupply);
                     doc.setFont('helvetica', 'bold');
                     doc.text(savSupply, pageWidth - margin - 2, yPos + 4.5, { align: 'right' });
+                    
+                    // NUEVO: Mostrar excedentes si existen
+                    if (supply.solarSurplus && supply.solarSurplus.total > 0) {
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(6);
+                        doc.setTextColor(245, 158, 11); // Color ámbar para excedentes
+                        const surplusText = `☀ ${supply.solarSurplus.total.toFixed(0)} kWh (-${eur(supply.solarSurplus.discountAmount || 0)})`;
+                        doc.text(surplusText, pageWidth - margin - 2, yPos + 7.5, { align: 'right' });
+                    }
+                    
                     yPos += rowHeight;
                 });
                 
@@ -8766,6 +8776,42 @@
                         }
                     });
                     y += 2;
+                    
+                    // === EXCEDENTES SOLARES (SI EXISTEN) ===
+                    if (resultado.solarSurplus && resultado.solarSurplus.total > 0) {
+                        doc.setFillColor(254, 243, 199); // Fondo ámbar claro
+                        doc.roundedRect(x, y, width, 6, 1, 1, 'F');
+                        doc.setTextColor(146, 64, 14); // Texto ámbar oscuro
+                        doc.setFontSize(7);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('☀ EXCEDENTES SOLARES', x + 3, y + 4);
+                        y += 6;
+                        
+                        // Desglose de excedentes
+                        doc.setTextColor(55, 65, 81);
+                        doc.setFontSize(6);
+                        doc.setFont('helvetica', 'normal');
+                        
+                        if (resultado.solarSurplus.excedente1 > 0) {
+                            doc.text(`E1 (Punta): ${num(resultado.solarSurplus.excedente1, 0)} kWh`, x + 3, y);
+                            y += 4;
+                        }
+                        if (resultado.solarSurplus.excedente2 > 0) {
+                            doc.text(`E2 (Llano): ${num(resultado.solarSurplus.excedente2, 0)} kWh`, x + 3, y);
+                            y += 4;
+                        }
+                        if (resultado.solarSurplus.excedente3 > 0) {
+                            doc.text(`E3 (Valle): ${num(resultado.solarSurplus.excedente3, 0)} kWh`, x + 3, y);
+                            y += 4;
+                        }
+                        
+                        // Total excedentes y descuento
+                        doc.setFont('helvetica', 'bold');
+                        doc.setTextColor(146, 64, 14);
+                        doc.text(`Total: ${num(resultado.solarSurplus.total, 0)} kWh`, x + 3, y);
+                        doc.text(`-${eur(resultado.solarSurplus.discountAmount || 0)}`, x + width - 3, y, { align: 'right' });
+                        y += 6;
+                    }
                     
                     // === TOTAL ===
                     doc.setFillColor(...headerDarkColor);
@@ -20680,6 +20726,26 @@ ${clientName}
                                         <span style="font-weight:bold">${(ec.cost_euros||0).toFixed(2)} €</span>
                                     </div>
                                 `;}).join('')}
+                                
+                                ${s.solarSurplus && s.solarSurplus.total > 0 ? `
+                                <div style="background:#fef3c7;color:#92400e;padding:8px 12px;margin:10px 0;border-radius:4px;font-size:12px;font-weight:bold">☀ ${tr('EXCEDENTES SOLARES')}</div>
+                                ${s.solarSurplus.excedente1 > 0 ? `
+                                <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:11px;color:#92400e">
+                                    <span>E1 (${tr('Punta')}): ${s.solarSurplus.excedente1.toFixed(0)} kWh</span>
+                                </div>` : ''}
+                                ${s.solarSurplus.excedente2 > 0 ? `
+                                <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:11px;color:#92400e">
+                                    <span>E2 (${tr('Llano')}): ${s.solarSurplus.excedente2.toFixed(0)} kWh</span>
+                                </div>` : ''}
+                                ${s.solarSurplus.excedente3 > 0 ? `
+                                <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:11px;color:#92400e">
+                                    <span>E3 (${tr('Valle')}): ${s.solarSurplus.excedente3.toFixed(0)} kWh</span>
+                                </div>` : ''}
+                                <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:11px;font-weight:bold;color:#92400e;border-top:1px solid #fbbf24;margin-top:5px">
+                                    <span>${tr('Total excedentes')}: ${s.solarSurplus.total.toFixed(0)} kWh</span>
+                                    <span>-${(s.solarSurplus.discountAmount || 0).toFixed(2)} €</span>
+                                </div>
+                                ` : ''}
                                 
                                 <div style="background:#e2e8f0;padding:10px;margin-top:10px;border-radius:4px;display:flex;justify-content:space-between;font-weight:bold">
                                     <span>${tr('TOTAL')} (${eb.dias} ${tr('DÍAS')})</span>

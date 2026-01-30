@@ -2589,11 +2589,16 @@
                 originalBillAnnual: data.originalBillAnnual || 0,
                 timestamp: new Date().getTime(),
                 // NUEVO: Guardar información de excedentes si existen
-                solarSurplus: window.lastAppliedSolarSurplus || window.pendingSolarSurplus || null
+                // Prioridad: 1) finalResult.solarSurplus, 2) window.lastAppliedSolarSurplus, 3) window.pendingSolarSurplus
+                solarSurplus: (finalResult && finalResult.solarSurplus) 
+                    ? finalResult.solarSurplus 
+                    : (window.lastAppliedSolarSurplus || window.pendingSolarSurplus || null)
             };
             
             // DEBUG: Verificar si se guardaron los excedentes
             console.log('🔍 DEBUG excedentes:', {
+                finalResultHasSolarSurplus: !!(finalResult && finalResult.solarSurplus),
+                finalResultSolarSurplus: finalResult?.solarSurplus,
                 windowLastAppliedSolarSurplus: window.lastAppliedSolarSurplus,
                 windowPendingSolarSurplus: window.pendingSolarSurplus,
                 supplyHasSolarSurplus: !!supply.solarSurplus,
@@ -16587,8 +16592,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 _needsOriginalLookup: true,
                 _tariffName: selectedOffer.offer.name,
                 _tariffDescription: selectedOffer.offer.description,
-                _tariffType: selectedOffer.originalTariffType || lastComparisonResult?.originalTariffType
+                _tariffType: selectedOffer.originalTariffType || lastComparisonResult?.originalTariffType,
+                // NUEVO: Preservar solarSurplus si existe
+                solarSurplus: selectedOffer.solarSurplus || window.lastAppliedSolarSurplus || null
             };
+            
+            console.log('✅ manuallySelectedOffer guardado con solarSurplus:', manuallySelectedOffer.solarSurplus);
             
             // Actualizar estilos visuales
             document.querySelectorAll('.offer-radio-card').forEach((card) => {

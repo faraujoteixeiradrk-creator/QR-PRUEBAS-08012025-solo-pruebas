@@ -21690,15 +21690,6 @@ ${clientName}
                     doc.setFontSize(9);
                     doc.text(eur(ahorro), pageWidth - margin - 12, yPos + 3.5, { align: 'right' });
                     
-                    // NUEVO: Mostrar excedentes si existen
-                    if (supply.solarSurplus && supply.solarSurplus.total > 0) {
-                        doc.setFont('helvetica', 'normal');
-                        doc.setFontSize(6);
-                        doc.setTextColor(245, 158, 11); // Color ámbar para excedentes
-                        const surplusText = `☀ ${supply.solarSurplus.total.toFixed(0)} kWh (-${eur(supply.solarSurplus.discountAmount || 0)})`;
-                        doc.text(surplusText, pageWidth - margin - 12, yPos + 6.5, { align: 'right' });
-                    }
-                    
                     yPos += rowHeight;
                     
                     if (idx < dualSupplies.length - 1) {
@@ -22119,12 +22110,12 @@ ${clientName}
                             
                             // Cabecera de excedentes
                             doc.setFillColor(254, 243, 199); // Fondo ámbar claro
-                            doc.rect(margin, yPos, contentWidth, 8, 'F');
+                            doc.rect(margin, yPos, contentWidth, 7, 'F');
                             doc.setTextColor(146, 64, 14); // Texto ámbar oscuro
-                            doc.setFontSize(8);
+                            doc.setFontSize(7);
                             doc.setFont('helvetica', 'bold');
-                            doc.text('☀ ' + tr('EXCEDENTES SOLARES'), margin + 5, yPos + 5);
-                            yPos += 10;
+                            doc.text(tr('EXCEDENTES SOLARES'), margin + 5, yPos + 4.5);
+                            yPos += 9;
                             
                             // Desglose de excedentes
                             doc.setTextColor(0, 0, 0);

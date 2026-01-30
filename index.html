@@ -1759,7 +1759,7 @@
                     
                     <div class="flex flex-col gap-4">
                         <!-- Opción 1: Mejor Opción (CON SELECTOR PARA DRK) -->
-                        <div id="best-option-container" class="rounded-xl border-2 border-slate-300 bg-white overflow-hidden">
+                        <div class="rounded-xl border-2 border-slate-300 bg-white overflow-hidden">
                             <!-- Cabecera clickeable -->
                             <button onclick="handleBestOptionClick()" class="w-full text-left p-6 hover:bg-drk-50 transition group">
                                 <div class="flex items-start gap-4">
@@ -2512,64 +2512,45 @@
             const finalResult = window.pendingDualFinalResult;
             console.log('FinalResult disponible:', finalResult);
             
-            // CRÍTICO: Si data tiene kWh en 0 pero finalResult tiene datos, corregir data
-            if (type === 'electricidad') {
-                const totalDataKwh = (parseFloat(data.kwh_p1) || 0) + (parseFloat(data.kwh_p2) || 0) + 
-                                     (parseFloat(data.kwh_p3) || 0) + (parseFloat(data.kwh_p4) || 0) + 
-                                     (parseFloat(data.kwh_p5) || 0) + (parseFloat(data.kwh_p6) || 0);
-                
-                if (totalDataKwh === 0 && finalResult && finalResult.energyCosts && finalResult.energyCosts.length > 0) {
-                    console.log('🔧 CORRECCIÓN: kWh en data son 0, extrayendo desde finalResult.energyCosts');
-                    
-                    finalResult.energyCosts.forEach((ec, idx) => {
+            // CORRECCIÓN: Si data tiene kWh en 0 pero finalResult tiene datos, extraerlos
+            if (type === 'electricidad' && finalResult && finalResult.energyCosts) {
+                const sumKwh = (data.kwh_p1||0) + (data.kwh_p2||0) + (data.kwh_p3||0) + (data.kwh_p4||0) + (data.kwh_p5||0) + (data.kwh_p6||0);
+                if (sumKwh === 0 && finalResult.energyCosts.length > 0) {
+                    console.log('🔧 Extrayendo kWh desde finalResult');
+                    finalResult.energyCosts.forEach((ec, i) => {
                         const kwh = ec.kwh || 0;
-                        console.log(`  P${idx+1}: ${kwh} kWh`);
-                        if (idx === 0) data.kwh_p1 = kwh;
-                        else if (idx === 1) data.kwh_p2 = kwh;
-                        else if (idx === 2) data.kwh_p3 = kwh;
-                        else if (idx === 3) data.kwh_p4 = kwh;
-                        else if (idx === 4) data.kwh_p5 = kwh;
-                        else if (idx === 5) data.kwh_p6 = kwh;
+                        if (i === 0) data.kwh_p1 = kwh;
+                        else if (i === 1) data.kwh_p2 = kwh;
+                        else if (i === 2) data.kwh_p3 = kwh;
+                        else if (i === 3) data.kwh_p4 = kwh;
+                        else if (i === 4) data.kwh_p5 = kwh;
+                        else if (i === 5) data.kwh_p6 = kwh;
                     });
-                    
-                    // También corregir potencias si están en 0
-                    const totalDataPower = (parseFloat(data.p1) || 0) + (parseFloat(data.p2) || 0) + 
-                                          (parseFloat(data.p3) || 0) + (parseFloat(data.p4) || 0) + 
-                                          (parseFloat(data.p5) || 0) + (parseFloat(data.p6) || 0);
-                    
-                    if (totalDataPower === 0 && finalResult.powerCosts && finalResult.powerCosts.length > 0) {
-                        finalResult.powerCosts.forEach((pc, idx) => {
+                    if (finalResult.powerCosts) {
+                        finalResult.powerCosts.forEach((pc, i) => {
                             const kw = pc.kw || 0;
-                            console.log(`  Pot P${idx+1}: ${kw} kW`);
-                            if (idx === 0) data.p1 = kw;
-                            else if (idx === 1) data.p2 = kw;
-                            else if (idx === 2) data.p3 = kw;
-                            else if (idx === 3) data.p4 = kw;
-                            else if (idx === 4) data.p5 = kw;
-                            else if (idx === 5) data.p6 = kw;
+                            if (i === 0) data.p1 = kw;
+                            else if (i === 1) data.p2 = kw;
+                            else if (i === 2) data.p3 = kw;
+                            else if (i === 3) data.p4 = kw;
+                            else if (i === 4) data.p5 = kw;
+                            else if (i === 5) data.p6 = kw;
                         });
                     }
-                    
-                    // Corregir originalBillAnnual si es 0
-                    if ((!data.originalBillAnnual || data.originalBillAnnual === 0) && finalResult.originalBillAnnual) {
+                    if (!data.originalBillAnnual && finalResult.originalBillAnnual) {
                         data.originalBillAnnual = finalResult.originalBillAnnual;
-                        console.log(`  originalBillAnnual: ${data.originalBillAnnual}`);
                     }
-                    
-                    console.log('✅ Data corregida:', data);
                 }
             }
             
             if (results.drk.total_anual === 0 && results.powercup.total_anual === 0) {
                 console.error('⚠️⚠️⚠️ PROBLEMA: Ambos costes son 0 al añadir suministro');
                 console.error('Results completo:', JSON.stringify(results, null, 2));
-                
-                // NUEVO: Si tenemos finalResult con totalAnnual, usarlo
-                if (finalResult && finalResult.totalAnnual && finalResult.totalAnnual > 0) {
-                    console.log('🔧 CORRECCIÓN: Usando totalAnnual desde finalResult');
+                // CORRECCIÓN: Si finalResult tiene totalAnnual, usarlo
+                if (finalResult && finalResult.totalAnnual > 0) {
+                    console.log('🔧 Usando totalAnnual desde finalResult');
                     results.drk.total_anual = finalResult.totalAnnual;
                     results.drk.total = finalResult.totalAnnual / 12;
-                    console.log('✅ Results corregidos:', results);
                 }
             }
             
@@ -14415,32 +14396,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             console.log('🔍 showOfferDecisionModal() - Estado de flags:', {
                 hideDecisionCheckboxes: hideDecisionCheckboxes,
                 isDualMode: isDualMode,
-                optimizedPowerEnabled: window.optimizedPowerEnabled,
-                lastComparisonResult: lastComparisonResult,
-                savings: lastComparisonResult?.savings
+                optimizedPowerEnabled: window.optimizedPowerEnabled
             });
-            
-            // NUEVO: Ocultar "Ver Mejor Opción" en modo DUAL cuando no hay ahorro
-            const bestOptionContainer = document.getElementById('best-option-container');
-            if (isDualMode) {
-                const hasSavings = lastComparisonResult && lastComparisonResult.savings > 0;
-                console.log('🔄 DUAL detectado - Verificando ahorro:', {
-                    hasSavings: hasSavings,
-                    savings: lastComparisonResult?.savings,
-                    shouldHideBestOption: !hasSavings
-                });
-                
-                if (!hasSavings) {
-                    console.log('❌ DUAL sin ahorro - Ocultando "Ver Mejor Opción"');
-                    bestOptionContainer?.classList.add('hidden');
-                } else {
-                    console.log('✅ DUAL con ahorro - Mostrando "Ver Mejor Opción"');
-                    bestOptionContainer?.classList.remove('hidden');
-                }
-            } else {
-                console.log('👤 Modo INDIVIDUAL - Mostrando "Ver Mejor Opción"');
-                bestOptionContainer?.classList.remove('hidden');
-            }
             
             // CRÍTICO: Si hideDecisionCheckboxes está activo, forzar ocultar AMBOS checkboxes Y saltar lógica restante
             if (hideDecisionCheckboxes) {

@@ -2587,7 +2587,15 @@
                 totalAnnual: (results.drk.total_anual > 0) ? results.drk.total_anual : results.powercup.total_anual,
                 // CRÍTICO: Guardar factura original para cálculo de ahorro
                 originalBillAnnual: data.originalBillAnnual || 0,
-                timestamp: new Date().getTime()
+                timestamp: new Date().getTime(),
+                // NUEVO: Guardar información de excedentes si existen
+                solarSurplus: (finalResult && finalResult.solarSurplus) ? {
+                    total: finalResult.solarSurplus.total || 0,
+                    excedente1: finalResult.solarSurplus.excedente1 || 0,
+                    excedente2: finalResult.solarSurplus.excedente2 || 0,
+                    excedente3: finalResult.solarSurplus.excedente3 || 0,
+                    discountAmount: finalResult.discountAmount || 0
+                } : null
             };
             
             // Añadir breakdown específico según el tipo - usar finalResult si está disponible
@@ -19658,6 +19666,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     // Calcular ahorro
                     const ahorro = (supply.originalBillAnnual || 0) - (supply.totalAnnual || 0);
                     const tieneAhorro = ahorro > 0;
+                    const tieneSurplus = supply.solarSurplus && supply.solarSurplus.total > 0;
+                    
+                    // Preparar info de excedentes
+                    let surplusInfo = '';
+                    if (tieneSurplus) {
+                        const surplusTotal = supply.solarSurplus.total.toFixed(0);
+                        const surplusDiscount = (supply.solarSurplus.discountAmount || 0).toFixed(2);
+                        surplusInfo = `<p class="text-xs text-amber-600 mt-1">☀️ Excedentes: ${surplusTotal} kWh (-${surplusDiscount}€/año)</p>`;
+                    }
                     
                     return `
                     <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
@@ -19666,7 +19683,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             <div class="flex-1">
                                 <p class="text-sm font-bold text-slate-800">${supply.type === 'electricidad' ? 'Electricidad' : 'Gas'} - ${supply.tariff}</p>
                                 <p class="text-xs text-slate-500">${displayInfo}</p>
-                                ${!tieneAhorro ? '<p class="text-xs text-slate-400 mt-1">No hay ahorro</p>' : ''}
+                                ${!tieneAhorro && !tieneSurplus ? '<p class="text-xs text-slate-400 mt-1">No hay ahorro</p>' : ''}
+                                ${surplusInfo}
                             </div>
                         </div>
                         <div class="text-right">

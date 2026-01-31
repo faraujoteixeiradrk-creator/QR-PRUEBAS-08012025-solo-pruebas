@@ -19343,8 +19343,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // Manejar casos sin ahorro
             if (finalIndividualResult.savings <= 0) {
                 finalIndividualResult.isNegativeSavings = true;
-                finalIndividualResult.savings = 0;
-                finalIndividualResult.totalAnnual = finalIndividualResult.originalBillAnnual;
+                
+                // CRÍTICO: En MULTICUPS, NO poner savings = 0 porque necesitamos mostrar el ahorro negativo
+                const isMultiCupsMode = currentTariffType === 'MULTICUPS';
+                if (!isMultiCupsMode) {
+                    // Solo en modo individual ponemos savings = 0 y ajustamos totalAnnual
+                    finalIndividualResult.savings = 0;
+                    finalIndividualResult.totalAnnual = finalIndividualResult.originalBillAnnual;
+                }
+                // En MULTICUPS mantenemos el savings negativo y el totalAnnual real
                 
                 // CRÍTICO: En modo DRK ÚNICAMENTE, NO cambiar la oferta a "Tu Tarifa Actual"
                 // Mantener la oferta DRK y marcar para solicitar mejora

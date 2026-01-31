@@ -17340,13 +17340,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 console.log('❌ Usuario NO tiene fotovoltaica');
                 hideSolarQuestionModal();
                 
-                // CRÍTICO: Verificar si estamos en modo DUAL
+                // CRÍTICO: Verificar si estamos en modo DUAL o MULTICUPS
                 const isDualMode = window.dualMode === true;
-                console.log('🔍 Modo DUAL activo:', isDualMode);
+                const isMultiCupsMode = currentTariffType === 'MULTICUPS';
+                console.log('🔍 Modo DUAL activo:', isDualMode, '- Modo MULTICUPS activo:', isMultiCupsMode);
                 
-                if (isDualMode) {
-                    // MODO DUAL: Continuar con el flujo normal, mostrar modal de decisión
-                    console.log('🔄 Modo DUAL - Continuando con modal de decisión (aunque sea negativo)');
+                if (isDualMode || isMultiCupsMode) {
+                    // MODO DUAL o MULTICUPS: Continuar con el flujo normal, mostrar modal de decisión
+                    console.log('🔄 Modo DUAL/MULTICUPS - Continuando con modal de decisión (aunque sea negativo)');
                     
                     if (tempNoSavingsResult) {
                         // Asegurar que el resultado tenga isNegativeSavings marcado
@@ -17359,7 +17360,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         // NUEVO: Asegurar que availableOffers tenga al menos la oferta actual
                         // IMPORTANTE: availableOffers espera objetos con estructura {offer: {...}, ...}
                         if (availableOffers.length === 0) {
-                            console.log('⚠️ availableOffers vacío - Añadiendo oferta actual para modo DUAL');
+                            console.log('⚠️ availableOffers vacío - Añadiendo oferta actual para modo DUAL/MULTICUPS');
                             // Crear un objeto de oferta con la estructura correcta
                             const offerWrapper = {
                                 offer: tempNoSavingsResult.offer || tempNoSavingsResult.bestOffer,
@@ -17371,7 +17372,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             console.log('✅ Oferta añadida a availableOffers:', offerWrapper);
                         }
                         
-                        // IMPORTANTE: En DUAL necesitamos el modal de decisión incluso sin ahorro
+                        // IMPORTANTE: En DUAL/MULTICUPS necesitamos el modal de decisión incluso sin ahorro
                         // para poder continuar añadiendo suministros
                         showOfferDecisionModal();
                     }

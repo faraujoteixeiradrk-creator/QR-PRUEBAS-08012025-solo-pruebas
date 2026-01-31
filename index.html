@@ -4085,7 +4085,20 @@
                 console.log('dualMode activo:', window.dualMode);
                 console.log('=================================================');
                 
-                const tariffType = currentTariffType;  
+                // CRÍTICO: En MULTICUPS, currentTariffType es 'MULTICUPS', pero necesitamos el tipo real
+                const isMultiCupsFlow = currentTariffType === 'MULTICUPS';
+                const tariffType = isMultiCupsFlow 
+                    ? (data.originalTariffType || data.tariffType || '2.0TD') 
+                    : currentTariffType;
+                
+                console.log('🔍 compareOffers - tariffType determinado:', {
+                    currentTariffType: currentTariffType,
+                    isMultiCupsFlow: isMultiCupsFlow,
+                    dataOriginalTariffType: data.originalTariffType,
+                    dataTariffType: data.tariffType,
+                    tariffTypeUsado: tariffType
+                });
+                
                 const tariffsToCompare = currentTariffs[tariffType] || [];
 
                 console.log(`Tarifas disponibles para ${tariffType}:`, tariffsToCompare.length);

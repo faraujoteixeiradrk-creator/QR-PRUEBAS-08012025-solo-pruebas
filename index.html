@@ -19356,49 +19356,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 isTariff20or30: isTariff20or30,
                 availableOffersLength: availableOffers.length,
                 finalIndividualResultSavings: finalIndividualResult.savings,
-                condition1: availableOffers.length >= 1 && finalIndividualResult.savings > 0 && isTariff20or30,
-                condition2: availableOffers.length > 1 && (!isTariff20or30 || finalIndividualResult.savings <= 0)
+                condition1_conAhorro: availableOffers.length >= 1 && finalIndividualResult.savings > 0 && isTariff20or30,
+                condition2_sinAhorro: finalIndividualResult.savings <= 0 && isTariff20or30 && !alreadyAskedAboutSolar,
+                condition3_multipleOfertas: availableOffers.length > 1
             });
             
-            // Si hay ahorro Y es tarifa 2.0TD/3.0TD, mostrar modal de decisión con opción de excedentes
-            if (availableOffers.length >= 1 && finalIndividualResult.savings > 0 && isTariff20or30) {
-                console.log('☀️ MultiCups: Tarifa 2.0TD/3.0TD con ahorro - Mostrando modal de decisión con opción de excedentes');
-                
-                // Guardar temporalmente el resultado para usarlo después
-                lastComparisonResult = finalIndividualResult;
-                lastComparisonResult.isMulti = false;
-                lastComparisonResult.tariffType = tariffType; // CRÍTICO: Guardar el tariffType (2.0TD o 3.0TD)
-                lastComparisonResult.originalTariffType = tariffType; // También guardar como originalTariffType
-                lastComparisonResult._multiCupsContext = {
-                    tariffType: tariffType,
-                    dataForCalc: dataForCalc
-                };
-                
-                // Mostrar modal de decisión
-                showOfferDecisionModal();
-                return; // No añadir todavía, esperar decisión del usuario
-            }
-            
-            // Si hay más de 1 oferta PERO NO es 2.0TD/3.0TD (o no hay ahorro), permitir elegir
-            if (availableOffers.length > 1 && (!isTariff20or30 || finalIndividualResult.savings <= 0)) {
-                console.log('MultiCups: Showing decision modal with', availableOffers.length, 'offers');
-                
-                // Guardar temporalmente el resultado para usarlo después
-                lastComparisonResult = finalIndividualResult;
-                lastComparisonResult.isMulti = false;
-                lastComparisonResult.tariffType = tariffType; // CRÍTICO: Guardar el tariffType
-                lastComparisonResult.originalTariffType = tariffType;
-                lastComparisonResult._multiCupsContext = {
-                    tariffType: tariffType,
-                    dataForCalc: dataForCalc
-                };
-                
-                // Mostrar modal de decisión
-                showOfferDecisionModal();
-                return; // No añadir todavía, esperar decisión del usuario
-            }
-            
-            // NUEVO: Si NO hay ahorro y es tarifa 2.0TD/3.0TD, preguntar por excedentes solares
+            // PRIORIDAD 1: Si NO hay ahorro y es tarifa 2.0TD/3.0TD, preguntar por excedentes solares PRIMERO
             if (finalIndividualResult.savings <= 0 && isTariff20or30 && !alreadyAskedAboutSolar) {
                 console.log(`🌞 MultiCups: Sin ahorro detectado en tarifa ${tariffType} - Preguntando por fotovoltaica`);
                 // Marcar que ya preguntamos
@@ -19417,7 +19380,45 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 return; // Salir aquí, el modal manejará el resto
             }
             
-            // Añadir directamente si solo hay 1 oferta o ninguna (y no aplican las condiciones anteriores)
+            // PRIORIDAD 2: Si hay ahorro Y es tarifa 2.0TD/3.0TD, mostrar modal de decisión con opción de excedentes
+            if (availableOffers.length >= 1 && finalIndividualResult.savings > 0 && isTariff20or30) {
+                console.log('☀️ MultiCups: Tarifa 2.0TD/3.0TD con ahorro - Mostrando modal de decisión con opción de excedentes');
+                
+                // Guardar temporalmente el resultado para usarlo después
+                lastComparisonResult = finalIndividualResult;
+                lastComparisonResult.isMulti = false;
+                lastComparisonResult.tariffType = tariffType; // CRÍTICO: Guardar el tariffType (2.0TD o 3.0TD)
+                lastComparisonResult.originalTariffType = tariffType; // También guardar como originalTariffType
+                lastComparisonResult._multiCupsContext = {
+                    tariffType: tariffType,
+                    dataForCalc: dataForCalc
+                };
+                
+                // Mostrar modal de decisión
+                showOfferDecisionModal();
+                return; // No añadir todavía, esperar decisión del usuario
+            }
+            
+            // PRIORIDAD 3: Si hay más de 1 oferta (y no es 2.0TD/3.0TD con ahorro o sin ahorro), permitir elegir
+            if (availableOffers.length > 1) {
+                console.log('MultiCups: Showing decision modal with', availableOffers.length, 'offers');
+                
+                // Guardar temporalmente el resultado para usarlo después
+                lastComparisonResult = finalIndividualResult;
+                lastComparisonResult.isMulti = false;
+                lastComparisonResult.tariffType = tariffType; // CRÍTICO: Guardar el tariffType
+                lastComparisonResult.originalTariffType = tariffType;
+                lastComparisonResult._multiCupsContext = {
+                    tariffType: tariffType,
+                    dataForCalc: dataForCalc
+                };
+                
+                // Mostrar modal de decisión
+                showOfferDecisionModal();
+                return; // No añadir todavía, esperar decisión del usuario
+            }
+            
+            // ÚLTIMO: Añadir directamente si solo hay 1 oferta o ninguna (y no aplican las condiciones anteriores)
             // CRÍTICO: Asegurar que el resultado tenga el contexto MULTICUPS
             finalIndividualResult._multiCupsContext = {
                 tariffType: tariffType,

@@ -4310,28 +4310,31 @@
                 console.log('currentTariffType:', currentTariffType);
                 
                 // NUEVA LÓGICA: Si hay ofertas con ahorro, mostrar modal de decisión
-                // PERO SOLO en modo individual, NO en MultiCups
-                // MULTICUPS tiene su propio flujo en saveSupply() que maneja excedentes solares
+                // MULTICUPS también muestra modal cuando viene del modal de fotovoltaica (hideDecisionCheckboxes = true)
                 const isMultiCupsMode = currentTariffType === 'MULTICUPS';
                 
                 // CRÍTICO: Mostrar modal si hay al menos 1 oferta con ahorro (cambio de >= 1 en lugar de > 1)
                 const hasOffersWithSavings = availableOffers.length >= 1 && final.savings > 0;
+                
+                // NUEVO: También mostrar modal en MULTICUPS si venimos del modal de fotovoltaica
+                const comesFromSolarModal = hideDecisionCheckboxes === true;
                 
                 console.log('🔍 DEBUG showOfferDecisionModal:', {
                     isMultiCupsMode: isMultiCupsMode,
                     availableOffersLength: availableOffers.length,
                     finalSavings: final.savings,
                     hasOffersWithSavings: hasOffersWithSavings,
-                    shouldShowModal: !isMultiCupsMode && hasOffersWithSavings,
+                    comesFromSolarModal: comesFromSolarModal,
+                    shouldShowModal: (!isMultiCupsMode && hasOffersWithSavings) || (isMultiCupsMode && comesFromSolarModal),
                     hasSolarSurplus: !!(final.solarSurplus && final.solarSurplus.enabled)
                 });
                 
-                // MULTICUPS no pasa por aquí - tiene su propio flujo en saveSupply()
-                if (!isMultiCupsMode && hasOffersWithSavings) {
-                    console.log('✅✅✅ MOSTRANDO MODAL DE DECISIÓN con', availableOffers.length, 'ofertas con ahorro');
+                // MODIFICADO: Mostrar modal en modo individual CON ahorro, O en MULTICUPS cuando viene del modal de fotovoltaica
+                if ((!isMultiCupsMode && hasOffersWithSavings) || (isMultiCupsMode && comesFromSolarModal)) {
+                    console.log('✅✅✅ MOSTRANDO MODAL DE DECISIÓN con', availableOffers.length, 'ofertas');
                     
                     // Si venimos del modal de fotovoltaica, ocultar los checkboxes
-                    if (skipDecisionModal) {
+                    if (skipDecisionModal || comesFromSolarModal) {
                         console.log('⚠️ Marcando flag para ocultar checkboxes (venimos de modal fotovoltaica con excedentes ya introducidos)');
                         hideDecisionCheckboxes = true;
                         skipDecisionModal = false; // Resetear flag

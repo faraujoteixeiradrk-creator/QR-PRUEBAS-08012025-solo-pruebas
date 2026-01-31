@@ -4491,9 +4491,12 @@
                     
                     console.log('✅ Results construidos:', results);
                     
-                    // NUEVO: Si hay excedentes solares activos, mostrar modal de decisión
-                    if (solarSurplusEnabled && solarSurplusData.total > 0) {
-                        console.log('☀️ Excedentes solares activos en DUAL - Mostrando modal de decisión');
+                    // NUEVO: Verificar si la tarifa es 2.0TD o 3.0TD para ofrecer excedentes solares
+                    const isTariff20or30 = tariff === '2.0TD' || tariff === '3.0TD';
+                    
+                    // NUEVO: Si hay excedentes solares activos O es tarifa 2.0TD/3.0TD con ahorro, mostrar modal de decisión
+                    if ((solarSurplusEnabled && solarSurplusData.total > 0) || (isTariff20or30 && final.savings > 0)) {
+                        console.log('☀️ Tarifa 2.0TD/3.0TD con ahorro en DUAL - Mostrando modal de decisión con opción de excedentes');
                         
                         // Guardar el resultado para usarlo en el modal
                         lastComparisonResult = final;
@@ -14588,7 +14591,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 checkboxContainer?.classList.remove('hidden');
             }
             
-            // NUEVO: Mostrar/Ocultar checkbox de Excedentes Solares solo para tarifa 2.0TD
+            // NUEVO: Mostrar/Ocultar checkbox de Excedentes Solares solo para tarifa 2.0TD/3.0TD
             // PERO NO si hideDecisionCheckboxes está activo (ya se ocultó arriba)
             if (!hideDecisionCheckboxes) {
                 const solarSurplusContainer = document.getElementById('solar-surplus-checkbox-container');
@@ -14597,11 +14600,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 console.log('🔍 Verificando visibilidad de Excedentes Solares:', {
                     currentTariffType: currentTariffType,
                     isDualMode: isDualMode,
-                    shouldShow: (currentTariffType === '2.0TD' || currentTariffType === '3.0TD') && !isDualMode
+                    shouldShow: (currentTariffType === '2.0TD' || currentTariffType === '3.0TD')
                 });
                 
-                if ((currentTariffType === '2.0TD' || currentTariffType === '3.0TD') && !isDualMode) {
-                    console.log(`☀️ Tarifa ${currentTariffType} detectada - Mostrando checkbox de Excedentes Solares`);
+                // MODIFICADO: Mostrar checkbox de excedentes solares en 2.0TD/3.0TD, INCLUSO en modo DUAL
+                if (currentTariffType === '2.0TD' || currentTariffType === '3.0TD') {
+                    console.log(`☀️ Tarifa ${currentTariffType} detectada - Mostrando checkbox de Excedentes Solares (incluye DUAL)`);
                     solarSurplusContainer?.classList.remove('hidden');
                     // CRÍTICO: Resetear checkbox a desmarcado cada vez que se abre el modal
                     if (solarCheckbox) {
@@ -14624,7 +14628,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         };
                     }
                 } else {
-                    console.log('❌ No es tarifa 2.0TD o es modo DUAL - Ocultando Excedentes Solares');
+                    console.log('❌ No es tarifa 2.0TD/3.0TD - Ocultando Excedentes Solares');
                     solarSurplusContainer?.classList.add('hidden');
                     // Reset checkbox and fields
                     if (solarCheckbox) {

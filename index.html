@@ -4335,13 +4335,15 @@
                     finalSavings: final.savings,
                     hasOffersWithSavings: hasOffersWithSavings,
                     comesFromSolarModal: comesFromSolarModal,
+                    hideDecisionCheckboxes: hideDecisionCheckboxes,
+                    solarSurplusEnabled: solarSurplusEnabled,
                     shouldShowModal: (!isMultiCupsMode && hasOffersWithSavings) || (isMultiCupsMode && comesFromSolarModal),
                     hasSolarSurplus: !!(final.solarSurplus && final.solarSurplus.enabled)
                 });
                 
                 // MODIFICADO: Mostrar modal en modo individual CON ahorro, O en MULTICUPS cuando viene del modal de fotovoltaica
                 if ((!isMultiCupsMode && hasOffersWithSavings) || (isMultiCupsMode && comesFromSolarModal)) {
-                    console.log('✅✅✅ MOSTRANDO MODAL DE DECISIÓN con', availableOffers.length, 'ofertas');
+                    console.log('✅✅✅ MOSTRANDO MODAL DE DECISIÓN con', availableOffers.length, 'ofertas (comesFromSolarModal:', comesFromSolarModal, ')');
                     
                     // Si venimos del modal de fotovoltaica, ocultar los checkboxes
                     if (skipDecisionModal || comesFromSolarModal) {

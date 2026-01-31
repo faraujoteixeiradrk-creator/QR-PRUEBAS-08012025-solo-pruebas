@@ -4245,7 +4245,15 @@
                 // Manejar casos sin ahorro
                 if (final.savings <= 0) {
                     final.isNegativeSavings = true;
-                    final.savings = 0;
+                    
+                    // CRÍTICO: En MULTICUPS y DUAL, NO poner savings = 0 porque necesitamos mostrar el ahorro negativo
+                    const isDualMode = window.dualMode === true;
+                    const isMultiCupsMode = isMultiCupsFlow;
+                    if (!isDualMode && !isMultiCupsMode) {
+                        // Solo en modo individual ponemos savings = 0
+                        final.savings = 0;
+                    }
+                    // En DUAL/MULTICUPS mantenemos el savings negativo para mostrarlo en la lista
                     
                     // CRÍTICO: En modo DRK ÚNICAMENTE, NO cambiar totalAnnual ni la oferta
                     // para que se vean los cálculos reales de DRK

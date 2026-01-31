@@ -16453,6 +16453,20 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             multiCupsData.push(result);
             console.log('multiCupsData after push:', multiCupsData);
             
+            // CRÍTICO: Resetear variables globales para el próximo suministro
+            alreadyAskedAboutSolar = false;
+            hideDecisionCheckboxes = false;
+            solarSurplusEnabled = false;
+            solarSurplusData = {
+                excedente1: 0,
+                excedente2: 0,
+                excedente3: 0,
+                total: 0,
+                discount: 0,
+                pricePerKwh: 0
+            };
+            console.log('✅ Variables reseteadas para el próximo suministro en MULTICUPS');
+            
             // Actualizar UI y volver a la vista SAGA
             document.getElementById('tariff-display-badge').textContent = multiCupsData.length;
             

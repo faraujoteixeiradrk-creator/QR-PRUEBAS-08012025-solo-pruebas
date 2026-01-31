@@ -4140,8 +4140,18 @@
                 console.log('Best DRK:', bestDrk ? bestDrk.offer.name : 'None', bestDrk ? bestDrk.totalAnnual : 0);
                 
                 // --- GUARDAR OFERTAS CON AHORRO POSITIVO ---
-                // NUEVO: En modo DUAL, incluir también ofertas con ahorro negativo
+                // NUEVO: En modo DUAL o MULTICUPS (con excedentes), incluir también ofertas con ahorro negativo
                 const isDualMode = window.dualMode === true;
+                const isMultiCupsWithSolar = isMultiCupsFlow && (hideDecisionCheckboxes === true || solarSurplusEnabled === true);
+                
+                console.log('🔍 Filtrando ofertas:', {
+                    isDualMode: isDualMode,
+                    isMultiCupsFlow: isMultiCupsFlow,
+                    isMultiCupsWithSolar: isMultiCupsWithSolar,
+                    hideDecisionCheckboxes: hideDecisionCheckboxes,
+                    solarSurplusEnabled: solarSurplusEnabled,
+                    shouldIncludeNegative: isDualMode || isMultiCupsWithSolar
+                });
                 
                 availableOffers = results.filter(r => {
                     r.savings = r.originalBillAnnual - r.totalAnnual;
@@ -4149,22 +4159,22 @@
                     
                     // Si modo es "DRK ÚNICAMENTE", filtrar solo ofertas DRK
                     if (comparisonMode === 'drk_only') {
-                        // En DUAL, incluir todas las ofertas DRK (incluso negativas)
-                        if (isDualMode) {
+                        // En DUAL o MULTICUPS con excedentes, incluir todas las ofertas DRK (incluso negativas)
+                        if (isDualMode || isMultiCupsWithSolar) {
                             return r.offer.isDrk;
                         }
                         return hasPositiveSavings && r.offer.isDrk;
                     }
                     
-                    // En DUAL, incluir todas las ofertas (positivas y negativas)
-                    if (isDualMode) {
+                    // En DUAL o MULTICUPS con excedentes, incluir todas las ofertas (positivas y negativas)
+                    if (isDualMode || isMultiCupsWithSolar) {
                         return true; // Incluir todas
                     }
                     
                     // En modo individual, solo ofertas con ahorro positivo
                     return hasPositiveSavings;
                 });
-                console.log('Available offers (mode:', comparisonMode, ', DUAL:', isDualMode, '):', availableOffers.length);
+                console.log('Available offers (mode:', comparisonMode, ', DUAL:', isDualMode, ', MULTICUPS+Solar:', isMultiCupsWithSolar, '):', availableOffers.length);
                 
                 let final = bestOverall;
                 let brand = activeBrand;

@@ -16070,8 +16070,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             if (solarCheckbox && solarCheckbox.checked && solarSurplusEnabled && solarSurplusData.total > 0) {
                 console.log('☀️ Excedentes solares marcados - Recalculando ofertas antes de mostrar lista...');
                 
+                // CRÍTICO: Obtener el tariffType correcto (en MULTICUPS usar lastComparisonResult.tariffType)
+                const isMultiCupsMode = currentTariffType === 'MULTICUPS';
+                const tariffType = isMultiCupsMode 
+                    ? (lastComparisonResult?.tariffType || lastComparisonResult?.originalTariffType || '2.0TD')
+                    : currentTariffType;
+                
+                console.log('🔍 selectFromResults - tariffType:', tariffType, 'isMultiCupsMode:', isMultiCupsMode);
+                
                 // Recalcular availableOffers con el descuento de excedentes
-                const tariffType = currentTariffType;
                 let tariffsToCompare = currentTariffs[tariffType] || [];
                 
                 // CRÍTICO: Filtrar según el modo de comparación (comparisonMode)

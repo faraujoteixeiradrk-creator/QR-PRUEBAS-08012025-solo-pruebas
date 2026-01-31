@@ -19233,6 +19233,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             console.log('Total results:', results.length);
             
             availableOffers = results.filter(r => {
+                // CRÍTICO: Calcular savings antes de filtrar
+                r.savings = r.originalBillAnnual - r.totalAnnual;
+                
                 // Si modo es "DRK ÚNICAMENTE", filtrar solo ofertas DRK
                 if (comparisonMode === 'drk_only') {
                     // En MultiCups: mostrar TODAS las ofertas DRK (con o sin ahorro)

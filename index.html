@@ -7119,7 +7119,63 @@
                 // Extraer datos del cálculo
                 const res = lastComparisonResult;
                 
+                // ============================================================
+                // MULTICUPS: usar funciones especializadas que leen individualResults
+                // El HTML ultra-simple de abajo solo tiene res.energyCosts/powerCosts
+                // que no existen en multicups (están dentro de cada individualResult)
+                // ============================================================
+                if (res.isMulti && res.individualResults && res.individualResults.length > 0) {
+                    const commercialCode = document.getElementById('comercial-code-input').value.trim();
+                    if (!commercialCode) {
+                        window.showErrorModal("Indique el Código Comercial.");
+                        return;
+                    }
+                    
+                    let htmlContent = '';
+                    const hasIndexedData = res.isMultiCups && res.indexedTotals;
+                    
+                    if (hasIndexedData) {
+                        console.log('📧 MULTICUPS DUAL: generando HTML con generateMultiDualStyledHtmlOffer');
+                        htmlContent = generateMultiDualStyledHtmlOffer(commercialCode);
+                    } else {
+                        console.log('📧 MULTICUPS SIMPLE: generando HTML con generateMultiStyledHtmlOffer');
+                        htmlContent = generateMultiStyledHtmlOffer(commercialCode);
+                    }
+                    
+                    if (!htmlContent) {
+                        window.showErrorModal("Error generando HTML del comparativo.");
+                        return;
+                    }
+                    
+                    // Copiar al portapapeles
+                    const tempEl = document.createElement('div');
+                    tempEl.contentEditable = true;
+                    tempEl.innerHTML = htmlContent;
+                    tempEl.style.position = 'fixed';
+                    tempEl.style.left = '-9999px';
+                    document.body.appendChild(tempEl);
+                    
+                    const rng = document.createRange();
+                    rng.selectNodeContents(tempEl);
+                    const sel2 = window.getSelection();
+                    sel2.removeAllRanges();
+                    sel2.addRange(rng);
+                    
+                    let ok = document.execCommand('copy');
+                    document.body.removeChild(tempEl);
+                    
+                    if (ok) {
+                        window.showMessageModal(tr("✅ ¡Oferta copiada con éxito! Ahora puede pegar (Ctrl+V o Cmd+V) el diseño visual en su correo de escritorio."));
+                        document.getElementById('send-offer-modal').classList.add('hidden');
+                        document.getElementById('send-offer-modal').classList.remove('flex');
+                    } else {
+                        window.showErrorModal(tr("No se pudo copiar el diseño visual. Intente desde un PC o contacte a soporte."));
+                    }
+                    return;
+                }
+                
                 // Crear HTML ULTRA-SIMPLE para Outlook (compatible con TODOS los idiomas)
+                // NOTA: Este bloque solo se ejecuta para INDIVIDUAL (un solo suministro)
                 const htmlContent = `
                     <!DOCTYPE html>
                     <html>

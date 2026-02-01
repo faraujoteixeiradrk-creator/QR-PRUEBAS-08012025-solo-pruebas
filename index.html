@@ -4358,6 +4358,77 @@
                 // NUEVA LÓGICA: Si hay ofertas con ahorro, mostrar modal de decisión
                 // MULTICUPS también muestra modal cuando viene del modal de fotovoltaica (hideDecisionCheckboxes = true)
                 const isMultiCupsMode = currentTariffType === 'MULTICUPS';
+                const isDualModeHere = window.dualMode === true;
+                
+                // ===== INTERCEPTAR DUAL AQUÍ (mismo nivel que MULTICUPS) =====
+                // En DUAL el ahorro es acumulativo → usar modelo de tres prioridades como MULTICUPS
+                if (isDualModeHere) {
+                    console.log('🔥🔥🔥 DUAL interceptado en compareOffers - aplicando modelo MULTICUPS');
+                    
+                    const dualTariff = final.tariffType || final.originalTariffType || currentTariffType || '2.0TD';
+                    const dualIsTariff20or30 = dualTariff === '2.0TD' || dualTariff === '3.0TD';
+                    
+                    // Guardar contexto DUAL en lastComparisonResult
+                    lastComparisonResult = final;
+                    lastComparisonResult._dualContext = { tariffType: dualTariff };
+                    
+                    // Helper: preparar datos y llamar a dualAddFromResults desde un resultado
+                    function dualAddDirect(result, tariff) {
+                        let k1=parseFloat(result.kwh_p1)||0, k2=parseFloat(result.kwh_p2)||0, k3=parseFloat(result.kwh_p3)||0;
+                        let k4=parseFloat(result.kwh_p4)||0, k5=parseFloat(result.kwh_p5)||0, k6=parseFloat(result.kwh_p6)||0;
+                        if ((k1+k2+k3+k4+k5+k6)===0 && result.energyCosts) {
+                            result.energyCosts.forEach((ec,i) => { if(i===0)k1=ec.kwh||0; else if(i===1)k2=ec.kwh||0; else if(i===2)k3=ec.kwh||0; else if(i===3)k4=ec.kwh||0; else if(i===4)k5=ec.kwh||0; else if(i===5)k6=ec.kwh||0; });
+                        }
+                        let pw1=parseFloat(result.p1)||0, pw2=parseFloat(result.p2)||0, pw3=parseFloat(result.p3)||0;
+                        let pw4=parseFloat(result.p4)||0, pw5=parseFloat(result.p5)||0, pw6=parseFloat(result.p6)||0;
+                        if ((pw1+pw2+pw3+pw4+pw5+pw6)===0 && result.powerCosts) {
+                            result.powerCosts.forEach((pc,i) => { if(i===0)pw1=pc.kw||0; else if(i===1)pw2=pc.kw||0; else if(i===2)pw3=pc.kw||0; else if(i===3)pw4=pc.kw||0; else if(i===4)pw5=pc.kw||0; else if(i===5)pw6=pc.kw||0; });
+                        }
+                        const dd = { cups:result.cups||'CUPS-ELECTRICIDAD', tariff:tariff, kwh_p1:k1,kwh_p2:k2,kwh_p3:k3,kwh_p4:k4,kwh_p5:k5,kwh_p6:k6, pw1:pw1,pw2:pw2,pw3:pw3,pw4:pw4,pw5:pw5,pw6:pw6, p1:pw1,p2:pw2,p3:pw3,p4:pw4,p5:pw5,p6:pw6, dias:parseInt(result.dias)||30, originalBillAnnual:result.originalBillAnnual||0 };
+                        const cost = result.totalAnnual||0;
+                        const res = { drk: comparisonMode==='overall_best'?{total:0,total_anual:0}:{total:cost/12,total_anual:cost}, powercup: comparisonMode==='overall_best'?{total:cost/12,total_anual:cost}:{total:0,total_anual:0} };
+                        window.dualAddFromResults('electricidad', tariff, dd, res, result);
+                    }
+                    
+                    // Si los excedentes ya están aplicados en el resultado → añadir directamente
+                    if (final.solarSurplus && final.solarSurplus.enabled) {
+                        console.log('☀️ DUAL con excedentes ya aplicados - Añadiendo directamente');
+                        dualAddDirect(final, dualTariff);
+                        hideDecisionCheckboxes = false;
+                        return;
+                    }
+                    
+                    // PRIORIDAD 1: Sin ahorro y es 2.0TD/3.0TD → preguntar por fotovoltaica
+                    if (final.savings <= 0 && dualIsTariff20or30 && !alreadyAskedAboutSolar) {
+                        console.log('🌞 DUAL: Sin ahorro en tarifa ' + dualTariff + ' - Preguntando por fotovoltaica');
+                        alreadyAskedAboutSolar = true;
+                        tempNoSavingsResult = final;
+                        showSolarQuestionModal(final);
+                        document.getElementById('initial-view').classList.add('hidden');
+                        document.getElementById('scanner-view').classList.add('hidden');
+                        return;
+                    }
+                    
+                    // PRIORIDAD 2: Con ahorro Y es 2.0TD/3.0TD → modal de decisión (con check excedentes)
+                    if (availableOffers.length >= 1 && final.savings > 0 && dualIsTariff20or30) {
+                        console.log('☀️ DUAL: Tarifa ' + dualTariff + ' con ahorro - Mostrando modal de decisión');
+                        showOfferDecisionModal();
+                        return;
+                    }
+                    
+                    // PRIORIDAD 3: Múltiples ofertas → modal de decisión (sin check excedentes)
+                    if (availableOffers.length > 1) {
+                        console.log('🔥 DUAL: Múltiples ofertas (' + availableOffers.length + ') - Mostrando modal de decisión');
+                        showOfferDecisionModal();
+                        return;
+                    }
+                    
+                    // ÚLTIMO: Añadir directamente (1 oferta, no 2.0TD/3.0TD con condiciones)
+                    console.log('🔥 DUAL: Añadiendo directamente (sin modal)');
+                    dualAddDirect(final, dualTariff);
+                    return;
+                }
+                // ===== FIN INTERCEPTOR DUAL =====
                 
                 // CRÍTICO: Mostrar modal si hay al menos 1 oferta con ahorro (cambio de >= 1 en lugar de > 1)
                 const hasOffersWithSavings = availableOffers.length >= 1 && final.savings > 0;
@@ -4458,146 +4529,12 @@
                 document.getElementById('initial-view').classList.add('hidden');
                 document.getElementById('scanner-view').classList.add('hidden');
                 
-                // NUEVO: Si estamos en modo DUAL, mostrar confirmación en lugar de resultados
-                if (window.dualMode === true) {
-                    console.log('Modo DUAL detectado - usando flujo con dirección');
-                    
-                    // Extraer datos para DUAL
-                    const tariff = final.tariffType || currentTariffType || '2.0TD';
-                    
-                    // CRÍTICO: Extraer kWh desde energyCosts si no están en final directamente
-                    let kwh_p1 = parseFloat(final.kwh_p1) || 0;
-                    let kwh_p2 = parseFloat(final.kwh_p2) || 0;
-                    let kwh_p3 = parseFloat(final.kwh_p3) || 0;
-                    let kwh_p4 = parseFloat(final.kwh_p4) || 0;
-                    let kwh_p5 = parseFloat(final.kwh_p5) || 0;
-                    let kwh_p6 = parseFloat(final.kwh_p6) || 0;
-                    
-                    if ((kwh_p1 + kwh_p2 + kwh_p3 + kwh_p4 + kwh_p5 + kwh_p6) === 0 && final.energyCosts) {
-                        console.log('⚠️ Extrayendo kWh desde final.energyCosts');
-                        final.energyCosts.forEach((ec, i) => {
-                            const kwh = ec.kwh || 0;
-                            if (i === 0) kwh_p1 = kwh;
-                            else if (i === 1) kwh_p2 = kwh;
-                            else if (i === 2) kwh_p3 = kwh;
-                            else if (i === 3) kwh_p4 = kwh;
-                            else if (i === 4) kwh_p5 = kwh;
-                            else if (i === 5) kwh_p6 = kwh;
-                        });
-                    }
-                    
-                    let p1 = parseFloat(final.p1) || 0;
-                    let p2 = parseFloat(final.p2) || 0;
-                    let p3 = parseFloat(final.p3) || 0;
-                    let p4 = parseFloat(final.p4) || 0;
-                    let p5 = parseFloat(final.p5) || 0;
-                    let p6 = parseFloat(final.p6) || 0;
-                    
-                    if ((p1 + p2 + p3 + p4 + p5 + p6) === 0 && final.powerCosts) {
-                        console.log('⚠️ Extrayendo potencias desde final.powerCosts');
-                        final.powerCosts.forEach((pc, i) => {
-                            const kw = pc.kw || 0;
-                            if (i === 0) p1 = kw;
-                            else if (i === 1) p2 = kw;
-                            else if (i === 2) p3 = kw;
-                            else if (i === 3) p4 = kw;
-                            else if (i === 4) p5 = kw;
-                            else if (i === 5) p6 = kw;
-                        });
-                    }
-                    
-                    const data = {
-                        cups: final.cups || 'CUPS-ELECTRICIDAD',
-                        tariff: tariff,
-                        kwh_p1: kwh_p1,
-                        kwh_p2: kwh_p2,
-                        kwh_p3: kwh_p3,
-                        kwh_p4: kwh_p4,
-                        kwh_p5: kwh_p5,
-                        kwh_p6: kwh_p6,
-                        p1: p1,
-                        p2: p2,
-                        p3: p3,
-                        p4: p4,
-                        p5: p5,
-                        p6: p6,
-                        dias: parseInt(final.dias) || 30,
-                        originalBillAnnual: final.originalBillAnnual || 0
-                    };
-                    
-                    console.log('✅ Data construida:', data);
-                    
-                    let drkCost = 0;
-                    let powercupCost = 0;
-                    
-                    if (final.bestOffer) {
-                        drkCost = parseFloat(final.bestOffer.annual_cost) || parseFloat(final.bestOffer.total_cost_period) * 12 || 0;
-                    }
-                    
-                    if (final.indexedResult) {
-                        powercupCost = parseFloat(final.indexedResult.annual_cost) || parseFloat(final.indexedResult.total_cost_period) * 12 || 0;
-                    }
-                    
-                    if (drkCost === 0 && final.aggregatedData) {
-                        drkCost = parseFloat(final.aggregatedData.total_anual_drk) || 0;
-                    }
-                    
-                    if (powercupCost === 0 && final.aggregatedData) {
-                        powercupCost = parseFloat(final.aggregatedData.total_anual_powercup) || 0;
-                    }
-                    
-                    if (drkCost === 0 && final.offer) {
-                        drkCost = parseFloat(final.offer.annual_cost) || 0;
-                    }
-                    
-                    // Si aún es 0, intentar desde totalAnnual
-                    if (drkCost === 0 && final.totalAnnual) {
-                        drkCost = parseFloat(final.totalAnnual) || 0;
-                        console.log('⚠️ Usando final.totalAnnual:', drkCost);
-                    }
-                    
-                    const results = {
-                        drk: {
-                            total: drkCost / 12,
-                            total_anual: drkCost
-                        },
-                        powercup: {
-                            total: powercupCost / 12,
-                            total_anual: powercupCost
-                        }
-                    };
-                    
-                    console.log('✅ Results construidos:', results);
-                    
-                    // NUEVO: Verificar si la tarifa es 2.0TD o 3.0TD para ofrecer excedentes solares
-                    const isTariff20or30 = tariff === '2.0TD' || tariff === '3.0TD';
-                    
-                    // NUEVO: Si hay excedentes solares activos O es tarifa 2.0TD/3.0TD con ahorro, mostrar modal de decisión
-                    if ((solarSurplusEnabled && solarSurplusData.total > 0) || (isTariff20or30 && final.savings > 0)) {
-                        console.log('☀️ Tarifa 2.0TD/3.0TD con ahorro en DUAL - Mostrando modal de decisión con opción de excedentes');
-                        
-                        // Guardar el resultado para usarlo en el modal
-                        lastComparisonResult = final;
-                        
-                        // Mostrar modal de decisión
-                        showOfferDecisionModal();
-                        
-                        return; // Salir aquí, el usuario elegirá en el modal
-                    }
-                    
-                    console.log('Llamando a dualAddFromResults con:', { type: 'electricidad', tariff, data, results });
-                    
-                    // Usar el flujo con modal de dirección, pasando el objeto final completo
-                    window.dualAddFromResults('electricidad', tariff, data, results, final);
+                // Flujo normal individual - mostrar resultados
+                document.getElementById('results-view').classList.remove('hidden');
+                document.getElementById('results-view').classList.add('animate-fade-in-up');
                 
-                } else {
-                    // Flujo normal - mostrar resultados
-                    document.getElementById('results-view').classList.remove('hidden');
-                    document.getElementById('results-view').classList.add('animate-fade-in-up');
-                    
-                    // Detectar modo DUAL y mostrar botón si corresponde
-                    if (window.checkDualMode) window.checkDualMode();
-                }
+                // Detectar modo DUAL y mostrar botón si corresponde
+                if (window.checkDualMode) window.checkDualMode();
                 
                 console.log('compareOffers completed successfully');
             } catch (error) {
@@ -15514,7 +15451,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     const r = calculateTariffCost(t, lastComparisonResult, tariffTypeForCalc);
                     r.savings = r.originalBillAnnual - r.totalAnnual;
                     return r;
-                }).filter(r => r.savings > 0);
+                }).filter(r => {
+                    // En DUAL el ahorro es acumulativo → incluir todas las ofertas (como MULTICUPS)
+                    if (window.dualMode === true || currentTariffType === 'MULTICUPS') {
+                        if (comparisonMode === 'drk_only') return r.offer.isDrk && r.offer.name !== 'Tu Tarifa Actual';
+                        return r.offer.name !== 'Tu Tarifa Actual';
+                    }
+                    // En modo individual: solo ofertas con ahorro positivo
+                    return r.savings > 0;
+                });
                 
                 console.log('☀️ Ofertas recalculadas con excedentes:', availableOffers.length, 'con ahorro positivo');
                 

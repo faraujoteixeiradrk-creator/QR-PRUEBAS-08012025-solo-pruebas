@@ -3990,19 +3990,33 @@
                 if (precioExcedentesEstaOFERTA > 0) {
                     // Calcular descuento específico para esta tarifa
                     const totalExcedentes = solarSurplusData.total;
-                    const monthlyDiscount = totalExcedentes * (precioExcedentesEstaOFERTA / 1000);
+                    const monthlyDiscountRaw = totalExcedentes * (precioExcedentesEstaOFERTA / 1000);
+                    
+                    // CRÍTICO (normativa compensación simplificada):
+                    // Los excedentes solo compensan la energía facturada, NUNCA la potencia.
+                    // El máximo descuento es el subtotal de energía neta (subEnergyNet).
+                    // La factura nunca puede quedar en negativo por excedentes.
+                    const maxCompensable = result.subEnergyNet; // Máximo: energía neta facturada
+                    const monthlyDiscount = Math.min(monthlyDiscountRaw, maxCompensable);
                     const annualDiscount = monthlyDiscount * 12;
                     
-                    console.log(`💰 Aplicando descuento: ${totalExcedentes} kWh × ${precioExcedentesEstaOFERTA}/1000 = ${monthlyDiscount.toFixed(2)} € mensuales`);
+                    // Excedentes no compensados (informativos, no entran en el ahorro)
+                    const excessMonthly = monthlyDiscountRaw - monthlyDiscount;
+                    const excessAnnual = excessMonthly * 12;
+                    
+                    console.log(`💰 Excedentes: ${totalExcedentes} kWh × ${precioExcedentesEstaOFERTA}/1000 = ${monthlyDiscountRaw.toFixed(2)} € bruto`);
+                    console.log(`💰 Máximo compensable (energía neta): ${maxCompensable.toFixed(2)} €`);
+                    console.log(`💰 Descuento real aplicado: ${monthlyDiscount.toFixed(2)} € | Excedentes no compensados: ${excessMonthly.toFixed(2)} €`);
                     
                     // CRÍTICO: Guardar valores ORIGINALES antes de aplicar descuento (para PDF)
-                    result.subEnergyGross = result.subEnergy; // Guardar bruto REAL
-                    result.subBaseGross = result.subBase; // Guardar base bruta REAL
+                    result.subEnergyGross = result.subEnergy;
+                    result.subBaseGross = result.subBase;
                     
-                    // Ajustar energía (el descuento se resta del subtotal de energía)
-                    result.subEnergy = Math.max(0, result.subEnergy - monthlyDiscount);
-                    result.subEnergyNet = Math.max(0, result.subEnergyNet - monthlyDiscount);
-                    result.subBase = Math.max(0, result.subBase - monthlyDiscount);
+                    // Ajustar energía: el descuento se resta solo de la energía (máximo hasta 0)
+                    result.subEnergyNet = result.subEnergyNet - monthlyDiscount; // Ya limitado por Math.min
+                    result.subEnergy = result.subEnergy - monthlyDiscount;
+                    // Potencia NO se toca (compensación simplificada solo compensa energía)
+                    result.subBase = result.subPower + result.subEnergyNet;
                     
                     // Recalcular impuestos con el nuevo subtotal
                     result.costIE = result.subBase * IE_RATE;
@@ -4014,7 +4028,7 @@
                     // Recalcular ahorros
                     result.savings = result.originalBillAnnual - result.totalAnnual;
                     
-                    // Añadir información de excedentes al resultado (con el precio específico de esta tarifa)
+                    // Añadir información de excedentes al resultado
                     result.solarSurplus = {
                         enabled: true,
                         monthlyDiscount: monthlyDiscount,
@@ -4024,7 +4038,11 @@
                         excedente2: solarSurplusData.excedente2,
                         excedente3: solarSurplusData.excedente3,
                         pricePerKwh: precioExcedentesEstaOFERTA / 1000,
-                        discount: monthlyDiscount
+                        discount: monthlyDiscount,
+                        // Informativos: excedentes no compensados
+                        excessMonthly: excessMonthly,
+                        excessAnnual: excessAnnual,
+                        maxCompensable: maxCompensable
                     };
                     
                     console.log(`✅ Nuevo coste anual con excedentes: ${result.totalAnnual.toFixed(2)} €, Ahorro: ${result.savings.toFixed(2)} €`);
@@ -15767,19 +15785,37 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             console.log(`☀️ Aplicando descuento por excedentes solares: -${solarSurplusData.discount.toFixed(2)} € al resultado`);
             
-            // El descuento se resta del subtotal de energía
-            // Esto afectará tanto al coste mensual como anual
-            const monthlyDiscount = solarSurplusData.discount;
-            const annualDiscount = monthlyDiscount * 12;
+            const monthlyDiscountRaw = solarSurplusData.discount;
             
             // Crear copia del resultado para no modificar el original
             const adjustedResult = { ...result };
             
-            // Ajustar costes
-            adjustedResult.energyMonthly = Math.max(0, (adjustedResult.energyMonthly || 0) - monthlyDiscount);
-            adjustedResult.energyAnnual = Math.max(0, (adjustedResult.energyAnnual || 0) - annualDiscount);
-            adjustedResult.totalMonthly = Math.max(0, (adjustedResult.totalMonthly || 0) - monthlyDiscount);
-            adjustedResult.totalAnnual = Math.max(0, (adjustedResult.totalAnnual || 0) - annualDiscount);
+            // CRÍTICO (normativa compensación simplificada):
+            // El máximo descuento es la energía facturada. Nunca se toca la potencia.
+            const maxCompensable = adjustedResult.subEnergyNet || adjustedResult.energyMonthly || 0;
+            const monthlyDiscount = Math.min(monthlyDiscountRaw, maxCompensable);
+            const annualDiscount = monthlyDiscount * 12;
+            
+            // Excedentes no compensados (solo informativos)
+            const excessMonthly = monthlyDiscountRaw - monthlyDiscount;
+            const excessAnnual = excessMonthly * 12;
+            
+            console.log(`💰 Máximo compensable: ${maxCompensable.toFixed(2)} € | Aplicado: ${monthlyDiscount.toFixed(2)} € | Exceso: ${excessMonthly.toFixed(2)} €`);
+            
+            // Ajustar solo energía
+            if (adjustedResult.energyMonthly !== undefined) {
+                adjustedResult.energyMonthly = Math.max(0, adjustedResult.energyMonthly - monthlyDiscount);
+            }
+            if (adjustedResult.energyAnnual !== undefined) {
+                adjustedResult.energyAnnual = Math.max(0, adjustedResult.energyAnnual - annualDiscount);
+            }
+            // totalMonthly y totalAnnual: restar solo el descuento real (no el exceso)
+            if (adjustedResult.totalMonthly !== undefined) {
+                adjustedResult.totalMonthly = Math.max(0, adjustedResult.totalMonthly - monthlyDiscount);
+            }
+            if (adjustedResult.totalAnnual !== undefined) {
+                adjustedResult.totalAnnual = Math.max(0, adjustedResult.totalAnnual - annualDiscount);
+            }
             
             // Recalcular ahorros
             if (adjustedResult.originalBillAnnual) {
@@ -15789,10 +15825,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // Añadir información de excedentes al resultado
             adjustedResult.solarSurplus = {
                 enabled: true,
-                ...solarSurplusData
+                ...solarSurplusData,
+                monthlyDiscount: monthlyDiscount,
+                annualDiscount: annualDiscount,
+                excessMonthly: excessMonthly,
+                excessAnnual: excessAnnual,
+                maxCompensable: maxCompensable
             };
             
-            console.log(`✅ Descuento aplicado. Nuevo coste mensual: ${adjustedResult.totalMonthly.toFixed(2)} €, Ahorro: ${adjustedResult.savings.toFixed(2)} €`);
+            console.log(`✅ Descuento aplicado. Nuevo coste mensual: ${adjustedResult.totalMonthly?.toFixed(2)} €, Ahorro: ${adjustedResult.savings?.toFixed(2)} €`);
             
             return adjustedResult;
         }

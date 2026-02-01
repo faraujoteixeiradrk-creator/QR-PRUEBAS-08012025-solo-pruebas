@@ -16767,12 +16767,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 // Si este CUPS tiene excedentes solares aplicados, re-aplicar el descuento.
                 let subEnergyBruto = recalculated.subEnergyNet;
                 if (result.solarSurplus && result.solarSurplus.enabled && result.solarSurplus.monthlyDiscount > 0) {
-                    // Guardar el bruto para referencia
                     result.subEnergyGross = subEnergyBruto;
-                    // Re-aplicar el descuento ya calculado (limitado al máximo compensable)
                     const descuentoExcedentes = Math.min(result.solarSurplus.monthlyDiscount, subEnergyBruto);
                     result.subEnergyNet = subEnergyBruto - descuentoExcedentes;
-                    // También actualizar excessMonthly por si el cap cambió con los nuevos precios
                     const rawDiscount = (result.solarSurplus.total || 0) * (result.solarSurplus.pricePerKwh || 0);
                     result.solarSurplus.monthlyDiscount = descuentoExcedentes;
                     result.solarSurplus.excessMonthly = rawDiscount - descuentoExcedentes;
@@ -16780,6 +16777,20 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     console.log('Re-aplicado excedentes: bruto=' + subEnergyBruto.toFixed(2) + ' descuento=' + descuentoExcedentes.toFixed(2) + ' neto=' + result.subEnergyNet.toFixed(2) + ' excess=' + result.solarSurplus.excessMonthly.toFixed(2));
                 } else {
                     result.subEnergyNet = subEnergyBruto;
+                }
+                // CRÍTICO: Recalcular subBase, impuestos y totalPeriod con el subEnergyNet correcto
+                {
+                    const IE_RATE = 0.05;
+                    const IVA_RATE = 0.21;
+                    result.subBase = result.subPower + result.subEnergyNet;
+                    result.costIE = result.subBase * IE_RATE;
+                    result.baseImp = result.subBase + result.costIE;
+                    result.costIVA = result.baseImp * IVA_RATE;
+                    result.totalPeriod = result.baseImp + result.costIVA;
+                    const factorAnual = result.dias_facturados ? (365 / result.dias_facturados) : 12;
+                    result.totalAnnual = result.totalPeriod * factorAnual;
+                    result.savings = result.originalBillAnnual - result.totalAnnual;
+                    console.log('Recalculated totals: subBase=' + result.subBase.toFixed(2) + ' totalPeriod=' + result.totalPeriod.toFixed(2) + ' savings=' + result.savings.toFixed(2));
                 }
                 console.log('Costs recalculated for', result.originalTariffType);
                 console.log('New subPower:', result.subPower, 'New subEnergyNet:', result.subEnergyNet);

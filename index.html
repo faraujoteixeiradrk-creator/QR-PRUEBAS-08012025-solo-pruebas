@@ -4716,79 +4716,73 @@
                 }
             });
             
-            // === PASO 0: BATERÍA VIRTUAL ENTRE CUPS ===
-            // Cada CUPS ya tiene su excedente propio aplicado (cap en energía neta).
-            // Ahora los excedentes sobrantes de un CUPS se transfieren como crédito
-            // a otros CUPS que aún tienen energía que pagar.
+            // === PASO 0: BATERÍA VIRTUAL ENTRE CUPS (pasada secuencial) ===
+            // Cada CUPS ya tiene sus excedentes propios aplicados (cap = energía neta).
+            // Ahora se itera secuencialmente: cada CUPS primero aporta su exceso a la
+            // batería y luego consume de ella si tiene energía residual.
             {
-                let batteryBalance = 0; // Saldo acumulado en € mensuales
+                let batteryBalance = 0;
                 
-                // Primera pasada: acumular excedentes sobrantes en la batería
                 multiCupsData.forEach((cups) => {
-                    if (cups.solarSurplus && cups.solarSurplus.enabled && cups.solarSurplus.excessMonthly > 0) {
-                        batteryBalance += cups.solarSurplus.excessMonthly;
-                        console.log(`🔋 CUPS ${cups.cups}: excedente sobrante +${cups.solarSurplus.excessMonthly.toFixed(2)} € → batería: ${batteryBalance.toFixed(2)} €`);
-                    }
-                    // Inicializar campo de batería usado en cada CUPS
+                    // Campos que cada CUPS expondrá al render
                     cups._batteryUsed = 0;
-                });
-                
-                // Segunda pasada: usar la batería para compensar energía en CUPS sin excedentes (o insuficientes)
-                multiCupsData.forEach((cups) => {
-                    if (batteryBalance <= 0) return; // Sin saldo, no hay nada que hacer
+                    cups._batteryBalanceBefore = batteryBalance;
                     
-                    // La energía residual que aún tiene que pagar este CUPS (después de sus excedentes propios)
-                    let energiaResidual = 0;
-                    if (cups.subEnergyNet !== undefined) {
-                        energiaResidual = cups.subEnergyNet; // Ya descontados excedentes propios
-                    } else if (cups.energyMonthly !== undefined) {
-                        energiaResidual = cups.energyMonthly;
+                    // A) Este CUPS aporta sus excedentes sobrantes
+                    const ownExcess = (cups.solarSurplus && cups.solarSurplus.enabled)
+                        ? (cups.solarSurplus.excessMonthly || 0)
+                        : 0;
+                    if (ownExcess > 0) {
+                        batteryBalance += ownExcess;
+                        console.log(`🔋 CUPS ${cups.cups}: exceso propio +${ownExcess.toFixed(2)} € → batería: ${batteryBalance.toFixed(2)} €`);
                     }
                     
-                    if (energiaResidual <= 0) return; // Este CUPS ya tiene energía en 0
-                    
-                    // Máximo compensable con batería: hasta dejar energía en 0
-                    const compensacionBateria = Math.min(batteryBalance, energiaResidual);
-                    if (compensacionBateria <= 0) return;
-                    
-                    // Aplicar compensación de batería
-                    batteryBalance -= compensacionBateria;
-                    cups._batteryUsed = compensacionBateria;
-                    
-                    // Ajustar costes del CUPS
-                    cups.subEnergyNet = (cups.subEnergyNet || 0) - compensacionBateria;
-                    cups.subEnergy = (cups.subEnergy || 0) - compensacionBateria;
-                    cups.subBase = (cups.subPower || 0) + cups.subEnergyNet;
-                    
-                    // Recalcular impuestos
-                    const IE_RATE = 0.05;
-                    const IVA_RATE = 0.21;
-                    cups.costIE = cups.subBase * IE_RATE;
-                    cups.baseImp = cups.subBase + cups.costIE;
-                    cups.costIVA = cups.baseImp * IVA_RATE;
-                    cups.totalPeriod = cups.baseImp + cups.costIVA;
-                    
-                    // Factor anual: 365/dias si existe, sino 12 mensualidades
-                    const factorAnual = cups.dias_facturados ? (365 / cups.dias_facturados) : 12;
-                    cups.totalAnnual = cups.totalPeriod * factorAnual;
-                    cups.savings = cups.originalBillAnnual - cups.totalAnnual;
-                    
-                    // Registrar batería usado en solarSurplus para desglose
-                    if (!cups.solarSurplus) {
-                        cups.solarSurplus = { enabled: true, monthlyDiscount: 0, annualDiscount: 0, excessMonthly: 0, excessAnnual: 0 };
+                    // B) Este CUPS consume de la batería si tiene energía residual
+                    if (batteryBalance > 0) {
+                        const energiaResidual = cups.subEnergyNet !== undefined ? cups.subEnergyNet : 0;
+                        
+                        if (energiaResidual > 0) {
+                            const compensacionBateria = Math.min(batteryBalance, energiaResidual);
+                            
+                            batteryBalance -= compensacionBateria;
+                            cups._batteryUsed = compensacionBateria;
+                            
+                            // Ajustar costes
+                            cups.subEnergyNet = cups.subEnergyNet - compensacionBateria;
+                            cups.subEnergy = (cups.subEnergy || 0) - compensacionBateria;
+                            cups.subBase = (cups.subPower || 0) + cups.subEnergyNet;
+                            
+                            const IE_RATE = 0.05;
+                            const IVA_RATE = 0.21;
+                            cups.costIE = cups.subBase * IE_RATE;
+                            cups.baseImp = cups.subBase + cups.costIE;
+                            cups.costIVA = cups.baseImp * IVA_RATE;
+                            cups.totalPeriod = cups.baseImp + cups.costIVA;
+                            
+                            const factorAnual = cups.dias_facturados ? (365 / cups.dias_facturados) : 12;
+                            cups.totalAnnual = cups.totalPeriod * factorAnual;
+                            cups.savings = cups.originalBillAnnual - cups.totalAnnual;
+                            
+                            // Registrar en solarSurplus (crear si no existe)
+                            if (!cups.solarSurplus) {
+                                cups.solarSurplus = { enabled: false, monthlyDiscount: 0, annualDiscount: 0, excessMonthly: 0, excessAnnual: 0 };
+                            }
+                            cups.solarSurplus.batteryUsed = compensacionBateria;
+                            cups.solarSurplus.batteryUsedAnnual = compensacionBateria * 12;
+                            
+                            console.log(`🔋 CUPS ${cups.cups}: batería aplica -${compensacionBateria.toFixed(2)} € | saldo: ${batteryBalance.toFixed(2)} €`);
+                        }
                     }
-                    cups.solarSurplus.batteryUsed = compensacionBateria;
-                    cups.solarSurplus.batteryUsedAnnual = compensacionBateria * 12;
                     
-                    console.log(`🔋 CUPS ${cups.cups}: batería aplica -${compensacionBateria.toFixed(2)} € energía | saldo batería: ${batteryBalance.toFixed(2)} €`);
+                    // Saldo DESPUÉS de procesar este CUPS
+                    cups._batteryBalanceAfter = batteryBalance;
+                    console.log(`🔋 CUPS ${cups.cups} fin: batteryUsed=${cups._batteryUsed.toFixed(2)} saldoAntes=${cups._batteryBalanceBefore.toFixed(2)} saldoDespu=${batteryBalance.toFixed(2)}`);
                 });
                 
-                // Guardar saldo final de batería en cada CUPS para que esté disponible en finalResult
-                multiCupsData.forEach((cups) => {
-                    cups._batteryFinalBalance = batteryBalance;
-                });
+                // Saldo final global (mismo para todos, solo se usa el último)
+                multiCupsData.forEach((cups) => { cups._batteryFinalBalance = batteryBalance; });
                 
-                console.log(`🔋 === BATERÍA VIRTUAL FINAL: saldo ${batteryBalance.toFixed(2)} € mensuales | ${(batteryBalance * 12).toFixed(2)} € anuales ===`);
+                console.log(`🔋 === BATERÍA VIRTUAL FINAL: ${batteryBalance.toFixed(2)} €/mes | ${(batteryBalance * 12).toFixed(2)} €/año ===`);
             }
 
             // 1. Acumular Totales y Consumos (FIJO)
@@ -5207,6 +5201,11 @@
          * Rellena la vista de resultados con los datos acumulados para MULTICUPS.
          * @param {Object} res - Resultado final de la comparación acumulada.
          */
+        // Helper: un CUPS tiene movimiento de batería si aporta exceso o consume de ella
+        function _batteryHasMovement(item) {
+            return (item.solarSurplus && item.solarSurplus.excessMonthly > 0) || (item._batteryUsed > 0);
+        }
+        
         function renderMultiResultsUI(res) {
             // Si hay resultados indexados, usar vista de comparación dual
             if (res.indexedTotals) {
@@ -5451,13 +5450,17 @@
                     ? `<div class="text-xs text-slate-500 mt-1">${resItem.supplyAddress}</div>` 
                     : '';
                 
-                // Línea de batería virtual si este CUPS recibió crédito de otro
-                const batteryHTML = resItem.solarSurplus?.batteryUsed > 0
-                    ? `<div class="text-xs text-amber-600 mt-0.5">🔋 Batería virtual: -${eur(resItem.solarSurplus.batteryUsed)}/mes</div>`
+                // Excedentes sobrantes que este CUPS aporta a la batería
+                const excessHTML = (resItem.solarSurplus?.excessMonthly > 0)
+                    ? `<div class="text-xs text-orange-600 mt-0.5">☀️ Excedentes → batería: +${eur(resItem.solarSurplus.excessMonthly)}/mes</div>`
                     : '';
-                // Línea de excedentes sobrantes si este CUPS tiene exceso (después de la batería)
-                const excessHTML = resItem.solarSurplus?.excessMonthly > 0
-                    ? `<div class="text-xs text-amber-600 mt-0.5">☀️ Excedentes → batería: +${eur(resItem.solarSurplus.excessMonthly)}/mes</div>`
+                // Compensación que este CUPS recibe de la batería
+                const batteryHTML = (resItem.solarSurplus?.batteryUsed > 0)
+                    ? `<div class="text-xs text-amber-700 font-semibold mt-0.5">🔋 Compensación batería virtual: -${eur(resItem.solarSurplus.batteryUsed)}/mes</div>`
+                    : '';
+                // Saldo batería tras este CUPS (solo si hay movimiento)
+                const saldoHTML = (resItem._batteryBalanceAfter !== undefined && _batteryHasMovement(resItem))
+                    ? `<div class="text-xs text-amber-500 italic mt-0.5">Saldo batería: ${eur(resItem._batteryBalanceAfter)}/mes</div>`
                     : '';
                 
                 return `<div class="py-2 border-b border-slate-100 last:border-b-0">
@@ -5469,6 +5472,7 @@
                     ${addressHTML}
                     ${excessHTML}
                     ${batteryHTML}
+                    ${saldoHTML}
                 </div>`;
             }).join('');
 
@@ -5677,12 +5681,11 @@
                     }
                 });
                 
-                // NUEVO: Añadir línea de excedentes solares según el estado
+                // Línea de excedentes solares propios (solo si tiene descuento real > 0)
                 let solarSurplusLine = '';
                 if (resItem.solarSurplus) {
                     const isIndexTariff = resItem.offer && resItem.offer.name && resItem.offer.name.includes('INDEX');
-                    if (resItem.solarSurplus.enabled) {
-                        // Tiene compensación y se aplicó descuento
+                    if (resItem.solarSurplus.enabled && resItem.solarSurplus.monthlyDiscount > 0) {
                         const totalEx = resItem.solarSurplus.total;
                         const discount = resItem.solarSurplus.monthlyDiscount;
                         solarSurplusLine = `<div class="flex justify-between text-orange-600"><span>☀️ ${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</span><span>-${num(discount, 2)} €</span></div>`;
@@ -5690,9 +5693,20 @@
                             solarSurplusLine += `<div class="text-xs text-amber-600 italic mt-1">⚠️ ${tr('Excedentes liquidados a precio variable de mercado')}</div>`;
                         }
                     } else if (resItem.solarSurplus.noPrice) {
-                        // No tiene compensación
                         solarSurplusLine = `<div class="flex justify-between text-slate-400 italic text-xs"><span>☀️ ${tr('Excedentes solares')}</span><span>${tr('Sin compensación')}</span></div>`;
                     }
+                }
+                
+                // Línea de compensación por batería virtual (solo MULTICUPS)
+                let batteryVirtualLine = '';
+                if (resItem.solarSurplus && resItem.solarSurplus.batteryUsed > 0) {
+                    batteryVirtualLine = `<div class="flex justify-between font-semibold text-amber-700"><span>🔋 Compensación batería virtual</span><span>-${num(resItem.solarSurplus.batteryUsed, 2)} €</span></div>`;
+                }
+                
+                // Línea de saldo batería tras este CUPS
+                let batteryBalanceLine = '';
+                if (resItem._batteryBalanceAfter !== undefined && (_batteryHasMovement(resItem))) {
+                    batteryBalanceLine = `<div class="text-xs text-amber-600 italic border-t border-amber-200 pt-1 mt-1">Saldo batería virtual tras este suministro: <strong>${eur(resItem._batteryBalanceAfter)}/mes</strong></div>`;
                 }
 
                 let powerBreakdown = '';
@@ -5732,7 +5746,9 @@
                                    <p class="font-bold text-slate-700 pt-2">${tr('ENERGÍA')}</p>
                                    ${energyBreakdown}
                                    ${solarSurplusLine}
+                                   ${batteryVirtualLine}
                                    <div class="flex justify-between font-bold text-slate-800 border-t pt-1"><span>${tr('Subtotal Energía (Neto)')}</span><span>${num(resItem.subEnergyNet, 2)} €</span></div>
+                                   ${batteryBalanceLine}
                                    
                                    <div class="flex justify-between font-black ${brand.PRIMARY_TEXT} pt-2"><span>TOTAL CON IMPUESTOS</span><span>${eur(resItem.totalPeriod)}</span></div>
                                </div>
@@ -9052,6 +9068,27 @@
                         doc.text(`Total: ${num(resultado.solarSurplus.total, 0)} kWh`, x + 3, y);
                         doc.text(`-${eur(resultado.solarSurplus.discountAmount || 0)}`, x + width - 3, y, { align: 'right' });
                         y += 6;
+                    }
+                    
+                    // === BATERÍA VIRTUAL (compensación desde otros CUPS) ===
+                    if (resultado.solarSurplus && resultado.solarSurplus.batteryUsed > 0) {
+                        doc.setFillColor(255, 251, 235);
+                        doc.roundedRect(x, y, width, 6, 1, 1, 'F');
+                        doc.setTextColor(146, 64, 14);
+                        doc.setFontSize(7);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('🔋 COMPENSACIÓN BATERÍA VIRTUAL', x + 3, y + 4);
+                        doc.text(`-${eur(resultado.solarSurplus.batteryUsed)}`, x + width - 3, y + 4, { align: 'right' });
+                        y += 7;
+                    }
+                    
+                    // === SALDO BATERÍA tras este CUPS ===
+                    if (resultado._batteryBalanceAfter !== undefined && _batteryHasMovement(resultado)) {
+                        doc.setTextColor(180, 83, 9);
+                        doc.setFontSize(6);
+                        doc.setFont('helvetica', 'italic');
+                        doc.text(`Saldo batería virtual: ${eur(resultado._batteryBalanceAfter)}/mes`, x + 3, y);
+                        y += 5;
                     }
                     
                     // === TOTAL ===
@@ -12503,9 +12540,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.text(`${num(displaySubEnergy, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
                     yPos += 5;
                     
-                    // NUEVO: Excedentes solares si está habilitado (DESPUÉS del subtotal bruto)
-                    if (res.solarSurplus && res.solarSurplus.enabled) {
-                        doc.setTextColor(255, 140, 0); // Naranja
+                    // Excedentes solares propios (solo si tiene descuento real > 0)
+                    if (res.solarSurplus && res.solarSurplus.enabled && res.solarSurplus.monthlyDiscount > 0) {
+                        doc.setTextColor(255, 140, 0);
                         doc.setFont('helvetica', 'normal');
                         const totalEx = res.solarSurplus.total;
                         const discount = res.solarSurplus.monthlyDiscount;
@@ -12513,10 +12550,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.text(`-${num(discount, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
                         yPos += 5;
                         
-                        // Añadir aviso si es tarifa INDEX
                         const isIndexPDF = res.offer && res.offer.name && res.offer.name.includes('INDEX');
                         if (isIndexPDF) {
-                            doc.setTextColor(217, 119, 6); // Amber-600
+                            doc.setTextColor(217, 119, 6);
                             doc.setFont('helvetica', 'italic');
                             doc.setFontSize(6);
                             doc.text(`⚠️ ${tr('Excedentes liquidados a precio variable de mercado')}`, margin + 5, yPos);
@@ -12524,13 +12560,36 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             doc.setFontSize(8);
                         }
                     } else if (res.solarSurplus && res.solarSurplus.noPrice) {
-                        // Sin compensación
-                        doc.setTextColor(150, 150, 150); // Gris
+                        doc.setTextColor(150, 150, 150);
                         doc.setFont('helvetica', 'italic');
                         doc.setFontSize(7);
                         doc.text(`${tr('Excedentes solares')} - ${tr('Sin compensación')}`, margin + 2, yPos);
                         yPos += 5;
                         doc.setFontSize(8);
+                    }
+                    
+                    // Compensación por batería virtual (solo MULTICUPS)
+                    if (res.solarSurplus && res.solarSurplus.batteryUsed > 0) {
+                        doc.setTextColor(146, 64, 14);
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(8);
+                        doc.text('🔋 Compensación batería virtual', margin + 2, yPos);
+                        doc.text(`-${num(res.solarSurplus.batteryUsed, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
+                        yPos += 5;
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFont('helvetica', 'normal');
+                    }
+                    
+                    // Saldo batería tras este CUPS (solo MULTICUPS)
+                    if (res._batteryBalanceAfter !== undefined && _batteryHasMovement(res)) {
+                        doc.setTextColor(180, 83, 9);
+                        doc.setFont('helvetica', 'italic');
+                        doc.setFontSize(6.5);
+                        doc.text(`Saldo batería virtual tras este suministro: ${eur(res._batteryBalanceAfter)}/mes`, margin + 2, yPos);
+                        yPos += 4;
+                        doc.setFontSize(8);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setTextColor(0, 0, 0);
                     }
                     
                     // Descuento si existe
@@ -14273,10 +14332,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     return '';
                 }).join('');
                 
-                // NUEVO: Añadir línea de excedentes solares si está habilitado
+                // Excedentes solares propios (solo si monthlyDiscount > 0)
                 let solarSurplusRow = '';
                 const isIndexTariff = resItem.offer && resItem.offer.name && resItem.offer.name.includes('INDEX');
-                if (resItem.solarSurplus && resItem.solarSurplus.enabled) {
+                if (resItem.solarSurplus && resItem.solarSurplus.enabled && resItem.solarSurplus.monthlyDiscount > 0) {
                     const totalEx = resItem.solarSurplus.total;
                     const discount = resItem.solarSurplus.monthlyDiscount;
                     solarSurplusRow = `<tr><td style="padding: 5px 8px; font-family: monospace; font-size: 11px; color: #f97316;">${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</td><td style="padding: 5px 8px; font-family: monospace; font-size: 11px; font-weight: bold; color: #f97316; text-align: right; white-space: nowrap;">-${num(discount, 2)} €</td></tr>`;
@@ -14285,6 +14344,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                 } else if (resItem.solarSurplus && resItem.solarSurplus.noPrice) {
                     solarSurplusRow = `<tr><td colspan="2" style="padding: 4px 8px; font-size: 10px; color: #9ca3af; font-style: italic;">${tr('Excedentes solares')} - ${tr('Sin compensación')}</td></tr>`;
+                }
+                
+                // Compensación por batería virtual
+                let batteryVirtualRow = '';
+                if (resItem.solarSurplus && resItem.solarSurplus.batteryUsed > 0) {
+                    batteryVirtualRow = `<tr><td style="padding: 5px 8px; font-family: monospace; font-size: 11px; color: #92400e; font-weight: bold;">🔋 Compensación batería virtual</td><td style="padding: 5px 8px; font-family: monospace; font-size: 11px; font-weight: bold; color: #92400e; text-align: right; white-space: nowrap;">-${num(resItem.solarSurplus.batteryUsed, 2)} €</td></tr>`;
+                }
+                
+                // Saldo batería tras este CUPS
+                let batteryBalanceRow = '';
+                if (resItem._batteryBalanceAfter !== undefined && _batteryHasMovement(resItem)) {
+                    batteryBalanceRow = `<tr><td colspan="2" style="padding: 3px 8px 5px 8px; font-size: 10px; color: #b45309; font-style: italic; border-top: 1px solid #fcd34d; background-color: #fffbeb;">Saldo batería virtual tras este suministro: <strong>${eur(resItem._batteryBalanceAfter)}/mes</strong></td></tr>`;
                 }
                 
                 const discountRowsHtml = resItem.discountAmount > 0 ? `
@@ -14312,9 +14383,11 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             <tr><td colspan="2" style="padding: 5px 8px; font-weight: bold; color: ${D_PRIMARY_MED};">ENERGÍA</td></tr>
                             ${desgloseEnergia}
                             ${solarSurplusRow}
+                            ${batteryVirtualRow}
                             ${discountRowsHtml}
                             <tr><td colspan="2" style="height: 5px;"></td></tr>
                             <tr><td style="padding: 8px; background-color: ${BG_LIGHT}; font-weight: bold; color: ${D_PRIMARY_DARK};">TOTAL FACTURA (PERIODO)</td><td style="padding: 8px; background-color: ${BG_LIGHT}; font-weight: bold; color: ${D_PRIMARY_DARK}; text-align: right;">${eur(resItem.totalPeriod)}</td></tr>
+                            ${batteryBalanceRow}
                             ${resItem.solarSurplus && resItem.solarSurplus.enabled && resItem.solarSurplus.excessMonthly > 0 ? `
                             <tr><td colspan="2" style="padding: 8px;">
                                 <div style="background-color:#fffbeb; border:1px solid #fbbf24; border-radius:6px; padding:8px 10px;">

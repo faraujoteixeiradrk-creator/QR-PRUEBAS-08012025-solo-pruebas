@@ -9116,11 +9116,12 @@
                             y += 4;
                         }
                         
-                        // Total excedentes y descuento
+                        // Total excedentes y descuento con precio/kWh
                         doc.setFont('helvetica', 'bold');
                         doc.setTextColor(146, 64, 14);
-                        doc.text(`Total: ${num(resultado.solarSurplus.total, 0)} kWh`, x + 3, y);
-                        doc.text(`-${eur(resultado.solarSurplus.discountAmount || 0)}`, x + width - 3, y, { align: 'right' });
+                        const exPriceDetalle = resultado.solarSurplus.pricePerKwh || 0;
+                        doc.text(`Total: ${num(resultado.solarSurplus.total, 0)} kWh x ${numPriceFormula(exPriceDetalle)} €/kWh`, x + 3, y);
+                        doc.text(`-${eur(resultado.solarSurplus.discountAmount || resultado.solarSurplus.monthlyDiscount || 0)}`, x + width - 3, y, { align: 'right' });
                         y += 6;
                     }
                     
@@ -11629,6 +11630,59 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         });
                         y += 2;
                         
+                        // === EXCEDENTES SOLARES (solo columna izquierda, datos del supply original) ===
+                        if (esColumnaIzq && supply.solarSurplus && supply.solarSurplus.enabled && supply.solarSurplus.monthlyDiscount > 0) {
+                            doc.setFillColor(251, 146, 60);
+                            doc.roundedRect(x, y, width, 5, 1, 1, 'F');
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFontSize(5.5);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('EXCEDENTES SOLARES', x + 2, y + 3.5);
+                            y += 7;
+                            
+                            // Desglose por período
+                            doc.setTextColor(234, 88, 12);
+                            doc.setFontSize(5);
+                            doc.setFont('helvetica', 'normal');
+                            if (supply.solarSurplus.excedente1 > 0) {
+                                doc.text(`E1 (Punta): ${num(supply.solarSurplus.excedente1, 0)} kWh`, x + 2, y);
+                                y += 3;
+                            }
+                            if (supply.solarSurplus.excedente2 > 0) {
+                                doc.text(`E2 (Llano): ${num(supply.solarSurplus.excedente2, 0)} kWh`, x + 2, y);
+                                y += 3;
+                            }
+                            if (supply.solarSurplus.excedente3 > 0) {
+                                doc.text(`E3 (Valle): ${num(supply.solarSurplus.excedente3, 0)} kWh`, x + 2, y);
+                                y += 3;
+                            }
+                            
+                            // Total kWh x precio = descuento
+                            doc.setFontSize(5.5);
+                            doc.setFont('helvetica', 'bold');
+                            doc.setTextColor(146, 64, 14);
+                            const exTotalD = supply.solarSurplus.total || 0;
+                            const exPriceD = supply.solarSurplus.pricePerKwh || 0;
+                            const exDiscD = supply.solarSurplus.monthlyDiscount || 0;
+                            doc.text(`${num(exTotalD, 0)} kWh x ${num(exPriceD, 6)} €/kWh`, x + 2, y);
+                            doc.text(`-${num(exDiscD, 2)} €`, x + width - 2, y, { align: 'right' });
+                            y += 4;
+                        }
+                        
+                        // === COMPENSACIÓN BATERÍA VIRTUAL (solo columna izquierda) ===
+                        if (esColumnaIzq && supply.solarSurplus && supply.solarSurplus.batteryUsed > 0) {
+                            doc.setFillColor(255, 251, 235);
+                            doc.roundedRect(x, y, width, 5, 1, 1, 'F');
+                            doc.setTextColor(138, 77, 14);
+                            doc.setFontSize(5.5);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('Comp. bateria virtual', x + 2, y + 3.5);
+                            doc.text(`-${num(supply.solarSurplus.batteryUsed, 2)} €`, x + width - 2, y + 3.5, { align: 'right' });
+                            y += 7;
+                        }
+                        
+                        y += 1;
+                        
                         // === TOTAL ===
                         doc.setFillColor(71, 85, 105);
                         doc.roundedRect(x, y, width, 9, 2, 2, 'F');
@@ -11638,6 +11692,19 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.text(`TOTAL (${res.dias_facturados || 0} DÍAS)`, x + 3, y + 6);
                         doc.text(eur(res.totalPeriod || res.importe_total || 0), x + width - 3, y + 6, { align: 'right' });
                         y += 12;
+                        
+                        // === SALDO BATERÍA VIRTUAL (solo columna izquierda) ===
+                        if (esColumnaIzq && supply._batteryBalanceAfter !== undefined && _batteryHasMovement(supply)) {
+                            doc.setFillColor(254, 243, 199);
+                            doc.setDrawColor(251, 191, 36);
+                            doc.setLineWidth(0.4);
+                            doc.roundedRect(x, y, width, 6, 1, 1, 'FD');
+                            doc.setTextColor(180, 83, 9);
+                            doc.setFontSize(5.5);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text(`Saldo bateria: ${eur(supply._batteryBalanceAfter)}/mes`, x + 2, y + 4);
+                            y += 8;
+                        }
                         
                         // === AHORRO ===
                         doc.setFillColor(220, 38, 38);
@@ -11822,6 +11889,59 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             
                             yPos += 3;
                             
+                            // === EXCEDENTES SOLARES ===
+                            if (supply.solarSurplus && supply.solarSurplus.enabled && supply.solarSurplus.monthlyDiscount > 0) {
+                                doc.setFillColor(251, 146, 60); // naranja
+                                doc.roundedRect(margin, yPos, contentWidth / 2 - 2, 6, 2, 2, 'F');
+                                doc.setTextColor(255, 255, 255);
+                                doc.setFontSize(6.5);
+                                doc.setFont('helvetica', 'bold');
+                                doc.text('EXCEDENTES SOLARES', margin + 2, yPos + 4);
+                                yPos += 8;
+                                
+                                // Desglose por período
+                                doc.setTextColor(234, 88, 12);
+                                doc.setFontSize(6);
+                                doc.setFont('helvetica', 'normal');
+                                if (supply.solarSurplus.excedente1 > 0) {
+                                    doc.text(`E1 (Punta): ${num(supply.solarSurplus.excedente1, 0)} kWh`, margin + 4, yPos);
+                                    yPos += 3;
+                                }
+                                if (supply.solarSurplus.excedente2 > 0) {
+                                    doc.text(`E2 (Llano): ${num(supply.solarSurplus.excedente2, 0)} kWh`, margin + 4, yPos);
+                                    yPos += 3;
+                                }
+                                if (supply.solarSurplus.excedente3 > 0) {
+                                    doc.text(`E3 (Valle): ${num(supply.solarSurplus.excedente3, 0)} kWh`, margin + 4, yPos);
+                                    yPos += 3;
+                                }
+                                
+                                // Total kWh x precio = descuento
+                                doc.setFontSize(6.5);
+                                doc.setFont('helvetica', 'bold');
+                                doc.setTextColor(146, 64, 14);
+                                const exTotalS = supply.solarSurplus.total || 0;
+                                const exPriceS = supply.solarSurplus.pricePerKwh || 0;
+                                const exDiscS = supply.solarSurplus.monthlyDiscount || 0;
+                                doc.text(`Total: ${num(exTotalS, 0)} kWh x ${numPriceFormula(exPriceS)} €/kWh`, margin + 4, yPos);
+                                doc.text(`-${num(exDiscS, 2)} €`, pageWidth - margin - 2, yPos, { align: 'right' });
+                                yPos += 5;
+                            }
+                            
+                            // === COMPENSACIÓN BATERÍA VIRTUAL ===
+                            if (supply.solarSurplus && supply.solarSurplus.batteryUsed > 0) {
+                                doc.setFillColor(255, 251, 235); // fondo crema
+                                doc.roundedRect(margin, yPos, contentWidth, 6, 2, 2, 'F');
+                                doc.setTextColor(138, 77, 14); // marrón
+                                doc.setFontSize(6.5);
+                                doc.setFont('helvetica', 'bold');
+                                doc.text('Compensacion bateria virtual', margin + 4, yPos + 4);
+                                doc.text(`-${num(supply.solarSurplus.batteryUsed, 2)} €`, pageWidth - margin - 2, yPos + 4, { align: 'right' });
+                                yPos += 8;
+                            }
+                            
+                            yPos += 2;
+                            
                             // Total del suministro
                             doc.setFillColor(...darkColor);
                             doc.rect(margin, yPos, contentWidth, 7, 'F');
@@ -11831,6 +11951,19 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             doc.text(`TOTAL (${supply.dias_facturados} DÍAS)`, margin + 2, yPos + 4.5);
                             doc.text(eur(supply.totalPeriod), pageWidth - margin - 2, yPos + 4.5, { align: 'right' });
                             yPos += 9;
+                            
+                            // === SALDO BATERÍA VIRTUAL tras este CUPS ===
+                            if (supply._batteryBalanceAfter !== undefined && _batteryHasMovement(supply)) {
+                                doc.setFillColor(254, 243, 199); // amarillo claro
+                                doc.setDrawColor(251, 191, 36);
+                                doc.setLineWidth(0.5);
+                                doc.roundedRect(margin, yPos, contentWidth, 7, 2, 2, 'FD');
+                                doc.setTextColor(180, 83, 9);
+                                doc.setFontSize(6.5);
+                                doc.setFont('helvetica', 'bold');
+                                doc.text(`Saldo bateria virtual tras este suministro: ${eur(supply._batteryBalanceAfter)}/mes`, margin + 3, yPos + 4.5);
+                                yPos += 10;
+                            }
                             
                             // === AHORRO INDIVIDUAL (DEBAJO DEL TOTAL) ===
                             if (!supply.isNegativeSavings) {
@@ -14392,7 +14525,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 if (resItem.solarSurplus && resItem.solarSurplus.enabled && resItem.solarSurplus.monthlyDiscount > 0) {
                     const totalEx = resItem.solarSurplus.total;
                     const discount = resItem.solarSurplus.monthlyDiscount;
-                    solarSurplusRow = `<tr><td style="padding: 5px 8px; font-family: monospace; font-size: 11px; color: #f97316;">${tr('Excedentes solares')} (${num(totalEx, 2)} kWh)</td><td style="padding: 5px 8px; font-family: monospace; font-size: 11px; font-weight: bold; color: #f97316; text-align: right; white-space: nowrap;">-${num(discount, 2)} €</td></tr>`;
+                    const exPriceKwh = resItem.solarSurplus.pricePerKwh || 0;
+                    solarSurplusRow = `<tr><td style="padding: 5px 8px; font-family: monospace; font-size: 11px; color: #f97316;">${tr('Excedentes solares')} (${num(totalEx, 2)} kWh x ${numPriceFormula(exPriceKwh)} €/kWh)</td><td style="padding: 5px 8px; font-family: monospace; font-size: 11px; font-weight: bold; color: #f97316; text-align: right; white-space: nowrap;">-${num(discount, 2)} €</td></tr>`;
                     if (isIndexTariff) {
                         solarSurplusRow += `<tr><td colspan="2" style="padding: 2px 8px 4px 20px; font-size: 10px; color: #d97706; font-style: italic;">⚠️ ${tr('Excedentes liquidados a precio variable de mercado')}</td></tr>`;
                     }

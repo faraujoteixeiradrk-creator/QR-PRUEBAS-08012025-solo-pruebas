@@ -4378,6 +4378,18 @@
                 });
                 
                 // MODIFICADO: Mostrar modal en modo individual CON ahorro, O en MULTICUPS cuando viene del modal de fotovoltaica
+                // EXCEPTO: si es MULTICUPS y los excedentes ya están aplicados en el resultado → ir directamente
+                const excedentesYaAplicados = isMultiCupsMode && final.solarSurplus && final.solarSurplus.enabled;
+                
+                if (excedentesYaAplicados) {
+                    // MULTICUPS con excedentes ya calculados: añadir directamente sin volver al modal
+                    console.log('☀️ MULTICUPS con excedentes ya aplicados - Añadiendo directamente');
+                    final._multiCupsContext = final._multiCupsContext || lastComparisonResult?._multiCupsContext;
+                    addSupplyToMultiCupsList(final);
+                    hideDecisionCheckboxes = false;
+                    return;
+                }
+                
                 if ((!isMultiCupsMode && hasOffersWithSavings) || (isMultiCupsMode && comesFromSolarModal)) {
                     console.log('✅✅✅ MOSTRANDO MODAL DE DECISIÓN con', availableOffers.length, 'ofertas (comesFromSolarModal:', comesFromSolarModal, ')');
                     
@@ -17422,8 +17434,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                 }
                 
-                // Usar la función centralizada para recalcular costes
-                const recalculated = recalculateCostsForOffer(lastComparisonResult, offerToUse);
+                // Usar calculateTariffCost que aplica automáticamente excedentes solares
+                // si solarSurplusEnabled está activo (recalculateCostsForOffer no los aplica)
+                const tariffTypeForCalc = lastComparisonResult.originalTariffType || lastComparisonResult.tariffType || '2.0TD';
+                const recalculated = calculateTariffCost(offerToUse, lastComparisonResult, tariffTypeForCalc);
                 
                 // CRÍTICO: Recalcular totalAnnual y savings usando los costes recalculados
                 // No usar result.totalAnnual que puede estar contaminado
@@ -17432,14 +17446,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 const diasFacturados = lastComparisonResult.dias_facturados || 30;
                 const factorAnual = 365 / diasFacturados;
                 
-                const subBase = recalculated.subPower + recalculated.subEnergyNet;
-                const costIE = subBase * IE_RATE;
-                const baseImp = subBase + costIE;
-                const costIVA = baseImp * IVA_RATE;
-                const totalPeriod = baseImp + costIVA;
-                const totalAnnual = totalPeriod * factorAnual;
+                // calculateTariffCost ya devuelve todos los costes finales (incluyendo excedentes solares)
+                const subBase = recalculated.subBase;
+                const costIE = recalculated.costIE;
+                const baseImp = recalculated.baseImp;
+                const costIVA = recalculated.costIVA;
+                const totalPeriod = recalculated.totalPeriod;
+                const totalAnnual = recalculated.totalAnnual;
                 const originalBillAnnual = lastComparisonResult.originalBillAnnual;
-                const savings = originalBillAnnual - totalAnnual;
+                const savings = recalculated.savings;
                 
                 console.log('Recalculated totalAnnual:', totalAnnual, 'savings:', savings);
                 
@@ -17459,7 +17474,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     costIE: costIE,
                     baseImp: baseImp,
                     costIVA: costIVA,
-                    isNegativeSavings: savings <= 0
+                    isNegativeSavings: savings <= 0,
+                    solarSurplus: recalculated.solarSurplus || null  // Excedentes solares aplicados
                 };
                 
                 console.log('Combined result with recalculated costs:', combinedResult);

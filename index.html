@@ -4761,6 +4761,8 @@
                         const factorAnual = cups.dias_facturados ? (365 / cups.dias_facturados) : 12;
                         cups.totalAnnual = cups.totalPeriod * factorAnual;
                         cups.savings = cups.originalBillAnnual - cups.totalAnnual;
+                        // CRÍTICO: Actualizar isNegativeSavings tras el recálculo con batería virtual
+                        cups.isNegativeSavings = cups.savings <= 0;
                         
                         // Registrar en solarSurplus
                         if (!cups.solarSurplus) {
@@ -4782,6 +4784,18 @@
                 
                 console.log(`🔋 === BATERÍA VIRTUAL FINAL: ${batteryBalance.toFixed(2)} €/mes | ${(batteryBalance * 12).toFixed(2)} €/año ===`);
             }
+
+            // CRÍTICO: Actualizar isNegativeSavings en todos los supplies DESPUÉS de batería virtual.
+            // Los excedentes y la batería pueden haber cambiado el ahorro de negativo a positivo,
+            // pero isNegativeSavings puede estar obsoleto desde saveSupply.
+            multiCupsData.forEach((cups) => {
+                if (cups.savings !== undefined && cups.savings !== null) {
+                    cups.isNegativeSavings = cups.savings <= 0;
+                }
+                if (cups.indexedComparison && cups.indexedComparison.savings !== undefined) {
+                    cups.indexedComparison.isNegativeSavings = cups.indexedComparison.savings <= 0;
+                }
+            });
 
             // 1. Acumular Totales y Consumos (FIJO)
             const total = multiCupsData.reduce((acc, current) => {
@@ -8901,9 +8915,8 @@
                     doc.text(`${supply.dias_facturados}`, margin + 118, yPos + 4.5, { align: 'center' });
                     
                     // Calcular ahorro (fijo vs indexado)
-                    const ahorroSupply = supply.savings || 0;
-                    const savSupply = ahorroSupply < 0 ? '0,00 €' : eur(ahorroSupply);
-                    const colorSupply = ahorroSupply < 0 ? [150, 150, 150] : greenColor;
+                    const savSupply = supply.isNegativeSavings ? '0,00 €' : eur(supply.savings);
+                    const colorSupply = supply.isNegativeSavings ? [150, 150, 150] : greenColor;
                     doc.setTextColor(...colorSupply);
                     doc.setFont('helvetica', 'bold');
                     doc.text(savSupply, pageWidth - margin - 2, yPos + 4.5, { align: 'right' });
@@ -9250,9 +9263,9 @@
                     doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'bold');
                     doc.text(supply.cups, leftX + 2, yPos + 4);
-                    doc.setTextColor(22, 163, 74);
+                    doc.setTextColor(...(supply.isNegativeSavings ? [150, 150, 150] : [22, 163, 74]));
                     doc.setFontSize(7);
-                    doc.text(eur(supply.savings), leftX + colWidth - 2, yPos + 4, { align: 'right' });
+                    doc.text(supply.isNegativeSavings ? '0,00 €' : eur(supply.savings), leftX + colWidth - 2, yPos + 4, { align: 'right' });
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(5.5);
                     doc.setFont('helvetica', 'normal');
@@ -9267,9 +9280,10 @@
                     doc.setFont('helvetica', 'bold');
                     doc.text(supply.cups, rightX + 2, yPos + 4);
                     const savingsIdx = supply.indexedComparison ? supply.indexedComparison.savings : 0;
-                    doc.setTextColor(22, 163, 74);
+                    const isNegIdx = supply.indexedComparison ? supply.indexedComparison.isNegativeSavings : true;
+                    doc.setTextColor(...(isNegIdx ? [150, 150, 150] : [22, 163, 74]));
                     doc.setFontSize(7);
-                    doc.text(eur(savingsIdx), rightX + colWidth - 2, yPos + 4, { align: 'right' });
+                    doc.text(isNegIdx ? '0,00 €' : eur(savingsIdx), rightX + colWidth - 2, yPos + 4, { align: 'right' });
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(5.5);
                     doc.setFont('helvetica', 'normal');
@@ -16967,7 +16981,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     const factorAnual = result.dias_facturados ? (365 / result.dias_facturados) : 12;
                     result.totalAnnual = result.totalPeriod * factorAnual;
                     result.savings = result.originalBillAnnual - result.totalAnnual;
-                    console.log('Recalculated totals: subBase=' + result.subBase.toFixed(2) + ' totalPeriod=' + result.totalPeriod.toFixed(2) + ' savings=' + result.savings.toFixed(2));
+                    // CRÍTICO: Actualizar isNegativeSavings tras el recálculo.
+                    // saveSupply lo puede haber seteado true antes de que se apliquen excedentes/batería.
+                    result.isNegativeSavings = result.savings <= 0;
+                    console.log('Recalculated totals: subBase=' + result.subBase.toFixed(2) + ' totalPeriod=' + result.totalPeriod.toFixed(2) + ' savings=' + result.savings.toFixed(2) + ' isNegativeSavings=' + result.isNegativeSavings);
                 }
                 console.log('Costs recalculated for', result.originalTariffType);
                 console.log('New subPower:', result.subPower, 'New subEnergyNet:', result.subEnergyNet);
@@ -16999,6 +17016,8 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 // Añadirlo al resultado principal
                 result.indexedComparison = resultIndexed;
+                // Actualizar isNegativeSavings del indexado
+                result.indexedComparison.isNegativeSavings = (result.indexedComparison.savings || 0) <= 0;
                 console.log('✅ indexedComparison asignado a result');
                 console.log('✅ indexedComparison final:', {
                     offer: result.indexedComparison.offer.name,
@@ -17040,6 +17059,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 console.log('  ❌ NO tiene indexedComparison');
             }
             console.log('═══════════════════════════════════════');
+            
+            // SAFETY NET: Asegurar isNegativeSavings es correcto justo antes del push.
+            // Puede estar obsoleto si saveSupply lo seteó antes de que se apliquen excedentes/batería.
+            if (result.savings !== undefined && result.savings !== null) {
+                result.isNegativeSavings = result.savings <= 0;
+            }
+            if (result.indexedComparison && result.indexedComparison.savings !== undefined) {
+                result.indexedComparison.isNegativeSavings = result.indexedComparison.savings <= 0;
+            }
             
             // Añadir a la lista
             multiCupsData.push(result);

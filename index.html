@@ -15146,6 +15146,15 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                 }
                 // NO resetear aquí - se reseteará al final
+            } else if (currentTariffType === 'MULTICUPS') {
+                // MULTICUPS: siempre ocultar ambos checkboxes.
+                // El comercial ya fue preguntado por fotovoltaica en el modal previo.
+                // Solo necesita ver "Ver mejor opción" / "Elegir entre resultados".
+                console.log('🚫 MULTICUPS - Ocultando ambos checkboxes');
+                checkboxContainer?.classList.add('hidden');
+                document.getElementById('solar-surplus-checkbox-container')?.classList.add('hidden');
+                // Asegurar que "Ver mejor opción" esté visible
+                document.getElementById('best-option-container')?.classList.remove('hidden');
             } else if (window.optimizedPowerEnabled || isDualMode) {
                 if (isDualMode) {
                     console.log('🔄 Modo DUAL activo - Ocultando checkbox Fijo & Indexado');
@@ -15178,7 +15187,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // NUEVO: Mostrar/Ocultar checkbox de Excedentes Solares solo para tarifa 2.0TD/3.0TD
             // PERO NO si hideDecisionCheckboxes está activo (ya se ocultó arriba)
-            if (!hideDecisionCheckboxes) {
+            if (!hideDecisionCheckboxes && currentTariffType !== 'MULTICUPS') {
                 const solarSurplusContainer = document.getElementById('solar-surplus-checkbox-container');
                 const solarCheckbox = document.getElementById('solar-surplus-checkbox');
                 
@@ -17968,6 +17977,13 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 if (isDualMode || isMultiCupsMode) {
                     // MODO DUAL o MULTICUPS: Continuar con el flujo normal, mostrar modal de decisión
                     console.log('🔄 Modo DUAL/MULTICUPS - Continuando con modal de decisión (aunque sea negativo)');
+                    
+                    // MULTICUPS sin excedentes: ocultar ambos checkboxes en el modal
+                    // (el comercial solo necesita "Ver mejor opción" / "Elegir entre resultados")
+                    if (isMultiCupsMode) {
+                        hideDecisionCheckboxes = true;
+                        console.log('🚫 MULTICUPS sin fotovoltaica - Ocultando checkboxes en modal');
+                    }
                     
                     if (tempNoSavingsResult) {
                         // Asegurar que el resultado tenga isNegativeSavings marcado

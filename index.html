@@ -5475,7 +5475,10 @@
             // 2. Nuevo: Resumen de Suministros (Tipo, CUPS, Ahorro Individual)
             let summaryListHTML = individualResults.map((resItem, index) => {
                 // MODIFICACIÓN #2: Eliminar "Sin Ahorro" en la vista interna, dejando un espacio.
-                const savingsText = resItem.isNegativeSavings ? `&nbsp;` : `(${tr('Ahorro')}: ${eur(resItem.savings)})`;
+                const hasBatteryCompensation = resItem._batteryUsed > 0 || (resItem.solarSurplus && resItem.solarSurplus.batteryUsed > 0);
+                const savingsText = resItem.isNegativeSavings
+                    ? (hasBatteryCompensation ? `(${tr('Diferencia')}: ${eur(resItem.savings)})` : `&nbsp;`)
+                    : `(${tr('Ahorro')}: ${eur(resItem.savings)})`;
                 
                 // Incluir dirección si existe
                 const addressHTML = resItem.supplyAddress && resItem.supplyAddress !== 'No especificada' 
@@ -5499,7 +5502,7 @@
                     <div class="flex justify-between items-center">
                         <span class="font-bold text-sm text-slate-700">${resItem.cups}</span>
                         <span class="text-xs text-drk-800 font-semibold">${resItem.originalTariffType}</span>
-                        <span class="text-xs ${resItem.isNegativeSavings ? 'text-slate-500' : 'text-cta-green-600 font-medium'}">${savingsText}</span>
+                        <span class="text-xs ${resItem.isNegativeSavings ? (hasBatteryCompensation ? 'text-amber-600 font-medium' : 'text-slate-500') : 'text-cta-green-600 font-medium'}">${savingsText}</span>
                     </div>
                     ${addressHTML}
                     ${excessHTML}
@@ -5748,8 +5751,10 @@
                     }
                 });
                 
+                const hasBattCompensation = resItem._batteryUsed > 0 || (resItem.solarSurplus && resItem.solarSurplus.batteryUsed > 0);
                 const statusText = resItem.isNegativeSavings ? 
-                    `<p class="text-sm font-bold text-cta-red-600 mb-2">⚠️ ${tr('TU TARIFA ACTUAL es la mejor')}</p>` :
+                    `<p class="text-sm font-bold text-cta-red-600 mb-1">⚠️ ${tr('TU TARIFA ACTUAL es la mejor')}</p>` +
+                    (hasBattCompensation ? `<p class="text-xs text-amber-600 font-semibold mb-2">🔋 ${tr('Diferencia anual')}: ${eur(resItem.savings)}</p>` : '') :
                     `<p class="text-sm font-bold text-cta-green-600 mb-2">💰 ${tr('AHORRO ANUAL')}: ${eur(resItem.savings)}</p>`;
 
                 allBreakdownsHTML += `
@@ -8935,8 +8940,9 @@
                     doc.text(`${supply.dias_facturados}`, margin + 118, yPos + 4.5, { align: 'center' });
                     
                     // Calcular ahorro (fijo vs indexado)
-                    const savSupply = supply.isNegativeSavings ? '0,00 €' : eur(supply.savings);
-                    const colorSupply = supply.isNegativeSavings ? [150, 150, 150] : greenColor;
+                    const hasBattPDF = supply._batteryUsed > 0 || (supply.solarSurplus && supply.solarSurplus.batteryUsed > 0);
+                    const savSupply = supply.isNegativeSavings ? (hasBattPDF ? eur(supply.savings) : '0,00 €') : eur(supply.savings);
+                    const colorSupply = supply.isNegativeSavings ? (hasBattPDF ? [180, 83, 9] : [150, 150, 150]) : greenColor;
                     doc.setTextColor(...colorSupply);
                     doc.setFont('helvetica', 'bold');
                     doc.text(savSupply, pageWidth - margin - 2, yPos + 4.5, { align: 'right' });
@@ -9189,15 +9195,29 @@
                     doc.text(eur(resultado.totalPeriod || 0), x + width - 3, y + 6, { align: 'right' });
                     y += 12;
                     
-                    // === AHORRO ===
-                    doc.setFillColor(220, 38, 38);
-                    doc.roundedRect(x + width - 55, y, 52, 10, 2, 2, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text('AHORRO:', x + width - 52, y + 4);
-                    doc.setFontSize(9);
-                    doc.text(eur(resultado.savings || 0), x + width - 28, y + 7, { align: 'center' });
+                    // === AHORRO / DIFERENCIA ===
+                    const hasBattDetalleDual = resultado._batteryUsed > 0 || (resultado.solarSurplus && resultado.solarSurplus.batteryUsed > 0);
+                    if (!resultado.isNegativeSavings) {
+                        // Ahorro positivo: caja roja con AHORRO
+                        doc.setFillColor(220, 38, 38);
+                        doc.roundedRect(x + width - 55, y, 52, 10, 2, 2, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(7);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('AHORRO:', x + width - 52, y + 4);
+                        doc.setFontSize(9);
+                        doc.text(eur(resultado.savings || 0), x + width - 28, y + 7, { align: 'center' });
+                    } else if (hasBattDetalleDual) {
+                        // Sin ahorro pero con batería virtual: caja naranja con DIFERENCIA
+                        doc.setFillColor(251, 191, 36);
+                        doc.roundedRect(x + width - 55, y, 52, 10, 2, 2, 'F');
+                        doc.setTextColor(92, 60, 12);
+                        doc.setFontSize(7);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('DIFERENCIA:', x + width - 52, y + 4);
+                        doc.setFontSize(9);
+                        doc.text(eur(resultado.savings || 0), x + width - 28, y + 7, { align: 'center' });
+                    }
                 }
                 
                 console.log('✅ PASO 5: Función generarDesgloseDetalladoCUPS definida');
@@ -9283,9 +9303,9 @@
                     doc.setFontSize(6.5);
                     doc.setFont('helvetica', 'bold');
                     doc.text(supply.cups, leftX + 2, yPos + 4);
-                    doc.setTextColor(...(supply.isNegativeSavings ? [150, 150, 150] : [22, 163, 74]));
+                    doc.setTextColor(...(supply.isNegativeSavings ? (supply._batteryUsed > 0 || (supply.solarSurplus && supply.solarSurplus.batteryUsed > 0) ? [180, 83, 9] : [150, 150, 150]) : [22, 163, 74]));
                     doc.setFontSize(7);
-                    doc.text(supply.isNegativeSavings ? '0,00 €' : eur(supply.savings), leftX + colWidth - 2, yPos + 4, { align: 'right' });
+                    doc.text(supply.isNegativeSavings ? ((supply._batteryUsed > 0 || (supply.solarSurplus && supply.solarSurplus.batteryUsed > 0)) ? eur(supply.savings) : '0,00 €') : eur(supply.savings), leftX + colWidth - 2, yPos + 4, { align: 'right' });
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(5.5);
                     doc.setFont('helvetica', 'normal');
@@ -11496,8 +11516,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         doc.setFont('helvetica', 'normal');
                         doc.text(`${supply.dias_facturados}`, margin + 118, yPos + 4.5, { align: 'center' });
                         
-                        const savSupply = supply.isNegativeSavings ? '0,00 €' : eur(supply.savings);
-                        const colorSupply = supply.isNegativeSavings ? [150, 150, 150] : greenColor;
+                        const hasBattPDFSimple = supply._batteryUsed > 0 || (supply.solarSurplus && supply.solarSurplus.batteryUsed > 0);
+                        const savSupply = supply.isNegativeSavings ? (hasBattPDFSimple ? eur(supply.savings) : '0,00 €') : eur(supply.savings);
+                        const colorSupply = supply.isNegativeSavings ? (hasBattPDFSimple ? [180, 83, 9] : [150, 150, 150]) : greenColor;
                         doc.setTextColor(...colorSupply);
                         doc.setFont('helvetica', 'bold');
                         doc.text(savSupply, pageWidth - margin - 2, yPos + 4.5, { align: 'right' });
@@ -11740,15 +11761,27 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                             y += 8;
                         }
                         
-                        // === AHORRO ===
-                        doc.setFillColor(220, 38, 38);
-                        doc.roundedRect(x + width - 55, y, 52, 10, 2, 2, 'F');
-                        doc.setTextColor(255, 255, 255);
-                        doc.setFontSize(7);
-                        doc.setFont('helvetica', 'bold');
-                        doc.text('AHORRO:', x + width - 52, y + 4);
-                        doc.setFontSize(9);
-                        doc.text(eur(res.savings || 0), x + width - 28, y + 7, { align: 'center' });
+                        // === AHORRO / DIFERENCIA ===
+                        const hasBattMC = res._batteryUsed > 0 || (res.solarSurplus && res.solarSurplus.batteryUsed > 0);
+                        if (!res.isNegativeSavings) {
+                            doc.setFillColor(220, 38, 38);
+                            doc.roundedRect(x + width - 55, y, 52, 10, 2, 2, 'F');
+                            doc.setTextColor(255, 255, 255);
+                            doc.setFontSize(7);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('AHORRO:', x + width - 52, y + 4);
+                            doc.setFontSize(9);
+                            doc.text(eur(res.savings || 0), x + width - 28, y + 7, { align: 'center' });
+                        } else if (hasBattMC) {
+                            doc.setFillColor(251, 191, 36);
+                            doc.roundedRect(x + width - 55, y, 52, 10, 2, 2, 'F');
+                            doc.setTextColor(92, 60, 12);
+                            doc.setFontSize(7);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text('DIFERENCIA:', x + width - 52, y + 4);
+                            doc.setFontSize(9);
+                            doc.text(eur(res.savings || 0), x + width - 28, y + 7, { align: 'center' });
+                        }
                     }
                     
                     // Por cada suministro
@@ -12015,7 +12048,25 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                 doc.text(eur(supply.savings), ahorroX + ahorroWidth - 2, yPos + 6, { align: 'right' });
                                 yPos += ahorroHeight + 4;
                             } else {
-                                yPos += 3;
+                                // Sin ahorro pero con batería virtual: mostrar diferencia negativa
+                                const hasBattDetalle = supply._batteryUsed > 0 || (supply.solarSurplus && supply.solarSurplus.batteryUsed > 0);
+                                if (hasBattDetalle) {
+                                    const difWidth = 55;
+                                    const difHeight = 8;
+                                    const difX = pageWidth - margin - difWidth;
+                                    
+                                    doc.setFillColor(251, 191, 36); // amarillo/naranja
+                                    doc.roundedRect(difX, yPos, difWidth, difHeight, 2, 2, 'F');
+                                    doc.setTextColor(92, 60, 12); // marrón oscuro
+                                    doc.setFontSize(6);
+                                    doc.setFont('helvetica', 'bold');
+                                    doc.text('DIFERENCIA:', difX + 2, yPos + 3.5);
+                                    doc.setFontSize(10);
+                                    doc.text(eur(supply.savings), difX + difWidth - 2, yPos + 6, { align: 'right' });
+                                    yPos += difHeight + 4;
+                                } else {
+                                    yPos += 3;
+                                }
                             }
                         }
                     });

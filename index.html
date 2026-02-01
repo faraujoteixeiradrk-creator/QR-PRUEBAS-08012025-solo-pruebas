@@ -4717,27 +4717,36 @@
             });
             
             // === PASO 0: BATERÍA VIRTUAL ENTRE CUPS ===
-            // Una sola pasada secuencial. Para cada CUPS en orden:
-            //   A) Aporta su exceso a la batería (exceso = excedentes_bruto - energía_propia)
-            //   B) Consume de la batería si tiene energía residual tras sus excedentes propios
-            // El saldo es un running total que crece con aportes y shrinks con consumos.
+            // Modelo correcto para titular único (mismo DNI/CIF):
+            //   PASADA 1: Cada CUPS aporta su exceso sobrante a una batería común.
+            //             Los excesos ya son netos (lo que sobró tras autocompensarse).
+            //   PASADA 2: Con la batería total acumulada, recorrer todos los CUPS en orden
+            //             y compensar su energía residual (subEnergyNet) hasta donde alcance.
+            // Esto garantiza que los CUPS sin fotovoltaica reciben compensación
+            // independientemente de en qué orden fueron introducidos.
             {
+                // --- PASADA 1: Acumular todos los excesos en la batería ---
                 let batteryBalance = 0;
                 
                 multiCupsData.forEach((cups) => {
-                    cups._batteryUsed = 0;
-                    cups._batteryBalanceBefore = batteryBalance;
+                    cups._batteryUsed = 0; // Resetear antes de la pasada 2
                     
-                    // A) Este CUPS aporta su exceso sobrante a la batería
                     const ownExcess = (cups.solarSurplus && cups.solarSurplus.enabled)
                         ? (cups.solarSurplus.excessMonthly || 0)
                         : 0;
                     if (ownExcess > 0) {
                         batteryBalance += ownExcess;
-                        console.log(`🔋 CUPS ${cups.cups}: aporta exceso +${ownExcess.toFixed(2)} € → saldo: ${batteryBalance.toFixed(2)} €`);
+                        console.log(`🔋 P1 | ${cups.cups}: aporta exceso +${ownExcess.toFixed(2)} € → batería total: ${batteryBalance.toFixed(2)} €`);
                     }
+                });
+                
+                console.log(`🔋 === BATERÍA TOTAL tras pasada 1: ${batteryBalance.toFixed(2)} €/mes ===`);
+                
+                // --- PASADA 2: Distribuir batería entre todos los CUPS con energía residual ---
+                multiCupsData.forEach((cups) => {
+                    cups._batteryBalanceBefore = batteryBalance;
                     
-                    // B) Este CUPS consume de la batería si tiene energía residual
+                    // Energía residual: lo que este CUPS aún debe pagar tras sus propios excedentes
                     const energiaResidual = cups.subEnergyNet !== undefined ? cups.subEnergyNet : 0;
                     
                     if (energiaResidual > 0 && batteryBalance > 0) {
@@ -4761,7 +4770,6 @@
                         const factorAnual = cups.dias_facturados ? (365 / cups.dias_facturados) : 12;
                         cups.totalAnnual = cups.totalPeriod * factorAnual;
                         cups.savings = cups.originalBillAnnual - cups.totalAnnual;
-                        // CRÍTICO: Actualizar isNegativeSavings tras el recálculo con batería virtual
                         cups.isNegativeSavings = cups.savings <= 0;
                         
                         // Registrar en solarSurplus
@@ -4771,15 +4779,15 @@
                         cups.solarSurplus.batteryUsed = compensacionBateria;
                         cups.solarSurplus.batteryUsedAnnual = compensacionBateria * 12;
                         
-                        console.log(`🔋 CUPS ${cups.cups}: consume batería -${compensacionBateria.toFixed(2)} € → saldo: ${batteryBalance.toFixed(2)} €`);
+                        console.log(`🔋 P2 | ${cups.cups}: consume batería -${compensacionBateria.toFixed(2)} € → saldo: ${batteryBalance.toFixed(2)} €`);
                     }
                     
-                    // Saldo después de procesar este CUPS (aporta + consume)
+                    // Saldo después de procesar este CUPS en la pasada 2
                     cups._batteryBalanceAfter = batteryBalance;
-                    console.log(`🔋 CUPS ${cups.cups} resumen: exceso=${ownExcess.toFixed(2)} bat=${cups._batteryUsed.toFixed(2)} saldo=${batteryBalance.toFixed(2)}`);
+                    console.log(`🔋 P2 | ${cups.cups} resumen: bat=${cups._batteryUsed.toFixed(2)} saldo=${batteryBalance.toFixed(2)}`);
                 });
                 
-                // Saldo final global
+                // Saldo final global (lo que sobró tras compensar todos los CUPS)
                 multiCupsData.forEach((cups) => { cups._batteryFinalBalance = batteryBalance; });
                 
                 console.log(`🔋 === BATERÍA VIRTUAL FINAL: ${batteryBalance.toFixed(2)} €/mes | ${(batteryBalance * 12).toFixed(2)} €/año ===`);

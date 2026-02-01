@@ -15154,15 +15154,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     }
                 }
                 // NO resetear aquí - se reseteará al final
-            } else if (currentTariffType === 'MULTICUPS') {
-                // MULTICUPS: siempre ocultar ambos checkboxes.
-                // El comercial ya fue preguntado por fotovoltaica en el modal previo.
-                // Solo necesita ver "Ver mejor opción" / "Elegir entre resultados".
-                console.log('🚫 MULTICUPS - Ocultando ambos checkboxes');
-                checkboxContainer?.classList.add('hidden');
-                document.getElementById('solar-surplus-checkbox-container')?.classList.add('hidden');
-                // Asegurar que "Ver mejor opción" esté visible
-                document.getElementById('best-option-container')?.classList.remove('hidden');
             } else if (window.optimizedPowerEnabled || isDualMode) {
                 if (isDualMode) {
                     console.log('🔄 Modo DUAL activo - Ocultando checkbox Fijo & Indexado');
@@ -15195,7 +15186,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             
             // NUEVO: Mostrar/Ocultar checkbox de Excedentes Solares solo para tarifa 2.0TD/3.0TD
             // PERO NO si hideDecisionCheckboxes está activo (ya se ocultó arriba)
-            if (!hideDecisionCheckboxes && currentTariffType !== 'MULTICUPS') {
+            if (!hideDecisionCheckboxes) {
                 const solarSurplusContainer = document.getElementById('solar-surplus-checkbox-container');
                 const solarCheckbox = document.getElementById('solar-surplus-checkbox');
                 

@@ -15482,59 +15482,50 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             const hasSolarSurplus = solarCheckbox && solarCheckbox.checked && solarSurplusEnabled && solarSurplusData.total > 0;
             
             if (hasSolarSurplus) {
-                console.log('☀️☀️☀️ EXCEDENTES SOLARES DETECTADOS - Iniciando recálculo completo');
+                console.log('☀️☀️☀️ EXCEDENTES SOLARES DETECTADOS - Recalculando ofertas inline (sin compareOffers)');
                 console.log('Datos de excedentes:', solarSurplusData);
                 
-                // CRÍTICO: Activar flags para ocultar checkboxes en el próximo modal
-                alreadyAskedAboutSolar = false; // Permitir que el flujo continúe normalmente
-                skipDecisionModal = true; // ✅ ACTIVAR para que compareOffers active hideDecisionCheckboxes
-                
-                // TAMBIÉN activar directamente hideDecisionCheckboxes por si acaso
-                hideDecisionCheckboxes = true;
-                console.log('✅ Flags activados - Los checkboxes se ocultarán en el modal:', {
-                    skipDecisionModal: skipDecisionModal,
-                    hideDecisionCheckboxes: hideDecisionCheckboxes
-                });
-                
-                // CRÍTICO: Cerrar el modal de decisión
-                closeOfferDecisionModal();
-                
-                // IMPORTANTE: Recalcular COMPLETAMENTE usando compareOffers
-                // Esto asegura que todo el flujo se ejecute correctamente
-                if (lastComparisonResult) {
-                    console.log('🔄 Ejecutando compareOffers() con excedentes solares...');
-                    
-                    // Asegurarnos de que los datos de excedentes estén en lastComparisonResult
-                    lastComparisonResult.solarSurplus = {
-                        enabled: true,
-                        excedente1: solarSurplusData.excedente1,
-                        excedente2: solarSurplusData.excedente2,
-                        excedente3: solarSurplusData.excedente3,
-                        total: solarSurplusData.total,
-                        pricePerKwh: solarSurplusData.pricePerKwh
-                    };
-                    
-                    // CRÍTICO: Resetear estado solar DESPUÉS de copiar datos al objeto
-                    // Si no se resetea aquí, cuando compareOffers vuelva a mostrar el modal
-                    // y el usuario elija "Ver mejor opción" de nuevo, hasSolarSurplus será TRUE
-                    // → llamará a compareOffers de nuevo → BUCLE INFINITO
-                    solarSurplusEnabled = false;
-                    solarSurplusData = { excedente1: 0, excedente2: 0, excedente3: 0, total: 0, discount: 0, pricePerKwh: 0 };
-                    const solarCbReset = document.getElementById('solar-surplus-checkbox');
-                    if (solarCbReset) solarCbReset.checked = false;
-                    
-                    // Resetear bandera ANTES de llamar a compareOffers
-                    isProcessingBestOption = false;
-                    
-                    // Llamar a compareOffers para recalcular TODO
-                    compareOffers(lastComparisonResult);
-                    return; // SALIR aquí - compareOffers manejará el resto del flujo
-                } else {
-                    console.error('❌ No hay lastComparisonResult disponible para recalcular');
+                if (!lastComparisonResult) {
+                    console.error('❌ No hay lastComparisonResult disponible');
                     window.showErrorModal('Error: No se pueden aplicar los excedentes solares. Por favor, intente de nuevo.');
                     isProcessingBestOption = false;
                     return;
                 }
+                
+                // Guardar excedentes en el objeto (para que los tenga el resultado final)
+                lastComparisonResult.solarSurplus = {
+                    enabled: true,
+                    excedente1: solarSurplusData.excedente1,
+                    excedente2: solarSurplusData.excedente2,
+                    excedente3: solarSurplusData.excedente3,
+                    total: solarSurplusData.total,
+                    pricePerKwh: solarSurplusData.pricePerKwh
+                };
+                
+                // Recalcular TODAS las ofertas con excedentes activos (solarSurplusEnabled sigue TRUE aquí)
+                const tariffTypeForCalc = lastComparisonResult.originalTariffType || lastComparisonResult.tariffType || currentTariffType;
+                let tariffsToRecalc = currentTariffs[tariffTypeForCalc] || [];
+                if (comparisonMode === 'drk_only') {
+                    tariffsToRecalc = tariffsToRecalc.filter(t => t.isDrk === true);
+                }
+                
+                // calculateTariffCost leerá solarSurplusEnabled=true y solarSurplusData correctos
+                availableOffers = tariffsToRecalc.map(t => {
+                    const r = calculateTariffCost(t, lastComparisonResult, tariffTypeForCalc);
+                    r.savings = r.originalBillAnnual - r.totalAnnual;
+                    return r;
+                }).filter(r => r.savings > 0);
+                
+                console.log('☀️ Ofertas recalculadas con excedentes:', availableOffers.length, 'con ahorro positivo');
+                
+                // AHORA resetear los globales de solar (ya no los necesitamos, los datos están en el objeto y en availableOffers)
+                solarSurplusEnabled = false;
+                solarSurplusData = { excedente1: 0, excedente2: 0, excedente3: 0, total: 0, discount: 0, pricePerKwh: 0 };
+                const solarCbReset = document.getElementById('solar-surplus-checkbox');
+                if (solarCbReset) solarCbReset.checked = false;
+                
+                // CAER al path normal de filtrado + selección + render (no retornar aquí)
+                console.log('☀️ Cayendo al path normal con availableOffers actualizados');
             }
             
             console.log('Elección:', bestOptionTariffChoice);

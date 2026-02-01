@@ -16763,7 +16763,24 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 result.energyCosts = recalculated.energyCosts;
                 result.powerCosts = recalculated.powerCosts;
                 result.subPower = recalculated.subPower;
-                result.subEnergyNet = recalculated.subEnergyNet;
+                // subEnergyNet del recálculo es el valor BRUTO (sin excedentes).
+                // Si este CUPS tiene excedentes solares aplicados, re-aplicar el descuento.
+                let subEnergyBruto = recalculated.subEnergyNet;
+                if (result.solarSurplus && result.solarSurplus.enabled && result.solarSurplus.monthlyDiscount > 0) {
+                    // Guardar el bruto para referencia
+                    result.subEnergyGross = subEnergyBruto;
+                    // Re-aplicar el descuento ya calculado (limitado al máximo compensable)
+                    const descuentoExcedentes = Math.min(result.solarSurplus.monthlyDiscount, subEnergyBruto);
+                    result.subEnergyNet = subEnergyBruto - descuentoExcedentes;
+                    // También actualizar excessMonthly por si el cap cambió con los nuevos precios
+                    const rawDiscount = (result.solarSurplus.total || 0) * (result.solarSurplus.pricePerKwh || 0);
+                    result.solarSurplus.monthlyDiscount = descuentoExcedentes;
+                    result.solarSurplus.excessMonthly = rawDiscount - descuentoExcedentes;
+                    result.solarSurplus.excessAnnual = result.solarSurplus.excessMonthly * 12;
+                    console.log('Re-aplicado excedentes: bruto=' + subEnergyBruto.toFixed(2) + ' descuento=' + descuentoExcedentes.toFixed(2) + ' neto=' + result.subEnergyNet.toFixed(2) + ' excess=' + result.solarSurplus.excessMonthly.toFixed(2));
+                } else {
+                    result.subEnergyNet = subEnergyBruto;
+                }
                 console.log('Costs recalculated for', result.originalTariffType);
                 console.log('New subPower:', result.subPower, 'New subEnergyNet:', result.subEnergyNet);
             }

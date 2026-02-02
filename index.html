@@ -24418,6 +24418,7 @@ ${clientName}
             const descuento_energia = parseEuropeanNumber(tariff.Descuento_Energia) / 100;
             const p_fijo_anual = parseEuropeanNumber(tariff.p_fijo_1 || tariff.P_fijo_1);
             const descuento_potencia = parseEuropeanNumber(tariff.Descuento_Potencia) / 100;
+            const comision = parseEuropeanNumber(tariff.COMISION || tariff.Comision || tariff.comision || 0);
             
             console.log('🧮 Calculando:', {
                 name: tariff.name || tariff.Name,
@@ -24425,7 +24426,8 @@ ${clientName}
                 descuento_energia: (descuento_energia * 100) + '%',
                 p_fijo_anual: p_fijo_anual + ' (original: ' + (tariff.p_fijo_1 || tariff.P_fijo_1) + ')',
                 descuento_potencia: (descuento_potencia * 100) + '%',
-                dias: dias
+                dias: dias,
+                comision: comision
             });
             
             // 1. TÉRMINO FIJO
@@ -24467,6 +24469,9 @@ ${clientName}
             const ahorro_mensual = dias !== 30 ? (ahorro_periodo * 30) / dias : ahorro_periodo;
             const ahorro_anual = ahorro_mensual * 12;
             
+            // 9. COMISIÓN ANUAL: (kwh / 1000) × COMISION × 12
+            const comision_anual = kwh > 0 && comision > 0 ? (kwh / 1000) * comision * 12 : 0;
+            
             console.log('💰 Resultado:', {
                 total_fijo: total_fijo.toFixed(2) + '€',
                 total_energia: total_energia.toFixed(2) + '€',
@@ -24495,7 +24500,9 @@ ${clientName}
                 // Ahorro
                 ahorro_periodo: ahorro_periodo,
                 ahorro_mensual: ahorro_mensual,
-                ahorro_anual: ahorro_anual
+                ahorro_anual: ahorro_anual,
+                // Comisión
+                comision_anual: comision_anual
             };
         }
         
@@ -24781,6 +24788,12 @@ ${clientName}
                             <span class="font-bold">Ahorro anual:</span>
                             <span class="font-bold">${isPositiveSaving ? '+' : ''}${result.ahorro_anual.toFixed(2)} €</span>
                         </div>
+                        ${result.comision_anual > 0 ? `
+                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-300">
+                            <span class="font-semibold text-blue-600">💰 Comisión aprox. anual:</span>
+                            <span class="font-bold text-blue-600">${result.comision_anual.toFixed(2)} €</span>
+                        </div>
+                        ` : ''}
                     </div>
                 </div>
                 `;

@@ -4390,11 +4390,13 @@
                         window.dualAddFromResults('electricidad', tariff, dd, res, result);
                     }
                     
-                    // Si los excedentes ya están aplicados en el resultado → añadir directamente
+                    // Si los excedentes ya están aplicados → mostrar modal de decisión con todas las ofertas
+                    // El usuario necesita poder elegir entre todas las opciones (incluyendo negativas)
+                    // para intentar compensar en el conjunto DUAL
                     if (final.solarSurplus && final.solarSurplus.enabled) {
-                        console.log('☀️ DUAL con excedentes ya aplicados - Añadiendo directamente');
-                        dualAddDirect(final, dualTariff);
-                        hideDecisionCheckboxes = false;
+                        console.log('☀️ DUAL con excedentes ya aplicados - Mostrando modal de decisión con todas las ofertas');
+                        hideDecisionCheckboxes = true;
+                        showOfferDecisionModal();
                         return;
                     }
                     
@@ -4448,16 +4450,15 @@
                     hasSolarSurplus: !!(final.solarSurplus && final.solarSurplus.enabled)
                 });
                 
-                // MODIFICADO: Mostrar modal en modo individual CON ahorro, O en MULTICUPS cuando viene del modal de fotovoltaica
-                // EXCEPTO: si es MULTICUPS y los excedentes ya están aplicados en el resultado → ir directamente
+                // Si los excedentes ya están aplicados en MULTICUPS → mostrar modal de decisión
+                // El usuario necesita poder elegir entre todas las ofertas (incluyendo negativas)
                 const excedentesYaAplicados = isMultiCupsMode && final.solarSurplus && final.solarSurplus.enabled;
                 
                 if (excedentesYaAplicados) {
-                    // MULTICUPS con excedentes ya calculados: añadir directamente sin volver al modal
-                    console.log('☀️ MULTICUPS con excedentes ya aplicados - Añadiendo directamente');
+                    console.log('☀️ MULTICUPS con excedentes ya aplicados - Mostrando modal de decisión con todas las ofertas');
                     final._multiCupsContext = final._multiCupsContext || lastComparisonResult?._multiCupsContext;
-                    addSupplyToMultiCupsList(final);
-                    hideDecisionCheckboxes = false;
+                    hideDecisionCheckboxes = true;
+                    showOfferDecisionModal();
                     return;
                 }
                 
@@ -17989,12 +17990,9 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     // MODO DUAL o MULTICUPS: Continuar con el flujo normal, mostrar modal de decisión
                     console.log('🔄 Modo DUAL/MULTICUPS - Continuando con modal de decisión (aunque sea negativo)');
                     
-                    // MULTICUPS sin excedentes: ocultar ambos checkboxes en el modal
-                    // (el comercial solo necesita "Ver mejor opción" / "Elegir entre resultados")
-                    if (isMultiCupsMode) {
-                        hideDecisionCheckboxes = true;
-                        console.log('🚫 MULTICUPS sin fotovoltaica - Ocultando checkboxes en modal');
-                    }
+                    // En DUAL y MULTICUPS sin excedentes: ocultar checkboxes en el modal
+                    hideDecisionCheckboxes = true;
+                    console.log('🚫 DUAL/MULTICUPS sin fotovoltaica - Ocultando checkboxes en modal');
                     
                     if (tempNoSavingsResult) {
                         // Asegurar que el resultado tenga isNegativeSavings marcado
@@ -18004,19 +18002,28 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         // CRÍTICO: Asignar tempNoSavingsResult a lastComparisonResult para que el modal funcione
                         lastComparisonResult = tempNoSavingsResult;
                         
-                        // NUEVO: Asegurar que availableOffers tenga al menos la oferta actual
-                        // IMPORTANTE: availableOffers espera objetos con estructura {offer: {...}, ...}
-                        if (availableOffers.length === 0) {
-                            console.log('⚠️ availableOffers vacío - Añadiendo oferta actual para modo DUAL/MULTICUPS');
-                            // Crear un objeto de oferta con la estructura correcta
-                            const offerWrapper = {
-                                offer: tempNoSavingsResult.offer || tempNoSavingsResult.bestOffer,
-                                annual_cost: tempNoSavingsResult.totalAnnual || 0,
-                                total_cost_period: tempNoSavingsResult.totalPeriod || 0,
-                                savings: tempNoSavingsResult.savings || 0
-                            };
-                            availableOffers = [offerWrapper];
-                            console.log('✅ Oferta añadida a availableOffers:', offerWrapper);
+                        // CRÍTICO: Recalcular availableOffers con TODAS las ofertas (incluyendo negativas)
+                        // En DUAL/MULTICUPS el ahorro es acumulativo así que necesitamos todas las opciones
+                        const tariffTypeForRecalc = tempNoSavingsResult.originalTariffType || tempNoSavingsResult.tariffType || currentTariffType;
+                        let tariffsForRecalc = currentTariffs[tariffTypeForRecalc] || [];
+                        if (comparisonMode === 'drk_only') {
+                            tariffsForRecalc = tariffsForRecalc.filter(t => t.isDrk === true);
+                        }
+                        
+                        if (tariffsForRecalc.length > 0) {
+                            availableOffers = tariffsForRecalc.map(t => {
+                                const r = calculateTariffCost(t, tempNoSavingsResult, tariffTypeForRecalc);
+                                r.savings = r.originalBillAnnual - r.totalAnnual;
+                                return r;
+                            }).filter(r => {
+                                if (comparisonMode === 'drk_only') return r.offer.isDrk && r.offer.name !== 'Tu Tarifa Actual';
+                                return r.offer.name !== 'Tu Tarifa Actual';
+                            });
+                            console.log('✅ availableOffers recalculados:', availableOffers.length, 'ofertas (incluye negativas)');
+                        } else if (availableOffers.length === 0) {
+                            // Fallback: usar el resultado actual
+                            console.log('⚠️ No hay tarifas para recalcular - usando resultado actual como fallback');
+                            availableOffers = [tempNoSavingsResult];
                         }
                         
                         // IMPORTANTE: En DUAL/MULTICUPS necesitamos el modal de decisión incluso sin ahorro

@@ -17253,6 +17253,17 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     ? (totalConsumoMensual / 1000) * fee * 12 
                     : 0;
                 
+                // DEBUG: Log para ver si el FEE se está leyendo
+                if (originalIndex === 0) {
+                    console.log('🔍 DEBUG Comisión - Primera oferta:', {
+                        name: name,
+                        fee: fee,
+                        totalConsumoMensual: totalConsumoMensual,
+                        comisionAnual: comisionAnual,
+                        offerKeys: Object.keys(offer.offer).sort()
+                    });
+                }
+                
                 // Para DRK, usar el campo que tenga más información como título
                 let displayTitle, displaySubtitle;
                 if (offer.offer.isDrk) {

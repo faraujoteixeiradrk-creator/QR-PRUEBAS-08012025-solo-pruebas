@@ -17247,17 +17247,17 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 const description = offer.offer.description || '';
                 const name = offer.offer.name || '';
                 
-                // Calcular comisión anual: (kWh mensual / 1000) × FEE × 12
-                const fee = parseFloat(offer.offer.fee || 0);
-                const comisionAnual = totalConsumoMensual > 0 && fee > 0 
-                    ? (totalConsumoMensual / 1000) * fee * 12 
+                // Calcular comisión anual: (kWh mensual / 1000) × COMISION × 12
+                const comision = parseFloat(offer.offer.comision || 0);
+                const comisionAnual = totalConsumoMensual > 0 && comision > 0 
+                    ? (totalConsumoMensual / 1000) * comision * 12 
                     : 0;
                 
-                // DEBUG: Log para ver si el FEE se está leyendo
+                // DEBUG: Log para ver si la COMISION se está leyendo
                 if (originalIndex === 0) {
                     console.log('🔍 DEBUG Comisión - Primera oferta:', {
                         name: name,
-                        fee: fee,
+                        comision: comision,
                         totalConsumoMensual: totalConsumoMensual,
                         comisionAnual: comisionAnual,
                         offerKeys: Object.keys(offer.offer).sort()
@@ -20293,7 +20293,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                  let item = { cups_match: [tariffType] };
                  headers.forEach((h, idx) => {
                       let val = values[idx];
-                       if (h.includes('price') || h.includes('potencia') || h === 'descuento' || h === 'fee') {
+                       if (h.includes('price') || h.includes('potencia') || h === 'descuento' || h === 'comision') {
                             val = parseFloat(val?.replace(',', '.') || 0);
                              if(isNaN(val)) val = 0;
                        }

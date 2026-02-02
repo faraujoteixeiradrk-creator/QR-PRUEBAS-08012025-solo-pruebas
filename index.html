@@ -22813,9 +22813,32 @@ ${clientName}
                     // Obtener breakdown según el tipo (una sola vez para todo el forEach)
                     const breakdown = supply.type === 'electricidad' ? supply.electricityBreakdown : supply.gasBreakdown;
                     
-                    if (yPos > 240) {
-                        doc.addPage();
-                        yPos = 20;
+                    // Estimar altura que necesitará este suministro ANTES de dibujar
+                    // Si no cabe en la página actual, saltar primero
+                    {
+                        let estimatedHeight = 16; // cabecera
+                        if (supply.type === 'electricidad') {
+                            const tariffType = supply.tariff || supply.originalTariffType || '2.0TD';
+                            const is30TD = tariffType === '3.0TD';
+                            estimatedHeight += is30TD ? 50 : 32; // caja precios
+                            estimatedHeight += 10 + 18; // cabecera POTENCIA + líneas potencia
+                            estimatedHeight += 10 + 24; // cabecera ENERGIA + líneas energía
+                            if (supply.solarSurplus && supply.solarSurplus.total > 0) {
+                                estimatedHeight += 9 + 15 + 5; // cabecera excedentes + desglose + total
+                                if ((supply.solarSurplus.excessMonthly || 0) > 0) estimatedHeight += 6;
+                            }
+                            if (supply._batteryUsed && supply._batteryUsed > 0) estimatedHeight += 9;
+                        } else {
+                            estimatedHeight += 25; // caja precios gas
+                            estimatedHeight += 10 + 24; // desglose gas
+                        }
+                        estimatedHeight += 10 + 16; // total periodo + ahorro
+                        
+                        // Si no cabe en la página (máximo útil ~275mm en A4), saltar
+                        if (yPos + estimatedHeight > 275) {
+                            doc.addPage();
+                            yPos = 20;
+                        }
                     }
                     
                     // CABECERA GRIS DEL SUMINISTRO
@@ -23114,7 +23137,7 @@ ${clientName}
                                 doc.setFontSize(6.5);
                                 doc.setFont('helvetica', 'italic');
                                 doc.setTextColor(234, 88, 12);
-                                doc.text(`☀ ${tr('Excedentes → batería virtual')}`, margin + 5, yPos);
+                                doc.text(tr('Excedentes -> bateria virtual'), margin + 5, yPos);
                                 doc.text(`+${eur(supply.solarSurplus.excessMonthly)}/mes`, pageWidth - margin - 5, yPos, { align: 'right' });
                                 yPos += 4;
                             }
@@ -23128,7 +23151,7 @@ ${clientName}
                             doc.setTextColor(22, 101, 52);
                             doc.setFontSize(7);
                             doc.setFont('helvetica', 'bold');
-                            doc.text(`🔋 ${tr('Batería virtual (compensación)')}`, margin + 5, yPos + 4.5);
+                            doc.text(tr('Bateria virtual (compensacion)'), margin + 5, yPos + 4.5);
                             doc.text(`-${eur(supply._batteryUsed)}/mes`, pageWidth - margin - 5, yPos + 4.5, { align: 'right' });
                             yPos += 9;
                         }
@@ -23231,7 +23254,7 @@ ${clientName}
                         doc.setTextColor(194, 65, 12);
                         doc.setFontSize(8);
                         doc.setFont('helvetica', 'bold');
-                        doc.text(`🔋 ${tr('BATERÍA VIRTUAL')}`, margin + 4, yPos + 5);
+                        doc.text(tr('BATERIA VIRTUAL'), margin + 4, yPos + 5);
                         yPos += 7;
                         
                         doc.setFontSize(7);

@@ -2601,25 +2601,32 @@
                 // NUEVO: Guardar información de excedentes si existen
                 // Usar múltiples fuentes: solarSurplusData, finalResult, lastComparisonResult
                 solarSurplus: ((solarSurplusEnabled && solarSurplusData && solarSurplusData.total > 0) || 
-                              (finalResult && finalResult.solarSurplus) ||
-                              (lastComparisonResult && lastComparisonResult.solarSurplus)) ? {
-                    enabled: true,
-                    total: solarSurplusData?.total || finalResult?.solarSurplus?.total || lastComparisonResult?.solarSurplus?.total || 0,
-                    excedente1: solarSurplusData?.excedente1 || finalResult?.solarSurplus?.excedente1 || lastComparisonResult?.solarSurplus?.excedente1 || 0,
-                    excedente2: solarSurplusData?.excedente2 || finalResult?.solarSurplus?.excedente2 || lastComparisonResult?.solarSurplus?.excedente2 || 0,
-                    excedente3: solarSurplusData?.excedente3 || finalResult?.solarSurplus?.excedente3 || lastComparisonResult?.solarSurplus?.excedente3 || 0,
-                    // Exceso que sobró tras autocompensarse este CUPS (va a batería virtual)
-                    excessMonthly: finalResult?.solarSurplus?.excessMonthly || lastComparisonResult?.solarSurplus?.excessMonthly || 0,
-                    excessAnnual: finalResult?.solarSurplus?.excessAnnual || lastComparisonResult?.solarSurplus?.excessAnnual || 0,
-                    // Descuento aplicado por excedentes
-                    monthlyDiscount: finalResult?.solarSurplus?.monthlyDiscount || lastComparisonResult?.solarSurplus?.monthlyDiscount || 0,
-                    annualDiscount: finalResult?.solarSurplus?.annualDiscount || lastComparisonResult?.solarSurplus?.annualDiscount || 0,
-                    discountAmount: (finalResult && finalResult.solarSurplus && finalResult.solarSurplus.annualDiscount) 
-                        ? finalResult.solarSurplus.annualDiscount 
-                        : ((lastComparisonResult && lastComparisonResult.solarSurplus && lastComparisonResult.solarSurplus.annualDiscount)
-                            ? lastComparisonResult.solarSurplus.annualDiscount
-                            : 0)
-                } : null
+                              (finalResult && finalResult.solarSurplus && finalResult.solarSurplus.enabled) ||
+                              (lastComparisonResult && lastComparisonResult.solarSurplus && lastComparisonResult.solarSurplus.enabled)) ? (() => {
+                    // Fuente correcta: finalResult es el resultado de la oferta elegida para este suministro.
+                    // lastComparisonResult solo como fallback si finalResult no tiene solarSurplus.
+                    const src = (finalResult && finalResult.solarSurplus && finalResult.solarSurplus.enabled)
+                        ? finalResult.solarSurplus
+                        : (lastComparisonResult && lastComparisonResult.solarSurplus && lastComparisonResult.solarSurplus.enabled)
+                            ? lastComparisonResult.solarSurplus
+                            : null;
+                    return {
+                        enabled: true,
+                        total: solarSurplusData?.total || src?.total || 0,
+                        excedente1: solarSurplusData?.excedente1 ?? src?.excedente1 ?? 0,
+                        excedente2: solarSurplusData?.excedente2 ?? src?.excedente2 ?? 0,
+                        excedente3: solarSurplusData?.excedente3 ?? src?.excedente3 ?? 0,
+                        // Exceso que sobró tras autocompensarse este CUPS (va a batería virtual)
+                        excessMonthly: src?.excessMonthly ?? 0,
+                        excessAnnual: src?.excessAnnual ?? 0,
+                        // Descuento real aplicado (limitado por maxCompensable)
+                        monthlyDiscount: src?.monthlyDiscount ?? 0,
+                        annualDiscount: src?.annualDiscount ?? 0,
+                        discountAmount: src?.annualDiscount ?? 0,
+                        // Máximo compensable (energía neta de este CUPS)
+                        maxCompensable: src?.maxCompensable ?? 0
+                    };
+                })() : null
             };
             
             // DEBUG: Verificar si se guardaron los excedentes
@@ -20895,10 +20902,37 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                             <span>IVA (21%)</span>
                                             <span>${formatEuro(eb.costIVA)}</span>
                                         </div>
-                                        ${s.solarSurplus && s.solarSurplus.total > 0 ? `
-                                        <div class="flex justify-between text-amber-700 font-medium pt-1 border-t border-amber-200">
-                                            <span>☀ ${tr('Excedentes')} (${s.solarSurplus.total.toFixed(0)} kWh)</span>
-                                            <span>-${formatEuro(s.solarSurplus.discountAmount || 0)}</span>
+                                        ${s.solarSurplus && s.solarSurplus.total > 0 ? (() => {
+                                            const discReal = s.solarSurplus.monthlyDiscount || 0; // Descuento real aplicado (mensual)
+                                            const excessM = s.solarSurplus.excessMonthly || 0;    // Exceso que va a batería (mensual)
+                                            let html = '';
+                                            // Línea de descuento real aplicado por excedentes (solo si > 0)
+                                            if (discReal > 0) {
+                                                html += `<div class="flex justify-between text-amber-700 font-medium pt-1 border-t border-amber-200">
+                                                    <span>☀ ${tr('Excedentes')} (${s.solarSurplus.total.toFixed(0)} kWh)</span>
+                                                    <span>-${formatEuro(discReal)}</span>
+                                                </div>`;
+                                            }
+                                            // Línea de exceso → batería virtual (solo si > 0)
+                                            if (excessM > 0) {
+                                                html += `<div class="flex justify-between text-orange-600 text-xs pt-0.5">
+                                                    <span>☀ ${tr('Excedentes → batería virtual')}</span>
+                                                    <span>+${formatEuro(excessM)}/mes</span>
+                                                </div>`;
+                                            }
+                                            // Si no hay descuento ni exceso visible, mostrar excedentes con 0
+                                            if (discReal === 0 && excessM === 0) {
+                                                html += `<div class="flex justify-between text-amber-700 font-medium pt-1 border-t border-amber-200">
+                                                    <span>☀ ${tr('Excedentes')} (${s.solarSurplus.total.toFixed(0)} kWh)</span>
+                                                    <span>-${formatEuro(0)}</span>
+                                                </div>`;
+                                            }
+                                            return html;
+                                        })() : ''}
+                                        ${s._batteryUsed && s._batteryUsed > 0 ? `
+                                        <div class="flex justify-between text-green-700 font-medium text-xs pt-0.5">
+                                            <span>🔋 ${tr('Batería virtual')}</span>
+                                            <span>-${formatEuro(s._batteryUsed)}/mes</span>
                                         </div>
                                         ` : ''}
                                         <div class="flex justify-between font-semibold pt-1 border-t border-slate-200">
@@ -20934,6 +20968,31 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                         }).join('')}
                     </div>
                 </div>
+                
+                <!-- Saldo de Batería Virtual (si hay exceso sobrante) -->
+                ${(() => {
+                    const batteryFinal = dualSupplies.length > 0 ? (dualSupplies[0]._batteryFinalBalance || 0) : 0;
+                    const totalBatteryUsed = dualSupplies.reduce((sum, s) => sum + (s._batteryUsed || 0), 0);
+                    if (batteryFinal > 0 || totalBatteryUsed > 0) {
+                        return `
+                        <div class="bg-orange-50 border border-orange-200 rounded-xl p-3 mb-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-lg">🔋</span>
+                                <span class="text-sm font-bold text-orange-800">${tr('Batería Virtual')}</span>
+                            </div>
+                            ${totalBatteryUsed > 0 ? `<div class="flex justify-between text-xs text-orange-700 mb-1">
+                                <span>${tr('Compensado entre suministros')}</span>
+                                <span>-${formatEuro(totalBatteryUsed)}/mes (${formatEuro(totalBatteryUsed * 12)}/año)</span>
+                            </div>` : ''}
+                            ${batteryFinal > 0 ? `<div class="flex justify-between text-xs text-orange-700">
+                                <span>${tr('Saldo sobrante')}</span>
+                                <span>+${formatEuro(batteryFinal)}/mes</span>
+                            </div>
+                            <p class="text-xs text-orange-600 mt-1 italic">${tr('El saldo sobrante se acumula en su batería virtual y podrá utilizarse para compensar futuras facturas o para otros suministros del mismo titular (mismo DNI/CIF).')}</p>` : ''}
+                        </div>`;
+                    }
+                    return '';
+                })()}
                 
                 <!-- Tarjeta AHORRO TOTAL (SOLO si NO es modo Power Cup) -->
                 ${(() => {

@@ -2603,11 +2603,17 @@
                 solarSurplus: ((solarSurplusEnabled && solarSurplusData && solarSurplusData.total > 0) || 
                               (finalResult && finalResult.solarSurplus) ||
                               (lastComparisonResult && lastComparisonResult.solarSurplus)) ? {
+                    enabled: true,
                     total: solarSurplusData?.total || finalResult?.solarSurplus?.total || lastComparisonResult?.solarSurplus?.total || 0,
                     excedente1: solarSurplusData?.excedente1 || finalResult?.solarSurplus?.excedente1 || lastComparisonResult?.solarSurplus?.excedente1 || 0,
                     excedente2: solarSurplusData?.excedente2 || finalResult?.solarSurplus?.excedente2 || lastComparisonResult?.solarSurplus?.excedente2 || 0,
                     excedente3: solarSurplusData?.excedente3 || finalResult?.solarSurplus?.excedente3 || lastComparisonResult?.solarSurplus?.excedente3 || 0,
-                    // Calcular el descuento desde finalResult o lastComparisonResult
+                    // Exceso que sobró tras autocompensarse este CUPS (va a batería virtual)
+                    excessMonthly: finalResult?.solarSurplus?.excessMonthly || lastComparisonResult?.solarSurplus?.excessMonthly || 0,
+                    excessAnnual: finalResult?.solarSurplus?.excessAnnual || lastComparisonResult?.solarSurplus?.excessAnnual || 0,
+                    // Descuento aplicado por excedentes
+                    monthlyDiscount: finalResult?.solarSurplus?.monthlyDiscount || lastComparisonResult?.solarSurplus?.monthlyDiscount || 0,
+                    annualDiscount: finalResult?.solarSurplus?.annualDiscount || lastComparisonResult?.solarSurplus?.annualDiscount || 0,
                     discountAmount: (finalResult && finalResult.solarSurplus && finalResult.solarSurplus.annualDiscount) 
                         ? finalResult.solarSurplus.annualDiscount 
                         : ((lastComparisonResult && lastComparisonResult.solarSurplus && lastComparisonResult.solarSurplus.annualDiscount)
@@ -20629,12 +20635,91 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // Código original para múltiples suministros (2 o más)
             
             // Calcular totales DRK y Power Cup
+            // === BATERÍA VIRTUAL ENTRE SUMINISTROS DUAL ===
+            // Modelo idéntico a MULTICUPS: los excedentes solares que sobran tras autocompensarse
+            // en un suministro se distribuyen entre los otros suministros de electricidad.
+            // PASADA 1: Acumular excesos de todos los suministros con excedentes
+            // PASADA 2: Distribuir batería entre todos los suministros según energía residual
+            {
+                let batteryBalance = 0;
+                
+                // PASADA 1: Acumular excesos
+                dualSupplies.forEach(supply => {
+                    supply._batteryUsed = 0;
+                    if (supply.type !== 'electricidad') return;
+                    
+                    const ownExcess = (supply.solarSurplus && supply.solarSurplus.enabled)
+                        ? (supply.solarSurplus.excessMonthly || 0)
+                        : 0;
+                    if (ownExcess > 0) {
+                        batteryBalance += ownExcess;
+                        console.log(`🔋 DUAL P1 | ${supply.cups}: aporta exceso +${ownExcess.toFixed(2)} €/mes → batería: ${batteryBalance.toFixed(2)} €/mes`);
+                    }
+                });
+                
+                console.log(`🔋 DUAL === BATERÍA TOTAL tras pasada 1: ${batteryBalance.toFixed(2)} €/mes ===`);
+                
+                // PASADA 2: Distribuir batería entre suministros con energía residual
+                dualSupplies.forEach(supply => {
+                    if (supply.type !== 'electricidad') return;
+                    
+                    // Energía residual: subEnergyNet del electricityBreakdown
+                    const energiaResidual = supply.electricityBreakdown?.subEnergy || 0;
+                    
+                    if (energiaResidual > 0 && batteryBalance > 0) {
+                        const compensacionBateria = Math.min(batteryBalance, energiaResidual);
+                        batteryBalance -= compensacionBateria;
+                        supply._batteryUsed = compensacionBateria;
+                        
+                        // Recalcular costes del suministro con la compensación de batería
+                        const bd = supply.electricityBreakdown;
+                        bd.subEnergy = (bd.subEnergy || 0) - compensacionBateria;
+                        bd.subBase = (bd.subPower || 0) + bd.subEnergy;
+                        
+                        const IE_RATE = 0.05;
+                        const IVA_RATE = 0.21;
+                        bd.costIE = bd.subBase * IE_RATE;
+                        bd.baseImp = bd.subBase + bd.costIE;
+                        bd.costIVA = bd.baseImp * IVA_RATE;
+                        bd.totalPeriod = bd.baseImp + bd.costIVA;
+                        
+                        const dias = bd.dias || supply.data?.dias || 30;
+                        const factorAnual = 365 / dias;
+                        bd.totalAnnual = bd.totalPeriod * factorAnual;
+                        
+                        // Actualizar totalAnnual del supply y results
+                        supply.totalAnnual = bd.totalAnnual;
+                        const isPCMode = comparisonMode === 'overall_best';
+                        if (isPCMode) {
+                            supply.results.powercup.total_anual = bd.totalAnnual;
+                            supply.results.powercup.total = bd.totalPeriod;
+                        } else {
+                            supply.results.drk.total_anual = bd.totalAnnual;
+                            supply.results.drk.total = bd.totalPeriod;
+                        }
+                        
+                        // Registrar en solarSurplus del supply
+                        if (!supply.solarSurplus) {
+                            supply.solarSurplus = { enabled: false, excessMonthly: 0 };
+                        }
+                        supply.solarSurplus.batteryUsed = compensacionBateria;
+                        supply.solarSurplus.batteryUsedAnnual = compensacionBateria * 12;
+                        
+                        console.log(`🔋 DUAL P2 | ${supply.cups}: consume batería -${compensacionBateria.toFixed(2)} €/mes → saldo: ${batteryBalance.toFixed(2)} €/mes`);
+                    }
+                });
+                
+                // Saldo final global en todos los suministros
+                dualSupplies.forEach(s => { s._batteryFinalBalance = batteryBalance; });
+                console.log(`🔋 DUAL === BATERÍA VIRTUAL FINAL: ${batteryBalance.toFixed(2)} €/mes | ${(batteryBalance * 12).toFixed(2)} €/año ===`);
+            }
+            
+            // Calcular totales DRK y Power Cup (ya con batería virtual aplicada)
             let totalDRK = 0;
             let totalPowerCup = 0;
             let totalDaysWeighted = 0;
-            let totalOriginalBill = 0; // NUEVO: Total factura actual
+            let totalOriginalBill = 0;
             
-            // NUEVO: Analizar ahorros individuales
             const suppliesWithSavings = [];
             const suppliesWithoutSavings = [];
             
@@ -20649,7 +20734,6 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     totalDaysWeighted += supply.data.dias || 30;
                     totalOriginalBill += originalBill;
                     
-                    // Determinar si este suministro tiene ahorro
                     const isPowerCupMode = comparisonMode === 'overall_best';
                     const currentCost = isPowerCupMode ? powercupCost : drkCost;
                     const savings = originalBill - currentCost;
@@ -20665,7 +20749,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // Calcular ahorro total
             const isPowerCupMode = comparisonMode === 'overall_best';
             const totalNew = isPowerCupMode ? totalPowerCup : totalDRK;
-            const totalSavings = Math.max(0, totalOriginalBill - totalNew); // Siempre >= 0
+            const totalSavings = totalOriginalBill - totalNew; // Puede ser negativo en DUAL (ahorro acumulativo)
             
             console.log('📊 Análisis de ahorros:');
             console.log('- Con ahorro:', suppliesWithSavings.length);

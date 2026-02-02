@@ -17221,12 +17221,37 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
             // Renderizar ofertas
             const eur = (n) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n || 0);
             
+            // Calcular consumo mensual total en kWh para la comisión
+            const tariffType = lastComparisonResult?.originalTariffType || lastComparisonResult?.tariffType || currentTariffType;
+            let totalConsumoMensual = 0;
+            
+            if (tariffType === '2.0TD') {
+                totalConsumoMensual = (lastComparisonResult?.consumo_punta || 0) + 
+                                     (lastComparisonResult?.consumo_llano || 0) + 
+                                     (lastComparisonResult?.consumo_valle || 0);
+            } else if (tariffType === '3.0TD') {
+                totalConsumoMensual = (lastComparisonResult?.consumo_p1 || 0) + 
+                                     (lastComparisonResult?.consumo_p2 || 0) + 
+                                     (lastComparisonResult?.consumo_p3 || 0) + 
+                                     (lastComparisonResult?.consumo_p4 || 0) + 
+                                     (lastComparisonResult?.consumo_p5 || 0) + 
+                                     (lastComparisonResult?.consumo_p6 || 0);
+            }
+            
+            console.log(`📊 Consumo mensual total para comisiones: ${totalConsumoMensual} kWh (tarifa: ${tariffType})`);
+            
             filteredOffers.forEach(item => {
                 const offer = item.offer;
                 const originalIndex = item.originalIndex;
                 const commercializer = offer.offer.isDrk ? 'DRK Energía' : (offer.offer.commercializer || 'Otra comercializadora');
                 const description = offer.offer.description || '';
                 const name = offer.offer.name || '';
+                
+                // Calcular comisión anual: (kWh mensual / 1000) × FEE × 12
+                const fee = parseFloat(offer.offer.fee || 0);
+                const comisionAnual = totalConsumoMensual > 0 && fee > 0 
+                    ? (totalConsumoMensual / 1000) * fee * 12 
+                    : 0;
                 
                 // Para DRK, usar el campo que tenga más información como título
                 let displayTitle, displaySubtitle;
@@ -17261,21 +17286,25 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                                 <p class="text-sm font-bold text-green-600">${eur(offer.savingsActual)}</p>
                                 <p class="text-xs text-orange-600 font-semibold">+ ${eur(offer.ahorroAdicional)} opt.</p>
                                 <p class="text-xl font-black text-green-700">${eur(offer.ahorroTotal)}</p>
+                                ${comisionAnual > 0 ? `<p class="text-xs text-blue-600 font-semibold mt-1">💰 Comisión: ${eur(comisionAnual)}</p>` : ''}
                             ` : offer.solarSurplus && offer.solarSurplus.enabled ? `
                                 <!-- Tiene excedentes solares -->
                                 <p class="text-xs text-slate-500">${tr('Ahorro anual')}</p>
                                 <p class="text-sm font-bold text-green-600">${eur(offer.savings - (offer.solarSurplus.annualDiscount || 0))}</p>
                                 <p class="text-xs text-orange-600 font-semibold">+ ${eur(offer.solarSurplus.annualDiscount || 0)} ☀️</p>
                                 <p class="text-xl font-black text-green-700">${eur(offer.savings)}</p>
+                                ${comisionAnual > 0 ? `<p class="text-xs text-blue-600 font-semibold mt-1">💰 Comisión: ${eur(comisionAnual)}</p>` : ''}
                             ` : offer.solarSurplus && offer.solarSurplus.noPrice ? `
                                 <!-- No tiene compensación de excedentes -->
                                 <p class="text-xs text-slate-500">${tr('Ahorro anual')}</p>
                                 <p class="text-xl font-black text-green-600">${eur(offer.savings)}</p>
                                 <p class="text-xs text-slate-400 italic mt-1">☀️ ${tr('Sin compensación')}</p>
+                                ${comisionAnual > 0 ? `<p class="text-xs text-blue-600 font-semibold mt-1">💰 Comisión: ${eur(comisionAnual)}</p>` : ''}
                             ` : `
                                 <!-- Sin excedentes marcados -->
                                 <p class="text-xs text-slate-500">${tr('Ahorro anual')}</p>
                                 <p class="text-xl font-black text-green-600">${eur(offer.savings)}</p>
+                                ${comisionAnual > 0 ? `<p class="text-xs text-blue-600 font-semibold mt-1">💰 Comisión: ${eur(comisionAnual)}</p>` : ''}
                             `}
                         </div>
                     </div>
@@ -20253,7 +20282,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                  let item = { cups_match: [tariffType] };
                  headers.forEach((h, idx) => {
                       let val = values[idx];
-                       if (h.includes('price') || h.includes('potencia') || h === 'descuento') {
+                       if (h.includes('price') || h.includes('potencia') || h === 'descuento' || h === 'fee') {
                             val = parseFloat(val?.replace(',', '.') || 0);
                              if(isNaN(val)) val = 0;
                        }

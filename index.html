@@ -20719,6 +20719,21 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 // Saldo final global en todos los suministros
                 dualSupplies.forEach(s => { s._batteryFinalBalance = batteryBalance; });
                 console.log(`🔋 DUAL === BATERÍA VIRTUAL FINAL: ${batteryBalance.toFixed(2)} €/mes | ${(batteryBalance * 12).toFixed(2)} €/año ===`);
+                
+                // CRÍTICO: Actualizar ahorro_anual y ahorro_mensual para TODOS los suministros
+                // (no solo los que recibieron batería, también los que aportaron)
+                dualSupplies.forEach(supply => {
+                    if (supply.type === 'electricidad' && supply.electricityBreakdown) {
+                        const bd = supply.electricityBreakdown;
+                        // supply.totalAnnual ya tiene batería aplicada (si recibió) o excedentes aplicados (si aportó)
+                        bd.ahorro_mensual = (supply.originalBillAnnual / 12) - bd.totalPeriod;
+                        bd.ahorro_anual = supply.originalBillAnnual - supply.totalAnnual;
+                    } else if (supply.type === 'gas' && supply.gasBreakdown) {
+                        const gb = supply.gasBreakdown;
+                        gb.ahorro_mensual = (supply.originalBillAnnual / 12) - gb.total;
+                        gb.ahorro_anual = supply.originalBillAnnual - supply.totalAnnual;
+                    }
+                });
             }
             
             // Calcular totales DRK y Power Cup (ya con batería virtual aplicada)
@@ -21859,7 +21874,7 @@ ${clientName}
                 </thead>
                 <tbody>
                 ${dualSupplies.map((s, i) => {
-                    const ahorro = Math.max(0, (s.originalBillAnnual||0) - (s.totalAnnual||0)); // Mostrar 0 si es negativo
+                    const ahorro = (s.originalBillAnnual||0) - (s.totalAnnual||0); // Puede ser negativo en DUAL
                     const emoji = s.type === 'electricidad' ? '⚡' : '🔥';
                     const tipo = s.type === 'electricidad' ? tr('Electricidad') : tr('Gas');
                     return `

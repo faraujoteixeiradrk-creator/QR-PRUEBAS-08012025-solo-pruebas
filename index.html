@@ -21629,7 +21629,7 @@ ${clientName}
                 totalNew += currentCost;
             });
             
-            const totalSavings = Math.max(0, totalOriginalBill - totalNew); // Máximo 0
+            const totalSavings = totalOriginalBill - totalNew; // Puede ser negativo en DUAL
             
             console.log('📊 Suministros en documento:', dualSupplies.length);
             console.log('💰 Ahorro total:', totalSavings.toFixed(2), '€');
@@ -21717,9 +21717,21 @@ ${clientName}
                                 </div>` : ''}
                                 <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:11px;font-weight:bold;color:#92400e;border-top:1px solid #fbbf24;margin-top:5px">
                                     <span>${tr('Total excedentes')}: ${s.solarSurplus.total.toFixed(0)} kWh</span>
-                                    <span>-${(s.solarSurplus.discountAmount || 0).toFixed(2)} €</span>
+                                    <span>-${(s.solarSurplus.monthlyDiscount || 0).toFixed(2)} €</span>
                                 </div>
+                                ${(s.solarSurplus.excessMonthly || 0) > 0 ? `
+                                <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:10px;color:#ea580c;font-style:italic">
+                                    <span>☀ ${tr('Excedentes → batería virtual')}</span>
+                                    <span>+${(s.solarSurplus.excessMonthly).toFixed(2)} €/mes</span>
+                                </div>` : ''}
                                 ` : ''}
+                                ${s._batteryUsed && s._batteryUsed > 0 ? `
+                                <div style="background:#dcfce7;border:1px solid #86efac;padding:8px 12px;margin:8px 0;border-radius:4px">
+                                    <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:bold;color:#166534">
+                                        <span>🔋 ${tr('Batería virtual (compensación)')}</span>
+                                        <span>-${s._batteryUsed.toFixed(2)} €/mes</span>
+                                    </div>
+                                </div>` : ''}
                                 
                                 <div style="background:#e2e8f0;padding:10px;margin-top:10px;border-radius:4px;display:flex;justify-content:space-between;font-weight:bold">
                                     <span>${tr('TOTAL')} (${eb.dias} ${tr('DÍAS')})</span>
@@ -21869,6 +21881,31 @@ ${clientName}
                 </tfoot>
             </table>
         </div>
+        
+        <!-- BATERÍA VIRTUAL -->
+        ${(() => {
+            const batteryFinal = dualSupplies.length > 0 ? (dualSupplies[0]._batteryFinalBalance || 0) : 0;
+            const totalBatteryUsed = dualSupplies.reduce((sum, s) => sum + (s._batteryUsed || 0), 0);
+            if (batteryFinal > 0 || totalBatteryUsed > 0) {
+                return `
+                <div style="margin:0 30px 20px 30px;padding:15px 20px;background:#fff7ed;border:2px solid #fdba74;border-radius:10px">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                        <span style="font-size:20px">🔋</span>
+                        <span style="font-size:14px;font-weight:bold;color:#c2410c">${tr('Batería Virtual')}</span>
+                    </div>
+                    ${totalBatteryUsed > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#9a3412;margin-bottom:6px">
+                        <span>${tr('Compensado entre suministros')}</span>
+                        <span style="font-weight:bold">-${totalBatteryUsed.toFixed(2)} €/mes (${(totalBatteryUsed*12).toFixed(2)} €/año)</span>
+                    </div>` : ''}
+                    ${batteryFinal > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#9a3412;margin-bottom:8px">
+                        <span>${tr('Saldo sobrante')}</span>
+                        <span style="font-weight:bold">+${batteryFinal.toFixed(2)} €/mes</span>
+                    </div>
+                    <p style="margin:0;font-size:10px;color:#ea580c;font-style:italic">${tr('El saldo sobrante se acumula en su batería virtual y podrá utilizarse para compensar futuras facturas o para otros suministros del mismo titular (mismo DNI/CIF).')}</p>` : ''}
+                </div>`;
+            }
+            return '';
+        })()}
         
         <!-- AHORRO ANUAL - DISEÑO LIMPIO -->
         <div style="padding:50px 30px 20px 30px;margin:20px 0;background:#ffffff;text-align:center">
@@ -23064,16 +23101,37 @@ ${clientName}
                                 yPos += 5;
                             }
                             
-                            // Total y descuento
+                            // Total y descuento real aplicado (limitado por energía)
                             doc.setFont('helvetica', 'bold');
                             doc.setTextColor(146, 64, 14);
                             const totalLabel = tr('Total') + `: ${supply.solarSurplus.total.toFixed(0)} kWh`;
                             doc.text(totalLabel, margin + 5, yPos);
-                            doc.text(`-${eur(supply.solarSurplus.discountAmount || 0)}`, pageWidth - margin - 5, yPos, { align: 'right' });
-                            yPos += 3;
+                            doc.text(`-${eur(supply.solarSurplus.monthlyDiscount || 0)}`, pageWidth - margin - 5, yPos, { align: 'right' });
+                            yPos += 5;
+                            
+                            // Exceso → batería virtual
+                            if ((supply.solarSurplus.excessMonthly || 0) > 0) {
+                                doc.setFontSize(6.5);
+                                doc.setFont('helvetica', 'italic');
+                                doc.setTextColor(234, 88, 12);
+                                doc.text(`☀ ${tr('Excedentes → batería virtual')}`, margin + 5, yPos);
+                                doc.text(`+${eur(supply.solarSurplus.excessMonthly)}/mes`, pageWidth - margin - 5, yPos, { align: 'right' });
+                                yPos += 4;
+                            }
+                            yPos += 2;
                         }
                         
-                        yPos += 2;
+                        // Batería virtual recibida de otro suministro
+                        if (supply._batteryUsed && supply._batteryUsed > 0) {
+                            doc.setFillColor(220, 252, 231); // Verde claro
+                            doc.rect(margin, yPos, contentWidth, 7, 'F');
+                            doc.setTextColor(22, 101, 52);
+                            doc.setFontSize(7);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text(`🔋 ${tr('Batería virtual (compensación)')}`, margin + 5, yPos + 4.5);
+                            doc.text(`-${eur(supply._batteryUsed)}/mes`, pageWidth - margin - 5, yPos + 4.5, { align: 'right' });
+                            yPos += 9;
+                        }
                         
                     } else {
                         // GAS
@@ -23154,6 +23212,47 @@ ${clientName}
                 }
                 
                 yPos += 10;
+                
+                // BATERÍA VIRTUAL GLOBAL (si hay exceso o compensación)
+                {
+                    const batteryFinal = dualSupplies.length > 0 ? (dualSupplies[0]._batteryFinalBalance || 0) : 0;
+                    const totalBatteryUsed = dualSupplies.reduce((sum, s) => sum + (s._batteryUsed || 0), 0);
+                    if (batteryFinal > 0 || totalBatteryUsed > 0) {
+                        if (yPos > 230) { doc.addPage(); yPos = 20; }
+                        
+                        // Fondo naranja claro
+                        doc.setFillColor(255, 247, 237);
+                        doc.rect(margin, yPos, contentWidth, (totalBatteryUsed > 0 && batteryFinal > 0) ? 28 : 20, 'F');
+                        doc.setDrawColor(253, 186, 116);
+                        doc.setLineWidth(0.5);
+                        doc.rect(margin, yPos, contentWidth, (totalBatteryUsed > 0 && batteryFinal > 0) ? 28 : 20, 'S');
+                        
+                        // Título
+                        doc.setTextColor(194, 65, 12);
+                        doc.setFontSize(8);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text(`🔋 ${tr('BATERÍA VIRTUAL')}`, margin + 4, yPos + 5);
+                        yPos += 7;
+                        
+                        doc.setFontSize(7);
+                        doc.setFont('helvetica', 'normal');
+                        doc.setTextColor(154, 52, 18);
+                        if (totalBatteryUsed > 0) {
+                            doc.text(tr('Compensado entre suministros'), margin + 4, yPos + 4);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text(`-${eur(totalBatteryUsed)}/mes (${eur(totalBatteryUsed * 12)}/año)`, pageWidth - margin - 4, yPos + 4, { align: 'right' });
+                            yPos += 6;
+                        }
+                        if (batteryFinal > 0) {
+                            doc.setFont('helvetica', 'normal');
+                            doc.text(tr('Saldo sobrante'), margin + 4, yPos + 4);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text(`+${eur(batteryFinal)}/mes`, pageWidth - margin - 4, yPos + 4, { align: 'right' });
+                            yPos += 6;
+                        }
+                        yPos += 6;
+                    }
+                }
                 
                 // CAJA DE AHORRO TOTAL - Color según marca
                 if (isDrk) {

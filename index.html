@@ -17184,6 +17184,45 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                 availableOffers = tariffsToCompare.map(tariff => {
                     const result = calculateTariffCost(tariff, lastComparisonResult || {}, tariffType);
                     // calculateTariffCost ya aplica el descuento de excedentes automáticamente
+                    
+                    // NUEVO: Si hay optimización de potencia, también calcular con potencias actuales
+                    if (window.optimizedPowerEnabled && window.currentPowerScenario) {
+                        console.log('☀️⚡ Recalculando con potencias ACTUALES para', tariff.name);
+                        
+                        // Guardar el estado de excedentes
+                        const solarEnabledBackup = solarSurplusEnabled;
+                        const solarDataBackup = {...solarSurplusData};
+                        
+                        // Calcular SIN excedentes para obtener ahorro base
+                        solarSurplusEnabled = false;
+                        solarSurplusData = { excedente1: 0, excedente2: 0, excedente3: 0, total: 0, discount: 0, pricePerKwh: 0 };
+                        const rActualSinExcedentes = calculateTariffCost(tariff, window.currentPowerScenario, tariffType);
+                        const savingsBaseSinExcedentes = rActualSinExcedentes.originalBillAnnual - rActualSinExcedentes.totalAnnual;
+                        
+                        // Restaurar excedentes
+                        solarSurplusEnabled = solarEnabledBackup;
+                        solarSurplusData = solarDataBackup;
+                        
+                        // Calcular CON excedentes
+                        const rActual = calculateTariffCost(tariff, window.currentPowerScenario, tariffType);
+                        rActual.savings = rActual.originalBillAnnual - rActual.totalAnnual;
+                        
+                        // Calcular ahorro adicional por optimización
+                        const ahorroAdicional = rActual.totalAnnual - result.totalAnnual;
+                        
+                        // ahorroTotal es simplemente result.savings (ya tiene optimización + excedentes)
+                        const ahorroTotal = result.savings;
+                        
+                        // Añadir campos de optimización
+                        result.savingsActual = savingsBaseSinExcedentes;
+                        result.ahorroAdicional = ahorroAdicional;
+                        result.ahorroTotal = ahorroTotal;
+                        
+                        console.log(`🔍 DEBUG ${tariff.name}:`);
+                        console.log(`  - result.savings (optimizado CON excedentes): ${result.savings.toFixed(2)}€`);
+                        console.log(`  - ahorroTotal: ${ahorroTotal.toFixed(2)}€`);
+                    }
+                    
                     return result;
                 }).filter(r => r.savings > 0);
                 

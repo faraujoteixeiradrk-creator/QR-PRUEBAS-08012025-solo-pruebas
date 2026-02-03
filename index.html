@@ -5429,9 +5429,9 @@
             }
             
             if (isMultiCupsResult && numSupplies === 1) {
-                // MULTICUPS con UN SOLO suministro: usar totalPeriod real
+                // MULTICUPS con UN SOLO suministro: usar totalPeriod del suministro individual
                 const diasPeriodo = res.individualResults[0].dias_facturados || res.individualResults[0].dias || res.dias_facturados || 30;
-                const costePeriodo = res.totalPeriod || 0;
+                const costePeriodo = res.individualResults[0].totalPeriod || res.totalPeriod || 0; // CORREGIDO: usar individualResults[0]
                 console.log('  ✅ MULTICUPS 1 suministro - Mostrando:', costePeriodo, 'días:', diasPeriodo);
                 document.getElementById('new-monthly-cost-display').textContent = eur(costePeriodo);
                 document.getElementById('monthly-label').textContent = `${tr('Total Periodo')} (${diasPeriodo} ${tr('días')})`;
@@ -6212,9 +6212,10 @@
             const numSupplies2 = res.individualResults ? res.individualResults.length : 1;
             
             if (isMultiCupsResult2 && numSupplies2 === 1) {
-                // MULTICUPS con UN SOLO suministro: usar totalPeriod real
+                // MULTICUPS con UN SOLO suministro: usar totalPeriod del suministro individual
                 const diasPeriodo2 = res.individualResults[0].dias_facturados || res.individualResults[0].dias || res.dias_facturados || 30;
-                document.getElementById('new-monthly-cost-display').textContent = eur(res.totalPeriod);
+                const costePeriodo2 = res.individualResults[0].totalPeriod || res.totalPeriod || 0; // CORREGIDO: usar individualResults[0]
+                document.getElementById('new-monthly-cost-display').textContent = eur(costePeriodo2);
                 document.getElementById('monthly-label').textContent = `${tr('Total Periodo')} (${diasPeriodo2} ${tr('días')})`;
             } else if (isMultiCupsResult2 && numSupplies2 > 1) {
                 // MULTICUPS con MÚLTIPLES suministros: usar promedio mensual

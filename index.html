@@ -3343,6 +3343,13 @@
                 console.log('Renderizando UI de comparación dual de potencias');
                 console.log('Potencias Actuales - Ahorro:', resActual.savings);
                 console.log('Potencias Optimizadas - Ahorro:', resOptimized.savings);
+                console.log('🔍 SOLAR SURPLUS DEBUG:');
+                console.log('  - resActual.solarSurplus:', resActual.solarSurplus);
+                console.log('  - resOptimized.solarSurplus:', resOptimized.solarSurplus);
+                if (resOptimized.solarSurplus) {
+                    console.log('  - annualDiscount:', resOptimized.solarSurplus.annualDiscount);
+                    console.log('  - total kWh:', resOptimized.solarSurplus.total);
+                }
                 
                 // Guardar en variables globales para acceso posterior SOLO si no existe
                 if (!window.lastDualPowerComparison) {
@@ -30533,4 +30540,4 @@ ${clientName}
             }
         }
     </script>
-</body>
+</body></html>

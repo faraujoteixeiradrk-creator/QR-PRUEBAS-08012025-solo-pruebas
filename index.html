@@ -17660,7 +17660,9 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                 // CRÍTICO: Recalcular isNegativeSavings basado en savings actual
                 if (result.savings !== undefined && result.savings !== null) {
                     result.isNegativeSavings = result.savings <= 0;
+                    result.needsImprovementRequest = result.savings <= 0;  // CRÍTICO: Marcar según ahorro
                     console.log('✅ isNegativeSavings recalculado:', result.isNegativeSavings, 'basado en savings:', result.savings);
+                    console.log('✅ needsImprovementRequest:', result.needsImprovementRequest);
                 }
                 
                 // CRÍTICO: Aplicar branding según el modo de comparación

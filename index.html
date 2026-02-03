@@ -13070,7 +13070,11 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 
                 // Cerrar modal y mostrar éxito
                 hideErrorModal();
-                window.showMessageModal(`✅ ¡PDF generado con éxito!\n\nSe ha descargado: ${fileName}\n\nPuedes adjuntarlo directamente en el email para tu cliente.`);
+                window.showMessageModal(`✅ ${tr('¡PDF generado con éxito!')}
+
+${tr('Se ha descargado:')} ${fileName}
+
+${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                 document.getElementById('send-offer-modal').classList.add('hidden');
                 document.getElementById('send-offer-modal').classList.remove('flex');
                 

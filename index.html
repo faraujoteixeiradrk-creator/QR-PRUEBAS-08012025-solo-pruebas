@@ -5417,19 +5417,36 @@
             const isMultiCupsResult = res._multiCupsContext || res.isMulti;
             const numSupplies = res.individualResults ? res.individualResults.length : 1;
             
+            console.log('🔍🔍🔍 DEBUG COSTE CONSOLIDADO:');
+            console.log('  - isMultiCupsResult:', isMultiCupsResult);
+            console.log('  - numSupplies:', numSupplies);
+            console.log('  - res.totalPeriod:', res.totalPeriod);
+            console.log('  - res.totalAnnual:', res.totalAnnual);
+            console.log('  - res.individualResults:', res.individualResults);
+            if (res.individualResults && res.individualResults.length > 0) {
+                console.log('  - individualResults[0].totalPeriod:', res.individualResults[0].totalPeriod);
+                console.log('  - individualResults[0].dias_facturados:', res.individualResults[0].dias_facturados);
+            }
+            
             if (isMultiCupsResult && numSupplies === 1) {
                 // MULTICUPS con UN SOLO suministro: usar totalPeriod real
                 const diasPeriodo = res.individualResults[0].dias_facturados || res.individualResults[0].dias || res.dias_facturados || 30;
-                document.getElementById('new-monthly-cost-display').textContent = eur(res.totalPeriod);
+                const costePeriodo = res.totalPeriod || 0;
+                console.log('  ✅ MULTICUPS 1 suministro - Mostrando:', costePeriodo, 'días:', diasPeriodo);
+                document.getElementById('new-monthly-cost-display').textContent = eur(costePeriodo);
                 document.getElementById('monthly-label').textContent = `${tr('Total Periodo')} (${diasPeriodo} ${tr('días')})`;
             } else if (isMultiCupsResult && numSupplies > 1) {
                 // MULTICUPS con MÚLTIPLES suministros: usar promedio mensual
-                document.getElementById('new-monthly-cost-display').textContent = eur(res.totalAnnual / 12);
+                const promedioMensual = res.totalAnnual / 12;
+                console.log('  ✅ MULTICUPS múltiples suministros - Mostrando promedio:', promedioMensual);
+                document.getElementById('new-monthly-cost-display').textContent = eur(promedioMensual);
                 document.getElementById('monthly-label').textContent = tr('Estimado Mensual');
             } else {
                 // Individual (no MULTICUPS): coste del periodo real
                 const diasPeriodo = res.dias_facturados || res.dias || 30;
-                document.getElementById('new-monthly-cost-display').textContent = eur(res.totalPeriod);
+                const costePeriodo = res.totalPeriod || 0;
+                console.log('  ✅ Individual - Mostrando:', costePeriodo, 'días:', diasPeriodo);
+                document.getElementById('new-monthly-cost-display').textContent = eur(costePeriodo);
                 document.getElementById('monthly-label').textContent = `${tr('Total Periodo')} (${diasPeriodo} ${tr('días')})`;
             }
             document.getElementById('new-annual-cost-display').textContent = eur(res.totalAnnual) + tr('/año');

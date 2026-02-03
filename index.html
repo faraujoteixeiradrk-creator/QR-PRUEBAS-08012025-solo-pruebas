@@ -15825,6 +15825,23 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     // NUEVO: Si hay optimización de potencia, también calcular con potencias actuales
                     if (window.optimizedPowerEnabled && window.currentPowerScenario) {
                         console.log('☀️⚡ Recalculando también con potencias ACTUALES para', t.name);
+                        
+                        // Guardar el estado de excedentes
+                        const solarEnabledBackup = solarSurplusEnabled;
+                        const solarDataBackup = {...solarSurplusData};
+                        
+                        // TEMPORAL: Desactivar excedentes para calcular el ahorro base real
+                        solarSurplusEnabled = false;
+                        solarSurplusData = { excedente1: 0, excedente2: 0, excedente3: 0, total: 0, discount: 0, pricePerKwh: 0 };
+                        
+                        const rActualSinExcedentes = calculateTariffCost(t, window.currentPowerScenario, tariffTypeForCalc);
+                        const savingsBaseSinExcedentes = rActualSinExcedentes.originalBillAnnual - rActualSinExcedentes.totalAnnual;
+                        
+                        // Restaurar estado de excedentes
+                        solarSurplusEnabled = solarEnabledBackup;
+                        solarSurplusData = solarDataBackup;
+                        
+                        // Ahora calcular CON excedentes para obtener el coste real
                         const rActual = calculateTariffCost(t, window.currentPowerScenario, tariffTypeForCalc);
                         rActual.savings = rActual.originalBillAnnual - rActual.totalAnnual;
                         
@@ -15836,11 +15853,11 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                         const ahorroTotal = rActual.savings + ahorroAdicional + ahorroExcedentes;
                         
                         // Añadir campos de optimización
-                        r.savingsActual = rActual.savings;
+                        r.savingsActual = savingsBaseSinExcedentes; // Ahorro base SIN excedentes
                         r.ahorroAdicional = ahorroAdicional;
                         r.ahorroTotal = ahorroTotal;
                         
-                        console.log(`  - Ahorro actual: ${rActual.savings.toFixed(2)}€`);
+                        console.log(`  - Ahorro actual (sin excedentes): ${savingsBaseSinExcedentes.toFixed(2)}€`);
                         console.log(`  - Ahorro adicional (opt): ${ahorroAdicional.toFixed(2)}€`);
                         console.log(`  - Ahorro excedentes: ${ahorroExcedentes.toFixed(2)}€`);
                         console.log(`  - Ahorro TOTAL: ${ahorroTotal.toFixed(2)}€`);

@@ -15613,15 +15613,42 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             console.log('Ofertas filtradas del tipo elegido:', filteredOffersChosen.length, 'de', availableOffers.length);
             
             if (filteredOffersChosen.length === 0) {
-                let mensaje;
-                if (bestOptionTariffChoice === 'indexada') {
-                    mensaje = 'No se encontraron tarifas INDEXADAS de DRK con ahorro positivo.';
+                console.warn('⚠️ No hay ofertas con ahorro positivo después de filtrar');
+                
+                // CRÍTICO: Si no hay ofertas con ahorro (incluso con excedentes aplicados),
+                // mostrar el resultado "Enhorabuena" con opción de solicitar mejora
+                if (lastComparisonResult) {
+                    console.log('📊 Mostrando resultado "Enhorabuena" con solicitud de mejora');
+                    
+                    // Marcar que necesita solicitud de mejora
+                    lastComparisonResult.needsImprovementRequest = true;
+                    lastComparisonResult.isNegativeSavings = true;
+                    lastComparisonResult.savings = lastComparisonResult.originalBillAnnual - lastComparisonResult.totalAnnual;
+                    
+                    // Renderizar resultados
+                    renderResultsUI(lastComparisonResult);
+                    
+                    // Mostrar la vista de resultados
+                    document.getElementById('initial-view').classList.add('hidden');
+                    document.getElementById('scanner-view').classList.add('hidden');
+                    document.getElementById('results-view').classList.remove('hidden');
+                    document.getElementById('results-view').classList.add('animate-fade-in-up');
+                    
+                    // El modal de solicitar mejora se abrirá automáticamente por el flag needsImprovementRequest
+                    console.log('✅ Resultado renderizado - Modal de mejora se abrirá automáticamente');
                 } else {
-                    const origen = isDrkMode ? 'de DRK' : 'de cualquier comercializadora';
-                    mensaje = `No se encontraron tarifas FIJAS ${origen} con ahorro positivo.`;
+                    let mensaje;
+                    if (bestOptionTariffChoice === 'indexada') {
+                        mensaje = 'No se encontraron tarifas INDEXADAS de DRK con ahorro positivo.';
+                    } else {
+                        const origen = isDrkMode ? 'de DRK' : 'de cualquier comercializadora';
+                        mensaje = `No se encontraron tarifas FIJAS ${origen} con ahorro positivo.`;
+                    }
+                    window.showErrorModal(mensaje);
                 }
-                window.showErrorModal(mensaje);
+                
                 closeOfferDecisionModal();
+                isProcessingBestOption = false;
                 return;
             }
             

@@ -4465,8 +4465,11 @@
                 // El usuario necesita poder elegir entre todas las ofertas (incluyendo negativas)
                 const excedentesYaAplicados = isMultiCupsMode && final.solarSurplus && final.solarSurplus.enabled;
                 
-                if (excedentesYaAplicados) {
-                    console.log('☀️ MULTICUPS con excedentes ya aplicados - Mostrando modal de decisión con todas las ofertas');
+                // NUEVO: También para modo INDIVIDUAL si venimos del modal de fotovoltaica con excedentes
+                const excedentesIndividual = !isMultiCupsMode && hideDecisionCheckboxes && final.solarSurplus && final.solarSurplus.enabled;
+                
+                if (excedentesYaAplicados || excedentesIndividual) {
+                    console.log('☀️ Excedentes ya aplicados - Mostrando modal de decisión con todas las ofertas');
                     final._multiCupsContext = final._multiCupsContext || lastComparisonResult?._multiCupsContext;
                     hideDecisionCheckboxes = true;
                     showOfferDecisionModal();
@@ -7697,6 +7700,53 @@
         
         // --- GENERACIÓN DE PDF CON COMPARACIÓN DUAL (FIJO VS INDEXADO) CON DESARROLLO COMPLETO ---
         
+        // ========================================
+        // HELPER: Verificar espacio disponible en PDF
+        // ========================================
+        /**
+         * Verifica si hay suficiente espacio en la página actual del PDF.
+         * Si no hay espacio, añade una nueva página automáticamente.
+         * 
+         * @param {jsPDF} doc - Instancia de jsPDF
+         * @param {number} currentY - Posición Y actual
+         * @param {number} requiredSpace - Espacio requerido en mm
+         * @param {number} pageHeight - Altura de la página (default: 297mm para A4)
+         * @param {number} bottomMargin - Margen inferior (default: 15mm)
+         * @param {number} topMargin - Margen superior para nueva página (default: 15mm)
+         * @returns {number} Nueva posición Y (actual si hay espacio, o topMargin si se añadió página)
+         */
+        function checkPageSpace(doc, currentY, requiredSpace, pageHeight = 297, bottomMargin = 15, topMargin = 15) {
+            const availableSpace = pageHeight - bottomMargin - currentY;
+            
+            if (availableSpace < requiredSpace) {
+                console.log(`📄 Añadiendo nueva página. Espacio disponible: ${availableSpace.toFixed(2)}mm, Requerido: ${requiredSpace}mm`);
+                doc.addPage();
+                return topMargin;
+            }
+            
+            return currentY;
+        }
+        
+        /**
+         * Calcula el espacio necesario para una sección de desglose típica.
+         * Útil para estimar antes de renderizar bloques grandes.
+         * 
+         * @param {number} numLines - Número de líneas de texto
+         * @param {boolean} hasTable - Si incluye una tabla
+         * @param {boolean} hasBox - Si incluye un recuadro/caja
+         * @returns {number} Espacio estimado en mm
+         */
+        function estimateSectionSpace(numLines, hasTable = false, hasBox = false) {
+            let space = numLines * 5; // ~5mm por línea de texto
+            if (hasTable) space += 30; // Tablas ocupan ~30mm
+            if (hasBox) space += 15; // Cajas/recuadros ocupan ~15mm extra
+            return space;
+        }
+        
+        // ========================================
+        // PDF GENERATION FUNCTIONS
+        // ========================================
+        
         async function generatePDF_Dual(resFijo, resIndexed, commercialCode = 'D=00', clientName = '[NOMBRE COMPLETO CLIENTE]', clientPhone = '', clientEmail = '', clientAddress = '') {
             try {
                 console.log('=== generatePDF_Dual INICIADO ===');
@@ -8850,14 +8900,15 @@
                 // Filas de suministros
                 doc.setFont('helvetica', 'normal');
                 res.individualResults.forEach((supply, idx) => {
-                    // Verificar si necesitamos nueva página
-                    if (yPos > 270) {
-                        doc.addPage();
-                        yPos = 20;
-                    }
+                    // Calcular espacio necesario para este suministro
+                    const rowHeight = supply.supplyAddress ? 11 : 7;
+                    const hasSurplus = supply.solarSurplus && supply.solarSurplus.total > 0;
+                    const requiredSpace = rowHeight + (hasSurplus ? 3 : 0); // Extra por línea de excedentes
+                    
+                    // Verificar espacio ANTES de añadir contenido
+                    yPos = checkPageSpace(doc, yPos, requiredSpace, 297, 15, 20);
                     
                     // Fondo alternado - altura aumentada para incluir dirección
-                    const rowHeight = supply.supplyAddress ? 11 : 7;
                     if (idx % 2 === 0) {
                         doc.setFillColor(248, 250, 252); // Azul muy claro
                         doc.rect(margin, yPos, contentWidth, rowHeight, 'F');
@@ -17989,12 +18040,12 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                 
                 const ex1 = parseFloat(ex1Input) || 0;
                 
-                promptText = 'Llano (P2):';
                 promptText = tr('Llano (P2):');
+                const ex2Input = prompt(promptText, '0');
                 const ex2 = ex2Input === null ? 0 : (parseFloat(ex2Input) || 0);
                 
-                promptText = 'Valle (P3):';
                 promptText = tr('Valle (P3):');
+                const ex3Input = prompt(promptText, '0');
                 const ex3 = ex3Input === null ? 0 : (parseFloat(ex3Input) || 0);
                 
                 // Guardar los excedentes

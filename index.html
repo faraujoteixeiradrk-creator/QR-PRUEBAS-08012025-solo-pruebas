@@ -16852,7 +16852,32 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             if (lastComparisonResult && availableOffers.length > 0) {
                 showOfferSelectionModal(lastComparisonResult.cups);
             } else {
-                window.showErrorModal('No hay ofertas disponibles para seleccionar');
+                // CRÍTICO: Si no hay ofertas disponibles, mostrar resultado "Enhorabuena" con solicitud de mejora
+                if (lastComparisonResult) {
+                    console.log('⚠️ No hay ofertas con ahorro - Mostrando resultado "Enhorabuena" con solicitud de mejora');
+                    
+                    // Marcar que necesita solicitud de mejora
+                    lastComparisonResult.needsImprovementRequest = true;
+                    lastComparisonResult.isNegativeSavings = true;
+                    lastComparisonResult.savings = (lastComparisonResult.originalBillAnnual || 0) - (lastComparisonResult.totalAnnual || 0);
+                    
+                    console.log('📊 Savings calculado:', lastComparisonResult.savings);
+                    console.log('📊 needsImprovementRequest:', lastComparisonResult.needsImprovementRequest);
+                    
+                    // Renderizar resultados
+                    renderResultsUI(lastComparisonResult);
+                    
+                    // Mostrar la vista de resultados
+                    document.getElementById('initial-view').classList.add('hidden');
+                    document.getElementById('scanner-view').classList.add('hidden');
+                    document.getElementById('results-view').classList.remove('hidden');
+                    document.getElementById('results-view').classList.add('animate-fade-in-up');
+                    
+                    console.log('✅ Resultado renderizado - Modal de mejora se abrirá automáticamente');
+                } else {
+                    // Fallback: mostrar error si no hay lastComparisonResult
+                    window.showErrorModal('No hay ofertas disponibles para seleccionar');
+                }
             }
         }
         

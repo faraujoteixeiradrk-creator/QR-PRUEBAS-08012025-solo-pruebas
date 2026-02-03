@@ -7008,6 +7008,24 @@
                             </td>
                         </tr>
                         
+                        ${resOptimized.solarSurplus && resOptimized.solarSurplus.enabled ? `
+                        <!-- AHORRO ADICIONAL POR EXCEDENTES SOLARES -->
+                        <tr>
+                            <td style="padding:20px;">
+                                <table width="100%" cellpadding="20" cellspacing="0" style="background:linear-gradient(to right, #fef9c3, #fed7aa);border:3px solid #eab308;border-radius:12px;">
+                                    <tr>
+                                        <td style="text-align:center;">
+                                            <p style="margin:0 0 8px 0;color:#713f12;font-size:14px;font-weight:bold;">☀️ AHORRO ADICIONAL POR EXCEDENTES SOLARES</p>
+                                            <p style="margin:0;color:#ca8a04;font-size:36px;font-weight:bold;">${eur(resOptimized.solarSurplus.annualDiscount)}</p>
+                                            <p style="margin:8px 0 0 0;color:#854d0e;font-size:12px;">Extra al año por compensación de energía solar vertida (${num(resOptimized.solarSurplus.total, 0)} kWh)</p>
+                                            ${resOptimized.solarSurplus.excessAnnual > 0 ? `<p style="margin:4px 0 0 0;color:#a16207;font-size:11px;font-style:italic;">⚠️ Excedentes no compensados: ${eur(resOptimized.solarSurplus.excessAnnual)}/año</p>` : ''}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        ` : ''}
+                        
                         <!-- FOOTER -->
                         <tr>
                             <td bgcolor="${brandColor}" style="padding:20px;text-align:center;">
@@ -10566,6 +10584,29 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.text(eur(ahorroAdicional) + '/año', pageWidth / 2, yPos + 18, { align: 'center' });
                     
                     yPos += 30;
+                    
+                    // NUEVO: Añadir sección de excedentes solares si existen
+                    if (resOptimized.solarSurplus && resOptimized.solarSurplus.enabled) {
+                        if (yPos > 250) {
+                            doc.addPage();
+                            yPos = 20;
+                        }
+                        
+                        doc.setFillColor(254, 249, 195); // Amarillo claro
+                        doc.setDrawColor(234, 179, 8); // Amarillo/naranja oscuro
+                        doc.setLineWidth(1);
+                        doc.roundedRect(margin, yPos, contentWidth, 25, 3, 3, 'FD');
+                        
+                        doc.setTextColor(113, 63, 18); // Marrón oscuro
+                        doc.setFontSize(9);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text(tr('AHORRO ADICIONAL POR EXCEDENTES SOLARES'), pageWidth / 2, yPos + 7, { align: 'center' });
+                        
+                        doc.setFontSize(18);
+                        doc.text(eur(resOptimized.solarSurplus.annualDiscount) + '/año', pageWidth / 2, yPos + 18, { align: 'center' });
+                        
+                        yPos += 30;
+                    }
                 } else {
                     // MODO UNA COLUMNA: Mostrar resumen de optimización sin revelar potencias
                     if (yPos > 235) {
@@ -10635,6 +10676,39 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.text(tr('AHORRO TOTAL OPTIMIZADO:') + ' ' + eur(resOptimized.savings) + '/año', pageWidth / 2, yPos + 8, { align: 'center' });
                     
                     yPos += 17;
+                    
+                    // NUEVO: Añadir sección de excedentes solares si existen
+                    if (resOptimized.solarSurplus && resOptimized.solarSurplus.enabled) {
+                        yPos += 5;
+                        
+                        // Título
+                        doc.setFillColor(254, 249, 195);
+                        doc.roundedRect(margin, yPos, contentWidth, 10, 2, 2, 'F');
+                        doc.setTextColor(113, 63, 18);
+                        doc.setFontSize(9);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text(tr('EXCEDENTES SOLARES'), pageWidth / 2, yPos + 6.5, { align: 'center' });
+                        
+                        yPos += 15;
+                        
+                        // Caja con detalles
+                        doc.setFillColor(255, 255, 255);
+                        doc.setDrawColor(234, 179, 8);
+                        doc.setLineWidth(0.5);
+                        doc.roundedRect(margin, yPos, contentWidth, 25, 2, 2, 'FD');
+                        
+                        doc.setTextColor(0, 0, 0);
+                        doc.setFontSize(8);
+                        doc.setFont('helvetica', 'normal');
+                        doc.text(tr('Compensación por energía solar vertida:') + ' ' + num(resOptimized.solarSurplus.total, 0) + ' kWh', margin + 5, yPos + 8);
+                        
+                        doc.setTextColor(234, 179, 8);
+                        doc.setFontSize(12);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text(tr('Ahorro adicional') + ': ' + eur(resOptimized.solarSurplus.annualDiscount) + '/año', margin + 5, yPos + 18);
+                        
+                        yPos += 30;
+                    }
                 }
                 
                 // ===============================================

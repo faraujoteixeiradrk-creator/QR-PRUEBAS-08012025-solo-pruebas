@@ -15856,8 +15856,14 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                         r.ahorroAdicional = ahorroAdicional;
                         r.ahorroTotal = ahorroTotal;
                         
-                        console.log(`  - Ahorro actual (sin excedentes): ${savingsBaseSinExcedentes.toFixed(2)}€`);
-                        console.log(`  - Ahorro adicional (opt): ${ahorroAdicional.toFixed(2)}€`);
+                        console.log(`🔍 DEBUG ${t.name}:`);
+                        console.log(`  - r.savings (optimizado CON excedentes): ${r.savings.toFixed(2)}€`);
+                        console.log(`  - r.totalAnnual (coste optimizado): ${r.totalAnnual.toFixed(2)}€`);
+                        console.log(`  - r.originalBillAnnual: ${r.originalBillAnnual.toFixed(2)}€`);
+                        console.log(`  - r.solarSurplus?.annualDiscount: ${(r.solarSurplus?.annualDiscount || 0).toFixed(2)}€`);
+                        console.log(`  - savingsBaseSinExcedentes: ${savingsBaseSinExcedentes.toFixed(2)}€`);
+                        console.log(`  - ahorroAdicional: ${ahorroAdicional.toFixed(2)}€`);
+                        console.log(`  - ahorroTotal: ${ahorroTotal.toFixed(2)}€`);
                         console.log(`  - Ahorro excedentes: ${ahorroExcedentes.toFixed(2)}€`);
                         console.log(`  - Ahorro TOTAL: ${ahorroTotal.toFixed(2)}€`);
                     }

@@ -4403,10 +4403,8 @@
                         window.dualAddFromResults('electricidad', tariff, dd, res, result);
                     }
                     
-                    // Si los excedentes ya están aplicados → mostrar modal de decisión con todas las ofertas
-                    // El usuario necesita poder elegir entre todas las opciones (incluyendo negativas)
-                    // para intentar compensar en el conjunto DUAL
-                    if (final.solarSurplus && final.solarSurplus.enabled) {
+                    // PRIORIDAD 0: Si venimos del modal de fotovoltaica con excedentes aplicados → mostrar modal de decisión
+                    if (hideDecisionCheckboxes || (final.solarSurplus && final.solarSurplus.enabled)) {
                         console.log('☀️ DUAL con excedentes ya aplicados - Mostrando modal de decisión con todas las ofertas');
                         hideDecisionCheckboxes = true;
                         showOfferDecisionModal();

@@ -6836,7 +6836,8 @@
                                                 <tr>
                                                     <td style="text-align:center;padding:15px;">
                                                         <p style="margin:0 0 5px 0;color:${brandColor};font-size:11px;font-weight:bold;">TU NUEVO COSTE ${brand.NAME}</p>
-                                                        <p style="margin:0 0 5px 0;color:#1e293b;font-size:18px;font-weight:bold;">${eur(resActual.totalAnnual / 12)}/mes</p>
+                                                        <p style="margin:0 0 5px 0;color:#1e293b;font-size:18px;font-weight:bold;">${eur(resActual.totalPeriod)}</p>
+                                                        <p style="margin:0 0 5px 0;color:#64748b;font-size:10px;">Total Periodo (${resActual.dias_facturados || resActual.dias || 30} días)</p>
                                                         <p style="margin:0;color:#1e293b;font-size:16px;font-weight:bold;">${eur(resActual.totalAnnual)}/año</p>
                                                     </td>
                                                 </tr>
@@ -6893,7 +6894,8 @@
                                                 <tr>
                                                     <td style="text-align:center;padding:15px;">
                                                         <p style="margin:0 0 5px 0;color:#16a34a;font-size:11px;font-weight:bold;">TU NUEVO COSTE ${brand.NAME}</p>
-                                                        <p style="margin:0 0 5px 0;color:#1e293b;font-size:18px;font-weight:bold;">${eur(resOptimized.totalAnnual / 12)}/mes</p>
+                                                        <p style="margin:0 0 5px 0;color:#1e293b;font-size:18px;font-weight:bold;">${eur(resOptimized.totalPeriod)}</p>
+                                                        <p style="margin:0 0 5px 0;color:#64748b;font-size:10px;">Total Periodo (${resOptimized.dias_facturados || resOptimized.dias || 30} días)</p>
                                                         <p style="margin:0;color:#1e293b;font-size:16px;font-weight:bold;">${eur(resOptimized.totalAnnual)}/año</p>
                                                     </td>
                                                 </tr>
@@ -6992,7 +6994,8 @@
                                         </td>
                                         <td width="50%" style="padding:20px;text-align:center;">
                                             <p style="margin:0 0 10px 0;color:${brandColor};font-size:10px;font-weight:bold;">TU NUEVO COSTE ${brand.NAME}</p>
-                                            <p style="margin:0 0 5px 0;color:#1e293b;font-size:20px;font-weight:bold;">${eur(resActual.totalAnnual / 12)}/mes</p>
+                                            <p style="margin:0 0 5px 0;color:#1e293b;font-size:20px;font-weight:bold;">${eur(resActual.totalPeriod)}</p>
+                                            <p style="margin:0 0 5px 0;color:#64748b;font-size:9px;">Total Periodo (${resActual.dias_facturados || resActual.dias || 30} días)</p>
                                             <p style="margin:0;color:#1e293b;font-size:16px;font-weight:bold;">${eur(resActual.totalAnnual)}/año</p>
                                         </td>
                                     </tr>
@@ -8079,14 +8082,15 @@
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(20);
                 doc.setTextColor(...brandColor);
-                doc.text(eur(resFijo.totalAnnual / 12) + tr('/mes'), col2X, y2);
+                doc.text(eur(resFijo.totalPeriod), col2X, y2);
                 y2 += 10;
                 
-                // Subtexto "Estimado Mensual"
+                // Subtexto "Total Periodo (X días)"
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(8);
                 doc.setTextColor(156, 163, 175);
-                doc.text(tr('Estimado Mensual'), col2X, y2);
+                const diasFijo = resFijo.dias_facturados || resFijo.dias || 30;
+                doc.text(`${tr('Total Periodo')} (${diasFijo} ${tr('días')})`, col2X, y2);
                 y2 += 12;
                 
                 // Precio anual nuevo (color de marca)
@@ -8122,18 +8126,19 @@
                 doc.text(tr('TU NUEVO COSTE') + ' ' + brand.NAME.toUpperCase(), col3X, y3);
                 y3 += 12;
                 
-                // Precio mensual nuevo
+                // Precio periodo nuevo
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(20);
                 doc.setTextColor(22, 163, 74);
-                doc.text(eur(resIndexed.totalAnnual / 12) + tr('/mes'), col3X, y3);
+                doc.text(eur(resIndexed.totalPeriod), col3X, y3);
                 y3 += 10;
                 
-                // Subtexto "Estimado Mensual"
+                // Subtexto "Total Periodo (X días)"
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(8);
                 doc.setTextColor(156, 163, 175);
-                doc.text(tr('Estimado Mensual'), col3X, y3);
+                const diasIndexed = resIndexed.dias_facturados || resIndexed.dias || 30;
+                doc.text(`${tr('Total Periodo')} (${diasIndexed} ${tr('días')})`, col3X, y3);
                 y3 += 12;
                 
                 // Precio anual nuevo
@@ -8799,18 +8804,19 @@
                 doc.text(tr('TU NUEVO COSTE') + ' ' + brand.NAME.toUpperCase(), col2X, y2);
                 y2 += 12;
                 
-                // Precio mensual nuevo (color de marca)
+                // Precio periodo nuevo (color de marca)
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(20);
                 doc.setTextColor(...brandColor);
-                doc.text(eur(res.totalAnnual / 12) + tr('/mes'), col2X, y2);
+                doc.text(eur(res.totalPeriod), col2X, y2);
                 y2 += 10;
                 
-                // Subtexto "Estimado Mensual"
+                // Subtexto "Total Periodo (X días)"
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(8);
                 doc.setTextColor(156, 163, 175);
-                doc.text(tr('Estimado Mensual'), col2X, y2);
+                const diasRes = res.dias_facturados || res.dias || 30;
+                doc.text(`${tr('Total Periodo')} (${diasRes} ${tr('días')})`, col2X, y2);
                 y2 += 12;
                 
                 // Precio anual nuevo (color de marca)
@@ -10358,9 +10364,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.text(tr('TU NUEVO COSTE'), leftX + colWidth / 2, leftY + 5, { align: 'center' });
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(11);
-                doc.text(eur(resActual.totalAnnual / 12) + '/mes', leftX + colWidth / 2, leftY + 11, { align: 'center' });
+                doc.text(eur(resActual.totalPeriod), leftX + colWidth / 2, leftY + 11, { align: 'center' });
+                doc.setFontSize(7);
+                const diasActual = resActual.dias_facturados || resActual.dias || 30;
+                doc.text(`(${diasActual} ${tr('días')})`, leftX + colWidth / 2, leftY + 15, { align: 'center' });
                 doc.setFontSize(9);
-                doc.text(eur(resActual.totalAnnual) + '/año', leftX + colWidth / 2, leftY + 16, { align: 'center' });
+                doc.text(eur(resActual.totalAnnual) + '/año', leftX + colWidth / 2, leftY + 19, { align: 'center' });
                 
                 leftY += 25;
                 
@@ -10424,9 +10433,12 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.text(tr('TU NUEVO COSTE'), rightX + colWidth / 2, rightY + 5, { align: 'center' });
                     doc.setTextColor(0, 0, 0);
                     doc.setFontSize(11);
-                    doc.text(eur(resOptimized.totalAnnual / 12) + '/mes', rightX + colWidth / 2, rightY + 11, { align: 'center' });
+                    doc.text(eur(resOptimized.totalPeriod), rightX + colWidth / 2, rightY + 11, { align: 'center' });
+                    doc.setFontSize(7);
+                    const diasOptimized = resOptimized.dias_facturados || resOptimized.dias || 30;
+                    doc.text(`(${diasOptimized} ${tr('días')})`, rightX + colWidth / 2, rightY + 15, { align: 'center' });
                     doc.setFontSize(9);
-                    doc.text(eur(resOptimized.totalAnnual) + '/año', rightX + colWidth / 2, rightY + 16, { align: 'center' });
+                    doc.text(eur(resOptimized.totalAnnual) + '/año', rightX + colWidth / 2, rightY + 19, { align: 'center' });
                     
                     rightY += 25;
                     
@@ -11442,17 +11454,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     const newLabelMulti = `TU NUEVO COSTE ${brandNameMulti}`;
                     doc.text(newLabelMulti, rightXMulti + colWidthMulti / 2, yPos, { align: 'center' });
                     
-                    // Precio mensual en azul
+                    // Precio periodo en azul
                     doc.setTextColor(...primaryColor);
                     doc.setFontSize(20);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(`${eur(res.totalAnnual / 12)}${tr('/mes')}`, rightXMulti + colWidthMulti / 2, yPos + 13, { align: 'center' });
+                    doc.text(`${eur(res.totalPeriod)}`, rightXMulti + colWidthMulti / 2, yPos + 13, { align: 'center' });
                     
-                    // "Estimado Mensual"
+                    // "Total Periodo (X días)"
                     doc.setTextColor(140, 150, 160);
                     doc.setFontSize(7);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(tr('Estimado Mensual'), rightXMulti + colWidthMulti / 2, yPos + 19, { align: 'center' });
+                    const diasMulti = res.dias_facturados || res.dias || 30;
+                    doc.text(`${tr('Total Periodo')} (${diasMulti} ${tr('días')})`, rightXMulti + colWidthMulti / 2, yPos + 19, { align: 'center' });
                     
                     // Precio anual en azul
                     doc.setTextColor(...primaryColor);
@@ -12333,17 +12346,18 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 const newLabel = `TU NUEVO COSTE ${brandName}`;
                 doc.text(newLabel, rightXResumen + colWidthResumen / 2, yPos, { align: 'center' });
                 
-                // Precio mensual en azul
+                // Precio periodo en azul
                 doc.setTextColor(...primaryColor);
                 doc.setFontSize(20);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`${eur(res.totalAnnual / 12)}/mes`, rightXResumen + colWidthResumen / 2, yPos + 13, { align: 'center' });
+                doc.text(`${eur(res.totalPeriod)}`, rightXResumen + colWidthResumen / 2, yPos + 13, { align: 'center' });
                 
-                // "Estimado Mensual"
+                // "Total Periodo (X días)"
                 doc.setTextColor(140, 150, 160);
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
-                doc.text(tr('Estimado Mensual'), rightXResumen + colWidthResumen / 2, yPos + 19, { align: 'center' });
+                const diasResumen = res.dias_facturados || res.dias || 30;
+                doc.text(`${tr('Total Periodo')} (${diasResumen} ${tr('días')})`, rightXResumen + colWidthResumen / 2, yPos + 19, { align: 'center' });
                 
                 // Precio anual en azul
                 doc.setTextColor(...primaryColor);

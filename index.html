@@ -12361,10 +12361,22 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setFont('helvetica', 'bold');
                 doc.text(tr('TU FACTURA ACTUAL'), leftXResumen + colWidthResumen / 2, yPos, { align: 'center' });
                 
-                // Precio periodo (mensual estimado) tachado en rojo
-                const diasPeriodo = res.dias_facturados || 30;
-                const precioMensualEstimado = (res.originalBillAnnual / 365) * 30;
-                const oldPrice = `${eur(precioMensualEstimado)}/mes`;
+                // Precio periodo REAL (no estimado) tachado en rojo
+                const numSuppliesOrigPDF = res.individualResults ? res.individualResults.length : 1;
+                let costeOriginalPDF;
+                let diasPeriodoPDF;
+                
+                if (numSuppliesOrigPDF === 1) {
+                    // UN SOLO suministro: usar importe_total REAL
+                    costeOriginalPDF = res.individualResults[0].importe_total || res.importe_total || 0;
+                    diasPeriodoPDF = res.individualResults[0].dias_facturados || res.dias_facturados || 30;
+                } else {
+                    // MÚLTIPLES suministros: usar promedio mensual
+                    costeOriginalPDF = res.originalBillAnnual / 12;
+                    diasPeriodoPDF = 30; // Variado
+                }
+                
+                const oldPrice = `${eur(costeOriginalPDF)}`;
                 doc.setTextColor(...redColor);
                 doc.setFontSize(18);
                 doc.setFont('helvetica', 'bold');
@@ -12378,11 +12390,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setLineWidth(1.5);
                 doc.line(oldX - oldWidth/2 - 2, oldY - 3, oldX + oldWidth/2 + 2, oldY - 3);
                 
-                // "Total Periodo"
+                // "Total Periodo (X días)"
                 doc.setTextColor(140, 150, 160);
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
-                doc.text(`Total Periodo (${diasPeriodo} días)`, leftXResumen + colWidthResumen / 2, yPos + 19, { align: 'center' });
+                const labelOriginalPDF = numSuppliesOrigPDF === 1 
+                    ? `Total Periodo (${diasPeriodoPDF} días)` 
+                    : tr('Estimado Mensual');
+                doc.text(labelOriginalPDF, leftXResumen + colWidthResumen / 2, yPos + 19, { align: 'center' });
                 
                 // Precio anual tachado
                 const oldAnnual = eur(res.originalBillAnnual);

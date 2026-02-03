@@ -17793,8 +17793,20 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                             savings: result.savings,
                             isNegativeSavings: result.isNegativeSavings,
                             tariffType: result.tariffType || result.originalTariffType,
-                            offerName: result.offer?.name
+                            offerName: result.offer?.name,
+                            totalAnnual: result.totalAnnual,
+                            originalBillAnnual: result.originalBillAnnual,
+                            savingsCalculated: (result.originalBillAnnual - result.totalAnnual)
                         });
+                        
+                        // CRÍTICO: Verificar que savings está correctamente calculado
+                        if (result.savings === undefined || result.savings === null) {
+                            console.warn('⚠️ savings es undefined/null, recalculando...');
+                            result.savings = (result.originalBillAnnual || 0) - (result.totalAnnual || 0);
+                            result.isNegativeSavings = result.savings <= 0;
+                            console.log('✅ Savings recalculado:', result.savings);
+                        }
+                        
                         // Hay ahorro, o no es 2.0TD/3.0TD, mostrar resultados normalmente
                         renderResultsUI(result);
                     }

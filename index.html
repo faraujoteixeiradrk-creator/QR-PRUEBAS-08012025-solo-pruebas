@@ -3319,7 +3319,76 @@
                     return; // No renderizar resultados todavía
                 }
                 
-                // Si solo hay 1 oferta o ninguna, renderizar directamente
+                // Si solo hay 1 oferta o ninguna
+                if (availableOffers.length === 0) {
+                    // NUEVO: Si es 3.0TD y NO hay excedentes activos, preguntar
+                    const hasSolarSurplusActive = solarSurplusEnabled && solarSurplusData.total > 0;
+                    
+                    if (currentTariffType === '3.0TD' && !hasSolarSurplusActive) {
+                        console.log('⚡☀️ 3.0TD con optimización sin ahorro - Preguntando por instalación fotovoltaica');
+                        
+                        // Mostrar modal preguntando por instalación fotovoltaica
+                        const modal = document.createElement('div');
+                        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+                        modal.innerHTML = `
+                            <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-fade-in-up">
+                                <div class="text-center mb-6">
+                                    <div class="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
+                                        <span class="text-3xl">☀️</span>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-gray-900 mb-2">¿Tienes instalación fotovoltaica?</h3>
+                                    <p class="text-sm text-gray-600">Si produces energía solar, podríamos encontrar más ahorro con compensación de excedentes</p>
+                                </div>
+                                <div class="space-y-3">
+                                    <button id="solar-yes-btn-dual" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition">
+                                        ✅ Sí, tengo paneles solares
+                                    </button>
+                                    <button id="solar-no-btn-dual" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-xl transition">
+                                        ❌ No, no tengo instalación solar
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        
+                        document.body.appendChild(modal);
+                        
+                        // Manejar respuesta SÍ
+                        document.getElementById('solar-yes-btn-dual').addEventListener('click', () => {
+                            modal.remove();
+                            console.log('✅ Usuario tiene instalación solar - Mostrando formulario excedentes');
+                            
+                            // Activar checkbox de excedentes y mostrar formulario
+                            const solarCheckbox = document.getElementById('solar-surplus-checkbox');
+                            if (solarCheckbox) {
+                                solarCheckbox.checked = true;
+                                toggleSolarSurplus();
+                            }
+                            
+                            // Volver a mostrar el modal de decisión para que configure excedentes
+                            showOfferDecisionModal();
+                        });
+                        
+                        // Manejar respuesta NO
+                        document.getElementById('solar-no-btn-dual').addEventListener('click', () => {
+                            modal.remove();
+                            console.log('❌ Usuario no tiene instalación solar - Mostrando resultados sin ahorro');
+                            
+                            // Continuar con renderizado normal
+                            console.log('Renderizando resultados directamente (0 ofertas, sin excedentes)');
+                            renderDualPowerResultsUI(finalActual, finalOptimized, brand);
+                            
+                            // Mostrar vista de resultados
+                            document.getElementById('initial-view').classList.add('hidden');
+                            document.getElementById('scanner-view').classList.add('hidden');
+                            document.getElementById('results-view').classList.remove('hidden');
+                        });
+                        
+                        console.log('=== COMPARACIÓN DUAL COMPLETADA (esperando respuesta usuario) ===');
+                        return; // Salir y esperar respuesta del usuario
+                    }
+                }
+                
+                // Renderizar directamente si hay 1 oferta o si no es 3.0TD
                 console.log('Renderizando resultados directamente (1 o 0 ofertas)');
                 renderDualPowerResultsUI(finalActual, finalOptimized, brand);
                 

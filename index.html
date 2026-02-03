@@ -11508,14 +11508,31 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(...primaryColor);
                     doc.setFontSize(20);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(`${eur(res.totalPeriod)}`, rightXMulti + colWidthMulti / 2, yPos + 13, { align: 'center' });
                     
-                    // "Total Periodo (X días)"
+                    // MULTICUPS: verificar si hay uno o múltiples suministros
+                    const numSuppliesPDF = res.individualResults ? res.individualResults.length : 1;
+                    let costePeriodoPDF;
+                    let diasPeriodoPDF;
+                    let labelPeriodoPDF;
+                    
+                    if (numSuppliesPDF === 1) {
+                        // UN SOLO suministro: usar totalPeriod del suministro individual
+                        costePeriodoPDF = res.individualResults[0].totalPeriod || res.totalPeriod || 0;
+                        diasPeriodoPDF = res.individualResults[0].dias_facturados || res.individualResults[0].dias || res.dias_facturados || 30;
+                        labelPeriodoPDF = `${tr('Total Periodo')} (${diasPeriodoPDF} ${tr('días')})`;
+                    } else {
+                        // MÚLTIPLES suministros: usar promedio mensual
+                        costePeriodoPDF = res.totalAnnual / 12;
+                        labelPeriodoPDF = tr('Estimado Mensual');
+                    }
+                    
+                    doc.text(`${eur(costePeriodoPDF)}`, rightXMulti + colWidthMulti / 2, yPos + 13, { align: 'center' });
+                    
+                    // Label del período
                     doc.setTextColor(140, 150, 160);
                     doc.setFontSize(7);
                     doc.setFont('helvetica', 'normal');
-                    const diasMulti = res.dias_facturados || res.dias || 30;
-                    doc.text(`${tr('Total Periodo')} (${diasMulti} ${tr('días')})`, rightXMulti + colWidthMulti / 2, yPos + 19, { align: 'center' });
+                    doc.text(labelPeriodoPDF, rightXMulti + colWidthMulti / 2, yPos + 19, { align: 'center' });
                     
                     // Precio anual en azul
                     doc.setTextColor(...primaryColor);
@@ -12400,14 +12417,31 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setTextColor(...primaryColor);
                 doc.setFontSize(20);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`${eur(res.totalPeriod)}`, rightXResumen + colWidthResumen / 2, yPos + 13, { align: 'center' });
                 
-                // "Total Periodo (X días)"
+                // MULTICUPS: verificar si hay uno o múltiples suministros
+                const numSuppliesPDF2 = res.individualResults ? res.individualResults.length : 1;
+                let costePeriodoPDF2;
+                let diasPeriodoPDF2;
+                let labelPeriodoPDF2;
+                
+                if (numSuppliesPDF2 === 1) {
+                    // UN SOLO suministro: usar totalPeriod del suministro individual
+                    costePeriodoPDF2 = res.individualResults[0].totalPeriod || res.totalPeriod || 0;
+                    diasPeriodoPDF2 = res.individualResults[0].dias_facturados || res.individualResults[0].dias || res.dias_facturados || 30;
+                    labelPeriodoPDF2 = `${tr('Total Periodo')} (${diasPeriodoPDF2} ${tr('días')})`;
+                } else {
+                    // MÚLTIPLES suministros: usar promedio mensual
+                    costePeriodoPDF2 = res.totalAnnual / 12;
+                    labelPeriodoPDF2 = tr('Estimado Mensual');
+                }
+                
+                doc.text(`${eur(costePeriodoPDF2)}`, rightXResumen + colWidthResumen / 2, yPos + 13, { align: 'center' });
+                
+                // Label del período
                 doc.setTextColor(140, 150, 160);
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'normal');
-                const diasResumen = res.dias_facturados || res.dias || 30;
-                doc.text(`${tr('Total Periodo')} (${diasResumen} ${tr('días')})`, rightXResumen + colWidthResumen / 2, yPos + 19, { align: 'center' });
+                doc.text(labelPeriodoPDF2, rightXResumen + colWidthResumen / 2, yPos + 19, { align: 'center' });
                 
                 // Precio anual en azul
                 doc.setTextColor(...primaryColor);

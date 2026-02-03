@@ -3496,7 +3496,7 @@
                             <!-- COLUMNA 3: CON POTENCIAS OPTIMIZADAS (Verde para destacar la mejor opción) -->
                             <div class="text-center">
                                 <div class="bg-green-600 text-white py-2 px-2 rounded-t-lg">
-                                    <p class="text-xs font-bold uppercase">⚡ ${tr("TU AHORRO ANUAL CON OPTIMIZACIÓN")}</p>
+                                    <p class="text-xs font-bold uppercase">${resOptimized.solarSurplus && resOptimized.solarSurplus.enabled ? '⚡☀️ TU AHORRO ANUAL CON OPTIMIZACIÓN Y EXCEDENTES' : '⚡ ' + tr("TU AHORRO ANUAL CON OPTIMIZACIÓN")}</p>
                                 </div>
                                 <div class="bg-green-50 border-2 border-green-400 rounded-b-lg p-3">
                                     <p class="text-xs text-green-700 mb-2 font-bold">${resOptimized.offer.name}</p>
@@ -11054,25 +11054,39 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(orangeColor[0], orangeColor[1], orangeColor[2]);
                     doc.text(eur(ahorroAdicional), pageWidth - margin - 5, finalY + 19, { align: 'right' });
                     
+                    let offsetY = 22; // Offset inicial para el total
+                    
+                    // NUEVO: Añadir línea de excedentes si existen
+                    if (resOptimized.solarSurplus && resOptimized.solarSurplus.enabled) {
+                        doc.setFont('helvetica', 'normal');
+                        doc.setTextColor(0, 0, 0);
+                        doc.text(tr('Ahorro adicional excedentes:'), margin + 5, finalY + 24);
+                        doc.setFont('helvetica', 'bold');
+                        doc.setTextColor(234, 179, 8); // Amarillo
+                        doc.text(eur(resOptimized.solarSurplus.annualDiscount), pageWidth - margin - 5, finalY + 24, { align: 'right' });
+                        offsetY = 27; // Ajustar offset para el total
+                    }
+                    
                     // Total optimizado
                     doc.setFillColor(greenColor[0], greenColor[1], greenColor[2]);
-                    doc.roundedRect(margin + 5, finalY + 22, contentWidth - 10, 7, 1, 1, 'F');
+                    doc.roundedRect(margin + 5, finalY + offsetY, contentWidth - 10, 7, 1, 1, 'F');
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(8);
-                    doc.text(tr('AHORRO TOTAL OPTIMIZADO:'), margin + 10, finalY + 27);
+                    doc.text(tr('AHORRO TOTAL OPTIMIZADO:'), margin + 10, finalY + offsetY + 5);
                     const ahorroTotalRes1 = resOptimized.savings + (resOptimized.solarSurplus?.annualDiscount || 0);
-                    doc.text(eur(ahorroTotalRes1), pageWidth - margin - 10, finalY + 27, { align: 'right' });
+                    doc.text(eur(ahorroTotalRes1), pageWidth - margin - 10, finalY + offsetY + 5, { align: 'right' });
                     
                     finalY += 35; // Avanzar después del resumen
                     
                 } else {
                     // Modo una columna: MISMO RESUMEN que dos columnas
+                    const boxHeight = (resOptimized.solarSurplus && resOptimized.solarSurplus.enabled) ? 35 : 30;
                     doc.setFillColor(250, 250, 250);
-                    doc.roundedRect(margin, finalY, contentWidth, 30, 2, 2, 'F');
+                    doc.roundedRect(margin, finalY, contentWidth, boxHeight, 2, 2, 'F');
                     doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
                     doc.setLineWidth(0.5);
-                    doc.roundedRect(margin, finalY, contentWidth, 30, 2, 2, 'S');
+                    doc.roundedRect(margin, finalY, contentWidth, boxHeight, 2, 2, 'S');
                     
                     // Título
                     doc.setFontSize(9);
@@ -11103,15 +11117,28 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(orangeColor[0], orangeColor[1], orangeColor[2]);
                     doc.text(eur(ahorroAdicional), pageWidth - margin - 5, finalY + 19, { align: 'right' });
                     
+                    let offsetY2 = 22; // Offset inicial para el total
+                    
+                    // NUEVO: Añadir línea de excedentes si existen
+                    if (resOptimized.solarSurplus && resOptimized.solarSurplus.enabled) {
+                        doc.setFont('helvetica', 'normal');
+                        doc.setTextColor(0, 0, 0);
+                        doc.text(tr('Ahorro adicional excedentes:'), margin + 5, finalY + 24);
+                        doc.setFont('helvetica', 'bold');
+                        doc.setTextColor(234, 179, 8); // Amarillo
+                        doc.text(eur(resOptimized.solarSurplus.annualDiscount), pageWidth - margin - 5, finalY + 24, { align: 'right' });
+                        offsetY2 = 27; // Ajustar offset para el total
+                    }
+                    
                     // Total optimizado
                     doc.setFillColor(greenColor[0], greenColor[1], greenColor[2]);
-                    doc.roundedRect(margin + 5, finalY + 22, contentWidth - 10, 7, 1, 1, 'F');
+                    doc.roundedRect(margin + 5, finalY + offsetY2, contentWidth - 10, 7, 1, 1, 'F');
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(8);
-                    doc.text(tr('AHORRO TOTAL OPTIMIZADO:'), margin + 10, finalY + 27);
+                    doc.text(tr('AHORRO TOTAL OPTIMIZADO:'), margin + 10, finalY + offsetY2 + 5);
                     const ahorroTotalRes2 = resOptimized.savings + (resOptimized.solarSurplus?.annualDiscount || 0);
-                    doc.text(eur(ahorroTotalRes2), pageWidth - margin - 10, finalY + 27, { align: 'right' });
+                    doc.text(eur(ahorroTotalRes2), pageWidth - margin - 10, finalY + offsetY2 + 5, { align: 'right' });
                     
                     finalY += 35; // Avanzar después del resumen
                 }

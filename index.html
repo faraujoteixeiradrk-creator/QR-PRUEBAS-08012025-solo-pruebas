@@ -5413,8 +5413,10 @@
             document.getElementById('old-annual-cost-display').textContent = eur(res.originalBillAnnual) + tr('/año');
             document.getElementById('old-period-days-label').textContent = `${tr('Total Periodo')} (${tr('Variado')})`; // Días varían por factura
             
-            
-            document.getElementById('new-monthly-cost-display').textContent = eur(res.totalAnnual / 12) + tr('/mes');
+            // Mostrar el coste del periodo (que coincide con el desglose)
+            const diasPeriodo = res.dias_facturados || res.dias || 30;
+            document.getElementById('new-monthly-cost-display').textContent = eur(res.totalPeriod);
+            document.getElementById('monthly-label').textContent = `${tr('Total Periodo')} (${diasPeriodo} ${tr('días')})`;
             document.getElementById('new-annual-cost-display').textContent = eur(res.totalAnnual) + tr('/año');
             
             // BATERÍA VIRTUAL: mostrar saldo final (lo que queda tras compensar entre CUPS)
@@ -6173,7 +6175,10 @@
             document.getElementById('old-annual-cost-display').textContent = eur(res.originalBillAnnual) + tr('/año');
             document.getElementById('old-period-days-label').textContent = `${tr('Total Periodo')} (${res.dias_facturados} ${tr('días')})`;
             
-            document.getElementById('new-monthly-cost-display').textContent = eur(res.totalAnnual / 12) + tr('/mes');
+            // Mostrar el coste del periodo (que coincide con el desglose)
+            const diasPeriodo = res.dias_facturados || res.dias || 30;
+            document.getElementById('new-monthly-cost-display').textContent = eur(res.totalPeriod);
+            document.getElementById('monthly-label').textContent = `${tr('Total Periodo')} (${diasPeriodo} ${tr('días')})`;
             document.getElementById('new-annual-cost-display').textContent = eur(res.totalAnnual) + tr('/año');
             
             // NUEVO: Mostrar excedentes no compensados en la tarjeta si existen

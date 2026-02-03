@@ -1475,9 +1475,9 @@
                     <svg class="w-16 h-16 mx-auto mb-3 text-drk-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                     </svg>
-                    <p class="font-bold text-drk-800 mb-1">Arrastra tu factura aquí</p>
-                    <p class="text-xs text-slate-600">PDF, JPG, PNG</p>
-                    <p class="text-xs text-drk-600 mt-2 font-semibold">o haz clic para seleccionar</p>
+                    <p class="font-bold text-drk-800 mb-1" data-translate>Arrastra tu factura aquí</p>
+                    <p class="text-xs text-slate-600" data-translate>PDF, JPG, PNG</p>
+                    <p class="text-xs text-drk-600 mt-2 font-semibold" data-translate>o haz clic para seleccionar</p>
                 </div>
                 
                 <!-- Botón Capturar Foto (primera opción) -->
@@ -20380,6 +20380,11 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             document.getElementById('screen-electricidad').classList.add('active');
             // Ocultar el modo de comparación (ya está seleccionado)
             document.getElementById('modo-comparacion-section').style.display = 'none';
+            
+            // CRÍTICO: Traducir textos de la pantalla
+            if (window.translateAll) {
+                setTimeout(() => window.translateAll(), 100);
+            }
         }
 
         function goToGas() {
@@ -29294,6 +29299,9 @@ ${clientName}
                 "Se ha descargado:": { en: "Downloaded:", zh: "已下载：", de: "Heruntergeladen:", fr: "Téléchargé :" },
                 "Puedes adjuntarlo directamente en el email para tu cliente.": { en: "You can attach it directly in the email for your client.", zh: "您可以直接将其附加到客户的电子邮件中。", de: "Sie können es direkt in der E-Mail für Ihren Kunden anhängen.", fr: "Vous pouvez le joindre directement dans l'e-mail pour votre client." },
                 "Arrastra tu factura aqui": { en: "Drag your bill here", zh: "将您的账单拖到这里", de: "Ziehen Sie Ihre Rechnung hierher", fr: "Faites glisser votre facture ici" },
+                "Arrastra tu factura aquí": { en: "Drag your bill here", zh: "将您的账单拖到这里", de: "Ziehen Sie Ihre Rechnung hierher", fr: "Faites glisser votre facture ici" },
+                "PDF, JPG, PNG": { en: "PDF, JPG, PNG", zh: "PDF, JPG, PNG", de: "PDF, JPG, PNG", fr: "PDF, JPG, PNG" },
+                "o haz clic para seleccionar": { en: "or click to select", zh: "或点击选择", de: "oder klicken Sie zum Auswählen", fr: "ou cliquez pour sélectionner" },
                 
                 // NUEVAS TRADUCCIONES - Mensajes de error/validación DUAL
                 "Falta añadir suministro": { en: "Missing supply", zh: "缺少供应", de: "Versorgung fehlt", fr: "Fourniture manquante" },

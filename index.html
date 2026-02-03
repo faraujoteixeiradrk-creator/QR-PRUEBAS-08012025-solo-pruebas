@@ -12366,14 +12366,22 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 let costeOriginalPDF;
                 let diasPeriodoPDF;
                 
+                console.log('🔍 PDF - DEBUG coste original:');
+                console.log('  - numSuppliesOrigPDF:', numSuppliesOrigPDF);
+                console.log('  - res.individualResults:', res.individualResults);
+                console.log('  - res.importe_total:', res.importe_total);
+                console.log('  - res.originalBillAnnual:', res.originalBillAnnual);
+                
                 if (numSuppliesOrigPDF === 1) {
                     // UN SOLO suministro: usar importe_total REAL
                     costeOriginalPDF = res.individualResults[0].importe_total || res.importe_total || 0;
                     diasPeriodoPDF = res.individualResults[0].dias_facturados || res.dias_facturados || 30;
+                    console.log('  ✅ 1 suministro - costeOriginalPDF:', costeOriginalPDF);
                 } else {
                     // MÚLTIPLES suministros: usar promedio mensual
                     costeOriginalPDF = res.originalBillAnnual / 12;
                     diasPeriodoPDF = 30; // Variado
+                    console.log('  ✅ Múltiples suministros - costeOriginalPDF:', costeOriginalPDF);
                 }
                 
                 const oldPrice = `${eur(costeOriginalPDF)}`;

@@ -15848,9 +15848,8 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                         // Calcular ahorro adicional por optimización
                         const ahorroAdicional = rActual.totalAnnual - r.totalAnnual;
                         
-                        // CRÍTICO: El ahorro total debe incluir excedentes si existen
-                        const ahorroExcedentes = r.solarSurplus?.annualDiscount || 0;
-                        const ahorroTotal = rActual.savings + ahorroAdicional + ahorroExcedentes;
+                        // CRÍTICO: ahorroTotal es simplemente r.savings (ya tiene optimización + excedentes)
+                        const ahorroTotal = r.savings;
                         
                         // Añadir campos de optimización
                         r.savingsActual = savingsBaseSinExcedentes; // Ahorro base SIN excedentes

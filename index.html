@@ -16283,6 +16283,28 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     renderDualPowerResultsUI(dualComp.actual, dualComp.optimized, dualComp.brand);
                 } else {
                     // Contexto individual normal: Mostrar resultados (sin indexado)
+                    console.log('🔍🔍🔍 DEBUG CRÍTICO - ANTES de renderResultsUI en selectBestOptionDirectSingle:');
+                    console.log('  - lastComparisonResult.savings:', lastComparisonResult.savings);
+                    console.log('  - lastComparisonResult.isNegativeSavings:', lastComparisonResult.isNegativeSavings);
+                    console.log('  - lastComparisonResult.needsImprovementRequest:', lastComparisonResult.needsImprovementRequest);
+                    console.log('  - lastComparisonResult.offer.name:', lastComparisonResult.offer?.name);
+                    console.log('  - lastComparisonResult.totalAnnual:', lastComparisonResult.totalAnnual);
+                    console.log('  - lastComparisonResult.originalBillAnnual:', lastComparisonResult.originalBillAnnual);
+                    
+                    // CRÍTICO: Asegurar que savings esté calculado
+                    if (lastComparisonResult.savings === undefined || lastComparisonResult.savings === null) {
+                        lastComparisonResult.savings = (lastComparisonResult.originalBillAnnual || 0) - (lastComparisonResult.totalAnnual || 0);
+                        console.warn('⚠️ savings era undefined, recalculado:', lastComparisonResult.savings);
+                    }
+                    
+                    // CRÍTICO: Asegurar que needsImprovementRequest esté correcto
+                    lastComparisonResult.needsImprovementRequest = lastComparisonResult.savings <= 0;
+                    lastComparisonResult.isNegativeSavings = lastComparisonResult.savings <= 0;
+                    
+                    console.log('✅ Flags corregidos:');
+                    console.log('  - needsImprovementRequest:', lastComparisonResult.needsImprovementRequest);
+                    console.log('  - isNegativeSavings:', lastComparisonResult.isNegativeSavings);
+                    
                     renderResultsUI(lastComparisonResult, null);
                 }
                 

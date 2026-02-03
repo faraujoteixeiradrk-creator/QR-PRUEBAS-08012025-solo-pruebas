@@ -4466,10 +4466,16 @@
                 const excedentesYaAplicados = isMultiCupsMode && final.solarSurplus && final.solarSurplus.enabled;
                 
                 // NUEVO: También para modo INDIVIDUAL si venimos del modal de fotovoltaica con excedentes
-                const excedentesIndividual = !isMultiCupsMode && hideDecisionCheckboxes && final.solarSurplus && final.solarSurplus.enabled;
+                // Verificar hideDecisionCheckboxes (viene del modal) O si tiene excedentes aplicados
+                const excedentesIndividual = !isMultiCupsMode && !window.dualMode && 
+                                            (hideDecisionCheckboxes || (final.solarSurplus && final.solarSurplus.enabled));
                 
                 if (excedentesYaAplicados || excedentesIndividual) {
                     console.log('☀️ Excedentes ya aplicados - Mostrando modal de decisión con todas las ofertas');
+                    console.log('  - isMultiCupsMode:', isMultiCupsMode);
+                    console.log('  - window.dualMode:', window.dualMode);
+                    console.log('  - hideDecisionCheckboxes:', hideDecisionCheckboxes);
+                    console.log('  - final.solarSurplus?.enabled:', final.solarSurplus?.enabled);
                     final._multiCupsContext = final._multiCupsContext || lastComparisonResult?._multiCupsContext;
                     hideDecisionCheckboxes = true;
                     showOfferDecisionModal();

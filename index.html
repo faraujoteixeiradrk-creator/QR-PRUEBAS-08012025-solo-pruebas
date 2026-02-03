@@ -10502,7 +10502,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(tr('CON POTENCIAS OPTIMIZADAS'), rightX + colWidth / 2, rightY + 8, { align: 'center' });
+                    const tituloOptimizado = (resOptimized.solarSurplus && resOptimized.solarSurplus.enabled) 
+                        ? tr('CON OPTIMIZACIÓN Y EXCEDENTES')
+                        : tr('CON POTENCIAS OPTIMIZADAS');
+                    doc.text(tituloOptimizado, rightX + colWidth / 2, rightY + 8, { align: 'center' });
                     
                     rightY += 15;
                     
@@ -10681,7 +10684,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
                     const ahorroTotalOptimizado = resOptimized.savings;
-                    doc.text(tr('AHORRO TOTAL OPTIMIZADO:') + ' ' + eur(ahorroTotalOptimizado) + '/año', pageWidth / 2, yPos + 8, { align: 'center' });
+                    const textoTotal = (resOptimized.solarSurplus && resOptimized.solarSurplus.enabled)
+                        ? tr('AHORRO TOTAL (OPTIMIZACIÓN + EXCEDENTES):')
+                        : tr('AHORRO TOTAL OPTIMIZADO:');
+                    doc.text(textoTotal + ' ' + eur(ahorroTotalOptimizado) + '/año', pageWidth / 2, yPos + 8, { align: 'center' });
                     
                     yPos += 17;
                     
@@ -11080,7 +11086,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(8);
-                    doc.text(tr('AHORRO TOTAL OPTIMIZADO:'), margin + 10, finalY + offsetY + 5);
+                    const textoTotalRes1 = (resOptimized.solarSurplus && resOptimized.solarSurplus.enabled)
+                        ? tr('AHORRO TOTAL (OPT. + EXCEDENTES):')
+                        : tr('AHORRO TOTAL OPTIMIZADO:');
+                    doc.text(textoTotalRes1, margin + 10, finalY + offsetY + 5);
                     const ahorroTotalRes1 = resOptimized.savings;
                     doc.text(eur(ahorroTotalRes1), pageWidth - margin - 10, finalY + offsetY + 5, { align: 'right' });
                     
@@ -11143,7 +11152,10 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(255, 255, 255);
                     doc.setFontSize(8);
-                    doc.text(tr('AHORRO TOTAL OPTIMIZADO:'), margin + 10, finalY + offsetY2 + 5);
+                    const textoTotalRes2 = (resOptimized.solarSurplus && resOptimized.solarSurplus.enabled)
+                        ? tr('AHORRO TOTAL (OPT. + EXCEDENTES):')
+                        : tr('AHORRO TOTAL OPTIMIZADO:');
+                    doc.text(textoTotalRes2, margin + 10, finalY + offsetY2 + 5);
                     const ahorroTotalRes2 = resOptimized.savings;
                     doc.text(eur(ahorroTotalRes2), pageWidth - margin - 10, finalY + offsetY2 + 5, { align: 'right' });
                     
@@ -28994,6 +29006,9 @@ ${clientName}
                 "Con optimización de potencias:": { en: "With power optimization:", zh: "使用功率优化：", de: "Mit Leistungsoptimierung:", fr: "Avec optimisation de puissance :" },
                 "Con optimización de potencias (ajuste técnico):": { en: "With power optimization (technical adjustment):", zh: "使用功率优化（技术调整）：", de: "Mit Leistungsoptimierung (technische Anpassung):", fr: "Avec optimisation de puissance (ajustement technique) :" },
                 "AHORRO TOTAL OPTIMIZADO:": { en: "TOTAL OPTIMIZED SAVINGS:", zh: "总优化节省：", de: "GESAMT OPTIMIERTE ERSPARNIS:", fr: "ÉCONOMIES TOTALES OPTIMISÉES :" },
+                "AHORRO TOTAL (OPTIMIZACIÓN + EXCEDENTES):": { en: "TOTAL SAVINGS (OPTIM. + SURPLUS):", zh: "总节省（优化+盈余）：", de: "GESAMTERSPARNIS (OPT. + ÜBERSCHUSS):", fr: "ÉCONOMIES TOTALES (OPT. + EXCÉDENTS) :" },
+                "AHORRO TOTAL (OPT. + EXCEDENTES):": { en: "TOTAL SAVINGS (OPT. + SURPLUS):", zh: "总节省（优化+盈余）：", de: "GESAMTERSPARNIS (OPT. + ÜBERSCHUSS):", fr: "ÉCONOMIES TOTALES (OPT. + EXCÉDENTS) :" },
+                "CON OPTIMIZACIÓN Y EXCEDENTES": { en: "WITH OPTIMIZATION & SURPLUS", zh: "使用优化和盈余", de: "MIT OPTIMIERUNG & ÜBERSCHUSS", fr: "AVEC OPTIMISATION & EXCÉDENTS" },
                 "Ahorro adicional optimizando:": { en: "Additional savings with optimization:", zh: "优化带来的额外节省：", de: "Zusätzliche Ersparnis durch Optimierung:", fr: "Économies supplémentaires avec optimisation :" },
                 "DESGLOSE DETALLADO POR SUMINISTRO": { en: "DETAILED BREAKDOWN PER SUPPLY", zh: "每个供应的详细分解", de: "DETAILLIERTE AUFSCHLÜSSELUNG PRO VERSORGUNG", fr: "RÉPARTITION DÉTAILLÉE PAR APPROVISIONNEMENT" },
                 "[ES] - CON TU TARIFA ACTUAL": { en: "[ES] - WITH YOUR CURRENT RATE", zh: "[ES] - 使用当前费率", de: "[ES] - MIT IHREM AKTUELLEN TARIF", fr: "[ES] - AVEC VOTRE TARIF ACTUEL" },

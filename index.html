@@ -15674,9 +15674,26 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     tariffsToRecalc = tariffsToRecalc.filter(t => t.isDrk === true);
                 }
                 
+                // NUEVO: Si hay optimización de potencia activa, usar potencias optimizadas
+                let dataForCalc = lastComparisonResult;
+                if (window.optimizedPowerEnabled && window.optimizedPowerScenario) {
+                    console.log('☀️⚡ OPTIMIZACIÓN DE POTENCIA + EXCEDENTES SOLARES detectados');
+                    console.log('Usando potencias optimizadas:', window.optimizedPowerScenario);
+                    dataForCalc = {...lastComparisonResult};
+                    // Copiar las potencias optimizadas
+                    for (let i = 1; i <= 6; i++) {
+                        const key = `potencia_p${i}_kw`;
+                        if (window.optimizedPowerScenario[key] !== undefined) {
+                            dataForCalc[key] = window.optimizedPowerScenario[key];
+                        }
+                    }
+                } else {
+                    console.log('☀️ Solo EXCEDENTES SOLARES (sin optimización de potencia)');
+                }
+                
                 // calculateTariffCost leerá solarSurplusEnabled=true y solarSurplusData correctos
                 availableOffers = tariffsToRecalc.map(t => {
-                    const r = calculateTariffCost(t, lastComparisonResult, tariffTypeForCalc);
+                    const r = calculateTariffCost(t, dataForCalc, tariffTypeForCalc);
                     r.savings = r.originalBillAnnual - r.totalAnnual;
                     return r;
                 }).filter(r => {

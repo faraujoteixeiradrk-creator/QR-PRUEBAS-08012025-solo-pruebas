@@ -5413,15 +5413,21 @@
             document.getElementById('old-annual-cost-display').textContent = eur(res.originalBillAnnual) + tr('/año');
             document.getElementById('old-period-days-label').textContent = `${tr('Total Periodo')} (${tr('Variado')})`; // Días varían por factura
             
-            // MULTICUPS: usar promedio mensual porque los períodos varían entre suministros
-            // Individual: usar totalPeriod real
+            // MULTICUPS: verificar si hay uno o múltiples suministros
             const isMultiCupsResult = res._multiCupsContext || res.isMulti;
-            if (isMultiCupsResult) {
-                // MULTICUPS consolidado: promedio mensual
+            const numSupplies = res.individualResults ? res.individualResults.length : 1;
+            
+            if (isMultiCupsResult && numSupplies === 1) {
+                // MULTICUPS con UN SOLO suministro: usar totalPeriod real
+                const diasPeriodo = res.individualResults[0].dias_facturados || res.individualResults[0].dias || res.dias_facturados || 30;
+                document.getElementById('new-monthly-cost-display').textContent = eur(res.totalPeriod);
+                document.getElementById('monthly-label').textContent = `${tr('Total Periodo')} (${diasPeriodo} ${tr('días')})`;
+            } else if (isMultiCupsResult && numSupplies > 1) {
+                // MULTICUPS con MÚLTIPLES suministros: usar promedio mensual
                 document.getElementById('new-monthly-cost-display').textContent = eur(res.totalAnnual / 12);
                 document.getElementById('monthly-label').textContent = tr('Estimado Mensual');
             } else {
-                // Individual: coste del periodo real
+                // Individual (no MULTICUPS): coste del periodo real
                 const diasPeriodo = res.dias_facturados || res.dias || 30;
                 document.getElementById('new-monthly-cost-display').textContent = eur(res.totalPeriod);
                 document.getElementById('monthly-label').textContent = `${tr('Total Periodo')} (${diasPeriodo} ${tr('días')})`;
@@ -6184,15 +6190,21 @@
             document.getElementById('old-annual-cost-display').textContent = eur(res.originalBillAnnual) + tr('/año');
             document.getElementById('old-period-days-label').textContent = `${tr('Total Periodo')} (${res.dias_facturados} ${tr('días')})`;
             
-            // MULTICUPS: usar promedio mensual porque los períodos varían entre suministros
-            // Individual: usar totalPeriod real
+            // MULTICUPS: verificar si hay uno o múltiples suministros
             const isMultiCupsResult2 = res._multiCupsContext || res.isMulti;
-            if (isMultiCupsResult2) {
-                // MULTICUPS consolidado: promedio mensual
+            const numSupplies2 = res.individualResults ? res.individualResults.length : 1;
+            
+            if (isMultiCupsResult2 && numSupplies2 === 1) {
+                // MULTICUPS con UN SOLO suministro: usar totalPeriod real
+                const diasPeriodo2 = res.individualResults[0].dias_facturados || res.individualResults[0].dias || res.dias_facturados || 30;
+                document.getElementById('new-monthly-cost-display').textContent = eur(res.totalPeriod);
+                document.getElementById('monthly-label').textContent = `${tr('Total Periodo')} (${diasPeriodo2} ${tr('días')})`;
+            } else if (isMultiCupsResult2 && numSupplies2 > 1) {
+                // MULTICUPS con MÚLTIPLES suministros: usar promedio mensual
                 document.getElementById('new-monthly-cost-display').textContent = eur(res.totalAnnual / 12);
                 document.getElementById('monthly-label').textContent = tr('Estimado Mensual');
             } else {
-                // Individual: coste del periodo real
+                // Individual (no MULTICUPS): coste del periodo real
                 const diasPeriodo2 = res.dias_facturados || res.dias || 30;
                 document.getElementById('new-monthly-cost-display').textContent = eur(res.totalPeriod);
                 document.getElementById('monthly-label').textContent = `${tr('Total Periodo')} (${diasPeriodo2} ${tr('días')})`;

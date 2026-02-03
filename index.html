@@ -4781,7 +4781,7 @@
                 
                 acc.originalBillAnnual += current.originalBillAnnual;
                 acc.totalAnnual += newAnnual;
-                acc.totalPeriod += current.importe_total;
+                acc.totalPeriod += current.totalPeriod; // CORREGIDO: usar totalPeriod (nuevo coste) en lugar de importe_total (coste anterior)
 
                 // Acumulación de Potencias y Energías
                 const type = current.originalTariffType;

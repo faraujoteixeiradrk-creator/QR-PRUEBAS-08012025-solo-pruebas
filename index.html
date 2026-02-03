@@ -1489,18 +1489,18 @@
                 <!-- Botón Subir desde Archivo -->
                 <button id="modal-upload-file-btn" class="w-full bg-drk-800 hover:bg-drk-900 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3 flex items-center justify-center gap-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                    <span>Subir desde Archivo</span>
+                    <span data-translate>Subir desde Archivo</span>
                 </button>
                 
-                <button id="modal-paste-image-btn" class="w-full bg-drk-600 hover:bg-drk-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3">Pegar Imagen (CTRL+V)</button>
+                <button id="modal-paste-image-btn" class="w-full bg-drk-600 hover:bg-drk-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-3"><span data-translate>Pegar Imagen (CTRL+V)</span></button>
                 
                 <!-- Opción Pegar Código Completo -->
                 <button id="modal-paste-url-btn" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold py-3 px-6 rounded-xl shadow-md mb-4 flex items-center justify-center gap-2">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    <span>Pegar Código Completo</span>
+                    <span data-translate>Pegar Código Completo</span>
                 </button>
                 
-                <button onclick="document.getElementById('qr-options-modal').classList.add('hidden'); document.getElementById('qr-options-modal').classList.remove('flex');" class="w-full bg-slate-200 font-bold py-3 rounded-xl">Cancelar</button>
+                <button onclick="document.getElementById('qr-options-modal').classList.add('hidden'); document.getElementById('qr-options-modal').classList.remove('flex');" class="w-full bg-slate-200 font-bold py-3 rounded-xl"><span data-translate>Cancelar</span></button>
             </div>
         </div>
 
@@ -2053,10 +2053,10 @@
                 <div class="space-y-3">
                     <button id="solar-yes-btn" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 rounded-xl transition flex items-center justify-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Sí, tengo paneles solares
+                        <span data-translate>Sí, tengo paneles solares</span>
                     </button>
                     <button id="solar-no-btn" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-4 rounded-xl transition">
-                        No, no tengo instalación fotovoltaica
+                        <span data-translate>No, no tengo instalación fotovoltaica</span>
                     </button>
                 </div>
             </div>
@@ -29302,6 +29302,12 @@ ${clientName}
                 "Arrastra tu factura aquí": { en: "Drag your bill here", zh: "将您的账单拖到这里", de: "Ziehen Sie Ihre Rechnung hierher", fr: "Faites glisser votre facture ici" },
                 "PDF, JPG, PNG": { en: "PDF, JPG, PNG", zh: "PDF, JPG, PNG", de: "PDF, JPG, PNG", fr: "PDF, JPG, PNG" },
                 "o haz clic para seleccionar": { en: "or click to select", zh: "或点击选择", de: "oder klicken Sie zum Auswählen", fr: "ou cliquez pour sélectionner" },
+                "Subir desde Archivo": { en: "Upload from File", zh: "从文件上传", de: "Von Datei hochladen", fr: "Télécharger depuis un fichier" },
+                "Pegar Imagen (CTRL+V)": { en: "Paste Image (CTRL+V)", zh: "粘贴图像 (CTRL+V)", de: "Bild einfügen (STRG+V)", fr: "Coller l'image (CTRL+V)" },
+                "Pegar Código Completo": { en: "Paste Complete Code", zh: "粘贴完整代码", de: "Vollständigen Code einfügen", fr: "Coller le code complet" },
+                "Sí, tengo paneles solares": { en: "Yes, I have solar panels", zh: "是的，我有太阳能电池板", de: "Ja, ich habe Solarpanels", fr: "Oui, j'ai des panneaux solaires" },
+                "No, no tengo instalación fotovoltaica": { en: "No, I don't have a solar installation", zh: "不，我没有太阳能安装", de: "Nein, ich habe keine Solaranlage", fr: "Non, je n'ai pas d'installation solaire" },
+                "Cancelar": { en: "Cancel", zh: "取消", de: "Abbrechen", fr: "Annuler" },
                 
                 // NUEVAS TRADUCCIONES - Mensajes de error/validación DUAL
                 "Falta añadir suministro": { en: "Missing supply", zh: "缺少供应", de: "Versorgung fehlt", fr: "Fourniture manquante" },

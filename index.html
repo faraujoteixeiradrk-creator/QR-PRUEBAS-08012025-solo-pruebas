@@ -11454,8 +11454,17 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFont('helvetica', 'bold');
                     doc.text(tr('TU FACTURA ACTUAL'), leftXMulti + colWidthMulti / 2, yPos, { align: 'center' });
                     
-                    // Precio mensual tachado en rojo
-                    const oldPriceMulti = `${eur(res.originalBillAnnual / 12)}${tr('/mes')}`;
+                    // Precio real del período (no promedio) tachado en rojo
+                    const numSuppliesMultiPDF = res.individualResults ? res.individualResults.length : 1;
+                    let costeOrigMultiPDF;
+                    if (numSuppliesMultiPDF === 1) {
+                        // UN SOLO suministro: usar importe_total REAL
+                        costeOrigMultiPDF = res.individualResults[0].importe_total || res.importe_total || 0;
+                    } else {
+                        // MÚLTIPLES suministros: usar promedio mensual
+                        costeOrigMultiPDF = res.originalBillAnnual / 12;
+                    }
+                    const oldPriceMulti = `${eur(costeOrigMultiPDF)}`;
                     doc.setTextColor(...redColor);
                     doc.setFontSize(18);
                     doc.setFont('helvetica', 'bold');
@@ -11469,11 +11478,14 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setLineWidth(1.5);
                     doc.line(oldXMulti - oldWidthMulti/2 - 2, oldYMulti - 3, oldXMulti + oldWidthMulti/2 + 2, oldYMulti - 3);
                     
-                    // "Total Periodo (Variado)"
+                    // Label del período
                     doc.setTextColor(140, 150, 160);
                     doc.setFontSize(7);
                     doc.setFont('helvetica', 'normal');
-                    doc.text(`${tr('Total Periodo')} (${tr('Variado')})`, leftXMulti + colWidthMulti / 2, yPos + 19, { align: 'center' });
+                    const labelMultiPDF = numSuppliesMultiPDF === 1 
+                        ? `${tr('Total Periodo')} (${res.individualResults[0].dias_facturados || 30} ${tr('días')})`
+                        : `${tr('Total Periodo')} (${tr('Variado')})`;
+                    doc.text(labelMultiPDF, leftXMulti + colWidthMulti / 2, yPos + 19, { align: 'center' });
                     
                     // Precio anual tachado
                     const oldAnnualMulti = eur(res.originalBillAnnual);

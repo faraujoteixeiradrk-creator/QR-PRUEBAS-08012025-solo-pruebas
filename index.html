@@ -4781,7 +4781,8 @@
                 
                 acc.originalBillAnnual += current.originalBillAnnual;
                 acc.totalAnnual += newAnnual;
-                acc.totalPeriod += current.totalPeriod; // CORREGIDO: usar totalPeriod (nuevo coste) en lugar de importe_total (coste anterior)
+                acc.totalPeriod += current.totalPeriod; // NUEVO coste calculado (para usar en individualResults)
+                acc.originalTotalPeriod += current.importe_total; // COSTE ORIGINAL del período (para mostrar arriba)
 
                 // Acumulación de Potencias y Energías
                 const type = current.originalTariffType;
@@ -4812,6 +4813,7 @@
                 originalBillAnnual: 0,
                 totalAnnual: 0,
                 totalPeriod: 0,
+                originalTotalPeriod: 0, // NUEVO: para acumular el coste original del período
                 diasFacturados: 0,
                 aggregatedData: {
                     '2.0TD': { power: { p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0 }, energy: { e1: 0, e2: 0, e3: 0, e4: 0, e5: 0, e6: 0 } },
@@ -4876,7 +4878,7 @@
                 cups: `${multiCupsData.length} CUPS`, // String for display
                 multiCupsList: multiCupsData.map(d => `${d.cups} (${d.originalTariffType})`).join(', '),
                 dias_facturados: total.diasFacturados, // Should remain N/A or 0 for multi-cups
-                importe_total: total.totalPeriod,
+                importe_total: total.originalTotalPeriod, // COSTE ORIGINAL del período (para mostrar arriba)
                 originalBillAnnual: total.originalBillAnnual,
                 totalAnnual: total.totalAnnual,
                 savings: total.savings,

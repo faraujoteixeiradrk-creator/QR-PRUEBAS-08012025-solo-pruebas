@@ -17769,7 +17769,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                                 <!-- OPTIMIZACIÓN + EXCEDENTES SOLARES - MOSTRAR SOLO TOTAL -->
                                 <p class="text-xs text-slate-500">${tr('Ahorro anual total')}</p>
                                 <p class="text-xs text-slate-600 italic mb-1">(incl. optimización ⚡ y excedentes ☀️)</p>
-                                <p class="text-2xl font-black text-green-700">${eur(offer.ahorroTotal + (offer.solarSurplus?.annualDiscount || 0))}</p>
+                                <p class="text-2xl font-black text-green-700">${eur(offer.ahorroTotal)}</p>
                                 ${comisionAnual > 0 ? `<p class="text-xs text-blue-600 font-semibold mt-1">💰 Comisión aprox. anual: ${eur(comisionAnual)}</p>` : ''}
                             ` : window.optimizedPowerEnabled && offer.ahorroTotal !== undefined ? `
                                 <!-- Solo OPTIMIZACIÓN -->\n                                <p class="text-xs text-slate-500">${tr('Ahorro anual')}</p>

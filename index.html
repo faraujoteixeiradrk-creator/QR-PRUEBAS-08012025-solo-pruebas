@@ -17584,6 +17584,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     baseImp: baseImp,
                     costIVA: costIVA,
                     isNegativeSavings: savings <= 0,
+                    needsImprovementRequest: savings <= 0,  // CRÍTICO: Marcar si necesita solicitud de mejora
                     solarSurplus: recalculated.solarSurplus || null  // Excedentes solares aplicados
                 };
                 

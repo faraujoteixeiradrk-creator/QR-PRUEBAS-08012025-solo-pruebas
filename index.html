@@ -11522,20 +11522,25 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                     doc.setFont('helvetica', 'bold');
                     
                     // MULTICUPS: verificar si hay uno o múltiples suministros
-                    const numSuppliesPDF = res.individualResults ? res.individualResults.length : 1;
+                    const numSuppliesPDF = res.individualResults ? res.individualResults.length : 0;
                     let costePeriodoPDF;
                     let diasPeriodoPDF;
                     let labelPeriodoPDF;
                     
-                    if (numSuppliesPDF === 1) {
-                        // UN SOLO suministro: usar totalPeriod del suministro individual
+                    if (res.individualResults && res.individualResults.length > 0 && numSuppliesPDF === 1) {
+                        // MULTICUPS con UN SOLO suministro: usar totalPeriod del suministro individual
                         costePeriodoPDF = res.individualResults[0].totalPeriod || res.totalPeriod || 0;
                         diasPeriodoPDF = res.individualResults[0].dias_facturados || res.individualResults[0].dias || res.dias_facturados || 30;
                         labelPeriodoPDF = `${tr('Total Periodo')} (${diasPeriodoPDF} ${tr('días')})`;
-                    } else {
-                        // MÚLTIPLES suministros: usar promedio mensual
+                    } else if (res.individualResults && res.individualResults.length > 1) {
+                        // MULTICUPS con MÚLTIPLES suministros: usar promedio mensual
                         costePeriodoPDF = res.totalAnnual / 12;
                         labelPeriodoPDF = tr('Estimado Mensual');
+                    } else {
+                        // INDIVIDUAL (no MULTICUPS): usar totalPeriod directo
+                        costePeriodoPDF = res.totalPeriod || 0;
+                        diasPeriodoPDF = res.dias_facturados || 30;
+                        labelPeriodoPDF = `${tr('Total Periodo')} (${diasPeriodoPDF} ${tr('días')})`;
                     }
                     
                     doc.text(`${eur(costePeriodoPDF)}`, rightXMulti + colWidthMulti / 2, yPos + 13, { align: 'center' });
@@ -12374,7 +12379,7 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.text(tr('TU FACTURA ACTUAL'), leftXResumen + colWidthResumen / 2, yPos, { align: 'center' });
                 
                 // Precio periodo REAL (no estimado) tachado en rojo
-                const numSuppliesOrigPDF = res.individualResults ? res.individualResults.length : 1;
+                const numSuppliesOrigPDF = res.individualResults ? res.individualResults.length : 0;
                 let costeOriginalPDF;
                 let diasPeriodoPDF;
                 
@@ -12383,17 +12388,24 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 console.log('  - res.individualResults:', res.individualResults);
                 console.log('  - res.importe_total:', res.importe_total);
                 console.log('  - res.originalBillAnnual:', res.originalBillAnnual);
+                console.log('  - res.isMulti:', res.isMulti);
+                console.log('  - res.isMultiCups:', res.isMultiCups);
                 
-                if (numSuppliesOrigPDF === 1) {
-                    // UN SOLO suministro: usar importe_total REAL
+                if (res.individualResults && res.individualResults.length > 0 && numSuppliesOrigPDF === 1) {
+                    // MULTICUPS con UN SOLO suministro: usar importe_total del suministro
                     costeOriginalPDF = res.individualResults[0].importe_total || res.importe_total || 0;
                     diasPeriodoPDF = res.individualResults[0].dias_facturados || res.dias_facturados || 30;
-                    console.log('  ✅ 1 suministro - costeOriginalPDF:', costeOriginalPDF);
-                } else {
-                    // MÚLTIPLES suministros: usar promedio mensual
+                    console.log('  ✅ MULTICUPS 1 suministro - costeOriginalPDF:', costeOriginalPDF);
+                } else if (res.individualResults && res.individualResults.length > 1) {
+                    // MULTICUPS con MÚLTIPLES suministros: usar promedio mensual
                     costeOriginalPDF = res.originalBillAnnual / 12;
-                    diasPeriodoPDF = 30; // Variado
-                    console.log('  ✅ Múltiples suministros - costeOriginalPDF:', costeOriginalPDF);
+                    diasPeriodoPDF = 30;
+                    console.log('  ✅ MULTICUPS múltiples - costeOriginalPDF:', costeOriginalPDF);
+                } else {
+                    // INDIVIDUAL (no MULTICUPS): usar importe_total directo
+                    costeOriginalPDF = res.importe_total || 0;
+                    diasPeriodoPDF = res.dias_facturados || 30;
+                    console.log('  ✅ INDIVIDUAL - costeOriginalPDF:', costeOriginalPDF);
                 }
                 
                 const oldPrice = `${eur(costeOriginalPDF)}`;
@@ -12454,20 +12466,25 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
                 doc.setFont('helvetica', 'bold');
                 
                 // MULTICUPS: verificar si hay uno o múltiples suministros
-                const numSuppliesPDF2 = res.individualResults ? res.individualResults.length : 1;
+                const numSuppliesPDF2 = res.individualResults ? res.individualResults.length : 0;
                 let costePeriodoPDF2;
                 let diasPeriodoPDF2;
                 let labelPeriodoPDF2;
                 
-                if (numSuppliesPDF2 === 1) {
-                    // UN SOLO suministro: usar totalPeriod del suministro individual
+                if (res.individualResults && res.individualResults.length > 0 && numSuppliesPDF2 === 1) {
+                    // MULTICUPS con UN SOLO suministro: usar totalPeriod del suministro individual
                     costePeriodoPDF2 = res.individualResults[0].totalPeriod || res.totalPeriod || 0;
                     diasPeriodoPDF2 = res.individualResults[0].dias_facturados || res.individualResults[0].dias || res.dias_facturados || 30;
                     labelPeriodoPDF2 = `${tr('Total Periodo')} (${diasPeriodoPDF2} ${tr('días')})`;
-                } else {
-                    // MÚLTIPLES suministros: usar promedio mensual
+                } else if (res.individualResults && res.individualResults.length > 1) {
+                    // MULTICUPS con MÚLTIPLES suministros: usar promedio mensual
                     costePeriodoPDF2 = res.totalAnnual / 12;
                     labelPeriodoPDF2 = tr('Estimado Mensual');
+                } else {
+                    // INDIVIDUAL (no MULTICUPS): usar totalPeriod directo
+                    costePeriodoPDF2 = res.totalPeriod || 0;
+                    diasPeriodoPDF2 = res.dias_facturados || 30;
+                    labelPeriodoPDF2 = `${tr('Total Periodo')} (${diasPeriodoPDF2} ${tr('días')})`;
                 }
                 
                 doc.text(`${eur(costePeriodoPDF2)}`, rightXResumen + colWidthResumen / 2, yPos + 13, { align: 'center' });

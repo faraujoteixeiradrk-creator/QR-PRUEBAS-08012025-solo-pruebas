@@ -17958,7 +17958,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                 let preciosHTML = '';
                 const tariffTypeForPrices = lastComparisonResult?.originalTariffType || lastComparisonResult?.tariffType || currentTariffType;
                 
-                // DEBUG: Ver primera oferta
+                // DEBUG: Ver primera oferta con TODOS los campos
                 if (originalIndex === 0) {
                     console.log('🔍 DEBUG Precios - Primera oferta:', {
                         name: offer.offer.name,
@@ -17967,9 +17967,9 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                         te_2: offer.offer.te_2,
                         te_3: offer.offer.te_3,
                         tp_1: offer.offer.tp_1,
-                        tp_2: offer.offer.tp_2,
-                        allKeys: Object.keys(offer.offer).sort()
+                        tp_2: offer.offer.tp_2
                     });
+                    console.log('🔍 TODOS los campos de offer.offer:', offer.offer);
                 }
                 
                 if (tariffTypeForPrices === '2.0TD') {

@@ -18006,6 +18006,20 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     </div>`;
                 } else if (tariffTypeForPrices === 'GAS' || window.lastGasComparisonResult) {
                     // GAS: Término fijo y precio energía
+                    
+                    // DEBUG: Ver primera oferta de GAS
+                    if (originalIndex === 0) {
+                        console.log('🔍 DEBUG GAS - Primera oferta:', {
+                            name: offer.offer.name,
+                            p1_price: offer.offer.p1_price,
+                            p_fijo_1: offer.offer.p_fijo_1,
+                            p_fijo_diario: offer.offer.p_fijo_diario,
+                            p_fijo_anual: offer.offer.p_fijo_anual,
+                            allKeys: Object.keys(offer.offer).sort()
+                        });
+                        console.log('🔍 TODOS los campos offer.offer (GAS):', offer.offer);
+                    }
+                    
                     const pFijo = offer.offer.p_fijo_1 || offer.offer.p_fijo_diario;
                     const pEnergia = offer.offer.p1_price;
                     

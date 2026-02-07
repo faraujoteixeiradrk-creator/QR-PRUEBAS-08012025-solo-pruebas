@@ -25482,6 +25482,13 @@ ${clientName}
                     const isPositiveSaving = result.ahorro_anual > 0;
                     const savingClass = isPositiveSaving ? 'text-green-600' : 'text-red-600';
                     
+                    // DEBUG temporal
+                    if (index === 0) {
+                        console.log('🔍 DEBUG GAS Render - result completo:', result);
+                        console.log('🔍 p_fijo_diario:', result.p_fijo_diario);
+                        console.log('🔍 p1_price:', result.p1_price);
+                    }
+                    
                     // Formatear precios para mostrar
                     const precioFijoDiario = result.p_fijo_diario ? parseFloat(result.p_fijo_diario).toFixed(5) : '-';
                     const precioEnergia = result.p1_price ? parseFloat(result.p1_price).toFixed(5) : '-';

@@ -18004,7 +18004,12 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                             <div class="flex justify-between text-xs"><span class="text-slate-500">🔌 Potencia P6:</span><span class="font-mono">${tp6}</span></div>
                         </div>
                     </div>`;
-                } else if (tariffTypeForPrices === 'GAS' || window.lastGasComparisonResult) {
+                }
+                
+                // Detectar GAS: tiene p_fijo_1 pero NO tiene p_potencia_1 (electricidad)
+                const isGas = (offer.offer.p_fijo_1 || offer.offer.p_fijo_diario) && !offer.offer.p_potencia_1;
+                
+                if (isGas) {
                     // GAS: Término fijo y precio energía
                     
                     // DEBUG: Ver primera oferta de GAS
@@ -18020,11 +18025,17 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                         console.log('🔍 TODOS los campos offer.offer (GAS):', offer.offer);
                     }
                     
-                    const pFijo = offer.offer.p_fijo_1 || offer.offer.p_fijo_diario;
+                    const pFijo = offer.offer.p_fijo_1 || offer.offer.p_fijo_diario || offer.offer.p_fijo_anual;
                     const pEnergia = offer.offer.p1_price;
                     
-                    const precioFijo = pFijo ? `${pFijo.toFixed(5)}` : '-';
-                    const precioEnergia = pEnergia ? `${pEnergia.toFixed(5)}` : '-';
+                    // Convertir p_fijo_anual a diario si es necesario
+                    let pFijoDiario = pFijo;
+                    if (offer.offer.p_fijo_anual && !offer.offer.p_fijo_diario && !offer.offer.p_fijo_1) {
+                        pFijoDiario = offer.offer.p_fijo_anual / 365;
+                    }
+                    
+                    const precioFijo = pFijoDiario ? `${parseFloat(pFijoDiario).toFixed(5)}` : '-';
+                    const precioEnergia = pEnergia ? `${parseFloat(pEnergia).toFixed(5)}` : '-';
                     
                     preciosHTML = `<div class="mt-2 pt-2 border-t border-slate-200 text-xs space-y-0.5">
                         <div class="flex justify-between"><span class="text-slate-500">🔥 Término fijo:</span><span class="font-mono">${precioFijo} €/día</span></div>

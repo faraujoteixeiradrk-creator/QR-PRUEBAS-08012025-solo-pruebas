@@ -25519,6 +25519,16 @@ ${clientName}
                     const isPositiveSaving = result.ahorro_anual > 0;
                     const savingClass = isPositiveSaving ? 'text-green-600' : 'text-red-600';
                     
+                    // DEBUG: Ver primera tarifa
+                    if (index === 0) {
+                        console.log('🔍 DEBUG GAS Renderizado - Primera tarifa:', {
+                            name: result.name,
+                            p_fijo_diario: result.p_fijo_diario,
+                            p1_price: result.p1_price,
+                            allKeys: Object.keys(result).sort()
+                        });
+                    }
+                    
                     // Calcular precios para mostrar
                     const precioFijoDiario = result.p_fijo_diario ? parseFloat(result.p_fijo_diario).toFixed(5) : '-';
                     const precioEnergia = result.p1_price ? parseFloat(result.p1_price).toFixed(5) : '-';

@@ -17974,7 +17974,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                         <div class="flex justify-between"><span class="text-slate-500">🔌 Potencia P2:</span><span class="font-mono">${tp2} €/kW/d</span></div>
                     </div>`;
                 } else if (tariffTypeForPrices === '3.0TD') {
-                    // 3.0TD: 6 periodos
+                    // 3.0TD: 6 periodos de energía y potencia
                     const te1 = offer.offer.p1_price ? `${offer.offer.p1_price.toFixed(3)}` : '-';
                     const te2 = offer.offer.p2_price ? `${offer.offer.p2_price.toFixed(3)}` : '-';
                     const te3 = offer.offer.p3_price ? `${offer.offer.p3_price.toFixed(3)}` : '-';
@@ -18003,43 +18003,6 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                             <div class="flex justify-between text-xs"><span class="text-slate-500">⚡ Energía P6:</span><span class="font-mono">${te6}</span></div>
                             <div class="flex justify-between text-xs"><span class="text-slate-500">🔌 Potencia P6:</span><span class="font-mono">${tp6}</span></div>
                         </div>
-                    </div>`;
-                }
-                
-                // Detectar GAS: tiene p_fijo_1 pero NO tiene p_potencia_1 (electricidad)
-                const isGas = (offer.offer.p_fijo_1 || offer.offer.p_fijo_diario) && !offer.offer.p_potencia_1;
-                
-                if (isGas) {
-                    // GAS: Término fijo y precio energía
-                    
-                    // DEBUG: Ver primera oferta de GAS
-                    if (originalIndex === 0) {
-                        console.log('🔍 DEBUG GAS - Primera oferta:', {
-                            name: offer.offer.name,
-                            p1_price: offer.offer.p1_price,
-                            p_fijo_1: offer.offer.p_fijo_1,
-                            p_fijo_diario: offer.offer.p_fijo_diario,
-                            p_fijo_anual: offer.offer.p_fijo_anual,
-                            allKeys: Object.keys(offer.offer).sort()
-                        });
-                        console.log('🔍 TODOS los campos offer.offer (GAS):', offer.offer);
-                    }
-                    
-                    const pFijo = offer.offer.p_fijo_1 || offer.offer.p_fijo_diario || offer.offer.p_fijo_anual;
-                    const pEnergia = offer.offer.p1_price;
-                    
-                    // Convertir p_fijo_anual a diario si es necesario
-                    let pFijoDiario = pFijo;
-                    if (offer.offer.p_fijo_anual && !offer.offer.p_fijo_diario && !offer.offer.p_fijo_1) {
-                        pFijoDiario = offer.offer.p_fijo_anual / 365;
-                    }
-                    
-                    const precioFijo = pFijoDiario ? `${parseFloat(pFijoDiario).toFixed(5)}` : '-';
-                    const precioEnergia = pEnergia ? `${parseFloat(pEnergia).toFixed(5)}` : '-';
-                    
-                    preciosHTML = `<div class="mt-2 pt-2 border-t border-slate-200 text-xs space-y-0.5">
-                        <div class="flex justify-between"><span class="text-slate-500">🔥 Término fijo:</span><span class="font-mono">${precioFijo} €/día</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">🔥 Precio energía:</span><span class="font-mono">${precioEnergia} €/kWh</span></div>
                     </div>`;
                 }
                 
@@ -25519,37 +25482,10 @@ ${clientName}
                     const isPositiveSaving = result.ahorro_anual > 0;
                     const savingClass = isPositiveSaving ? 'text-green-600' : 'text-red-600';
                     
-                    // DEBUG: Ver primera tarifa
-                    if (index === 0) {
-                        console.log('🔍 DEBUG GAS Renderizado - Primera tarifa:', {
-                            name: result.name,
-                            p_fijo_diario: result.p_fijo_diario,
-                            p1_price: result.p1_price,
-                            allKeys: Object.keys(result).sort()
-                        });
-                    }
-                    
-                    // Calcular precios para mostrar
-                    const precioFijoDiario = result.p_fijo_diario ? parseFloat(result.p_fijo_diario).toFixed(5) : '-';
-                    const precioEnergia = result.p1_price ? parseFloat(result.p1_price).toFixed(5) : '-';
-                    
                     html += `
                     <div class="mb-6 p-4 border-2 ${isPositiveSaving ? 'border-green-200 bg-green-50' : 'border-slate-200'} rounded-xl">
                         <h3 class="text-xl font-bold text-drk-900 mb-2">${result.name}</h3>
-                        <p class="text-sm text-slate-600 mb-2">${result.descripcion}</p>
-                        
-                        <!-- PRECIOS APLICADOS -->
-                        <div class="mt-2 mb-4 pt-2 border-t border-slate-300">
-                            <p class="text-xs font-bold text-slate-700 mb-1">📋 PRECIOS APLICADOS:</p>
-                            <div class="flex justify-between text-xs text-slate-600">
-                                <span>🔥 Término fijo:</span>
-                                <span class="font-mono font-semibold">${precioFijoDiario} €/día</span>
-                            </div>
-                            <div class="flex justify-between text-xs text-slate-600">
-                                <span>🔥 Precio energía:</span>
-                                <span class="font-mono font-semibold">${precioEnergia} €/kWh</span>
-                            </div>
-                        </div>
+                        <p class="text-sm text-slate-600 mb-4">${result.descripcion}</p>
                     
                     <table class="w-full text-sm">
                         <tr class="border-b">

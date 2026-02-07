@@ -17958,27 +17958,13 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                 let preciosHTML = '';
                 const tariffTypeForPrices = lastComparisonResult?.originalTariffType || lastComparisonResult?.tariffType || currentTariffType;
                 
-                // DEBUG: Ver primera oferta con TODOS los campos
-                if (originalIndex === 0) {
-                    console.log('🔍 DEBUG Precios - Primera oferta:', {
-                        name: offer.offer.name,
-                        tariffType: tariffTypeForPrices,
-                        te_1: offer.offer.te_1,
-                        te_2: offer.offer.te_2,
-                        te_3: offer.offer.te_3,
-                        tp_1: offer.offer.tp_1,
-                        tp_2: offer.offer.tp_2
-                    });
-                    console.log('🔍 TODOS los campos de offer.offer:', offer.offer);
-                }
-                
                 if (tariffTypeForPrices === '2.0TD') {
                     // 2.0TD: 3 periodos de energía y 2 de potencia
-                    const te1 = offer.offer.te_1 ? `${(offer.offer.te_1 * 1000).toFixed(3)}` : '-';
-                    const te2 = offer.offer.te_2 ? `${(offer.offer.te_2 * 1000).toFixed(3)}` : '-';
-                    const te3 = offer.offer.te_3 ? `${(offer.offer.te_3 * 1000).toFixed(3)}` : '-';
-                    const tp1 = offer.offer.tp_1 ? `${offer.offer.tp_1.toFixed(3)}` : '-';
-                    const tp2 = offer.offer.tp_2 ? `${offer.offer.tp_2.toFixed(3)}` : '-';
+                    const te1 = offer.offer.p1_price ? `${offer.offer.p1_price.toFixed(3)}` : '-';
+                    const te2 = offer.offer.p2_price ? `${offer.offer.p2_price.toFixed(3)}` : '-';
+                    const te3 = offer.offer.p3_price ? `${offer.offer.p3_price.toFixed(3)}` : '-';
+                    const tp1 = offer.offer.p_potencia_1 ? `${offer.offer.p_potencia_1.toFixed(3)}` : '-';
+                    const tp2 = offer.offer.p_potencia_2 ? `${offer.offer.p_potencia_2.toFixed(3)}` : '-';
                     
                     preciosHTML = `<div class="mt-2 pt-2 border-t border-slate-200 text-xs space-y-0.5">
                         <div class="flex justify-between"><span class="text-slate-500">⚡ Energía P1:</span><span class="font-mono">${te1} €/kWh</span></div>
@@ -17989,18 +17975,18 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     </div>`;
                 } else if (tariffTypeForPrices === '3.0TD') {
                     // 3.0TD: 6 periodos
-                    const te1 = offer.offer.te_1 ? `${(offer.offer.te_1 * 1000).toFixed(2)}` : '-';
-                    const te2 = offer.offer.te_2 ? `${(offer.offer.te_2 * 1000).toFixed(2)}` : '-';
-                    const te3 = offer.offer.te_3 ? `${(offer.offer.te_3 * 1000).toFixed(2)}` : '-';
-                    const te4 = offer.offer.te_4 ? `${(offer.offer.te_4 * 1000).toFixed(2)}` : '-';
-                    const te5 = offer.offer.te_5 ? `${(offer.offer.te_5 * 1000).toFixed(2)}` : '-';
-                    const te6 = offer.offer.te_6 ? `${(offer.offer.te_6 * 1000).toFixed(2)}` : '-';
-                    const tp1 = offer.offer.tp_1 ? `${offer.offer.tp_1.toFixed(2)}` : '-';
-                    const tp2 = offer.offer.tp_2 ? `${offer.offer.tp_2.toFixed(2)}` : '-';
-                    const tp3 = offer.offer.tp_3 ? `${offer.offer.tp_3.toFixed(2)}` : '-';
-                    const tp4 = offer.offer.tp_4 ? `${offer.offer.tp_4.toFixed(2)}` : '-';
-                    const tp5 = offer.offer.tp_5 ? `${offer.offer.tp_5.toFixed(2)}` : '-';
-                    const tp6 = offer.offer.tp_6 ? `${offer.offer.tp_6.toFixed(2)}` : '-';
+                    const te1 = offer.offer.p1_price ? `${offer.offer.p1_price.toFixed(3)}` : '-';
+                    const te2 = offer.offer.p2_price ? `${offer.offer.p2_price.toFixed(3)}` : '-';
+                    const te3 = offer.offer.p3_price ? `${offer.offer.p3_price.toFixed(3)}` : '-';
+                    const te4 = offer.offer.p4_price ? `${offer.offer.p4_price.toFixed(3)}` : '-';
+                    const te5 = offer.offer.p5_price ? `${offer.offer.p5_price.toFixed(3)}` : '-';
+                    const te6 = offer.offer.p6_price ? `${offer.offer.p6_price.toFixed(3)}` : '-';
+                    const tp1 = offer.offer.p_potencia_1 ? `${offer.offer.p_potencia_1.toFixed(2)}` : '-';
+                    const tp2 = offer.offer.p_potencia_2 ? `${offer.offer.p_potencia_2.toFixed(2)}` : '-';
+                    const tp3 = offer.offer.p_potencia_3 ? `${offer.offer.p_potencia_3.toFixed(2)}` : '-';
+                    const tp4 = offer.offer.p_potencia_4 ? `${offer.offer.p_potencia_4.toFixed(2)}` : '-';
+                    const tp5 = offer.offer.p_potencia_5 ? `${offer.offer.p_potencia_5.toFixed(2)}` : '-';
+                    const tp6 = offer.offer.p_potencia_6 ? `${offer.offer.p_potencia_6.toFixed(2)}` : '-';
                     
                     preciosHTML = `<div class="mt-2 pt-2 border-t border-slate-200 text-xs">
                         <div class="grid grid-cols-2 gap-x-2 gap-y-0.5">

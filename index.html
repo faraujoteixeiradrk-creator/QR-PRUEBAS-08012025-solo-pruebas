@@ -17958,6 +17958,20 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                 let preciosHTML = '';
                 const tariffTypeForPrices = lastComparisonResult?.originalTariffType || lastComparisonResult?.tariffType || currentTariffType;
                 
+                // DEBUG: Ver primera oferta
+                if (originalIndex === 0) {
+                    console.log('🔍 DEBUG Precios - Primera oferta:', {
+                        name: offer.offer.name,
+                        tariffType: tariffTypeForPrices,
+                        te_1: offer.offer.te_1,
+                        te_2: offer.offer.te_2,
+                        te_3: offer.offer.te_3,
+                        tp_1: offer.offer.tp_1,
+                        tp_2: offer.offer.tp_2,
+                        allKeys: Object.keys(offer.offer).sort()
+                    });
+                }
+                
                 if (tariffTypeForPrices === '2.0TD') {
                     // 2.0TD: 3 periodos de energía y 2 de potencia
                     const te1 = offer.offer.te_1 ? `${(offer.offer.te_1 * 1000).toFixed(3)}` : '-';

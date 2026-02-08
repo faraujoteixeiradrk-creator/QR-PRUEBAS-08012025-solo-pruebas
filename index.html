@@ -17967,11 +17967,20 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     const tp2 = offer.offer.p_potencia_2 ? `${offer.offer.p_potencia_2.toFixed(3)}` : '-';
                     
                     preciosHTML = `<div class="mt-2 pt-2 border-t border-slate-200 text-[10px] space-y-0.5">
-                        <div class="flex justify-between"><span class="text-slate-500">⚡ P1:</span><span class="font-mono font-semibold">${te1} €/kWh</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">⚡ P2:</span><span class="font-mono font-semibold">${te2} €/kWh</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">⚡ P3:</span><span class="font-mono font-semibold">${te3} €/kWh</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">🔌 P1:</span><span class="font-mono font-semibold">${tp1} €/kW/año</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">🔌 P2:</span><span class="font-mono font-semibold">${tp2} €/kW/año</span></div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">⚡ ${te1} <span class="text-[9px]">€/kWh</span></span>
+                            <span class="text-slate-400">P1:</span>
+                            <span class="text-slate-500">🔌 ${tp1} <span class="text-[9px]">€/kW/año</span></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">⚡ ${te2} <span class="text-[9px]">€/kWh</span></span>
+                            <span class="text-slate-400">P2:</span>
+                            <span class="text-slate-500">🔌 ${tp2} <span class="text-[9px]">€/kW/año</span></span>
+                        </div>
+                        <div class="flex justify-start items-center">
+                            <span class="text-slate-500">⚡ ${te3} <span class="text-[9px]">€/kWh</span></span>
+                            <span class="text-slate-400 ml-auto">P3:</span>
+                        </div>
                     </div>`;
                 } else if (tariffTypeForPrices === '3.0TD') {
                     // 3.0TD: 6 periodos de energía y potencia
@@ -17989,18 +17998,36 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     const tp6 = offer.offer.p_potencia_6 ? `${offer.offer.p_potencia_6.toFixed(2)}` : '-';
                     
                     preciosHTML = `<div class="mt-2 pt-2 border-t border-slate-200 text-[10px] space-y-0.5">
-                        <div class="flex justify-between"><span class="text-slate-500">⚡ P1:</span><span class="font-mono font-semibold">${te1} €/kWh</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">⚡ P2:</span><span class="font-mono font-semibold">${te2} €/kWh</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">⚡ P3:</span><span class="font-mono font-semibold">${te3} €/kWh</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">⚡ P4:</span><span class="font-mono font-semibold">${te4} €/kWh</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">⚡ P5:</span><span class="font-mono font-semibold">${te5} €/kWh</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">⚡ P6:</span><span class="font-mono font-semibold">${te6} €/kWh</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">🔌 P1:</span><span class="font-mono font-semibold">${tp1} €/kW/año</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">🔌 P2:</span><span class="font-mono font-semibold">${tp2} €/kW/año</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">🔌 P3:</span><span class="font-mono font-semibold">${tp3} €/kW/año</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">🔌 P4:</span><span class="font-mono font-semibold">${tp4} €/kW/año</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">🔌 P5:</span><span class="font-mono font-semibold">${tp5} €/kW/año</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">🔌 P6:</span><span class="font-mono font-semibold">${tp6} €/kW/año</span></div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">⚡ ${te1}</span>
+                            <span class="text-slate-400">P1:</span>
+                            <span class="text-slate-500">🔌 ${tp1}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">⚡ ${te2}</span>
+                            <span class="text-slate-400">P2:</span>
+                            <span class="text-slate-500">🔌 ${tp2}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">⚡ ${te3}</span>
+                            <span class="text-slate-400">P3:</span>
+                            <span class="text-slate-500">🔌 ${tp3}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">⚡ ${te4}</span>
+                            <span class="text-slate-400">P4:</span>
+                            <span class="text-slate-500">🔌 ${tp4}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">⚡ ${te5}</span>
+                            <span class="text-slate-400">P5:</span>
+                            <span class="text-slate-500">🔌 ${tp5}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">⚡ ${te6}</span>
+                            <span class="text-slate-400">P6:</span>
+                            <span class="text-slate-500">🔌 ${tp6}</span>
+                        </div>
                     </div>`;
                 }
                 

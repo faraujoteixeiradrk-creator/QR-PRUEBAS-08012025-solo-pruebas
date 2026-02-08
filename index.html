@@ -249,8 +249,8 @@
     <!-- Main Content Area -->
     <div id="app" class="w-full max-w-lg mx-auto p-4 md:p-6 flex-grow">
 
-        <!-- MODO DE COMPARACIÓN (Siempre visible al inicio) -->
-        <div id="modo-comparacion-section" class="fade-in mb-6">
+        <!-- MODO DE COMPARACIÓN (Completamente oculto en versión DRK only) -->
+        <div id="modo-comparacion-section" class="fade-in mb-6" style="display: none !important; visibility: hidden !important; height: 0 !important; overflow: hidden !important;">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                 <p class="text-sm font-bold text-drk-800 mb-3 text-center uppercase tracking-wider">MODO DE COMPARACIÓN</p>
                 <div class="flex flex-wrap justify-center gap-2 text-sm">
@@ -258,11 +258,13 @@
                         <input type="radio" name="comparison_mode" value="drk_only" class="hidden" checked>
                         <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
                     </label>
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400">
+                    <!-- DRK Prioritario oculto en versión DRK only -->
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400" style="display: none;">
                         <input type="radio" name="comparison_mode" value="drk_prioritized" class="hidden">
                         <span class="font-semibold flex items-center justify-between w-full">DRK Prioritario<svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
                     </label>
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400">
+                    <!-- PowerCup oculto en versión DRK only -->
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400" style="display: none;">
                         <input type="radio" name="comparison_mode" value="overall_best" class="hidden">
                         <span class="font-black flex flex-col items-center justify-center w-full leading-tight">
                             <span class="text-base">POWER CUP</span><span class="text-xs font-semibold -mt-0.5">Global</span>
@@ -1130,7 +1132,7 @@
 
         <!-- 3. Initial Input View (Scan/Manual) -->
         <div id="initial-view" class="fade-in hidden">
-            <button onclick="currentTariffType === 'MULTICUPS' ? showMultiCupsSagaView() : goBackFromInitialView()" class="mb-4 text-sm text-slate-500 hover:text-drk-600 flex items-center gap-1">
+            <button onclick="goToInicio()" class="mb-4 text-sm text-slate-500 hover:text-drk-600 flex items-center gap-1">
                 &larr; Volver <span id="back-button-label">a selección</span>
             </button>
 
@@ -21104,14 +21106,29 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             if (multicupsSagaView) multicupsSagaView.classList.add('hidden');
         }
 
+        // Función para resetear completamente y volver al inicio (DRK únicamente)
+        function resetToLanding() {
+            // Limpiar todos los datos y flags
+            window.dualMode = false;
+            alreadyAskedAboutSolar = false;
+            skipDecisionModal = false;
+            hideDecisionCheckboxes = false;
+            solarSurplusEnabled = false;
+            lastComparisonResult = null;
+            availableOffers = [];
+            
+            // Volver a la pantalla de inicio
+            goToInicio();
+        }
+
         function goToInicio() {
             // Limpiar flag de modo DUAL
             window.dualMode = false;
             
             hideAllScreens();
             document.getElementById('screen-inicio').classList.add('active');
-            // Mostrar el modo de comparación
-            document.getElementById('modo-comparacion-section').style.display = 'block';
+            // NO mostrar el modo de comparación en versión DRK only (solo hay una opción)
+            // document.getElementById('modo-comparacion-section').style.display = 'block';
         }
 
         function goToElectricidad() {

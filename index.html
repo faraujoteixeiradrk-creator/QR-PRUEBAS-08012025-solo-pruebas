@@ -17966,20 +17966,19 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     const tp1 = offer.offer.p_potencia_1 ? `${offer.offer.p_potencia_1.toFixed(3)}` : '-';
                     const tp2 = offer.offer.p_potencia_2 ? `${offer.offer.p_potencia_2.toFixed(3)}` : '-';
                     
-                    preciosHTML = `<div class="mt-2 pt-2 border-t border-slate-200 text-[10px] space-y-0.5">
-                        <div class="flex justify-between items-center">
-                            <span class="text-slate-500">⚡ ${te1} <span class="text-[9px]">€/kWh</span></span>
-                            <span class="text-slate-400">P1:</span>
-                            <span class="text-slate-500">🔌 ${tp1} <span class="text-[9px]">€/kW/año</span></span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-slate-500">⚡ ${te2} <span class="text-[9px]">€/kWh</span></span>
-                            <span class="text-slate-400">P2:</span>
-                            <span class="text-slate-500">🔌 ${tp2} <span class="text-[9px]">€/kW/año</span></span>
-                        </div>
-                        <div class="flex justify-start items-center">
-                            <span class="text-slate-500">⚡ ${te3} <span class="text-[9px]">€/kWh</span></span>
-                            <span class="text-slate-400 ml-auto">P3:</span>
+                    preciosHTML = `<div class="mt-2 pt-2 border-t border-slate-200 text-[10px]">
+                        <div class="grid grid-cols-[1fr_auto_1fr] gap-x-2 gap-y-1 items-center">
+                            <div class="text-slate-600">⚡ ${te1} <span class="text-[8px]">€/kWh</span></div>
+                            <div class="text-slate-400 text-center font-bold">P1:</div>
+                            <div class="text-slate-600">🔌 ${tp1} <span class="text-[8px]">€/kW/año</span></div>
+                            
+                            <div class="text-slate-600">⚡ ${te2} <span class="text-[8px]">€/kWh</span></div>
+                            <div class="text-slate-400 text-center font-bold">P2:</div>
+                            <div class="text-slate-600">🔌 ${tp2} <span class="text-[8px]">€/kW/año</span></div>
+                            
+                            <div class="text-slate-600">⚡ ${te3} <span class="text-[8px]">€/kWh</span></div>
+                            <div class="text-slate-400 text-center font-bold">P3:</div>
+                            <div></div>
                         </div>
                     </div>`;
                 } else if (tariffTypeForPrices === '3.0TD') {
@@ -17997,36 +17996,31 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     const tp5 = offer.offer.p_potencia_5 ? `${offer.offer.p_potencia_5.toFixed(2)}` : '-';
                     const tp6 = offer.offer.p_potencia_6 ? `${offer.offer.p_potencia_6.toFixed(2)}` : '-';
                     
-                    preciosHTML = `<div class="mt-2 pt-2 border-t border-slate-200 text-[10px] space-y-0.5">
-                        <div class="flex justify-between items-center">
-                            <span class="text-slate-500">⚡ ${te1}</span>
-                            <span class="text-slate-400">P1:</span>
-                            <span class="text-slate-500">🔌 ${tp1}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-slate-500">⚡ ${te2}</span>
-                            <span class="text-slate-400">P2:</span>
-                            <span class="text-slate-500">🔌 ${tp2}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-slate-500">⚡ ${te3}</span>
-                            <span class="text-slate-400">P3:</span>
-                            <span class="text-slate-500">🔌 ${tp3}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-slate-500">⚡ ${te4}</span>
-                            <span class="text-slate-400">P4:</span>
-                            <span class="text-slate-500">🔌 ${tp4}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-slate-500">⚡ ${te5}</span>
-                            <span class="text-slate-400">P5:</span>
-                            <span class="text-slate-500">🔌 ${tp5}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-slate-500">⚡ ${te6}</span>
-                            <span class="text-slate-400">P6:</span>
-                            <span class="text-slate-500">🔌 ${tp6}</span>
+                    preciosHTML = `<div class="mt-2 pt-2 border-t border-slate-200 text-[10px]">
+                        <div class="grid grid-cols-[1fr_auto_1fr] gap-x-2 gap-y-1 items-center">
+                            <div class="text-slate-600">⚡ ${te1} <span class="text-[8px]">€/kWh</span></div>
+                            <div class="text-slate-400 text-center font-bold">P1:</div>
+                            <div class="text-slate-600">🔌 ${tp1} <span class="text-[8px]">€/kW/año</span></div>
+                            
+                            <div class="text-slate-600">⚡ ${te2} <span class="text-[8px]">€/kWh</span></div>
+                            <div class="text-slate-400 text-center font-bold">P2:</div>
+                            <div class="text-slate-600">🔌 ${tp2} <span class="text-[8px]">€/kW/año</span></div>
+                            
+                            <div class="text-slate-600">⚡ ${te3} <span class="text-[8px]">€/kWh</span></div>
+                            <div class="text-slate-400 text-center font-bold">P3:</div>
+                            <div class="text-slate-600">🔌 ${tp3} <span class="text-[8px]">€/kW/año</span></div>
+                            
+                            <div class="text-slate-600">⚡ ${te4} <span class="text-[8px]">€/kWh</span></div>
+                            <div class="text-slate-400 text-center font-bold">P4:</div>
+                            <div class="text-slate-600">🔌 ${tp4} <span class="text-[8px]">€/kW/año</span></div>
+                            
+                            <div class="text-slate-600">⚡ ${te5} <span class="text-[8px]">€/kWh</span></div>
+                            <div class="text-slate-400 text-center font-bold">P5:</div>
+                            <div class="text-slate-600">🔌 ${tp5} <span class="text-[8px]">€/kW/año</span></div>
+                            
+                            <div class="text-slate-600">⚡ ${te6} <span class="text-[8px]">€/kWh</span></div>
+                            <div class="text-slate-400 text-center font-bold">P6:</div>
+                            <div class="text-slate-600">🔌 ${tp6} <span class="text-[8px]">€/kW/año</span></div>
                         </div>
                     </div>`;
                 }

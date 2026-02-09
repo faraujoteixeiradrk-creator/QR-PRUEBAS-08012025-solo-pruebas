@@ -18055,31 +18055,31 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                         <div class="text-right flex-shrink-0">
                             ${window.optimizedPowerEnabled && offer.ahorroTotal !== undefined && offer.solarSurplus && offer.solarSurplus.enabled ? `
                                 <!-- OPTIMIZACIÓN + EXCEDENTES SOLARES - MOSTRAR SOLO TOTAL -->
-                                <p class="text-[10px] sm:text-xs text-slate-500">${tr('Ahorro anual total')}</p>
-                                <p class="text-[9px] sm:text-xs text-slate-600 italic mb-1">(incl. optimización ⚡ y excedentes ☀️)</p>
-                                <p class="text-xl sm:text-2xl font-black text-green-700">${eur(offer.ahorroTotal)}</p>
-                                ${comisionAnual > 0 ? `<p class="text-[9px] sm:text-xs text-blue-600 font-semibold mt-1 whitespace-nowrap">💰 Comisión: ${eur(comisionAnual)}</p>` : ''}
+                                <p class="text-xs text-slate-500">${tr('Ahorro anual total')}</p>
+                                <p class="text-xs text-slate-600 italic mb-1">(incl. optimización ⚡ y excedentes ☀️)</p>
+                                <p class="text-2xl font-black text-green-700">${eur(offer.ahorroTotal)}</p>
+                                ${comisionAnual > 0 ? `<p class="text-xs text-blue-600 font-semibold mt-1">💰 Comisión aprox. anual: ${eur(comisionAnual)}</p>` : ''}
                             ` : window.optimizedPowerEnabled && offer.ahorroTotal !== undefined ? `
-                                <!-- Solo OPTIMIZACIÓN -->\n                                <p class="text-[10px] sm:text-xs text-slate-500">${tr('Ahorro anual')}</p>
+                                <!-- Solo OPTIMIZACIÓN -->\n                                <p class="text-xs text-slate-500">${tr('Ahorro anual')}</p>
                                 <p class="text-sm font-bold text-green-600">${eur(offer.savingsActual)}</p>
-                                <p class="text-[10px] sm:text-xs text-orange-600 font-semibold">+ ${eur(offer.ahorroAdicional)} ⚡</p>
+                                <p class="text-xs text-orange-600 font-semibold">+ ${eur(offer.ahorroAdicional)} ⚡</p>
                                 <p class="text-xl font-black text-green-700">${eur(offer.ahorroTotal)}</p>
-                                ${comisionAnual > 0 ? `<p class="text-[9px] sm:text-xs text-blue-600 font-semibold mt-1 whitespace-nowrap">💰 Comisión: ${eur(comisionAnual)}</p>` : ''}
+                                ${comisionAnual > 0 ? `<p class="text-xs text-blue-600 font-semibold mt-1">💰 Comisión aprox. anual: ${eur(comisionAnual)}</p>` : ''}
                             ` : offer.solarSurplus && offer.solarSurplus.enabled ? `
-                                <!-- Solo EXCEDENTES SOLARES -->\n                                <p class="text-[10px] sm:text-xs text-slate-500">${tr('Ahorro anual')}</p>
+                                <!-- Solo EXCEDENTES SOLARES -->\n                                <p class="text-xs text-slate-500">${tr('Ahorro anual')}</p>
                                 <p class="text-sm font-bold text-green-600">${eur(offer.savings - (offer.solarSurplus.annualDiscount || 0))}</p>
-                                <p class="text-[10px] sm:text-xs text-orange-600 font-semibold">+ ${eur(offer.solarSurplus.annualDiscount || 0)} ☀️</p>
+                                <p class="text-xs text-orange-600 font-semibold">+ ${eur(offer.solarSurplus.annualDiscount || 0)} ☀️</p>
                                 <p class="text-xl font-black text-green-700">${eur(offer.savings)}</p>
-                                ${comisionAnual > 0 ? `<p class="text-[9px] sm:text-xs text-blue-600 font-semibold mt-1 whitespace-nowrap">💰 Comisión: ${eur(comisionAnual)}</p>` : ''}
+                                ${comisionAnual > 0 ? `<p class="text-xs text-blue-600 font-semibold mt-1">💰 Comisión aprox. anual: ${eur(comisionAnual)}</p>` : ''}
                             ` : offer.solarSurplus && offer.solarSurplus.noPrice ? `
-                                <!-- No tiene compensación de excedentes -->\n                                <p class="text-[10px] sm:text-xs text-slate-500">${tr('Ahorro anual')}</p>
+                                <!-- No tiene compensación de excedentes -->\n                                <p class="text-xs text-slate-500">${tr('Ahorro anual')}</p>
                                 <p class="text-xl font-black text-green-600">${eur(offer.savings)}</p>
-                                <p class="text-[10px] sm:text-xs text-slate-400 italic mt-1">☀️ ${tr('Sin compensación')}</p>
-                                ${comisionAnual > 0 ? `<p class="text-[9px] sm:text-xs text-blue-600 font-semibold mt-1 whitespace-nowrap">💰 Comisión: ${eur(comisionAnual)}</p>` : ''}
+                                <p class="text-xs text-slate-400 italic mt-1">☀️ ${tr('Sin compensación')}</p>
+                                ${comisionAnual > 0 ? `<p class="text-xs text-blue-600 font-semibold mt-1">💰 Comisión aprox. anual: ${eur(comisionAnual)}</p>` : ''}
                             ` : `
-                                <!-- Sin excedentes ni optimización -->\n                                <p class="text-[10px] sm:text-xs text-slate-500">${tr('Ahorro anual')}</p>
+                                <!-- Sin excedentes ni optimización -->\n                                <p class="text-xs text-slate-500">${tr('Ahorro anual')}</p>
                                 <p class="text-xl font-black text-green-600">${eur(offer.savings)}</p>
-                                ${comisionAnual > 0 ? `<p class="text-[9px] sm:text-xs text-blue-600 font-semibold mt-1 whitespace-nowrap">💰 Comisión: ${eur(comisionAnual)}</p>` : ''}
+                                ${comisionAnual > 0 ? `<p class="text-xs text-blue-600 font-semibold mt-1">💰 Comisión aprox. anual: ${eur(comisionAnual)}</p>` : ''}
                             `}
                         </div>
                     </div>

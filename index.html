@@ -25205,6 +25205,10 @@ ${clientName}
             const headers = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
             
             console.log('📋 Headers del Excel:', headers);
+            console.log('📋 Headers detallados:');
+            headers.forEach((h, i) => {
+                console.log(`  [${i}] "${h}" (length: ${h.length})`);
+            });
             
             const data = [];
             
@@ -25239,7 +25243,7 @@ ${clientName}
                 // Columnas críticas: name, p1_price, Tarifa
                 const hasName = row.name || row.Name;
                 const hasPrice = row.p1_price || row.P1_price;
-                const hasTarifa = row.Tarifa;
+                const hasTarifa = row.Tarifa || row.TARIFA || row.tarifa;
                 
                 if (hasName && hasPrice && hasTarifa) {
                     data.push(row);
@@ -25249,7 +25253,15 @@ ${clientName}
                         console.log(`📊 Fila ${data.length}:`, {
                             name: row.name || row.Name,
                             description: row.description || row.Description,
-                            Tarifa: row.Tarifa,
+                            'row.Tarifa': row.Tarifa,
+                            'row.TARIFA': row.TARIFA,
+                            'row.tarifa': row.tarifa,
+                            'Todas las keys': Object.keys(row),
+                            p1_price: row.p1_price,
+                            p_fijo_1: row.p_fijo_1
+                        });
+                    }
+                }
                             p1_price: row.p1_price,
                             p_fijo_1: row.p_fijo_1
                         });
@@ -25354,7 +25366,7 @@ ${clientName}
             return {
                 name: tariff.name || tariff.Name,
                 descripcion: tariff.description || tariff.Description || tariff.name || tariff.Name,
-                tarifa: tariff.Tarifa,
+                tarifa: tariff.Tarifa || tariff.TARIFA || tariff.tarifa || '',
                 // Desglose
                 p_fijo_diario: p_fijo_diario,
                 p_fijo_descuento: p_fijo_descuento,

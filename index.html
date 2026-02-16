@@ -647,7 +647,7 @@
                     <p class="text-slate-500 mb-6 text-center" id="gas-results-subtitle">Comparativa de tarifas</p>
                     
                     <!-- Contenedor de resultados -->
-                    <div id="gas-results-container" class="mt-6">
+                    <div id="gas-results-container" class="mt-6 max-h-[70vh] overflow-y-auto pr-2">
                         <!-- Los resultados se insertarán aquí -->
                     </div>
                     
@@ -25036,21 +25036,21 @@ ${clientName}
                 }
                 
                 html += `
-                    <label class="flex items-center gap-3 p-4 border-2 ${isPositive ? 'border-green-200 bg-green-50' : 'border-slate-200'} rounded-lg hover:border-red-300 cursor-pointer transition">
+                    <label class="flex items-start gap-3 p-5 border-2 ${isPositive ? 'border-green-200 bg-green-50' : 'border-slate-200'} rounded-lg hover:border-red-300 cursor-pointer transition mb-3">
                         <input 
                             type="checkbox" 
-                            class="gas-tariff-checkbox w-5 h-5 text-red-600 rounded flex-shrink-0"
+                            class="gas-tariff-checkbox w-5 h-5 text-red-600 rounded flex-shrink-0 mt-0.5"
                             data-index="${index}"
                         >
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 mb-1">
+                            <div class="flex items-center gap-2 mb-2">
                                 <span class="font-bold text-drk-900">${item.name}</span>
                                 <span class="text-xs px-2 py-1 rounded ${item.isIndexed ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${typeLabel}</span>
                             </div>
-                            <p class="text-sm text-slate-600 mb-2">${item.description}${tarifaType ? ' - ' + tarifaType : ''}</p>
+                            <p class="text-sm text-slate-600 mb-3">${item.description}${tarifaType ? ' - ' + tarifaType : ''}</p>
                             ${tarifaExplanation}
-                            <div class="pt-1 border-t border-slate-300">
-                                <p class="text-xs font-bold text-slate-700 mb-0.5">📋 PRECIOS APLICADOS:</p>
+                            <div class="pt-2 mt-2 border-t border-slate-300">
+                                <p class="text-xs font-bold text-slate-700 mb-1.5">📋 PRECIOS APLICADOS:</p>
                                 <div class="flex gap-4 text-xs text-slate-600">
                                     <span>🔥 Término fijo: <span class="font-mono font-semibold">${precioFijoDiario} €/día</span></span>
                                     <span>🔥 Precio energía: <span class="font-mono font-semibold">${precioEnergia} €/kWh</span></span>

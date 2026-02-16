@@ -24903,7 +24903,7 @@ ${clientName}
                     calculation: result,
                     name: tariff.name || tariff.Name,
                     description: tariff.description || tariff.Description || (tariff.name || tariff.Name),
-                    tarifa: tariff.Tarifa || tariff.tarifa || '', // AÑADIDO: tipo de tarifa (PARC, etc.)
+                    tarifa: tariff.TARIFA || tariff.tarifa || '', // TARIFA (mayúsculas) contiene PARC
                     isIndexed: (tariff.name || tariff.Name || '').toUpperCase().includes('INDEX'),
                     ahorro: result.ahorro_anual
                 };
@@ -25235,7 +25235,7 @@ ${clientName}
                 // Columnas críticas: name, p1_price, Tarifa
                 const hasName = row.name || row.Name;
                 const hasPrice = row.p1_price || row.P1_price;
-                const hasTarifa = row.Tarifa;
+                const hasTarifa = row.Tarifa || row.TARIFA; // Buscar en ambas columnas
                 
                 if (hasName && hasPrice && hasTarifa) {
                     data.push(row);
@@ -25350,7 +25350,7 @@ ${clientName}
             return {
                 name: tariff.name || tariff.Name,
                 descripcion: tariff.description || tariff.Description || tariff.name || tariff.Name,
-                tarifa: tariff.Tarifa,
+                tarifa: tariff.TARIFA || tariff.tarifa || '', // TARIFA (mayúsculas) contiene PARC
                 // Desglose
                 p_fijo_diario: p_fijo_diario,
                 p_fijo_descuento: p_fijo_descuento,

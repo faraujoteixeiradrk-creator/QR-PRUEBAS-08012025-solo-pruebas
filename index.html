@@ -25017,6 +25017,14 @@ ${clientName}
                 
                 // Obtener tipo de tarifa y generar explicación
                 const tarifaType = item.tarifa || '';
+                console.log('🔍 DEBUG tarifa GAS (selector):', {
+                    name: item.name,
+                    tarifaType: tarifaType,
+                    tarifaTypeLength: tarifaType.length,
+                    tarifaTypeChars: tarifaType.split(''),
+                    itemKeys: Object.keys(item)
+                });
+                
                 let tarifaExplanation = '';
                 if (tarifaType) {
                     const meanings = {
@@ -25028,11 +25036,13 @@ ${clientName}
                     
                     tarifaExplanation = '<div class="mt-2 pt-2 border-t border-slate-300"><p class="text-xs text-slate-600 font-semibold mb-1">Precios para</p><div class="text-[10px] text-slate-500 space-y-0.5">';
                     for (let char of tarifaType.toUpperCase()) {
+                        console.log('  Procesando char:', char, '-> tiene significado?', !!meanings[char]);
                         if (meanings[char]) {
                             tarifaExplanation += `<div>${char}= ${meanings[char]}</div>`;
                         }
                     }
                     tarifaExplanation += '</div></div>';
+                    console.log('  HTML generado:', tarifaExplanation);
                 }
                 
                 html += `
@@ -25604,6 +25614,14 @@ ${clientName}
                     
                     // Generar explicación del tipo de tarifa
                     const tarifaType = result.tarifa || '';
+                    console.log('🔍 DEBUG tarifa GAS:', {
+                        name: result.name,
+                        tarifaType: tarifaType,
+                        tarifaTypeLength: tarifaType.length,
+                        tarifaTypeChars: tarifaType.split(''),
+                        resultKeys: Object.keys(result)
+                    });
+                    
                     let tarifaExplanation = '';
                     if (tarifaType) {
                         const meanings = {
@@ -25615,11 +25633,13 @@ ${clientName}
                         
                         tarifaExplanation = '<div class="mt-2 pt-2 border-t border-slate-300"><p class="text-xs text-slate-600 font-semibold mb-1">Precios para</p><div class="text-[10px] text-slate-500 space-y-0.5">';
                         for (let char of tarifaType.toUpperCase()) {
+                            console.log('  Procesando char:', char, '-> tiene significado?', !!meanings[char]);
                             if (meanings[char]) {
                                 tarifaExplanation += `<div>${char}= ${meanings[char]}</div>`;
                             }
                         }
                         tarifaExplanation += '</div></div>';
+                        console.log('  HTML generado:', tarifaExplanation);
                     }
                     
                     html += `

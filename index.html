@@ -25017,14 +25017,6 @@ ${clientName}
                 
                 // Obtener tipo de tarifa y generar explicación
                 const tarifaType = item.tarifa || '';
-                console.log('🔍 DEBUG tarifa GAS (selector):', {
-                    name: item.name,
-                    tarifaType: tarifaType,
-                    tarifaTypeLength: tarifaType.length,
-                    tarifaTypeChars: tarifaType.split(''),
-                    itemKeys: Object.keys(item)
-                });
-                
                 let tarifaExplanation = '';
                 if (tarifaType) {
                     const meanings = {
@@ -25036,13 +25028,11 @@ ${clientName}
                     
                     tarifaExplanation = '<div class="mt-2 pt-2 border-t border-slate-300"><p class="text-xs text-slate-600 font-semibold mb-1">Precios para</p><div class="text-[10px] text-slate-500 space-y-0.5">';
                     for (let char of tarifaType.toUpperCase()) {
-                        console.log('  Procesando char:', char, '-> tiene significado?', !!meanings[char]);
                         if (meanings[char]) {
                             tarifaExplanation += `<div>${char}= ${meanings[char]}</div>`;
                         }
                     }
                     tarifaExplanation += '</div></div>';
-                    console.log('  HTML generado:', tarifaExplanation);
                 }
                 
                 html += `
@@ -25205,10 +25195,12 @@ ${clientName}
             const headers = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
             
             console.log('📋 Headers del Excel:', headers);
-            console.log('📋 Headers detallados:');
-            headers.forEach((h, i) => {
-                console.log(`  [${i}] "${h}" (length: ${h.length})`);
-            });
+            
+            // TEMPORAL: Mostrar headers al usuario
+            if (headers.length > 0) {
+                const headersList = headers.map((h, i) => `[${i}] ${h}`).join('\n');
+                console.log('📋 Headers encontrados:\n' + headersList);
+            }
             
             const data = [];
             
@@ -25243,7 +25235,7 @@ ${clientName}
                 // Columnas críticas: name, p1_price, Tarifa
                 const hasName = row.name || row.Name;
                 const hasPrice = row.p1_price || row.P1_price;
-                const hasTarifa = row.Tarifa || row.TARIFA || row.tarifa;
+                const hasTarifa = row.Tarifa;
                 
                 if (hasName && hasPrice && hasTarifa) {
                     data.push(row);
@@ -25253,15 +25245,7 @@ ${clientName}
                         console.log(`📊 Fila ${data.length}:`, {
                             name: row.name || row.Name,
                             description: row.description || row.Description,
-                            'row.Tarifa': row.Tarifa,
-                            'row.TARIFA': row.TARIFA,
-                            'row.tarifa': row.tarifa,
-                            'Todas las keys': Object.keys(row),
-                            p1_price: row.p1_price,
-                            p_fijo_1: row.p_fijo_1
-                        });
-                    }
-                }
+                            Tarifa: row.Tarifa,
                             p1_price: row.p1_price,
                             p_fijo_1: row.p_fijo_1
                         });
@@ -25366,7 +25350,7 @@ ${clientName}
             return {
                 name: tariff.name || tariff.Name,
                 descripcion: tariff.description || tariff.Description || tariff.name || tariff.Name,
-                tarifa: tariff.Tarifa || tariff.TARIFA || tariff.tarifa || '',
+                tarifa: tariff.Tarifa,
                 // Desglose
                 p_fijo_diario: p_fijo_diario,
                 p_fijo_descuento: p_fijo_descuento,
@@ -25626,14 +25610,6 @@ ${clientName}
                     
                     // Generar explicación del tipo de tarifa
                     const tarifaType = result.tarifa || '';
-                    console.log('🔍 DEBUG tarifa GAS:', {
-                        name: result.name,
-                        tarifaType: tarifaType,
-                        tarifaTypeLength: tarifaType.length,
-                        tarifaTypeChars: tarifaType.split(''),
-                        resultKeys: Object.keys(result)
-                    });
-                    
                     let tarifaExplanation = '';
                     if (tarifaType) {
                         const meanings = {
@@ -25645,13 +25621,11 @@ ${clientName}
                         
                         tarifaExplanation = '<div class="mt-2 pt-2 border-t border-slate-300"><p class="text-xs text-slate-600 font-semibold mb-1">Precios para</p><div class="text-[10px] text-slate-500 space-y-0.5">';
                         for (let char of tarifaType.toUpperCase()) {
-                            console.log('  Procesando char:', char, '-> tiene significado?', !!meanings[char]);
                             if (meanings[char]) {
                                 tarifaExplanation += `<div>${char}= ${meanings[char]}</div>`;
                             }
                         }
                         tarifaExplanation += '</div></div>';
-                        console.log('  HTML generado:', tarifaExplanation);
                     }
                     
                     html += `

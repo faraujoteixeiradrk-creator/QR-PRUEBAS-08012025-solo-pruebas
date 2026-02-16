@@ -18053,6 +18053,9 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     </div>`;
                 }
                 
+                // Generar panel de explicación del tipo de tarifa
+                const tarifaExplanationHTML = decodeTariffType(tarifaType);
+                
                 offerCard.innerHTML = `
                     <input type="radio" name="selected_offer" value="${originalIndex}" class="hidden">
                     <div class="offer-card-content flex items-start gap-4 p-4 rounded-xl border-2 border-slate-300 bg-white transition hover:border-drk-400 hover:bg-drk-50">
@@ -18060,6 +18063,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                         <div class="flex-1">
                             <p class="font-bold text-base text-slate-900">${displayTitle}</p>
                             <p class="text-sm text-slate-600">${displaySubtitle}</p>
+                            ${tarifaExplanationHTML}
                             ${preciosHTML}
                         </div>
                         <div class="text-right flex-shrink-0">
@@ -18101,6 +18105,31 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             document.querySelectorAll('input[name="selected_offer"]').forEach(radio => {
                 radio.addEventListener('change', handleOfferRadioChange);
             });
+        }
+        
+        // Función para decodificar tipo de tarifa
+        function decodeTariffType(tarifaType) {
+            if (!tarifaType) return '';
+            
+            const meanings = {
+                'P': 'Pymes',
+                'A': 'Autónomos',
+                'R': 'Residencial',
+                'C': 'Comunidad'
+            };
+            
+            let html = '<div class="mt-2 pt-2 border-t border-slate-200">';
+            html += '<p class="text-xs text-slate-600 font-semibold mb-1">Precios para</p>';
+            html += '<div class="text-[10px] text-slate-500 space-y-0.5">';
+            
+            for (let char of tarifaType.toUpperCase()) {
+                if (meanings[char]) {
+                    html += `<div>${char}= ${meanings[char]}</div>`;
+                }
+            }
+            
+            html += '</div></div>';
+            return html;
         }
         
         // NUEVAS FUNCIONES: Filtrado y ordenación de ofertas

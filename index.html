@@ -17936,7 +17936,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                 
                 // Para DRK, usar el campo que tenga más información como título
                 let displayTitle, displaySubtitle;
-                const tarifaType = offer.offer.Tarifa || offer.offer.tarifa || ''; // Obtener tipo de tarifa (PARC, TEE 2, etc.)
+                const tarifaType = offer.offer.TARIFA || offer.offer.tarifa || ''; // TARIFA (mayúsculas) contiene PARC, TEE 2, etc.
                 
                 if (offer.offer.isDrk) {
                     // Si description es más largo que name, usarlo como título

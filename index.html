@@ -1956,8 +1956,7 @@
                         <p class="text-sm font-mono" id="modal-selection-cups"></p>
                     </div>
                     
-                    <!-- NUEVO: Controles de Filtrado y Ordenación -->
-                    <div class="bg-white border-2 border-drk-200 rounded-xl p-4 mb-4">
+                    <!-- NUEVO: Controles de Filtrado y Ordenación -->\n                    <div class="bg-white border-2 border-drk-200 rounded-xl p-4 mb-4">
                         <div class="flex flex-col md:flex-row gap-3">
                             <!-- Filtro por nombre -->
                             <div class="flex-1">
@@ -1984,6 +1983,28 @@
                                     <option value="name_asc">🔤 Nombre (A-Z)</option>
                                     <option value="name_desc">🔤 Nombre (Z-A)</option>
                                 </select>
+                            </div>
+                        </div>
+                        
+                        <!-- NUEVO: Filtros por tipo de cliente (PARC) -->
+                        <div class="mt-3 pt-3 border-t border-slate-200">
+                            <label class="block text-xs font-bold text-slate-600 mb-2">👥 TIPO DE CLIENTE</label>
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="toggleClientTypeFilter('')" data-client-type="" class="client-type-filter px-3 py-1.5 text-xs font-bold rounded-lg border-2 transition bg-drk-500 text-white border-drk-500">
+                                    Todos
+                                </button>
+                                <button onclick="toggleClientTypeFilter('P')" data-client-type="P" class="client-type-filter px-3 py-1.5 text-xs font-bold rounded-lg border-2 transition bg-white text-slate-700 border-slate-300 hover:border-drk-400">
+                                    P - Pymes
+                                </button>
+                                <button onclick="toggleClientTypeFilter('A')" data-client-type="A" class="client-type-filter px-3 py-1.5 text-xs font-bold rounded-lg border-2 transition bg-white text-slate-700 border-slate-300 hover:border-drk-400">
+                                    A - Autónomos
+                                </button>
+                                <button onclick="toggleClientTypeFilter('R')" data-client-type="R" class="client-type-filter px-3 py-1.5 text-xs font-bold rounded-lg border-2 transition bg-white text-slate-700 border-slate-300 hover:border-drk-400">
+                                    R - Residencial
+                                </button>
+                                <button onclick="toggleClientTypeFilter('C')" data-client-type="C" class="client-type-filter px-3 py-1.5 text-xs font-bold rounded-lg border-2 transition bg-white text-slate-700 border-slate-300 hover:border-drk-400">
+                                    C - Comunidad
+                                </button>
                             </div>
                         </div>
                         
@@ -17837,15 +17858,28 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                 offer: offer,
                 originalIndex: originalIndex
             })).filter(item => {
-                if (searchTerm === '') return true;
+                // Filtro por nombre
+                if (searchTerm !== '') {
+                    const offerName = item.offer.offer.name.toLowerCase();
+                    const commercializer = item.offer.offer.isDrk ? 'drk energía' : (item.offer.offer.commercializer || '').toLowerCase();
+                    const description = (item.offer.offer.description || '').toLowerCase();
+                    
+                    const matchesName = offerName.includes(searchTerm) || 
+                                       commercializer.includes(searchTerm) || 
+                                       description.includes(searchTerm);
+                    
+                    if (!matchesName) return false;
+                }
                 
-                const offerName = item.offer.offer.name.toLowerCase();
-                const commercializer = item.offer.offer.isDrk ? 'drk energía' : (item.offer.offer.commercializer || '').toLowerCase();
-                const description = (item.offer.offer.description || '').toLowerCase();
+                // Filtro por tipo de cliente (PARC)
+                if (activeClientTypeFilter !== '') {
+                    const tarifaType = item.offer.offer.TARIFA || item.offer.offer.tarifa || '';
+                    if (!tarifaType.toUpperCase().includes(activeClientTypeFilter)) {
+                        return false;
+                    }
+                }
                 
-                return offerName.includes(searchTerm) || 
-                       commercializer.includes(searchTerm) || 
-                       description.includes(searchTerm);
+                return true;
             });
             
             // Ordenar ofertas filtradas
@@ -18133,6 +18167,25 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
         }
         
         // NUEVAS FUNCIONES: Filtrado y ordenación de ofertas
+        // Variable global para el filtro de tipo de cliente
+        let activeClientTypeFilter = '';
+        
+        function toggleClientTypeFilter(clientType) {
+            activeClientTypeFilter = clientType;
+            
+            // Actualizar estilos de botones
+            document.querySelectorAll('.client-type-filter').forEach(btn => {
+                const btnType = btn.getAttribute('data-client-type');
+                if (btnType === clientType) {
+                    btn.className = 'client-type-filter px-3 py-1.5 text-xs font-bold rounded-lg border-2 transition bg-drk-500 text-white border-drk-500';
+                } else {
+                    btn.className = 'client-type-filter px-3 py-1.5 text-xs font-bold rounded-lg border-2 transition bg-white text-slate-700 border-slate-300 hover:border-drk-400';
+                }
+            });
+            
+            filterAndSortOffers();
+        }
+        
         function filterAndSortOffers() {
             renderOffersList();
         }
@@ -18140,6 +18193,18 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
         function clearOfferFilters() {
             document.getElementById('offer-search-input').value = '';
             document.getElementById('offer-sort-select').value = 'savings_desc';
+            activeClientTypeFilter = '';
+            
+            // Resetear botones de tipo de cliente
+            document.querySelectorAll('.client-type-filter').forEach(btn => {
+                const btnType = btn.getAttribute('data-client-type');
+                if (btnType === '') {
+                    btn.className = 'client-type-filter px-3 py-1.5 text-xs font-bold rounded-lg border-2 transition bg-drk-500 text-white border-drk-500';
+                } else {
+                    btn.className = 'client-type-filter px-3 py-1.5 text-xs font-bold rounded-lg border-2 transition bg-white text-slate-700 border-slate-300 hover:border-drk-400';
+                }
+            });
+            
             renderOffersList();
         }
         
@@ -25001,6 +25066,48 @@ ${clientName}
                         </div>
                     </div>
                     
+                    <!-- NUEVO: Filtros por tipo de cliente (PARC) -->
+                    <div class="mb-4 p-4 bg-slate-50 rounded-lg">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">👥 Tipo de cliente:</label>
+                        <div class="flex gap-2 flex-wrap">
+                            <button 
+                                onclick="setGasClientTypeFilter('')"
+                                data-gas-client-type=""
+                                class="gas-client-filter px-3 py-1.5 text-xs font-bold rounded-lg border-2 transition ${window.gasClientTypeFilter === '' || !window.gasClientTypeFilter ? 'bg-red-500 text-white border-red-500' : 'bg-white text-slate-700 border-slate-200 hover:border-red-300'}"
+                            >
+                                Todos
+                            </button>
+                            <button 
+                                onclick="setGasClientTypeFilter('P')"
+                                data-gas-client-type="P"
+                                class="gas-client-filter px-3 py-1.5 text-xs font-bold rounded-lg border-2 transition ${window.gasClientTypeFilter === 'P' ? 'bg-red-500 text-white border-red-500' : 'bg-white text-slate-700 border-slate-200 hover:border-red-300'}"
+                            >
+                                P - Pymes
+                            </button>
+                            <button 
+                                onclick="setGasClientTypeFilter('A')"
+                                data-gas-client-type="A"
+                                class="gas-client-filter px-3 py-1.5 text-xs font-bold rounded-lg border-2 transition ${window.gasClientTypeFilter === 'A' ? 'bg-red-500 text-white border-red-500' : 'bg-white text-slate-700 border-slate-200 hover:border-red-300'}"
+                            >
+                                A - Autónomos
+                            </button>
+                            <button 
+                                onclick="setGasClientTypeFilter('R')"
+                                data-gas-client-type="R"
+                                class="gas-client-filter px-3 py-1.5 text-xs font-bold rounded-lg border-2 transition ${window.gasClientTypeFilter === 'R' ? 'bg-red-500 text-white border-red-500' : 'bg-white text-slate-700 border-slate-200 hover:border-red-300'}"
+                            >
+                                R - Residencial
+                            </button>
+                            <button 
+                                onclick="setGasClientTypeFilter('C')"
+                                data-gas-client-type="C"
+                                class="gas-client-filter px-3 py-1.5 text-xs font-bold rounded-lg border-2 transition ${window.gasClientTypeFilter === 'C' ? 'bg-red-500 text-white border-red-500' : 'bg-white text-slate-700 border-slate-200 hover:border-red-300'}"
+                            >
+                                C - Comunidad
+                            </button>
+                        </div>
+                    </div>
+                    
                     <div class="space-y-3">
             `;
             
@@ -25815,6 +25922,14 @@ ${clientName}
         
         // ===== FUNCIONES DE BÚSQUEDA (filtran DOM sin re-renderizar) =====
         
+        // Variable global para filtro de tipo de cliente en GAS
+        window.gasClientTypeFilter = '';
+        
+        function setGasClientTypeFilter(clientType) {
+            window.gasClientTypeFilter = clientType;
+            applyGasSearch(); // Re-aplicar filtros
+        }
+        
         function applyGasSearch() {
             const searchInput = document.getElementById('gas-search-input');
             if (!searchInput) return;
@@ -25831,7 +25946,18 @@ ${clientName}
                 const name = label.querySelector('.font-bold')?.textContent.toLowerCase() || '';
                 const desc = label.querySelector('.text-sm.text-slate-600')?.textContent.toLowerCase() || '';
                 
-                if (searchText === '' || name.includes(searchText) || desc.includes(searchText)) {
+                // Obtener el tipo de tarifa del índice
+                const index = parseInt(checkbox.dataset.index);
+                const tariffItem = window.gasSortedTariffs?.[index];
+                const tarifaType = tariffItem?.tarifa || '';
+                
+                // Aplicar filtro de búsqueda
+                const matchesSearch = searchText === '' || name.includes(searchText) || desc.includes(searchText);
+                
+                // Aplicar filtro de tipo de cliente
+                const matchesClientType = window.gasClientTypeFilter === '' || tarifaType.toUpperCase().includes(window.gasClientTypeFilter);
+                
+                if (matchesSearch && matchesClientType) {
                     label.style.display = '';
                     visibleCount++;
                 } else {
@@ -25842,7 +25968,7 @@ ${clientName}
             // Actualizar contador
             const countEl = document.getElementById('gas-search-count');
             if (countEl) {
-                if (searchText === '') {
+                if (searchText === '' && window.gasClientTypeFilter === '') {
                     countEl.textContent = '';
                 } else {
                     countEl.textContent = `Mostrando ${visibleCount} de ${totalCount} tarifas`;
@@ -25854,8 +25980,9 @@ ${clientName}
             const searchInput = document.getElementById('gas-search-input');
             if (searchInput) {
                 searchInput.value = '';
-                applyGasSearch();
             }
+            window.gasClientTypeFilter = '';
+            applyGasSearch();
         }
         
         // ========== FUNCIONES DE EXPORTACIÓN PDF PARA GAS ==========

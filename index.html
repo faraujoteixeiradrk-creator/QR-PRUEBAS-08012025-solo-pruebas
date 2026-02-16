@@ -24903,6 +24903,7 @@ ${clientName}
                     calculation: result,
                     name: tariff.name || tariff.Name,
                     description: tariff.description || tariff.Description || (tariff.name || tariff.Name),
+                    tarifa: tariff.Tarifa || tariff.tarifa || '', // AÑADIDO: tipo de tarifa (PARC, etc.)
                     isIndexed: (tariff.name || tariff.Name || '').toUpperCase().includes('INDEX'),
                     ahorro: result.ahorro_anual
                 };
@@ -25014,6 +25015,26 @@ ${clientName}
                 const precioFijoDiario = item.calculation.p_fijo_diario ? parseFloat(item.calculation.p_fijo_diario).toFixed(5) : '-';
                 const precioEnergia = item.calculation.p1_price ? parseFloat(item.calculation.p1_price).toFixed(5) : '-';
                 
+                // Obtener tipo de tarifa y generar explicación
+                const tarifaType = item.tarifa || '';
+                let tarifaExplanation = '';
+                if (tarifaType) {
+                    const meanings = {
+                        'P': 'Pymes',
+                        'A': 'Autónomos',
+                        'R': 'Residencial',
+                        'C': 'Comunidad'
+                    };
+                    
+                    tarifaExplanation = '<div class="mt-2 pt-2 border-t border-slate-300"><p class="text-xs text-slate-600 font-semibold mb-1">Precios para</p><div class="text-[10px] text-slate-500 space-y-0.5">';
+                    for (let char of tarifaType.toUpperCase()) {
+                        if (meanings[char]) {
+                            tarifaExplanation += `<div>${char}= ${meanings[char]}</div>`;
+                        }
+                    }
+                    tarifaExplanation += '</div></div>';
+                }
+                
                 html += `
                     <label class="flex items-center gap-3 p-4 border-2 ${isPositive ? 'border-green-200 bg-green-50' : 'border-slate-200'} rounded-lg hover:border-red-300 cursor-pointer transition">
                         <input 
@@ -25026,7 +25047,8 @@ ${clientName}
                                 <span class="font-bold text-drk-900">${item.name}</span>
                                 <span class="text-xs px-2 py-1 rounded ${item.isIndexed ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${typeLabel}</span>
                             </div>
-                            <p class="text-sm text-slate-600 mb-2">${item.description}</p>
+                            <p class="text-sm text-slate-600 mb-2">${item.description}${tarifaType ? ' - ' + tarifaType : ''}</p>
+                            ${tarifaExplanation}
                             <div class="pt-1 border-t border-slate-300">
                                 <p class="text-xs font-bold text-slate-700 mb-0.5">📋 PRECIOS APLICADOS:</p>
                                 <div class="flex gap-4 text-xs text-slate-600">
@@ -25580,10 +25602,32 @@ ${clientName}
                     const precioFijoDiario = result.p_fijo_diario ? parseFloat(result.p_fijo_diario).toFixed(5) : '-';
                     const precioEnergia = result.p1_price ? parseFloat(result.p1_price).toFixed(5) : '-';
                     
+                    // Generar explicación del tipo de tarifa
+                    const tarifaType = result.tarifa || '';
+                    let tarifaExplanation = '';
+                    if (tarifaType) {
+                        const meanings = {
+                            'P': 'Pymes',
+                            'A': 'Autónomos',
+                            'R': 'Residencial',
+                            'C': 'Comunidad'
+                        };
+                        
+                        tarifaExplanation = '<div class="mt-2 pt-2 border-t border-slate-300"><p class="text-xs text-slate-600 font-semibold mb-1">Precios para</p><div class="text-[10px] text-slate-500 space-y-0.5">';
+                        for (let char of tarifaType.toUpperCase()) {
+                            if (meanings[char]) {
+                                tarifaExplanation += `<div>${char}= ${meanings[char]}</div>`;
+                            }
+                        }
+                        tarifaExplanation += '</div></div>';
+                    }
+                    
                     html += `
                     <div class="mb-6 p-4 border-2 ${isPositiveSaving ? 'border-green-200 bg-green-50' : 'border-slate-200'} rounded-xl">
                         <h3 class="text-xl font-bold text-drk-900 mb-2">${result.name}</h3>
-                        <p class="text-sm text-slate-600 mb-2">${result.descripcion}</p>
+                        <p class="text-sm text-slate-600 mb-2">${result.descripcion}${tarifaType ? ' - ' + tarifaType : ''}</p>
+                        
+                        ${tarifaExplanation}
                         
                         <div class="mt-2 mb-3 pt-2 border-t border-slate-300">
                             <p class="text-xs font-bold text-slate-700 mb-1">📋 PRECIOS APLICADOS:</p>

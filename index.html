@@ -1157,9 +1157,35 @@
                     </button>
                     
                     <input type="file" id="image-file-input" accept="image/*" class="hidden">
-                    <button id="upload-menu-btn" class="w-full bg-drk-50 hover:bg-drk-100 text-drk-800 font-bold py-3 px-6 rounded-xl shadow-sm transform transition active:scale-95 flex items-center justify-center gap-3">
+                    <button id="upload-menu-btn" class="w-full bg-drk-50 hover:bg-drk-100 text-drk-800 font-bold py-3 px-6 rounded-xl shadow-sm transform transition active:scale-95 flex items-center justify-center gap-3 mb-3">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         <span>OTRAS OPCIONES DE CAPTURA</span>
+                    </button>
+                    
+                    <!-- NUEVO: PISTOLA QR (escáner USB) -->
+                    <button id="gun-scan-btn" onclick="activarPistolaQR()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-xl shadow-sm transform transition active:scale-95 flex items-center justify-center gap-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                        <span>PISTOLA QR (USB)</span>
+                    </button>
+                </div>
+                
+                <!-- Panel de PISTOLA QR (oculto por defecto) -->
+                <div id="gun-scan-panel" class="hidden mt-4 p-4 bg-amber-50 border-2 border-amber-400 rounded-2xl">
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-3 h-3 bg-amber-500 rounded-full animate-pulse"></div>
+                        <p class="text-sm font-bold text-amber-800">🔫 Escáner USB listo — apunta y dispara al QR</p>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="gun-scan-input" 
+                        placeholder="Esperando datos del escáner..."
+                        class="w-full px-4 py-3 border-2 border-amber-300 rounded-xl bg-white text-sm font-mono focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
+                        autocomplete="off"
+                        readonly
+                    >
+                    <p class="text-xs text-amber-600 mt-2 text-center">El campo se llenará automáticamente al escanear</p>
+                    <button onclick="cancelarPistolaQR()" class="w-full mt-3 py-2 text-sm text-amber-700 hover:text-amber-900 font-bold transition">
+                        ✕ Cancelar
                     </button>
                 </div>
                 <button id="manual-input-btn" class="w-full bg-drk-50 hover:bg-drk-100 text-drk-800 font-bold py-3 px-6 rounded-xl shadow-sm transform transition active:scale-95 flex items-center justify-center gap-3 mt-3">
@@ -20496,6 +20522,105 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             }, 'image/jpeg', 0.95);
         }
         
+        
+        // ===== PISTOLA QR USB =====
+        let gunScanBuffer = '';
+        let gunScanTimeout = null;
+        let gunScanActive = false;
+        
+        function activarPistolaQR() {
+            gunScanActive = true;
+            gunScanBuffer = '';
+            
+            // Mostrar panel, ocultar botones
+            document.getElementById('gun-scan-panel').classList.remove('hidden');
+            document.getElementById('gun-scan-btn').classList.add('hidden');
+            
+            // Enfocar el campo oculto para capturar teclado
+            const input = document.getElementById('gun-scan-input');
+            input.removeAttribute('readonly');
+            input.value = '';
+            input.focus();
+            
+            // Escuchar teclado globalmente
+            document.addEventListener('keydown', gunKeydownHandler, true);
+            
+            console.log('🔫 Pistola QR activada - esperando escaneo...');
+        }
+        
+        function cancelarPistolaQR() {
+            gunScanActive = false;
+            gunScanBuffer = '';
+            clearTimeout(gunScanTimeout);
+            document.removeEventListener('keydown', gunKeydownHandler, true);
+            
+            const input = document.getElementById('gun-scan-input');
+            input.value = '';
+            input.setAttribute('readonly', true);
+            
+            document.getElementById('gun-scan-panel').classList.add('hidden');
+            document.getElementById('gun-scan-btn').classList.remove('hidden');
+        }
+        
+        function gunKeydownHandler(e) {
+            if (!gunScanActive) return;
+            
+            // El escáner termina con Enter
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const qrText = gunScanBuffer.trim();
+                console.log('🔫 QR recibido por pistola:', qrText.substring(0, 80) + '...');
+                
+                if (qrText.length > 10) {
+                    // Mostrar brevemente en el campo
+                    const input = document.getElementById('gun-scan-input');
+                    input.value = '✅ QR capturado — procesando...';
+                    
+                    // Procesar después de un pequeño delay visual
+                    setTimeout(() => {
+                        cancelarPistolaQR();
+                        handleQRRead(qrText);
+                    }, 400);
+                } else {
+                    gunScanBuffer = '';
+                    const input = document.getElementById('gun-scan-input');
+                    input.value = '';
+                    input.placeholder = '⚠️ QR muy corto, intenta de nuevo...';
+                }
+                return;
+            }
+            
+            // Ignorar teclas de control (Shift, Ctrl, Alt, etc.)
+            if (e.key.length === 1) {
+                gunScanBuffer += e.key;
+                
+                // Mostrar progreso en el campo
+                const input = document.getElementById('gun-scan-input');
+                input.value = gunScanBuffer.length > 30 
+                    ? `📡 Recibiendo... (${gunScanBuffer.length} caracteres)`
+                    : gunScanBuffer;
+                
+                // Timeout de seguridad: si no llega Enter en 2s, limpiar
+                clearTimeout(gunScanTimeout);
+                gunScanTimeout = setTimeout(() => {
+                    if (gunScanBuffer.length > 10) {
+                        // Intentar procesar igualmente (algunos escáneres no envían Enter)
+                        const qrText = gunScanBuffer.trim();
+                        cancelarPistolaQR();
+                        handleQRRead(qrText);
+                    } else {
+                        gunScanBuffer = '';
+                        if (input) {
+                            input.value = '';
+                            input.placeholder = 'Esperando datos del escáner...';
+                        }
+                    }
+                }, 2000);
+            }
+        }
+        // ===== FIN PISTOLA QR =====
         
         function handleQRRead(raw) {
             stopScanner();

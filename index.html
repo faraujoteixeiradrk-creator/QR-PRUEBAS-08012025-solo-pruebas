@@ -20589,13 +20589,65 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             }, 300);
         }
         
+        function normalizarTextoEscanerUSB(texto) {
+            // La pistola QR con teclado español transforma ciertos caracteres
+            // Tabla de conversión inversa:
+            let normalizado = texto;
+            
+            // IMPORTANTE: El orden importa - hacer reemplazos de lo más específico a lo más general
+            
+            // 1. Protocolo https:// → httpsÑ—
+            normalizado = normalizado.replace(/httpsÑ—/g, 'https://');
+            normalizado = normalizado.replace(/httpÑ—/g, 'http://');
+            
+            // 2. Doble slash después de dominio (raro pero por si acaso)
+            normalizado = normalizado.replace(/—/g, '//');
+            
+            // 3. Slash simple en rutas → guión
+            // Primero proteger las barras ya correctas del protocolo
+            // Convertir guiones medios/largos que son slashes de ruta
+            normalizado = normalizado.replace(/([a-z0-9])-([a-z0-9A-Z])/g, '$1/$2');
+            
+            // 4. Punto en dominios (estos parecen estar bien)
+            // No tocar
+            
+            // 5. Guión bajo → interrogación (inicio de query string)
+            normalizado = normalizado.replace(/_/g, '?');
+            
+            // 6. Slash → ampersand (separador de parámetros)
+            // CUIDADO: Ya convertimos algunos guiones a slash, ahora convertimos slashes restantes a &
+            // Solo después del ? de query string
+            if (normalizado.includes('?')) {
+                const partes = normalizado.split('?');
+                if (partes.length === 2) {
+                    const queryString = partes[1].replace(/\//g, '&');
+                    normalizado = partes[0] + '?' + queryString;
+                }
+            }
+            
+            // 7. Signo de exclamación invertido → igual
+            normalizado = normalizado.replace(/¡/g, '=');
+            
+            // 8. Comilla simple → guión (en fechas y valores)
+            normalizado = normalizado.replace(/'/g, '-');
+            
+            console.log('🔄 Texto normalizado de escáner USB:');
+            console.log('  Original (primeros 100):', texto.substring(0, 100));
+            console.log('  Normalizado (primeros 100):', normalizado.substring(0, 100));
+            
+            return normalizado;
+        }
+        
         function procesarQRPistola() {
-            const qrText = gunScanBuffer.trim();
+            let qrText = gunScanBuffer.trim();
             console.log('🔫 QR recibido por pistola (' + qrText.length + ' chars):', qrText.substring(0, 100) + '...');
             
             if (qrText.length > 10) {
                 const input = document.getElementById('gun-scan-input');
                 if (input) input.value = '✅ QR capturado (' + qrText.length + ' chars) — procesando...';
+                
+                // NUEVO: Normalizar texto del escáner USB antes de procesar
+                qrText = normalizarTextoEscanerUSB(qrText);
                 
                 setTimeout(() => {
                     cancelarPistolaQR();
@@ -20611,7 +20663,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                 const input = document.getElementById('gun-scan-input');
                 if (input) {
                     input.value = '';
-                    input.placeholder = '⚠️ QR muy corto (' + gunScanBuffer.length + ' chars), intenta de nuevo...';
+                    input.placeholder = '⚠️ QR muy corto (' + qrText.length + ' chars), intenta de nuevo...';
                 }
             }
         }

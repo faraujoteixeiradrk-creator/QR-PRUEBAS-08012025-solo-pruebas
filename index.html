@@ -20540,11 +20540,14 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             const input = document.getElementById('gun-scan-input');
             input.removeAttribute('readonly');
             input.value = '';
-            input.placeholder = 'Esperando datos del escáner...';
+            input.placeholder = 'Esperando datos del escáner... (también puedes pegar Ctrl+V para probar)';
             input.focus();
             
             // Escuchar teclado globalmente
             document.addEventListener('keydown', gunKeydownHandler, true);
+            
+            // NUEVO: Escuchar paste para pruebas manuales
+            input.addEventListener('paste', gunPasteHandler);
             
             console.log('🔫 Pistola QR activada - esperando escaneo...');
         }
@@ -20556,11 +20559,34 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             document.removeEventListener('keydown', gunKeydownHandler, true);
             
             const input = document.getElementById('gun-scan-input');
-            input.value = '';
-            input.setAttribute('readonly', true);
+            if (input) {
+                input.removeEventListener('paste', gunPasteHandler);
+                input.value = '';
+                input.setAttribute('readonly', true);
+            }
             
             document.getElementById('gun-scan-panel').classList.add('hidden');
             document.getElementById('gun-scan-btn').classList.remove('hidden');
+        }
+        
+        function gunPasteHandler(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            console.log('📋 Texto pegado (' + pastedText.length + ' chars):', pastedText.substring(0, 100) + '...');
+            
+            gunScanBuffer = pastedText;
+            
+            const input = document.getElementById('gun-scan-input');
+            if (input) {
+                input.value = '✅ Texto pegado (' + pastedText.length + ' chars) — procesando...';
+            }
+            
+            // Procesar inmediatamente
+            setTimeout(() => {
+                procesarQRPistola();
+            }, 300);
         }
         
         function procesarQRPistola() {

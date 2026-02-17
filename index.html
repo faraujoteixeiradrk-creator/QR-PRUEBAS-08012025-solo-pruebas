@@ -20536,10 +20536,11 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             document.getElementById('gun-scan-panel').classList.remove('hidden');
             document.getElementById('gun-scan-btn').classList.add('hidden');
             
-            // Enfocar el campo oculto para capturar teclado
+            // Enfocar el campo para capturar teclado
             const input = document.getElementById('gun-scan-input');
             input.removeAttribute('readonly');
             input.value = '';
+            input.placeholder = 'Esperando datos del escáner...';
             input.focus();
             
             // Escuchar teclado globalmente
@@ -20562,6 +20563,33 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             document.getElementById('gun-scan-btn').classList.remove('hidden');
         }
         
+        function procesarQRPistola() {
+            const qrText = gunScanBuffer.trim();
+            console.log('🔫 QR recibido por pistola (' + qrText.length + ' chars):', qrText.substring(0, 100) + '...');
+            
+            if (qrText.length > 10) {
+                const input = document.getElementById('gun-scan-input');
+                if (input) input.value = '✅ QR capturado (' + qrText.length + ' chars) — procesando...';
+                
+                setTimeout(() => {
+                    cancelarPistolaQR();
+                    // Extraer solo la query string si viene como URL completa
+                    let dataToProcess = qrText;
+                    if (qrText.includes('?')) {
+                        dataToProcess = qrText.split('?')[1];
+                    }
+                    handleQRRead(dataToProcess);
+                }, 400);
+            } else {
+                gunScanBuffer = '';
+                const input = document.getElementById('gun-scan-input');
+                if (input) {
+                    input.value = '';
+                    input.placeholder = '⚠️ QR muy corto (' + gunScanBuffer.length + ' chars), intenta de nuevo...';
+                }
+            }
+        }
+        
         function gunKeydownHandler(e) {
             if (!gunScanActive) return;
             
@@ -20569,47 +20597,38 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             if (e.key === 'Enter') {
                 e.preventDefault();
                 e.stopPropagation();
-                
-                const qrText = gunScanBuffer.trim();
-                console.log('🔫 QR recibido por pistola:', qrText.substring(0, 80) + '...');
-                
-                if (qrText.length > 10) {
-                    // Mostrar brevemente en el campo
-                    const input = document.getElementById('gun-scan-input');
-                    input.value = '✅ QR capturado — procesando...';
-                    
-                    // Procesar después de un pequeño delay visual
-                    setTimeout(() => {
-                        cancelarPistolaQR();
-                        handleQRRead(qrText);
-                    }, 400);
-                } else {
-                    gunScanBuffer = '';
-                    const input = document.getElementById('gun-scan-input');
-                    input.value = '';
-                    input.placeholder = '⚠️ QR muy corto, intenta de nuevo...';
-                }
+                clearTimeout(gunScanTimeout);
+                procesarQRPistola();
                 return;
             }
             
-            // Ignorar teclas de control (Shift, Ctrl, Alt, etc.)
-            if (e.key.length === 1) {
+            // Capturar TODOS los caracteres imprimibles incluyendo especiales URL (=, &, /, ., -, :, ?)
+            // Excluir solo teclas de control puras (Shift, Ctrl, Alt, Meta, F1-F12, etc.)
+            const skipKeys = ['Shift','Control','Alt','Meta','CapsLock','Tab','Escape',
+                             'ArrowUp','ArrowDown','ArrowLeft','ArrowRight',
+                             'Home','End','PageUp','PageDown','Insert','Delete','Backspace',
+                             'F1','F2','F3','F4','F5','F6','F7','F8','F9','F10','F11','F12'];
+            
+            if (!skipKeys.includes(e.key)) {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 gunScanBuffer += e.key;
                 
                 // Mostrar progreso en el campo
                 const input = document.getElementById('gun-scan-input');
-                input.value = gunScanBuffer.length > 30 
-                    ? `📡 Recibiendo... (${gunScanBuffer.length} caracteres)`
-                    : gunScanBuffer;
+                if (input) {
+                    input.value = gunScanBuffer.length > 40 
+                        ? `📡 Recibiendo... (${gunScanBuffer.length} caracteres)`
+                        : gunScanBuffer;
+                }
                 
-                // Timeout de seguridad: si no llega Enter en 2s, limpiar
+                // Resetear timeout: si no llega más input en 1.5s, procesar automáticamente
                 clearTimeout(gunScanTimeout);
                 gunScanTimeout = setTimeout(() => {
                     if (gunScanBuffer.length > 10) {
-                        // Intentar procesar igualmente (algunos escáneres no envían Enter)
-                        const qrText = gunScanBuffer.trim();
-                        cancelarPistolaQR();
-                        handleQRRead(qrText);
+                        console.log('🔫 Timeout - procesando automáticamente:', gunScanBuffer.length, 'chars');
+                        procesarQRPistola();
                     } else {
                         gunScanBuffer = '';
                         if (input) {
@@ -20617,7 +20636,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                             input.placeholder = 'Esperando datos del escáner...';
                         }
                     }
-                }, 2000);
+                }, 1500);
             }
         }
         // ===== FIN PISTOLA QR =====

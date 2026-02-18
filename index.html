@@ -2278,7 +2278,7 @@ Revisa y envía cada uno." buttons {"OK"}`;
                         
                         for (const row of facturaTotalData) {
                             const grupo = row['Grupo'] || row['GRUPO'];
-                            const codigo = row['Código'] || row['CODIGO'] || row['Código de contrato'] || '';
+                            const codigo = row['Contrato'] || row['CONTRATO'] || row['Código'] || row['CODIGO'] || row['Código de contrato'] || '';
                             const fechaFin = row['Fecha Fin Suministro'] || row['FECHA FIN SUMINISTRO'];
                             const fechaInicio = row['Fecha Inicio Suministro'] || row['FECHA INICIO SUMINISTRO'];
                             const consumo = parseFloat(row['Consumo'] || row['CONSUMO'] || row['consumo'] || 0);
@@ -2288,6 +2288,8 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             const cliente = row['Cliente'] || row['CLIENTE'] || '';
                             const cups = row['CUPS'] || row['cups'] || '';
                             const direccion = row['Dirección'] || row['DIRECCION'] || row['Direccion'] || '';
+                            const tarifaPeaje = row['Tarifa Peaje'] || row['TARIFA PEAJE'] || row['Tarifa peaje'] || '';
+                            const tarifa = row['Tarifa'] || row['TARIFA'] || grupo;
                             
                             if (!grupo || !fechaFin) continue;
                             
@@ -2330,10 +2332,12 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 vencimientos.push({
                                     'Identidad': identidad,
                                     'Cliente': cliente,
-                                    'Código Contrato': codigo,
+                                    'Contrato': codigo,
                                     'CUPS': cups,
                                     'Dirección': direccion,
-                                    'Tarifa': grupo,
+                                    'Grupo': grupo,
+                                    'Tarifa Peaje': tarifaPeaje,
+                                    'Tarifa': tarifa,
                                     'Fecha Inicio': fechaInicioDate instanceof Date && !isNaN(fechaInicioDate.getTime()) 
                                         ? fechaInicioDate.toISOString().split('T')[0] 
                                         : fechaInicio || '',

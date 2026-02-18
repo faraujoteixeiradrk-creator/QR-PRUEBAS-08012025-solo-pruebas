@@ -2260,6 +2260,98 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     
                     const wsResumenCompleto = XLSX.utils.json_to_sheet(resumenCompleto, {skipHeader: true});
                     XLSX.utils.book_append_sheet(analisisWb, wsResumenCompleto, 'Resumen Completo');
+                    
+                    // ========================================
+                    // VENCIMIENTOS PRÓXIMOS
+                    // ========================================
+                    
+                    // Leer FACTURA TOTAL para obtener información completa
+                    const vencimientos = [];
+                    
+                    if (facturaTotalSheet) {
+                        const facturaTotalData = XLSX.utils.sheet_to_json(facturaTotalSheet);
+                        const hoy = new Date();
+                        const dosMesesMs = 60 * 24 * 60 * 60 * 1000; // 60 días en milisegundos
+                        
+                        console.log('=== ANALIZANDO VENCIMIENTOS ===');
+                        console.log('Fecha actual:', hoy.toISOString().split('T')[0]);
+                        
+                        for (const row of facturaTotalData) {
+                            const grupo = row['Grupo'] || row['GRUPO'];
+                            const codigo = row['Código'] || row['CODIGO'] || row['Código de contrato'] || '';
+                            const fechaFin = row['Fecha Fin Suministro'] || row['FECHA FIN SUMINISTRO'];
+                            const fechaInicio = row['Fecha Inicio Suministro'] || row['FECHA INICIO SUMINISTRO'];
+                            const consumo = parseFloat(row['Consumo'] || row['CONSUMO'] || row['consumo'] || 0);
+                            
+                            if (!grupo || !fechaFin) continue;
+                            
+                            // Excluir indexados
+                            const grupoUpper = String(grupo).toUpperCase();
+                            const esIndexado = grupoUpper.startsWith('INDEX') || 
+                                             grupoUpper.includes('INDEXADA') || 
+                                             grupoUpper.includes('INDEXADO');
+                            
+                            if (esIndexado) continue;
+                            
+                            // Convertir fecha fin a Date
+                            let fechaFinDate;
+                            if (fechaFin instanceof Date) {
+                                fechaFinDate = fechaFin;
+                            } else if (typeof fechaFin === 'number') {
+                                // Excel date serial number
+                                fechaFinDate = new Date((fechaFin - 25569) * 86400 * 1000);
+                            } else {
+                                // Intentar parsear string
+                                fechaFinDate = new Date(fechaFin);
+                            }
+                            
+                            if (isNaN(fechaFinDate.getTime())) continue;
+                            
+                            // Calcular días restantes
+                            const diffMs = fechaFinDate - hoy;
+                            const diasRestantes = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+                            
+                            // Solo incluir si faltan 60 días o menos (y no ha vencido hace mucho)
+                            if (diasRestantes <= 60 && diasRestantes >= -30) {
+                                // Convertir fecha inicio
+                                let fechaInicioDate = fechaInicio;
+                                if (fechaInicio && typeof fechaInicio === 'number') {
+                                    fechaInicioDate = new Date((fechaInicio - 25569) * 86400 * 1000);
+                                } else if (fechaInicio && !(fechaInicio instanceof Date)) {
+                                    fechaInicioDate = new Date(fechaInicio);
+                                }
+                                
+                                vencimientos.push({
+                                    'Código Contrato': codigo,
+                                    'Tarifa': grupo,
+                                    'Fecha Inicio': fechaInicioDate instanceof Date && !isNaN(fechaInicioDate.getTime()) 
+                                        ? fechaInicioDate.toISOString().split('T')[0] 
+                                        : fechaInicio || '',
+                                    'Fecha Fin': fechaFinDate.toISOString().split('T')[0],
+                                    'Días Restantes': diasRestantes,
+                                    'Consumo (kWh)': Math.round(consumo),
+                                    'Estado': diasRestantes < 0 ? '⚠️ VENCIDO' : diasRestantes <= 30 ? '🔴 URGENTE' : '🟡 PRÓXIMO'
+                                });
+                            }
+                        }
+                        
+                        console.log(`Contratos próximos a vencer: ${vencimientos.length}`);
+                        
+                        // Ordenar por días restantes (más urgente primero) y luego por tarifa
+                        vencimientos.sort((a, b) => {
+                            if (a['Días Restantes'] !== b['Días Restantes']) {
+                                return a['Días Restantes'] - b['Días Restantes'];
+                            }
+                            return a.Tarifa.localeCompare(b.Tarifa);
+                        });
+                        
+                        if (vencimientos.length > 0) {
+                            const wsVencimientos = XLSX.utils.json_to_sheet(vencimientos);
+                            XLSX.utils.book_append_sheet(analisisWb, wsVencimientos, 'Vencimientos Próximos');
+                        } else {
+                            console.log('✓ No hay contratos próximos a vencer');
+                        }
+                    }
                 }
                 
                 // ========================================

@@ -1826,6 +1826,31 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     }
                     console.log(`Total tarifas configuradas: ${Object.keys(tarifasConfiguradasMap).length}`);
                     
+                    // Leer FACTURA TOTAL para obtener consumos
+                    const facturaTotalSheet = originalWorkbook.Sheets['FACTURA TOTAL'];
+                    const consumosPorTarifa = {}; // {tarifa|peaje: consumoTotal}
+                    
+                    if (facturaTotalSheet) {
+                        const facturaTotalData = XLSX.utils.sheet_to_json(facturaTotalSheet);
+                        console.log('=== LEYENDO CONSUMOS DE FACTURA TOTAL ===');
+                        console.log('Total facturas:', facturaTotalData.length);
+                        
+                        for (const row of facturaTotalData) {
+                            const grupo = row['Grupo'] || row['GRUPO'];
+                            const tarifaPeaje = row['Tarifa Peaje'] || row['TARIFA PEAJE'];
+                            const consumo = parseFloat(row['Consumo'] || row['CONSUMO'] || row['consumo'] || 0);
+                            
+                            if (!grupo || !tarifaPeaje || !consumo) continue;
+                            
+                            const grupoUpper = String(grupo).toUpperCase().trim();
+                            const peajeNorm = String(tarifaPeaje).trim();
+                            const key = `${grupoUpper}|${peajeNorm}`;
+                            
+                            consumosPorTarifa[key] = (consumosPorTarifa[key] || 0) + consumo;
+                        }
+                        console.log(`Total claves con consumo: ${Object.keys(consumosPorTarifa).length}`);
+                    }
+                    
                     // Extraer tarifas del Detalle (facturas reales)
                     const detalleData = XLSX.utils.sheet_to_json(detalleSheet);
                     const tarifasActivasMap = {};
@@ -2051,13 +2076,15 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             // Solo incluir si esta tarifa tiene este peaje
                             if (info.peajes.includes(peaje)) {
                                 const keyConteo = `${key}|${peaje}`;
+                                const consumoTotal = consumosPorTarifa[keyConteo] || 0;
                                 tarifasDelPeaje.push({
                                     'Tarifa': info.tarifa,
                                     'Peaje': peaje,
                                     'Tipo': info.tipo,
                                     'Comisión': info.comision,
                                     'Estado': info.estado,
-                                    'Facturas': conteoPorTarifa[keyConteo] || 0
+                                    'Facturas': conteoPorTarifa[keyConteo] || 0,
+                                    'Consumos (kWh)': consumoTotal
                                 });
                             }
                         }
@@ -2101,6 +2128,123 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     
                     const wsResumenElec = XLSX.utils.json_to_sheet(resumenElec);
                     XLSX.utils.book_append_sheet(analisisWb, wsResumenElec, 'Resumen Electricidad');
+                    
+                    // ========================================
+                    // RESUMEN COMPLETO - INDEXADOS VS FIJOS
+                    // ========================================
+                    
+                    // Función para determinar si es indexado
+                    const esIndexado = (tarifa) => {
+                        const tarifaUpper = String(tarifa).toUpperCase();
+                        return tarifaUpper.startsWith('INDEX') || 
+                               tarifaUpper.includes('INDEXADA') || 
+                               tarifaUpper.includes('INDEXADO');
+                    };
+                    
+                    // Agrupar por peaje e indexado/fijo
+                    const datosIndexados = {}; // {peaje: {contratos, consumo}}
+                    const datosFijos = {}; // {peaje: {contratos, consumo}}
+                    
+                    for (const [key, info] of todasLasTarifasElec.entries()) {
+                        if (info.estado !== 'ACTIVA') continue; // Solo activas
+                        
+                        const indexado = esIndexado(info.tarifa);
+                        
+                        for (const peaje of info.peajes) {
+                            const keyConteo = `${key}|${peaje}`;
+                            const contratos = conteoPorTarifa[keyConteo] || 0;
+                            const consumo = consumosPorTarifa[keyConteo] || 0;
+                            
+                            if (indexado) {
+                                if (!datosIndexados[peaje]) {
+                                    datosIndexados[peaje] = {contratos: 0, consumo: 0};
+                                }
+                                datosIndexados[peaje].contratos += contratos;
+                                datosIndexados[peaje].consumo += consumo;
+                            } else {
+                                if (!datosFijos[peaje]) {
+                                    datosFijos[peaje] = {contratos: 0, consumo: 0};
+                                }
+                                datosFijos[peaje].contratos += contratos;
+                                datosFijos[peaje].consumo += consumo;
+                            }
+                        }
+                    }
+                    
+                    // Crear hoja Resumen Completo
+                    const resumenCompleto = [];
+                    
+                    // CONTRATOS INDEXADOS
+                    resumenCompleto.push({'A': 'CONTRATOS INDEXADOS'});
+                    resumenCompleto.push({'A': 'Tarifa', 'B': 'Número de contratos', 'C': 'Consumos (kWh)'});
+                    
+                    let totalContratosIndexados = 0;
+                    let totalConsumoIndexados = 0;
+                    
+                    const peajesOrdenados = Array.from(todosPeajes).sort();
+                    for (const peaje of peajesOrdenados) {
+                        if (datosIndexados[peaje]) {
+                            resumenCompleto.push({
+                                'A': peaje,
+                                'B': datosIndexados[peaje].contratos,
+                                'C': Math.round(datosIndexados[peaje].consumo)
+                            });
+                            totalContratosIndexados += datosIndexados[peaje].contratos;
+                            totalConsumoIndexados += datosIndexados[peaje].consumo;
+                        }
+                    }
+                    
+                    resumenCompleto.push({
+                        'A': 'TOTAL',
+                        'B': totalContratosIndexados,
+                        'C': Math.round(totalConsumoIndexados)
+                    });
+                    resumenCompleto.push({});
+                    
+                    // CONTRATOS FIJOS
+                    resumenCompleto.push({'A': 'CONTRATOS FIJOS'});
+                    resumenCompleto.push({'A': 'Tarifa', 'B': 'Número de contratos', 'C': 'Consumos (kWh)'});
+                    
+                    let totalContratosFijos = 0;
+                    let totalConsumoFijos = 0;
+                    
+                    for (const peaje of peajesOrdenados) {
+                        if (datosFijos[peaje]) {
+                            resumenCompleto.push({
+                                'A': peaje,
+                                'B': datosFijos[peaje].contratos,
+                                'C': Math.round(datosFijos[peaje].consumo)
+                            });
+                            totalContratosFijos += datosFijos[peaje].contratos;
+                            totalConsumoFijos += datosFijos[peaje].consumo;
+                        }
+                    }
+                    
+                    resumenCompleto.push({
+                        'A': 'TOTAL',
+                        'B': totalContratosFijos,
+                        'C': Math.round(totalConsumoFijos)
+                    });
+                    resumenCompleto.push({});
+                    
+                    // CONSUMOS ANUALES
+                    resumenCompleto.push({'A': 'CONSUMOS ANUALES'});
+                    resumenCompleto.push({'A': 'Tipo de contrato', 'B': 'Consumo anual (kWh)'});
+                    resumenCompleto.push({
+                        'A': 'Contratos Indexados',
+                        'B': Math.round(totalConsumoIndexados)
+                    });
+                    resumenCompleto.push({
+                        'A': 'Contratos Fijos',
+                        'B': Math.round(totalConsumoFijos)
+                    });
+                    resumenCompleto.push({
+                        'A': 'TOTAL AÑO',
+                        'B': Math.round(totalConsumoIndexados + totalConsumoFijos)
+                    });
+                    
+                    const wsResumenCompleto = XLSX.utils.json_to_sheet(resumenCompleto, {skipHeader: true});
+                    XLSX.utils.book_append_sheet(analisisWb, wsResumenCompleto, 'Resumen Completo');
                 }
                 
                 // ========================================

@@ -2283,6 +2283,12 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             const fechaInicio = row['Fecha Inicio Suministro'] || row['FECHA INICIO SUMINISTRO'];
                             const consumo = parseFloat(row['Consumo'] || row['CONSUMO'] || row['consumo'] || 0);
                             
+                            // Nuevos campos
+                            const identidad = row['Identidad'] || row['IDENTIDAD'] || '';
+                            const cliente = row['Cliente'] || row['CLIENTE'] || '';
+                            const cups = row['CUPS'] || row['cups'] || '';
+                            const direccion = row['Dirección'] || row['DIRECCION'] || row['Direccion'] || '';
+                            
                             if (!grupo || !fechaFin) continue;
                             
                             // Excluir indexados
@@ -2322,7 +2328,11 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 }
                                 
                                 vencimientos.push({
+                                    'Identidad': identidad,
+                                    'Cliente': cliente,
                                     'Código Contrato': codigo,
+                                    'CUPS': cups,
+                                    'Dirección': direccion,
                                     'Tarifa': grupo,
                                     'Fecha Inicio': fechaInicioDate instanceof Date && !isNaN(fechaInicioDate.getTime()) 
                                         ? fechaInicioDate.toISOString().split('T')[0] 

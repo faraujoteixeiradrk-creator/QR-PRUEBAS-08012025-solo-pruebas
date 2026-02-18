@@ -2176,71 +2176,86 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     
                     // CONTRATOS INDEXADOS
                     resumenCompleto.push({'A': 'CONTRATOS INDEXADOS'});
-                    resumenCompleto.push({'A': 'Tarifa', 'B': 'Número de contratos', 'C': 'Consumos (kWh)'});
+                    resumenCompleto.push({'A': 'Tarifa', 'B': 'Número de contratos', 'C': 'Consumos (kWh) mes', 'D': 'Consumos (kWh) año'});
                     
-                    let totalContratosIndexados = 0;
-                    let totalConsumoIndexados = 0;
+                    const filaInicioIndexados = resumenCompleto.length + 1; // +1 porque Excel empieza en 1
+                    let numFilasIndexados = 0;
                     
                     const peajesOrdenados = Array.from(todosPeajes).sort();
                     for (const peaje of peajesOrdenados) {
                         if (datosIndexados[peaje]) {
+                            const consumoMes = Math.round(datosIndexados[peaje].consumo);
                             resumenCompleto.push({
                                 'A': peaje,
                                 'B': datosIndexados[peaje].contratos,
-                                'C': Math.round(datosIndexados[peaje].consumo)
+                                'C': consumoMes,
+                                'D': { f: `C${filaInicioIndexados + numFilasIndexados}*12` }
                             });
-                            totalContratosIndexados += datosIndexados[peaje].contratos;
-                            totalConsumoIndexados += datosIndexados[peaje].consumo;
+                            numFilasIndexados++;
                         }
                     }
                     
+                    // Fila TOTAL indexados
+                    const filaFinIndexados = filaInicioIndexados + numFilasIndexados - 1;
                     resumenCompleto.push({
                         'A': 'TOTAL',
-                        'B': totalContratosIndexados,
-                        'C': Math.round(totalConsumoIndexados)
+                        'B': { f: `SUM(B${filaInicioIndexados}:B${filaFinIndexados})` },
+                        'C': { f: `SUM(C${filaInicioIndexados}:C${filaFinIndexados})` },
+                        'D': { f: `SUM(D${filaInicioIndexados}:D${filaFinIndexados})` }
                     });
+                    const filaTotalIndexados = resumenCompleto.length;
                     resumenCompleto.push({});
                     
                     // CONTRATOS FIJOS
                     resumenCompleto.push({'A': 'CONTRATOS FIJOS'});
-                    resumenCompleto.push({'A': 'Tarifa', 'B': 'Número de contratos', 'C': 'Consumos (kWh)'});
+                    resumenCompleto.push({'A': 'Tarifa', 'B': 'Número de contratos', 'C': 'Consumos (kWh) mes', 'D': 'Consumos (kWh) año'});
                     
-                    let totalContratosFijos = 0;
-                    let totalConsumoFijos = 0;
+                    const filaInicioFijos = resumenCompleto.length + 1;
+                    let numFilasFijos = 0;
                     
                     for (const peaje of peajesOrdenados) {
                         if (datosFijos[peaje]) {
+                            const consumoMes = Math.round(datosFijos[peaje].consumo);
                             resumenCompleto.push({
                                 'A': peaje,
                                 'B': datosFijos[peaje].contratos,
-                                'C': Math.round(datosFijos[peaje].consumo)
+                                'C': consumoMes,
+                                'D': { f: `C${filaInicioFijos + numFilasFijos}*12` }
                             });
-                            totalContratosFijos += datosFijos[peaje].contratos;
-                            totalConsumoFijos += datosFijos[peaje].consumo;
+                            numFilasFijos++;
                         }
                     }
                     
+                    // Fila TOTAL fijos
+                    const filaFinFijos = filaInicioFijos + numFilasFijos - 1;
                     resumenCompleto.push({
                         'A': 'TOTAL',
-                        'B': totalContratosFijos,
-                        'C': Math.round(totalConsumoFijos)
+                        'B': { f: `SUM(B${filaInicioFijos}:B${filaFinFijos})` },
+                        'C': { f: `SUM(C${filaInicioFijos}:C${filaFinFijos})` },
+                        'D': { f: `SUM(D${filaInicioFijos}:D${filaFinFijos})` }
                     });
+                    const filaTotalFijos = resumenCompleto.length;
                     resumenCompleto.push({});
                     
                     // CONSUMOS ANUALES
                     resumenCompleto.push({'A': 'CONSUMOS ANUALES'});
-                    resumenCompleto.push({'A': 'Tipo de contrato', 'B': 'Consumo anual (kWh)'});
+                    resumenCompleto.push({'A': 'Tipo de contrato', 'B': 'Consumos (kWh) mes', 'C': 'Consumos (kWh) año'});
                     resumenCompleto.push({
                         'A': 'Contratos Indexados',
-                        'B': Math.round(totalConsumoIndexados)
+                        'B': { f: `C${filaTotalIndexados}` },
+                        'C': { f: `D${filaTotalIndexados}` }
                     });
                     resumenCompleto.push({
                         'A': 'Contratos Fijos',
-                        'B': Math.round(totalConsumoFijos)
+                        'B': { f: `C${filaTotalFijos}` },
+                        'C': { f: `D${filaTotalFijos}` }
                     });
+                    const filaIndexadosAnual = resumenCompleto.length - 1;
+                    const filaFijosAnual = resumenCompleto.length;
                     resumenCompleto.push({
                         'A': 'TOTAL AÑO',
-                        'B': Math.round(totalConsumoIndexados + totalConsumoFijos)
+                        'B': { f: `B${filaIndexadosAnual}+B${filaFijosAnual}` },
+                        'C': { f: `C${filaIndexadosAnual}+C${filaFijosAnual}` }
                     });
                     
                     const wsResumenCompleto = XLSX.utils.json_to_sheet(resumenCompleto, {skipHeader: true});

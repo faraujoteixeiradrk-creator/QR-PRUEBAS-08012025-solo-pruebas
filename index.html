@@ -2243,7 +2243,7 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     };
                     
                     // Agrupar por peaje e indexado/fijo
-                    const datosIndexados = {}; // {peaje: {contratos, consumo}}
+                    const datosIndexados = {}; // {peaje: {contratos, consumo, beneficio}}
                     const datosFijos = {}; // {peaje: {contratos, consumo}}
                     
                     for (const [key, info] of todasLasTarifasElec.entries()) {
@@ -2258,10 +2258,17 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             
                             if (indexado) {
                                 if (!datosIndexados[peaje]) {
-                                    datosIndexados[peaje] = {contratos: 0, consumo: 0};
+                                    datosIndexados[peaje] = {contratos: 0, consumo: 0, beneficio: 0};
                                 }
                                 datosIndexados[peaje].contratos += contratos;
                                 datosIndexados[peaje].consumo += consumo;
+                                
+                                // Añadir beneficio si tiene FEE
+                                const feeInfo = feesPorTarifaPeaje[keyConteo];
+                                if (feeInfo && feeInfo.fee > 0 && consumo > 0) {
+                                    const beneficio = consumo * feeInfo.fee;
+                                    datosIndexados[peaje].beneficio += beneficio;
+                                }
                             } else {
                                 if (!datosFijos[peaje]) {
                                     datosFijos[peaje] = {contratos: 0, consumo: 0};
@@ -2286,28 +2293,31 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     for (const peaje of peajesOrdenados) {
                         if (datosIndexados[peaje]) {
                             const consumoMes = Math.round(datosIndexados[peaje].consumo);
+                            const beneficioMes = Math.round(datosIndexados[peaje].beneficio * 100) / 100;
+                            const filaActual = filaInicioIndexados + numFilasIndexados;
+                            
                             resumenCompleto.push({
                                 'A': peaje,
                                 'B': datosIndexados[peaje].contratos,
                                 'C': consumoMes,
-                                'D': { f: `C${filaInicioIndexados + numFilasIndexados}*12` }
+                                'D': { f: `C${filaActual}*12` },
+                                'E': beneficioMes,
+                                'F': { f: `E${filaActual}*12` }
                             });
                             numFilasIndexados++;
                         }
                     }
                     
-                    // Fila TOTAL indexados
+                    // Fila TOTAL indexados con fórmulas SUM
                     const filaFinIndexados = filaInicioIndexados + numFilasIndexados - 1;
-                    const beneficioMensual = Math.round(beneficioTotalIndex * 100) / 100;
-                    const beneficioAnual = Math.round(beneficioTotalIndex * 12 * 100) / 100;
                     
                     resumenCompleto.push({
                         'A': 'TOTAL',
                         'B': { f: `SUM(B${filaInicioIndexados}:B${filaFinIndexados})` },
                         'C': { f: `SUM(C${filaInicioIndexados}:C${filaFinIndexados})` },
                         'D': { f: `SUM(D${filaInicioIndexados}:D${filaFinIndexados})` },
-                        'E': beneficioMensual,
-                        'F': beneficioAnual
+                        'E': { f: `SUM(E${filaInicioIndexados}:E${filaFinIndexados})` },
+                        'F': { f: `SUM(F${filaInicioIndexados}:F${filaFinIndexados})` }
                     });
                     const filaTotalIndexados = resumenCompleto.length;
                     resumenCompleto.push({});

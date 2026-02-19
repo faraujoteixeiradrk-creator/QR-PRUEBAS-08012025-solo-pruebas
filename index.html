@@ -2144,8 +2144,9 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 const feeInfo = feesPorTarifaPeaje[keyConteo];
                                 const fee = feeInfo ? feeInfo.fee : '';
                                 let beneficio = '';
-                                if (fee && consumoTotal > 0 && facturas > 0) {
-                                    beneficio = Math.round((consumoTotal / 1000) * fee * facturas * 100) / 100;
+                                if (fee && consumoTotal > 0) {
+                                    // Fórmula: (Consumos÷1000) × (FEE×1000) = Consumos × FEE
+                                    beneficio = Math.round(consumoTotal * fee * 100) / 100;
                                 }
                                 tarifasDelPeaje.push({
                                     'Tarifa': info.tarifa,

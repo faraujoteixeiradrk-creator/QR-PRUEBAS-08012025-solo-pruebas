@@ -2079,7 +2079,13 @@ Revisa y envía cada uno." buttons {"OK"}`;
                         const contratosPorCupsFee = {};
                         
                         console.log('=== DEBUG FEE ===');
-                        console.log('Primeras 3 filas CONTRATOSACTIVOS:', contratosActivosDataFee.slice(0, 3));
+                        console.log('Primera fila COMPLETA CONTRATOSACTIVOS:');
+                        if (contratosActivosDataFee.length > 0) {
+                            const primeraFila = contratosActivosDataFee[0];
+                            for (const [key, value] of Object.entries(primeraFila)) {
+                                console.log(`  "${key}": "${value}"`);
+                            }
+                        }
                         
                         for (const contrato of contratosActivosDataFee) {
                             const cups = String(contrato['CUPS'] || '').trim();

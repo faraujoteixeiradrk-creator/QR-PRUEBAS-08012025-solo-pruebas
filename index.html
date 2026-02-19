@@ -2265,33 +2265,43 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     // VENCIMIENTOS PRÓXIMOS
                     // ========================================
                     
-                    // Leer FACTURA TOTAL para obtener información completa
+                    // Leer hoja CONTRATOSACTIVOS
+                    const contratosActivosSheet = originalWorkbook.Sheets['CONTRATOSACTIVOS'];
                     const vencimientos = [];
                     
-                    if (facturaTotalSheet) {
+                    if (facturaTotalSheet && contratosActivosSheet) {
                         const facturaTotalData = XLSX.utils.sheet_to_json(facturaTotalSheet);
+                        const contratosActivosData = XLSX.utils.sheet_to_json(contratosActivosSheet);
                         const hoy = new Date();
-                        const dosMesesMs = 60 * 24 * 60 * 60 * 1000; // 60 días en milisegundos
                         
-                        console.log('=== ANALIZANDO VENCIMIENTOS ===');
+                        console.log('=== ANALIZANDO VENCIMIENTOS CON CONTRATOSACTIVOS ===');
                         console.log('Fecha actual:', hoy.toISOString().split('T')[0]);
+                        console.log('Contratos activos encontrados:', contratosActivosData.length);
                         
+                        // Crear índice por CUPS de contratos activos
+                        const contratosPorCups = {};
+                        for (const contrato of contratosActivosData) {
+                            const cupsCont = contrato['CUPS'] || contrato['cups'];
+                            if (cupsCont) {
+                                contratosPorCups[String(cupsCont).trim()] = contrato;
+                            }
+                        }
+                        
+                        console.log('CUPS indexados:', Object.keys(contratosPorCups).length);
+                        
+                        // Procesar FACTURA TOTAL
                         for (const row of facturaTotalData) {
                             const grupo = row['Grupo'] || row['GRUPO'];
-                            const codigo = row['Contrato'] || row['CONTRATO'] || row['Código'] || row['CODIGO'] || row['Código de contrato'] || '';
-                            const fechaFin = row['Fecha Fin Suministro'] || row['FECHA FIN SUMINISTRO'];
-                            const fechaInicio = row['Fecha Inicio Suministro'] || row['FECHA INICIO SUMINISTRO'];
+                            const codigo = row['Contrato'] || row['CONTRATO'] || row['Código'] || row['CODIGO'] || '';
                             const consumo = parseFloat(row['Consumo'] || row['CONSUMO'] || row['consumo'] || 0);
-                            
-                            // Nuevos campos
                             const identidad = row['Identidad'] || row['IDENTIDAD'] || '';
                             const cliente = row['Cliente'] || row['CLIENTE'] || '';
-                            const cups = row['CUPS'] || row['cups'] || '';
+                            const cups = String(row['CUPS'] || row['cups'] || '').trim();
                             const direccion = row['Dirección'] || row['DIRECCION'] || row['Direccion'] || '';
                             const tarifaPeaje = row['Tarifa Peaje'] || row['TARIFA PEAJE'] || row['Tarifa peaje'] || '';
                             const tarifa = row['Tarifa'] || row['TARIFA'] || grupo;
                             
-                            if (!grupo || !fechaFin) continue;
+                            if (!grupo || !cups) continue;
                             
                             // Excluir indexados
                             const grupoUpper = String(grupo).toUpperCase();
@@ -2301,62 +2311,88 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             
                             if (esIndexado) continue;
                             
-                            // Convertir fecha fin a Date
-                            let fechaFinDate;
-                            if (fechaFin instanceof Date) {
-                                fechaFinDate = fechaFin;
-                            } else if (typeof fechaFin === 'number') {
-                                // Excel date serial number
-                                fechaFinDate = new Date((fechaFin - 25569) * 86400 * 1000);
+                            // Buscar contrato activo por CUPS
+                            const contratoActivo = contratosPorCups[cups];
+                            if (!contratoActivo) continue;
+                            
+                            // Obtener fecha de vencimiento (columna M: "Vto.")
+                            const fechaVto = contratoActivo['Vto.'] || contratoActivo['VTO.'] || contratoActivo['Vto'] || contratoActivo['vto'];
+                            if (!fechaVto) continue;
+                            
+                            // Convertir fecha vencimiento a Date
+                            let fechaVtoDate;
+                            if (fechaVto instanceof Date) {
+                                fechaVtoDate = fechaVto;
+                            } else if (typeof fechaVto === 'number') {
+                                fechaVtoDate = new Date((fechaVto - 25569) * 86400 * 1000);
                             } else {
-                                // Intentar parsear string
-                                fechaFinDate = new Date(fechaFin);
+                                fechaVtoDate = new Date(fechaVto);
                             }
                             
-                            if (isNaN(fechaFinDate.getTime())) continue;
+                            if (isNaN(fechaVtoDate.getTime())) continue;
                             
-                            // Calcular días restantes
-                            const diffMs = fechaFinDate - hoy;
+                            // Calcular meses restantes
+                            const diffMs = fechaVtoDate - hoy;
                             const diasRestantes = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+                            const mesesRestantes = Math.round(diasRestantes / 30.44); // Promedio días por mes
                             
-                            // Solo incluir si faltan 60 días o menos (y no ha vencido hace mucho)
-                            if (diasRestantes <= 60 && diasRestantes >= -30) {
-                                // Convertir fecha inicio
-                                let fechaInicioDate = fechaInicio;
-                                if (fechaInicio && typeof fechaInicio === 'number') {
-                                    fechaInicioDate = new Date((fechaInicio - 25569) * 86400 * 1000);
-                                } else if (fechaInicio && !(fechaInicio instanceof Date)) {
-                                    fechaInicioDate = new Date(fechaInicio);
-                                }
-                                
-                                vencimientos.push({
-                                    'Identidad': identidad,
-                                    'Cliente': cliente,
-                                    'Contrato': codigo,
-                                    'CUPS': cups,
-                                    'Dirección': direccion,
-                                    'Grupo': grupo,
-                                    'Tarifa Peaje': tarifaPeaje,
-                                    'Tarifa': tarifa,
-                                    'Fecha Inicio': fechaInicioDate instanceof Date && !isNaN(fechaInicioDate.getTime()) 
-                                        ? fechaInicioDate.toISOString().split('T')[0] 
-                                        : fechaInicio || '',
-                                    'Fecha Fin': fechaFinDate.toISOString().split('T')[0],
-                                    'Días Restantes': diasRestantes,
-                                    'Consumo (kWh)': Math.round(consumo),
-                                    'Estado': diasRestantes < 0 ? '⚠️ VENCIDO' : diasRestantes <= 30 ? '🔴 URGENTE' : '🟡 PRÓXIMO'
-                                });
+                            // Solo incluir si faltan 2 meses o menos (60 días)
+                            if (diasRestantes > 60) continue;
+                            
+                            // Obtener precios de energía según tipo de tarifa
+                            const peajeNorm = String(tarifaPeaje).trim();
+                            let precios = {};
+                            
+                            if (peajeNorm.includes('2.0')) {
+                                // 2.0 TD: P1, P2, P3
+                                precios = {
+                                    'P1': contratoActivo['AT'] || 0,
+                                    'P2': contratoActivo['AU'] || 0,
+                                    'P3': contratoActivo['AV'] || 0
+                                };
+                            } else if (peajeNorm.includes('3.0') || peajeNorm.includes('6.1') || peajeNorm.includes('6.2')) {
+                                // 3.0 TD / 6.1 TD: P1-P6
+                                precios = {
+                                    'P1': contratoActivo['AT'] || 0,
+                                    'P2': contratoActivo['AU'] || 0,
+                                    'P3': contratoActivo['AV'] || 0,
+                                    'P4': contratoActivo['AW'] || 0,
+                                    'P5': contratoActivo['AX'] || 0,
+                                    'P6': contratoActivo['AY'] || 0
+                                };
                             }
+                            
+                            vencimientos.push({
+                                'Identidad': identidad,
+                                'Cliente': cliente,
+                                'Contrato': codigo,
+                                'CUPS': cups,
+                                'Dirección': direccion,
+                                'Grupo': grupo,
+                                'Tarifa Peaje': tarifaPeaje,
+                                'Tarifa': tarifa,
+                                'Fecha Vencimiento': fechaVtoDate.toISOString().split('T')[0],
+                                'Meses Restantes': mesesRestantes,
+                                'Días Restantes': diasRestantes,
+                                'Consumo (kWh)': Math.round(consumo),
+                                'Precio P1': precios['P1'] || '',
+                                'Precio P2': precios['P2'] || '',
+                                'Precio P3': precios['P3'] || '',
+                                'Precio P4': precios['P4'] || '',
+                                'Precio P5': precios['P5'] || '',
+                                'Precio P6': precios['P6'] || '',
+                                'Estado': diasRestantes < 0 ? '⚠️ VENCIDO' : diasRestantes <= 30 ? '🔴 URGENTE' : '🟡 PRÓXIMO'
+                            });
                         }
                         
                         console.log(`Contratos próximos a vencer: ${vencimientos.length}`);
                         
-                        // Ordenar por días restantes (más urgente primero) y luego por tarifa
+                        // Ordenar por días restantes (más urgente primero) y luego por cliente
                         vencimientos.sort((a, b) => {
                             if (a['Días Restantes'] !== b['Días Restantes']) {
                                 return a['Días Restantes'] - b['Días Restantes'];
                             }
-                            return a.Tarifa.localeCompare(b.Tarifa);
+                            return String(a.Cliente).localeCompare(String(b.Cliente));
                         });
                         
                         if (vencimientos.length > 0) {
@@ -2364,6 +2400,10 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             XLSX.utils.book_append_sheet(analisisWb, wsVencimientos, 'Vencimientos Próximos');
                         } else {
                             console.log('✓ No hay contratos próximos a vencer');
+                        }
+                    } else {
+                        if (!contratosActivosSheet) {
+                            console.warn('⚠️ No se encontró hoja CONTRATOSACTIVOS');
                         }
                     }
                 }

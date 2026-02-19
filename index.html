@@ -2078,11 +2078,15 @@ Revisa y envía cada uno." buttons {"OK"}`;
                         const facturaTotalDataFee = XLSX.utils.sheet_to_json(facturaTotalSheet);
                         const contratosPorCupsFee = {};
                         
+                        console.log('=== DEBUG FEE ===');
+                        console.log('Primeras 3 filas CONTRATOSACTIVOS:', contratosActivosDataFee.slice(0, 3));
+                        
                         for (const contrato of contratosActivosDataFee) {
                             const cups = String(contrato['CUPS'] || '').trim();
                             if (cups) contratosPorCupsFee[cups] = contrato;
                         }
                         
+                        let contadorDebug = 0;
                         for (const row of facturaTotalDataFee) {
                             const grupo = row['Grupo'] || row['GRUPO'];
                             const cups = String(row['CUPS'] || '').trim();
@@ -2092,9 +2096,25 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             const contratoActivo = contratosPorCupsFee[cups];
                             if (!contratoActivo) continue;
                             
-                            const nombreTarifa = String(contratoActivo['Tarifa'] || '').trim().toUpperCase();
-                            const fee = parseFloat(contratoActivo['AT'] || 0);
+                            // Probar múltiples nombres de columna
+                            const nombreTarifa = String(
+                                contratoActivo['Tarifa'] || 
+                                contratoActivo['TARIFA'] || 
+                                contratoActivo['Nombre'] ||
+                                contratoActivo['NOMBRE'] ||
+                                contratoActivo['Producto'] ||
+                                contratoActivo['PRODUCTO'] ||
+                                ''
+                            ).trim().toUpperCase();
+                            
+                            const fee = parseFloat(contratoActivo['AT'] || contratoActivo['Precio Energía P1'] || 0);
                             const esIndex = nombreTarifa.includes('INDEX');
+                            
+                            if (contadorDebug < 5 && grupo.toUpperCase().includes('INDEX')) {
+                                console.log(`DEBUG ${contadorDebug}: Grupo="${grupo}", CUPS="${cups.substr(0,10)}...", NombreTarifa="${nombreTarifa}", FEE=${fee}, esIndex=${esIndex}`);
+                                console.log('  Columnas disponibles:', Object.keys(contratoActivo).slice(0, 20));
+                                contadorDebug++;
+                            }
                             
                             if (esIndex && fee > 0) {
                                 const key = `${String(grupo).toUpperCase().trim()}|${String(tarifaPeaje).trim()}`;
@@ -2104,6 +2124,9 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             }
                         }
                         console.log(`FEEs INDEX indexados: ${Object.keys(feesPorTarifaPeaje).length}`);
+                        if (Object.keys(feesPorTarifaPeaje).length > 0) {
+                            console.log('Primeras 5 claves:', Object.keys(feesPorTarifaPeaje).slice(0, 5));
+                        }
                     }
                     
                     for (const peaje of todosPeajes) {

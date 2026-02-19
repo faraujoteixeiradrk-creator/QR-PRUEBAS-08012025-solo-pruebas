@@ -2069,67 +2069,42 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     // Clasificar por peaje - usar todos los peajes encontrados
                     console.log('Peajes encontrados:', Array.from(todosPeajes));
                     
-                    // ========================================
-                    // PREPARAR DATOS DE CONTRATOSACTIVOS PARA FEE
-                    // ========================================
+                    // Indexar FEEs de tarifas INDEX desde CONTRATOSACTIVOS
+                    const contratosActivosSheetFee = originalWorkbook.Sheets['CONTRATOSACTIVOS'];
+                    const feesPorTarifaPeaje = {};
                     
-                    const contratosActivosSheet = originalWorkbook.Sheets['CONTRATOSACTIVOS'];
-                    const feesPorTarifaPeaje = {}; // {tarifa|peaje: {fee, nombreTarifa}}
-                    
-                    if (contratosActivosSheet && facturaTotalSheet) {
-                        const contratosActivosData = XLSX.utils.sheet_to_json(contratosActivosSheet);
+                    if (contratosActivosSheetFee && facturaTotalSheet) {
+                        const contratosActivosDataFee = XLSX.utils.sheet_to_json(contratosActivosSheetFee);
                         const facturaTotalDataFee = XLSX.utils.sheet_to_json(facturaTotalSheet);
-                        
-                        // Indexar contratos activos por CUPS
                         const contratosPorCupsFee = {};
-                        for (const contrato of contratosActivosData) {
-                            const cups = String(contrato['CUPS'] || contrato['cups'] || '').trim();
-                            if (cups) {
-                                contratosPorCupsFee[cups] = contrato;
-                            }
+                        
+                        for (const contrato of contratosActivosDataFee) {
+                            const cups = String(contrato['CUPS'] || '').trim();
+                            if (cups) contratosPorCupsFee[cups] = contrato;
                         }
                         
-                        console.log('=== INDEXANDO FEES DE TARIFAS INDEX ===');
-                        
-                        // Recorrer FACTURA TOTAL y buscar FEEs en CONTRATOSACTIVOS
                         for (const row of facturaTotalDataFee) {
                             const grupo = row['Grupo'] || row['GRUPO'];
-                            const cups = String(row['CUPS'] || row['cups'] || '').trim();
-                            const tarifaPeaje = row['Tarifa Peaje'] || row['TARIFA PEAJE'] || '';
-                            
+                            const cups = String(row['CUPS'] || '').trim();
+                            const tarifaPeaje = row['Tarifa Peaje'] || '';
                             if (!grupo || !cups) continue;
                             
-                            const grupoUpper = String(grupo).toUpperCase().trim();
-                            const peajeNorm = String(tarifaPeaje).trim();
-                            
-                            // Buscar contrato activo
                             const contratoActivo = contratosPorCupsFee[cups];
                             if (!contratoActivo) continue;
                             
-                            const nombreTarifa = String(contratoActivo['Tarifa'] || contratoActivo['TARIFA'] || '').trim().toUpperCase();
+                            const nombreTarifa = String(contratoActivo['Tarifa'] || '').trim().toUpperCase();
                             const fee = parseFloat(contratoActivo['AT'] || 0);
-                            
-                            // Verificar si es tarifa INDEX
-                            const esIndex = nombreTarifa.includes('INDEX') || 
-                                          nombreTarifa.includes('INDEXADA') || 
-                                          nombreTarifa.includes('INDEXADO');
+                            const esIndex = nombreTarifa.includes('INDEX');
                             
                             if (esIndex && fee > 0) {
-                                const key = `${grupoUpper}|${peajeNorm}`;
+                                const key = `${String(grupo).toUpperCase().trim()}|${String(tarifaPeaje).trim()}`;
                                 if (!feesPorTarifaPeaje[key]) {
-                                    feesPorTarifaPeaje[key] = {
-                                        fee: fee,
-                                        nombreTarifa: nombreTarifa
-                                    };
+                                    feesPorTarifaPeaje[key] = { fee: fee };
                                 }
                             }
                         }
-                        console.log(`FEEs INDEX indexados por tarifa|peaje: ${Object.keys(feesPorTarifaPeaje).length}`);
+                        console.log(`FEEs INDEX indexados: ${Object.keys(feesPorTarifaPeaje).length}`);
                     }
-                    
-                    // ========================================
-                    // CREAR HOJAS POR PEAJE CON FEE Y BENEFICIO
-                    // ========================================
                     
                     for (const peaje of todosPeajes) {
                         const tarifasDelPeaje = [];
@@ -2140,18 +2115,12 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 const keyConteo = `${key}|${peaje}`;
                                 const consumoTotal = consumosPorTarifa[keyConteo] || 0;
                                 const facturas = conteoPorTarifa[keyConteo] || 0;
-                                
-                                // Buscar FEE si es tarifa INDEX
                                 const feeInfo = feesPorTarifaPeaje[keyConteo];
                                 const fee = feeInfo ? feeInfo.fee : '';
-                                
-                                // Calcular Beneficio: (Consumos / 1000) * FEE * Facturas
                                 let beneficio = '';
                                 if (fee && consumoTotal > 0 && facturas > 0) {
-                                    beneficio = (consumoTotal / 1000) * fee * facturas;
-                                    beneficio = Math.round(beneficio * 100) / 100; // 2 decimales
+                                    beneficio = Math.round((consumoTotal / 1000) * fee * facturas * 100) / 100;
                                 }
-                                
                                 tarifasDelPeaje.push({
                                     'Tarifa': info.tarifa,
                                     'Peaje': peaje,

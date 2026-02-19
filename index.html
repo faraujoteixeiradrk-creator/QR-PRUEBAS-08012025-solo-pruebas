@@ -2155,7 +2155,7 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                     'Comisión': info.comision,
                                     'Estado': info.estado,
                                     'Facturas': facturas,
-                                    'Consumos (kWh)': consumoTotal,
+                                    'Consumos (kWh/mes)': consumoTotal,
                                     'FEE (€/MWh)': fee,
                                     'Beneficio (€)': beneficio
                                 });
@@ -2171,6 +2171,23 @@ Revisa y envía cada uno." buttons {"OK"}`;
                         
                         if (tarifasDelPeaje.length > 0) {
                             const ws = XLSX.utils.json_to_sheet(tarifasDelPeaje);
+                            
+                            // Aplicar formato a columnas
+                            const range = XLSX.utils.decode_range(ws['!ref']);
+                            for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+                                // Columna G (índice 6): Consumos con separador de miles
+                                const cellG = XLSX.utils.encode_cell({r: R, c: 6});
+                                if (ws[cellG] && typeof ws[cellG].v === 'number') {
+                                    ws[cellG].z = '#,##0';
+                                }
+                                
+                                // Columna I (índice 8): Beneficio con formato moneda
+                                const cellI = XLSX.utils.encode_cell({r: R, c: 8});
+                                if (ws[cellI] && typeof ws[cellI].v === 'number') {
+                                    ws[cellI].z = '#,##0.00 "€"';
+                                }
+                            }
+                            
                             // Limpiar nombre de peaje para nombre de hoja
                             const nombreHoja = peaje.replace(/\./g, '_').replace(/\s/g, '_');
                             XLSX.utils.book_append_sheet(analisisWb, ws, nombreHoja);
@@ -2375,6 +2392,37 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     });
                     
                     const wsResumenCompleto = XLSX.utils.json_to_sheet(resumenCompleto, {skipHeader: true});
+                    
+                    // Aplicar formato a Resumen Completo
+                    if (wsResumenCompleto['!ref']) {
+                        const range = XLSX.utils.decode_range(wsResumenCompleto['!ref']);
+                        for (let R = range.s.r; R <= range.e.r; ++R) {
+                            // Columna C: Consumos mes con separador de miles
+                            const cellC = XLSX.utils.encode_cell({r: R, c: 2});
+                            if (wsResumenCompleto[cellC] && typeof wsResumenCompleto[cellC].v === 'number') {
+                                wsResumenCompleto[cellC].z = '#,##0';
+                            }
+                            
+                            // Columna D: Consumos año con separador de miles
+                            const cellD = XLSX.utils.encode_cell({r: R, c: 3});
+                            if (wsResumenCompleto[cellD] && typeof wsResumenCompleto[cellD].v === 'number') {
+                                wsResumenCompleto[cellD].z = '#,##0';
+                            }
+                            
+                            // Columna E: Beneficio mensual con formato moneda
+                            const cellE = XLSX.utils.encode_cell({r: R, c: 4});
+                            if (wsResumenCompleto[cellE] && typeof wsResumenCompleto[cellE].v === 'number') {
+                                wsResumenCompleto[cellE].z = '#,##0.00 "€"';
+                            }
+                            
+                            // Columna F: Beneficio anual con formato moneda
+                            const cellF = XLSX.utils.encode_cell({r: R, c: 5});
+                            if (wsResumenCompleto[cellF] && typeof wsResumenCompleto[cellF].v === 'number') {
+                                wsResumenCompleto[cellF].z = '#,##0.00 "€"';
+                            }
+                        }
+                    }
+                    
                     XLSX.utils.book_append_sheet(analisisWb, wsResumenCompleto, 'Resumen Completo');
                     
                     // ========================================

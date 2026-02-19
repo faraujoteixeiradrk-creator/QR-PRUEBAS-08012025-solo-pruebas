@@ -2178,6 +2178,34 @@ Revisa y envía cada uno." buttons {"OK"}`;
                         }
                     }
                     
+                    // ========================================
+                    // CALCULAR BENEFICIO TOTAL INDEX
+                    // ========================================
+                    
+                    let beneficioTotalIndex = 0;
+                    
+                    // Sumar beneficios de todas las tarifas INDEX de todos los peajes
+                    for (const peaje of todosPeajes) {
+                        for (const [key, info] of todasLasTarifasElec.entries()) {
+                            if (info.peajes.includes(peaje)) {
+                                const keyConteo = `${key}|${peaje}`;
+                                const feeInfo = feesPorTarifaPeaje[keyConteo];
+                                
+                                // Solo sumar si tiene FEE (es tarifa INDEX)
+                                if (feeInfo && feeInfo.fee > 0) {
+                                    const consumoTotal = consumosPorTarifa[keyConteo] || 0;
+                                    if (consumoTotal > 0) {
+                                        const beneficio = consumoTotal * feeInfo.fee;
+                                        beneficioTotalIndex += beneficio;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    console.log(`Beneficio total INDEX mensual: ${Math.round(beneficioTotalIndex * 100) / 100} €`);
+                    console.log(`Beneficio total INDEX anual: ${Math.round(beneficioTotalIndex * 12 * 100) / 100} €`);
+                    
                     // Hoja resumen electricidad
                     const resumenElec = [];
                     for (const [key, info] of todasLasTarifasElec.entries()) {
@@ -2249,7 +2277,7 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     
                     // CONTRATOS INDEXADOS
                     resumenCompleto.push({'A': 'CONTRATOS INDEXADOS'});
-                    resumenCompleto.push({'A': 'Tarifa', 'B': 'Número de contratos', 'C': 'Consumos (kWh) mes', 'D': 'Consumos (kWh) año'});
+                    resumenCompleto.push({'A': 'Tarifa', 'B': 'Número de contratos', 'C': 'Consumos (kWh) mes', 'D': 'Consumos (kWh) año', 'E': 'Beneficio aprox. mensual', 'F': 'Beneficio aprox. anual'});
                     
                     const filaInicioIndexados = resumenCompleto.length + 1; // +1 porque Excel empieza en 1
                     let numFilasIndexados = 0;
@@ -2270,11 +2298,16 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     
                     // Fila TOTAL indexados
                     const filaFinIndexados = filaInicioIndexados + numFilasIndexados - 1;
+                    const beneficioMensual = Math.round(beneficioTotalIndex * 100) / 100;
+                    const beneficioAnual = Math.round(beneficioTotalIndex * 12 * 100) / 100;
+                    
                     resumenCompleto.push({
                         'A': 'TOTAL',
                         'B': { f: `SUM(B${filaInicioIndexados}:B${filaFinIndexados})` },
                         'C': { f: `SUM(C${filaInicioIndexados}:C${filaFinIndexados})` },
-                        'D': { f: `SUM(D${filaInicioIndexados}:D${filaFinIndexados})` }
+                        'D': { f: `SUM(D${filaInicioIndexados}:D${filaFinIndexados})` },
+                        'E': beneficioMensual,
+                        'F': beneficioAnual
                     });
                     const filaTotalIndexados = resumenCompleto.length;
                     resumenCompleto.push({});

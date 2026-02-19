@@ -2343,23 +2343,55 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             const peajeNorm = String(tarifaPeaje).trim();
                             let precios = {};
                             
+                            // Logging de claves disponibles en el primer contrato (debug)
+                            if (vencimientos.length === 0) {
+                                console.log('Columnas disponibles en CONTRATOSACTIVOS:', Object.keys(contratoActivo).slice(0, 50));
+                            }
+                            
                             if (peajeNorm.includes('2.0')) {
                                 // 2.0 TD: P1, P2, P3
+                                // Intentar múltiples variantes de nombre
                                 precios = {
-                                    'P1': contratoActivo['AT'] || 0,
-                                    'P2': contratoActivo['AU'] || 0,
-                                    'P3': contratoActivo['AV'] || 0
+                                    'P1': contratoActivo['Precio Energía P1'] || 
+                                          contratoActivo['AT'] || 
+                                          contratoActivo['Precio Energia P1'] || 
+                                          contratoActivo['PRECIO ENERGÍA P1'] || 0,
+                                    'P2': contratoActivo['Precio Energía P2'] || 
+                                          contratoActivo['AU'] || 
+                                          contratoActivo['Precio Energia P2'] || 
+                                          contratoActivo['PRECIO ENERGÍA P2'] || 0,
+                                    'P3': contratoActivo['Precio Energía P3'] || 
+                                          contratoActivo['AV'] || 
+                                          contratoActivo['Precio Energia P3'] || 
+                                          contratoActivo['PRECIO ENERGÍA P3'] || 0
                                 };
                             } else if (peajeNorm.includes('3.0') || peajeNorm.includes('6.1') || peajeNorm.includes('6.2')) {
                                 // 3.0 TD / 6.1 TD: P1-P6
                                 precios = {
-                                    'P1': contratoActivo['AT'] || 0,
-                                    'P2': contratoActivo['AU'] || 0,
-                                    'P3': contratoActivo['AV'] || 0,
-                                    'P4': contratoActivo['AW'] || 0,
-                                    'P5': contratoActivo['AX'] || 0,
-                                    'P6': contratoActivo['AY'] || 0
+                                    'P1': contratoActivo['Precio Energía P1'] || 
+                                          contratoActivo['AT'] || 
+                                          contratoActivo['Precio Energia P1'] || 0,
+                                    'P2': contratoActivo['Precio Energía P2'] || 
+                                          contratoActivo['AU'] || 
+                                          contratoActivo['Precio Energia P2'] || 0,
+                                    'P3': contratoActivo['Precio Energía P3'] || 
+                                          contratoActivo['AV'] || 
+                                          contratoActivo['Precio Energia P3'] || 0,
+                                    'P4': contratoActivo['Precio Energía P4'] || 
+                                          contratoActivo['AW'] || 
+                                          contratoActivo['Precio Energia P4'] || 0,
+                                    'P5': contratoActivo['Precio Energía P5'] || 
+                                          contratoActivo['AX'] || 
+                                          contratoActivo['Precio Energia P5'] || 0,
+                                    'P6': contratoActivo['Precio Energía P6'] || 
+                                          contratoActivo['AY'] || 
+                                          contratoActivo['Precio Energia P6'] || 0
                                 };
+                            }
+                            
+                            // Logging de precios encontrados (primeros 3 contratos)
+                            if (vencimientos.length < 3) {
+                                console.log(`Precios para ${cliente}:`, precios);
                             }
                             
                             vencimientos.push({

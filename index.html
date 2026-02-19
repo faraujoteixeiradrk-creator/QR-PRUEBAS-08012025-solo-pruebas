@@ -2102,23 +2102,20 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             const contratoActivo = contratosPorCupsFee[cups];
                             if (!contratoActivo) continue;
                             
-                            // Probar múltiples nombres de columna
+                            // ¡CORRECCIÓN! Leer de "Tarifa Grupo" en lugar de "Tarifa"
                             const nombreTarifa = String(
+                                contratoActivo['Tarifa Grupo'] || 
+                                contratoActivo['TARIFA GRUPO'] || 
                                 contratoActivo['Tarifa'] || 
-                                contratoActivo['TARIFA'] || 
-                                contratoActivo['Nombre'] ||
-                                contratoActivo['NOMBRE'] ||
-                                contratoActivo['Producto'] ||
-                                contratoActivo['PRODUCTO'] ||
+                                contratoActivo['TARIFA'] ||
                                 ''
                             ).trim().toUpperCase();
                             
-                            const fee = parseFloat(contratoActivo['AT'] || contratoActivo['Precio Energía P1'] || 0);
+                            const fee = parseFloat(contratoActivo['Precio Energía P1'] || contratoActivo['AT'] || 0);
                             const esIndex = nombreTarifa.includes('INDEX');
                             
                             if (contadorDebug < 5 && grupo.toUpperCase().includes('INDEX')) {
-                                console.log(`DEBUG ${contadorDebug}: Grupo="${grupo}", CUPS="${cups.substr(0,10)}...", NombreTarifa="${nombreTarifa}", FEE=${fee}, esIndex=${esIndex}`);
-                                console.log('  Columnas disponibles:', Object.keys(contratoActivo).slice(0, 20));
+                                console.log(`DEBUG ${contadorDebug}: Grupo="${grupo}", NombreTarifa="${nombreTarifa}", FEE=${fee}, esIndex=${esIndex}`);
                                 contadorDebug++;
                             }
                             

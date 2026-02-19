@@ -2069,6 +2069,68 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     // Clasificar por peaje - usar todos los peajes encontrados
                     console.log('Peajes encontrados:', Array.from(todosPeajes));
                     
+                    // ========================================
+                    // PREPARAR DATOS DE CONTRATOSACTIVOS PARA FEE
+                    // ========================================
+                    
+                    const contratosActivosSheet = originalWorkbook.Sheets['CONTRATOSACTIVOS'];
+                    const feesPorTarifaPeaje = {}; // {tarifa|peaje: {fee, nombreTarifa}}
+                    
+                    if (contratosActivosSheet && facturaTotalSheet) {
+                        const contratosActivosData = XLSX.utils.sheet_to_json(contratosActivosSheet);
+                        const facturaTotalDataFee = XLSX.utils.sheet_to_json(facturaTotalSheet);
+                        
+                        // Indexar contratos activos por CUPS
+                        const contratosPorCupsFee = {};
+                        for (const contrato of contratosActivosData) {
+                            const cups = String(contrato['CUPS'] || contrato['cups'] || '').trim();
+                            if (cups) {
+                                contratosPorCupsFee[cups] = contrato;
+                            }
+                        }
+                        
+                        console.log('=== INDEXANDO FEES DE TARIFAS INDEX ===');
+                        
+                        // Recorrer FACTURA TOTAL y buscar FEEs en CONTRATOSACTIVOS
+                        for (const row of facturaTotalDataFee) {
+                            const grupo = row['Grupo'] || row['GRUPO'];
+                            const cups = String(row['CUPS'] || row['cups'] || '').trim();
+                            const tarifaPeaje = row['Tarifa Peaje'] || row['TARIFA PEAJE'] || '';
+                            
+                            if (!grupo || !cups) continue;
+                            
+                            const grupoUpper = String(grupo).toUpperCase().trim();
+                            const peajeNorm = String(tarifaPeaje).trim();
+                            
+                            // Buscar contrato activo
+                            const contratoActivo = contratosPorCupsFee[cups];
+                            if (!contratoActivo) continue;
+                            
+                            const nombreTarifa = String(contratoActivo['Tarifa'] || contratoActivo['TARIFA'] || '').trim().toUpperCase();
+                            const fee = parseFloat(contratoActivo['AT'] || 0);
+                            
+                            // Verificar si es tarifa INDEX
+                            const esIndex = nombreTarifa.includes('INDEX') || 
+                                          nombreTarifa.includes('INDEXADA') || 
+                                          nombreTarifa.includes('INDEXADO');
+                            
+                            if (esIndex && fee > 0) {
+                                const key = `${grupoUpper}|${peajeNorm}`;
+                                if (!feesPorTarifaPeaje[key]) {
+                                    feesPorTarifaPeaje[key] = {
+                                        fee: fee,
+                                        nombreTarifa: nombreTarifa
+                                    };
+                                }
+                            }
+                        }
+                        console.log(`FEEs INDEX indexados por tarifa|peaje: ${Object.keys(feesPorTarifaPeaje).length}`);
+                    }
+                    
+                    // ========================================
+                    // CREAR HOJAS POR PEAJE CON FEE Y BENEFICIO
+                    // ========================================
+                    
                     for (const peaje of todosPeajes) {
                         const tarifasDelPeaje = [];
                         
@@ -2077,14 +2139,29 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             if (info.peajes.includes(peaje)) {
                                 const keyConteo = `${key}|${peaje}`;
                                 const consumoTotal = consumosPorTarifa[keyConteo] || 0;
+                                const facturas = conteoPorTarifa[keyConteo] || 0;
+                                
+                                // Buscar FEE si es tarifa INDEX
+                                const feeInfo = feesPorTarifaPeaje[keyConteo];
+                                const fee = feeInfo ? feeInfo.fee : '';
+                                
+                                // Calcular Beneficio: (Consumos / 1000) * FEE * Facturas
+                                let beneficio = '';
+                                if (fee && consumoTotal > 0 && facturas > 0) {
+                                    beneficio = (consumoTotal / 1000) * fee * facturas;
+                                    beneficio = Math.round(beneficio * 100) / 100; // 2 decimales
+                                }
+                                
                                 tarifasDelPeaje.push({
                                     'Tarifa': info.tarifa,
                                     'Peaje': peaje,
                                     'Tipo': info.tipo,
                                     'Comisión': info.comision,
                                     'Estado': info.estado,
-                                    'Facturas': conteoPorTarifa[keyConteo] || 0,
-                                    'Consumos (kWh)': consumoTotal
+                                    'Facturas': facturas,
+                                    'Consumos (kWh)': consumoTotal,
+                                    'FEE (€/MWh)': fee,
+                                    'Beneficio (€)': beneficio
                                 });
                             }
                         }

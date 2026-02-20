@@ -2824,38 +2824,53 @@ Revisa y envía cada uno." buttons {"OK"}`;
         // ==========================================
         
         document.getElementById('abrirVisorBtn').addEventListener('click', () => {
+            showStatus('📂 Selecciona el Excel generado (Analisis_Tarifas_*.xlsx)', 'info');
             document.getElementById('excelVisorInput').click();
         });
         
         document.getElementById('excelVisorInput').addEventListener('change', async (e) => {
             const file = e.target.files[0];
-            if (!file) return;
+            if (!file) {
+                showStatus('⚠️ No se seleccionó ningún archivo', 'warning');
+                return;
+            }
             
-            showStatus('📊 Cargando Excel para el visor...', 'info');
+            console.log('Archivo seleccionado:', file.name);
+            showStatus('📊 Cargando ' + file.name + '...', 'info');
             
             try {
                 const data = await file.arrayBuffer();
+                console.log('Archivo leído, tamaño:', data.byteLength);
+                
                 const workbook = XLSX.read(data, { type: 'array' });
+                console.log('Excel parseado, hojas:', workbook.SheetNames);
                 
                 // Extraer datos de todas las hojas
                 const datosVisor = extraerDatosParaVisor(workbook);
+                console.log('Datos extraídos:', Object.keys(datosVisor));
                 
                 // Generar y abrir el HTML del visor
                 const visorHTML = generarVisorCompleto(datosVisor);
+                console.log('HTML generado, longitud:', visorHTML.length);
+                
                 const visorWindow = window.open('', '_blank', 'width=1400,height=900');
                 
                 if (visorWindow) {
                     visorWindow.document.write(visorHTML);
                     visorWindow.document.close();
-                    showStatus('✅ Visor web abierto', 'success');
+                    showStatus('✅ Visor web abierto correctamente', 'success');
+                    console.log('Visor abierto en nueva ventana');
                 } else {
-                    showStatus('❌ Permite popups en tu navegador', 'error');
+                    showStatus('❌ Bloqueador de popups activado. Por favor, permite popups para este sitio.', 'error');
+                    console.error('No se pudo abrir la ventana popup');
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error detallado:', error);
                 showStatus('❌ Error al abrir visor: ' + error.message, 'error');
+                alert('Error: ' + error.message + '\\n\\nRevisa la consola (F12) para más detalles.');
             }
             
+            // Limpiar input para poder seleccionar el mismo archivo de nuevo
             e.target.value = '';
         });
         

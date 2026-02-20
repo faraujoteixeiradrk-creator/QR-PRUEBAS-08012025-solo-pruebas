@@ -2823,8 +2823,7 @@ Revisa y envía cada uno." buttons {"OK"}`;
                         console.log('  Procesando hoja:', sheetName);
                         const sheet = analisisWb.Sheets[sheetName];
                         if (sheetName === 'Resumen Completo') {
-                            // Para Resumen Completo, leer con valores (no fórmulas)
-                            datosParaVisor.datos.resumenCompleto = XLSX.utils.sheet_to_json(sheet, {header: 1, raw: false, defval: ''});
+                            datosParaVisor.datos.resumenCompleto = evaluarResumenCompleto(sheet);
                         } else {
                             const nombreNormalizado = sheetName.replace(/\./g, '_').replace(/\s/g, '_');
                             datosParaVisor.datos[nombreNormalizado] = XLSX.utils.sheet_to_json(sheet);
@@ -2864,6 +2863,69 @@ Revisa y envía cada uno." buttons {"OK"}`;
         // ==========================================
         // VISOR INTERACTIVO WEB - TODO EN UN HTML
         // ==========================================
+        
+        // Función auxiliar para evaluar fórmulas simples del Resumen Completo
+        function evaluarResumenCompleto(sheet) {
+            const range = XLSX.utils.decode_range(sheet['!ref']);
+            const data = [];
+            
+            for (let R = range.s.r; R <= range.e.r; R++) {
+                const row = [];
+                for (let C = range.s.c; C <= range.e.c; C++) {
+                    const cellAddress = XLSX.utils.encode_cell({r: R, c: C});
+                    const cell = sheet[cellAddress];
+                    
+                    if (!cell) {
+                        row.push('');
+                    } else if (cell.f) {
+                        const formula = cell.f;
+                        if (formula.startsWith('SUM(')) {
+                            const match = formula.match(/SUM\(([A-Z]+)(\d+):([A-Z]+)(\d+)\)/);
+                            if (match) {
+                                const col = match[1].charCodeAt(0) - 65;
+                                const rowStart = parseInt(match[2]) - 1;
+                                const rowEnd = parseInt(match[4]) - 1;
+                                let sum = 0;
+                                for (let r = rowStart; r <= rowEnd; r++) {
+                                    const addr = XLSX.utils.encode_cell({r: r, c: col});
+                                    const c = sheet[addr];
+                                    if (c && typeof c.v === 'number') sum += c.v;
+                                }
+                                row.push(sum);
+                            } else {
+                                row.push(0);
+                            }
+                        } else if (formula.match(/^[A-Z]+\d+$/)) {
+                            const refCell = sheet[formula];
+                            row.push(refCell && refCell.v !== undefined ? refCell.v : '');
+                        } else if (formula.includes('*12')) {
+                            const match = formula.match(/([A-Z]+)(\d+)\*12/);
+                            if (match) {
+                                const refAddr = match[1] + match[2];
+                                const refCell = sheet[refAddr];
+                                row.push(refCell && typeof refCell.v === 'number' ? refCell.v * 12 : 0);
+                            } else {
+                                row.push(0);
+                            }
+                        } else if (formula.includes('+')) {
+                            const parts = formula.split('+');
+                            let sum = 0;
+                            parts.forEach(part => {
+                                const refCell = sheet[part.trim()];
+                                if (refCell && typeof refCell.v === 'number') sum += refCell.v;
+                            });
+                            row.push(sum);
+                        } else {
+                            row.push(0);
+                        }
+                    } else {
+                        row.push(cell.v !== undefined ? cell.v : '');
+                    }
+                }
+                data.push(row);
+            }
+            return data;
+        }
         
         document.getElementById('abrirVisorBtn').addEventListener('click', () => {
             console.log('🎨 Click en Abrir Visor Web');
@@ -2923,7 +2985,7 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     const sheet = workbook.Sheets[sheetName];
                     const nombreNormalizado = sheetName.replace(/\./g, '_').replace(/\s/g, '_');
                     if (sheetName === 'Resumen Completo') {
-                        datosVisor.resumenCompleto = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false, defval:''});
+                        datosVisor.resumenCompleto = evaluarResumenCompleto(sheet);
                     } else {
                         datosVisor[nombreNormalizado] = XLSX.utils.sheet_to_json(sheet);
                     }

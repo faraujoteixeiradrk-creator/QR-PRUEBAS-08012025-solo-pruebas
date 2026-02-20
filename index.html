@@ -2224,6 +2224,11 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             }
                             
                             console.log(`✅ Precios extraídos para ${preciosPorTarifaPeaje.size} combinaciones tarifa+peaje`);
+                            
+                            // Mostrar todas las claves con 6.2TD
+                            const claves62TD = Array.from(preciosPorTarifaPeaje.keys()).filter(k => k.includes('6.2TD'));
+                            console.log(`🔍 Claves con 6.2TD (${claves62TD.length}):`, claves62TD);
+                            
                             if (preciosPorTarifaPeaje.size > 0 && preciosPorTarifaPeaje.size <= 3) {
                                 Array.from(preciosPorTarifaPeaje.entries()).slice(0, 3).forEach(([k, v]) => {
                                     console.log(`  "${k}" → P1=${v.potencia.P1}, E1=${v.energia.E1}`);

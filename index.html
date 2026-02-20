@@ -2812,6 +2812,7 @@ Revisa y envía cada uno." buttons {"OK"}`;
                 
                 // Guardar datos para el visor en localStorage leyendo del workbook
                 try {
+                    console.log('🔄 Intentando guardar datos en localStorage...');
                     const datosParaVisor = {
                         timestamp: new Date().toISOString(),
                         datos: {}
@@ -2819,19 +2820,36 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     
                     // Leer cada hoja del workbook y guardar como JSON
                     analisisWb.SheetNames.forEach(sheetName => {
+                        console.log('  Procesando hoja:', sheetName);
                         const sheet = analisisWb.Sheets[sheetName];
                         if (sheetName === 'Resumen Completo') {
                             datosParaVisor.datos.resumenCompleto = XLSX.utils.sheet_to_json(sheet, {header: 1});
                         } else {
-                            datosParaVisor.datos[sheetName.replace(/\./g, '_').replace(/\s/g, '_')] = XLSX.utils.sheet_to_json(sheet);
+                            const nombreNormalizado = sheetName.replace(/\./g, '_').replace(/\s/g, '_');
+                            datosParaVisor.datos[nombreNormalizado] = XLSX.utils.sheet_to_json(sheet);
+                            console.log('    → Guardado como:', nombreNormalizado, '(' + datosParaVisor.datos[nombreNormalizado].length + ' filas)');
                         }
                     });
                     
-                    localStorage.setItem('datosAnalisisTarifas', JSON.stringify(datosParaVisor));
+                    const jsonString = JSON.stringify(datosParaVisor);
+                    const sizeKB = (jsonString.length / 1024).toFixed(2);
+                    console.log('📦 Tamaño de datos a guardar:', sizeKB, 'KB');
+                    
+                    localStorage.setItem('datosAnalisisTarifas', jsonString);
                     console.log('✅ Datos guardados en localStorage para el visor');
-                    console.log('Hojas guardadas:', Object.keys(datosParaVisor.datos));
+                    console.log('📊 Hojas guardadas:', Object.keys(datosParaVisor.datos).join(', '));
+                    
+                    showStatus('✅ Análisis generado. Datos guardados para el visor.', 'success');
+                    
                 } catch (error) {
-                    console.warn('No se pudieron guardar datos en localStorage:', error);
+                    console.error('❌ Error guardando en localStorage:', error);
+                    if (error.name === 'QuotaExceededError') {
+                        showStatus('⚠️ Análisis generado. Datos muy grandes, usa el Excel para abrir el visor.', 'warning');
+                    } else {
+                        console.warn('No se pudieron guardar datos en localStorage:', error);
+                        showStatus('✅ Análisis de tarifas generado', 'success');
+                    }
+                    return;
                 }
                 
                 showStatus('✅ Análisis de tarifas generado', 'success');
@@ -2847,30 +2865,43 @@ Revisa y envía cada uno." buttons {"OK"}`;
         // ==========================================
         
         document.getElementById('abrirVisorBtn').addEventListener('click', () => {
+            console.log('🎨 Click en Abrir Visor Web');
+            
             // Primero intentar cargar desde localStorage
             const datosGuardados = localStorage.getItem('datosAnalisisTarifas');
+            console.log('📦 localStorage tiene datos:', datosGuardados ? 'SÍ (' + (datosGuardados.length/1024).toFixed(2) + ' KB)' : 'NO');
             
             if (datosGuardados) {
                 try {
                     const datosParseados = JSON.parse(datosGuardados);
+                    console.log('✅ Datos parseados correctamente');
+                    console.log('📅 Timestamp:', datosParseados.timestamp);
+                    console.log('📊 Hojas disponibles:', Object.keys(datosParseados.datos).join(', '));
+                    
                     const fechaGuardado = new Date(datosParseados.timestamp);
                     const ahora = new Date();
                     const horasTranscurridas = (ahora - fechaGuardado) / (1000 * 60 * 60);
+                    console.log('⏱️ Horas transcurridas:', horasTranscurridas.toFixed(2));
                     
                     // Si los datos tienen menos de 24 horas, usarlos
                     if (horasTranscurridas < 24) {
+                        console.log('✅ Datos frescos, abriendo visor automáticamente');
                         showStatus('✅ Abriendo visor con datos guardados (' + fechaGuardado.toLocaleString('es-ES') + ')', 'success');
                         abrirVisorEnNuevaVentana(datosParseados.datos);
                         return;
                     } else {
+                        console.log('⚠️ Datos antiguos (más de 24h)');
                         showStatus('⚠️ Datos guardados tienen más de 24h. Selecciona el Excel actualizado.', 'warning');
                     }
                 } catch (error) {
-                    console.warn('Error al cargar datos guardados:', error);
+                    console.error('❌ Error al parsear datos guardados:', error);
                 }
+            } else {
+                console.log('ℹ️ No hay datos guardados en localStorage');
             }
             
             // Si no hay datos guardados o son antiguos, pedir el archivo
+            console.log('📂 Abriendo selector de archivos...');
             showStatus('📂 Selecciona el Excel generado...', 'info');
             document.getElementById('excelVisorInput').click();
         });

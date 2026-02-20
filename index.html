@@ -2886,11 +2886,18 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 const rowStart = parseInt(match[2]) - 1;
                                 const rowEnd = parseInt(match[4]) - 1;
                                 let sum = 0;
+                                console.log(`      SUM ${cellAddress}=${formula} → col ${col}, filas ${rowStart}-${rowEnd}`);
                                 for (let r = rowStart; r <= rowEnd; r++) {
-                                    const addr = XLSX.utils.encode_cell({r: r, c: col});
-                                    const c = sheet[addr];
-                                    if (c && typeof c.v === 'number') sum += c.v;
+                                    // SIEMPRE usar valores ya evaluados de data
+                                    if (data[r] && data[r][col] !== undefined && data[r][col] !== '') {
+                                        const val = data[r][col];
+                                        if (typeof val === 'number') {
+                                            console.log(`        Fila ${r+1}: ${val}`);
+                                            sum += val;
+                                        }
+                                    }
                                 }
+                                console.log(`        → Total: ${sum}`);
                                 row.push(sum);
                             } else {
                                 row.push(0);

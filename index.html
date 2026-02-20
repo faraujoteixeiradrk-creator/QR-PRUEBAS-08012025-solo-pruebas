@@ -2194,7 +2194,7 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                     };
                                     
                                     // Determinar si es 2.0TD
-                                    const es2TD = tarifaPeaje.includes('2.0') || tarifaPeaje.includes('2TD');
+                                    const es2TD = (tarifaPeaje.includes('2.0') || tarifaPeaje.includes('2TD')) && !tarifaPeaje.includes('6.2');
                                     
                                     if (es2TD) {
                                         // Para 2.0TD: P1=AO, P2=AQ

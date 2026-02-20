@@ -2802,6 +2802,18 @@ Revisa y envía cada uno." buttons {"OK"}`;
                 const timestamp = new Date().toISOString().split('T')[0];
                 XLSX.writeFile(analisisWb, `Analisis_Tarifas_${timestamp}.xlsx`);
                 
+                // Guardar datos para el visor interactivo
+                datosAnalisis = prepararDatosVisor({
+                    todasLasTarifasElec,
+                    todosPeajes,
+                    conteoPorTarifa,
+                    consumosPorTarifa,
+                    feesPorTarifaPeaje,
+                    datosIndexados,
+                    datosFijos,
+                    beneficioTotalIndex
+                });
+                
                 showStatus('✅ Análisis de tarifas generado', 'success');
                 
             } catch (error) {
@@ -2809,38 +2821,139 @@ Revisa y envía cada uno." buttons {"OK"}`;
                 showStatus('❌ Error generando análisis: ' + error.message, 'error');
             }
         }
+        
+        // ==========================================
+        // PREPARAR DATOS PARA EL VISOR
+        // ==========================================
+        
+        function prepararDatosVisor(datos) {
+            const {todasLasTarifasElec, todosPeajes, conteoPorTarifa, consumosPorTarifa, feesPorTarifaPeaje, datosIndexados, datosFijos, beneficioTotalIndex} = datos;
+            
+            // Extraer tarifas por peaje
+            const tarifasPorPeaje = {};
+            for (const peaje of todosPeajes) {
+                const nombrePeaje = peaje.replace(/\./g, '_').replace(/\s/g, '_');
+                tarifasPorPeaje[nombrePeaje] = [];
+                
+                for (const [key, info] of todasLasTarifasElec.entries()) {
+                    if (info.peajes.includes(peaje)) {
+                        const keyConteo = `${key}|${peaje}`;
+                        const feeInfo = feesPorTarifaPeaje[keyConteo];
+                        const consumoTotal = consumosPorTarifa[keyConteo] || 0;
+                        const facturas = conteoPorTarifa[keyConteo] || 0;
+                        const beneficio = feeInfo && consumoTotal > 0 ? consumoTotal * feeInfo.fee : 0;
+                        
+                        tarifasPorPeaje[nombrePeaje].push({
+                            'Tarifa': info.tarifa,
+                            'Tipo': info.tipo,
+                            'Comisión': info.comision,
+                            'Estado': info.estado,
+                            'Facturas': facturas,
+                            'Consumos': consumoTotal,
+                            'FEE': feeInfo ? feeInfo.fee : 0,
+                            'Beneficio': beneficio
+                        });
+                    }
+                }
+            }
+            
+            // Datos para gráficos
+            const graficoContratos = {
+                labels: [],
+                values: []
+            };
+            
+            const graficoBeneficios = {
+                labels: [],
+                values: []
+            };
+            
+            for (const peaje of Array.from(todosPeajes).sort()) {
+                if (datosIndexados[peaje]) {
+                    graficoContratos.labels.push(`${peaje} INDEX`);
+                    graficoContratos.values.push(datosIndexados[peaje].contratos);
+                    
+                    if (datosIndexados[peaje].beneficio > 0) {
+                        graficoBeneficios.labels.push(peaje);
+                        graficoBeneficios.values.push(Math.round(datosIndexados[peaje].beneficio));
+                    }
+                }
+                if (datosFijos[peaje]) {
+                    graficoContratos.labels.push(`${peaje} FIJO`);
+                    graficoContratos.values.push(datosFijos[peaje].contratos);
+                }
+            }
+            
+            // Resumen indexados
+            const resumenIndexados = [];
+            let totalContratosIndex = 0;
+            let totalContratosFijos = 0;
+            
+            for (const peaje of Array.from(todosPeajes).sort()) {
+                if (datosIndexados[peaje]) {
+                    totalContratosIndex += datosIndexados[peaje].contratos;
+                    resumenIndexados.push({
+                        tarifa: peaje,
+                        contratos: datosIndexados[peaje].contratos,
+                        consumoMes: Math.round(datosIndexados[peaje].consumo),
+                        consumoAnual: Math.round(datosIndexados[peaje].consumo * 12),
+                        beneficioMes: Math.round(datosIndexados[peaje].beneficio * 100) / 100,
+                        beneficioAnual: Math.round(datosIndexados[peaje].beneficio * 12 * 100) / 100
+                    });
+                }
+                if (datosFijos[peaje]) {
+                    totalContratosFijos += datosFijos[peaje].contratos;
+                }
+            }
+            
+            return {
+                totalContratosIndex,
+                totalContratosFijos,
+                beneficioMensual: Math.round(beneficioTotalIndex * 100) / 100,
+                beneficioAnual: Math.round(beneficioTotalIndex * 12 * 100) / 100,
+                tarifasPorPeaje,
+                graficoContratos,
+                graficoBeneficios,
+                resumenIndexados
+            };
+        }
 
         // ==========================================
         // VISOR INTERACTIVO WEB
         // ==========================================
         
+        let datosAnalisis = null; // Guardar datos del último análisis
+        
         function abrirVisorInteractivo() {
             if (!processedWorkbook) {
-                showStatus('⚠️ Por favor, primero procesa un archivo y analiza las tarifas', 'warning');
+                showStatus('⚠️ Por favor, primero procesa un archivo de electricidad', 'warning');
+                return;
+            }
+            
+            if (!datosAnalisis) {
+                showStatus('⚠️ Por favor, primero haz click en "Analizar Tarifas Activas"', 'warning');
                 return;
             }
             
             showStatus('🎨 Generando visor interactivo...', 'info');
             
-            // Generar datos del análisis (reutilizar lógica de analizarTarifas)
-            analizarTarifas().then(() => {
-                // Crear HTML del visor
-                const visorHTML = generarVisorHTML();
-                
-                // Abrir en nueva ventana
-                const newWindow = window.open('', '_blank');
+            // Crear HTML del visor con datos reales
+            const visorHTML = generarVisorHTML(datosAnalisis);
+            
+            // Abrir en nueva ventana
+            const newWindow = window.open('', '_blank');
+            if (newWindow) {
                 newWindow.document.write(visorHTML);
                 newWindow.document.close();
-                
                 showStatus('✅ Visor interactivo abierto', 'success');
-            }).catch(error => {
-                console.error('Error:', error);
-                showStatus('❌ Error al generar visor', 'error');
-            });
+            } else {
+                showStatus('❌ Bloqueador de popups detectado. Permite popups para este sitio.', 'error');
+            }
         }
         
-        function generarVisorHTML() {
-            // Plantilla HTML del visor con Chart.js y tablas interactivas
+        function generarVisorHTML(datos) {
+            const datosJSON = JSON.stringify(datos).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+            
             return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -2854,6 +2967,7 @@ Revisa y envía cada uno." buttons {"OK"}`;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
+            min-height: 100vh;
         }
         .container {
             max-width: 1400px;
@@ -2869,6 +2983,7 @@ Revisa y envía cada uno." buttons {"OK"}`;
             margin-bottom: 30px;
             font-size: 2.5em;
         }
+        h2 { color: #667eea; margin: 20px 0; }
         .tabs {
             display: flex;
             gap: 10px;
@@ -2905,9 +3020,10 @@ Revisa y envía cada uno." buttons {"OK"}`;
         .kpi-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 12px;
             text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
         .kpi-value {
             font-size: 2.5em;
@@ -2917,11 +3033,14 @@ Revisa y envía cada uno." buttons {"OK"}`;
         .kpi-label {
             opacity: 0.9;
             font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            font-size: 14px;
         }
         th, td {
             padding: 12px;
@@ -2934,29 +3053,33 @@ Revisa y envía cada uno." buttons {"OK"}`;
             font-weight: 600;
             position: sticky;
             top: 0;
+            z-index: 10;
         }
-        tr:hover { background: #f5f5f5; }
-        .filter-container {
-            margin: 20px 0;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        input, select {
-            padding: 10px;
-            border: 2px solid #eee;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
+        tr:hover { background: #f9f9f9; }
         .chart-container {
             position: relative;
             height: 400px;
             margin: 30px 0;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+        .filter-input {
+            padding: 10px 15px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 300px;
+            margin-bottom: 20px;
+        }
+        .filter-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .estado-activa { color: #22c55e; font-weight: bold; }
+        .estado-configurada { color: #f59e0b; }
+        .estado-no-encontrada { color: #ef4444; }
     </style>
 </head>
 <body>
@@ -2965,62 +3088,49 @@ Revisa y envía cada uno." buttons {"OK"}`;
         
         <div class="tabs">
             <button class="tab active" onclick="cambiarTab('dashboard')">📊 Dashboard</button>
-            <button class="tab" onclick="cambiarTab('2.0TD')">2.0 TD</button>
-            <button class="tab" onclick="cambiarTab('3.0TD')">3.0 TD</button>
-            <button class="tab" onclick="cambiarTab('6.1TD')">6.1 TD</button>
             <button class="tab" onclick="cambiarTab('resumen')">📈 Resumen Completo</button>
+            <button class="tab" onclick="cambiarTab('2_0TD')">2.0 TD</button>
+            <button class="tab" onclick="cambiarTab('3_0TD')">3.0 TD</button>
+            <button class="tab" onclick="cambiarTab('6_1TD')">6.1 TD</button>
         </div>
         
         <div id="dashboard" class="tab-content active">
-            <div class="kpi-grid">
-                <div class="kpi-card">
-                    <div class="kpi-label">Total Contratos INDEX</div>
-                    <div class="kpi-value" id="kpi-index">0</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Total Contratos FIJOS</div>
-                    <div class="kpi-value" id="kpi-fijos">0</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Beneficio Mensual INDEX</div>
-                    <div class="kpi-value" id="kpi-beneficio">0 €</div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Consumo Total Anual</div>
-                    <div class="kpi-value" id="kpi-consumo">0 kWh</div>
-                </div>
-            </div>
-            
+            <div class="kpi-grid" id="kpis"></div>
             <div class="chart-container">
                 <canvas id="chartPrincipal"></canvas>
             </div>
-            
-            <h2 style="margin-top: 40px; color: #667eea;">📋 Próximos Vencimientos</h2>
-            <div id="vencimientos-preview"></div>
-        </div>
-        
-        <div id="2.0TD" class="tab-content">
-            <h2>2.0 TD - Tarifas Activas</h2>
-            <div id="tabla-2.0TD"></div>
-        </div>
-        
-        <div id="3.0TD" class="tab-content">
-            <h2>3.0 TD - Tarifas Activas</h2>
-            <div id="tabla-3.0TD"></div>
-        </div>
-        
-        <div id="6.1TD" class="tab-content">
-            <h2>6.1 TD - Tarifas Activas</h2>
-            <div id="tabla-6.1TD"></div>
+            <div class="chart-container">
+                <canvas id="chartBeneficios"></canvas>
+            </div>
         </div>
         
         <div id="resumen" class="tab-content">
             <h2>📈 Resumen Completo</h2>
             <div id="tabla-resumen"></div>
         </div>
+        
+        <div id="2_0TD" class="tab-content">
+            <h2>2.0 TD - Tarifas Activas</h2>
+            <input type="text" class="filter-input" placeholder="🔍 Buscar tarifa..." onkeyup="filtrarTabla('2_0TD', this.value)">
+            <div id="tabla-2_0TD"></div>
+        </div>
+        
+        <div id="3_0TD" class="tab-content">
+            <h2>3.0 TD - Tarifas Activas</h2>
+            <input type="text" class="filter-input" placeholder="🔍 Buscar tarifa..." onkeyup="filtrarTabla('3_0TD', this.value)">
+            <div id="tabla-3_0TD"></div>
+        </div>
+        
+        <div id="6_1TD" class="tab-content">
+            <h2>6.1 TD - Tarifas Activas</h2>
+            <input type="text" class="filter-input" placeholder="🔍 Buscar tarifa..." onkeyup="filtrarTabla('6_1TD', this.value)">
+            <div id="tabla-6_1TD"></div>
+        </div>
     </div>
     
     <script>
+        const datos = ${datosJSON};
+        
         function cambiarTab(tabId) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -3028,47 +3138,138 @@ Revisa y envía cada uno." buttons {"OK"}`;
             document.getElementById(tabId).classList.add('active');
         }
         
-        // Datos de ejemplo - se reemplazarán con datos reales
-        document.getElementById('kpi-index').textContent = '1,138';
-        document.getElementById('kpi-fijos').textContent = '160';
-        document.getElementById('kpi-beneficio').textContent = '80,524.92 €';
-        document.getElementById('kpi-consumo').textContent = '35.8M';
+        function formatNumber(num) {
+            return new Intl.NumberFormat('es-ES').format(Math.round(num));
+        }
         
-        // Gráfico de ejemplo
-        const ctx = document.getElementById('chartPrincipal');
-        new Chart(ctx, {
+        function formatCurrency(num) {
+            return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(num);
+        }
+        
+        // Renderizar KPIs
+        const kpisHTML = \`
+            <div class="kpi-card">
+                <div class="kpi-label">Contratos INDEX</div>
+                <div class="kpi-value">\${formatNumber(datos.totalContratosIndex)}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Contratos FIJOS</div>
+                <div class="kpi-value">\${formatNumber(datos.totalContratosFijos)}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Beneficio Mensual</div>
+                <div class="kpi-value">\${formatCurrency(datos.beneficioMensual)}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Beneficio Anual</div>
+                <div class="kpi-value">\${formatCurrency(datos.beneficioAnual)}</div>
+            </div>
+        \`;
+        document.getElementById('kpis').innerHTML = kpisHTML;
+        
+        // Gráfico contratos
+        new Chart(document.getElementById('chartPrincipal'), {
             type: 'bar',
             data: {
-                labels: ['2.0TD INDEX', '3.0TD INDEX', '6.1TD INDEX', '2.0TD FIJO', '3.0TD FIJO', '6.1TD FIJO'],
+                labels: datos.graficoContratos.labels,
                 datasets: [{
                     label: 'Número de Contratos',
-                    data: [786, 316, 35, 106, 35, 19],
-                    backgroundColor: [
-                        'rgba(102, 126, 234, 0.8)',
-                        'rgba(118, 75, 162, 0.8)',
-                        'rgba(237, 100, 166, 0.8)',
-                        'rgba(46, 196, 182, 0.8)',
-                        'rgba(231, 127, 103, 0.8)',
-                        'rgba(253, 203, 110, 0.8)'
-                    ]
+                    data: datos.graficoContratos.values,
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false }
+                    title: { display: true, text: 'Distribución de Contratos por Peaje', font: { size: 16 } }
                 }
             }
         });
         
-        document.getElementById('vencimientos-preview').innerHTML = \`
-            <p style="text-align: center; padding: 40px; color: #999;">
-                Los datos de vencimientos se cargarán automáticamente desde tu análisis
-            </p>
-        \`;
+        // Gráfico beneficios
+        if (datos.graficoBeneficios) {
+            new Chart(document.getElementById('chartBeneficios'), {
+                type: 'pie',
+                data: {
+                    labels: datos.graficoBeneficios.labels,
+                    datasets: [{
+                        data: datos.graficoBeneficios.values,
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(118, 75, 162, 0.8)',
+                            'rgba(237, 100, 166, 0.8)',
+                            'rgba(46, 196, 182, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: { display: true, text: 'Beneficios INDEX por Peaje', font: { size: 16 } }
+                    }
+                }
+            });
+        }
         
-        console.log('Visor interactivo cargado');
+        // Renderizar tablas
+        function renderTabla(peaje, contenedor) {
+            const tarifas = datos.tarifasPorPeaje[peaje] || [];
+            if (tarifas.length === 0) {
+                document.getElementById(contenedor).innerHTML = '<p>No hay datos</p>';
+                return;
+            }
+            
+            let html = '<table><thead><tr>';
+            const headers = Object.keys(tarifas[0]);
+            headers.forEach(h => html += \`<th>\${h}</th>\`);
+            html += '</tr></thead><tbody>';
+            
+            tarifas.forEach(row => {
+                html += '<tr>';
+                headers.forEach(h => {
+                    let value = row[h];
+                    let cssClass = '';
+                    if (h === 'Estado') {
+                        cssClass = \`estado-\${value.toLowerCase().replace(' ', '-')}\`;
+                    }
+                    if (typeof value === 'number' && h.includes('Consumo')) {
+                        value = formatNumber(value);
+                    }
+                    if (typeof value === 'number' && h.includes('Beneficio')) {
+                        value = formatCurrency(value);
+                    }
+                    html += \`<td class="\${cssClass}">\${value || ''}</td>\`;
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById(contenedor).innerHTML = html;
+        }
+        
+        renderTabla('2_0TD', 'tabla-2_0TD');
+        renderTabla('3_0TD', 'tabla-3_0TD');
+        renderTabla('6_1TD', 'tabla-6_1TD');
+        
+        // Renderizar resumen
+        const resumenHTML = '<table>' +
+            '<tr><th colspan="6" style="background: #667eea;">CONTRATOS INDEXADOS</th></tr>' +
+            '<tr><th>Tarifa</th><th>Contratos</th><th>Consumos mes</th><th>Consumos año</th><th>Beneficio mes</th><th>Beneficio año</th></tr>' +
+            datos.resumenIndexados.map(r => 
+                \`<tr><td>\${r.tarifa}</td><td>\${formatNumber(r.contratos)}</td><td>\${formatNumber(r.consumoMes)}</td><td>\${formatNumber(r.consumoAnual)}</td><td>\${formatCurrency(r.beneficioMes)}</td><td>\${formatCurrency(r.beneficioAnual)}</td></tr>\`
+            ).join('') +
+            '</table>';
+        document.getElementById('tabla-resumen').innerHTML = resumenHTML;
+        
+        function filtrarTabla(peaje, busqueda) {
+            const tabla = document.getElementById(\`tabla-\${peaje}\`).querySelector('table');
+            const filas = tabla.querySelectorAll('tbody tr');
+            filas.forEach(fila => {
+                const texto = fila.textContent.toLowerCase();
+                fila.style.display = texto.includes(busqueda.toLowerCase()) ? '' : 'none';
+            });
+        }
     </script>
 </body>
 </html>`;

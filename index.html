@@ -2901,12 +2901,17 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             if (refMatch) {
                                 const refCol = refMatch[1].charCodeAt(0) - 65;
                                 const refRow = parseInt(refMatch[2]) - 1;
+                                console.log(`      Referencia ${cellAddress}=${formula} → buscar fila ${refRow} col ${refCol}`);
                                 // Usar valor ya evaluado si existe
                                 if (data[refRow] && data[refRow][refCol] !== undefined && data[refRow][refCol] !== '') {
+                                    console.log(`        ✓ Encontrado en data: ${data[refRow][refCol]}`);
                                     row.push(data[refRow][refCol]);
                                 } else {
+                                    console.log(`        ✗ No en data, buscar en sheet`);
                                     const refCell = sheet[formula];
-                                    row.push(refCell && refCell.v !== undefined ? refCell.v : '');
+                                    const val = refCell && refCell.v !== undefined ? refCell.v : '';
+                                    console.log(`        Valor en sheet: ${val}`);
+                                    row.push(val);
                                 }
                             } else {
                                 row.push('');

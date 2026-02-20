@@ -288,7 +288,10 @@
         document.getElementById('downloadBtn').addEventListener('click', downloadFile);
         document.getElementById('downloadByComercialBtn').addEventListener('click', downloadByComercial);
         document.getElementById('downloadScriptBtn').addEventListener('click', downloadScript);
-        document.getElementById('downloadAnalisisBtn').addEventListener('click', analizarTarifas);
+        document.getElementById('downloadAnalisisBtn').addEventListener('click', () => {
+            console.log('🔴 CLICK EN BOTÓN ANALIZAR TARIFAS');
+            analizarTarifas();
+        });
         
         function showStatus(msg, type) {
             const s = document.getElementById('status');
@@ -2283,25 +2286,25 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 // Añadir precios según el peaje
                                 if (peaje === '2.0TD') {
                                     // 2.0TD: P1, P2 y E1, E2, E3
-                                    tarifaData['Pot P1 (€/kW/día)'] = precios.potencia.P1 || '';
-                                    tarifaData['Pot P2 (€/kW/día)'] = precios.potencia.P2 || '';
-                                    tarifaData['Energ E1 (€/kWh)'] = precios.energia.E1 || '';
-                                    tarifaData['Energ E2 (€/kWh)'] = precios.energia.E2 || '';
-                                    tarifaData['Energ E3 (€/kWh)'] = precios.energia.E3 || '';
+                                    tarifaData['Pot P1 (€/kW/día)'] = preciosFinales.potencia.P1 || '';
+                                    tarifaData['Pot P2 (€/kW/día)'] = preciosFinales.potencia.P2 || '';
+                                    tarifaData['Energ E1 (€/kWh)'] = preciosFinales.energia.E1 || '';
+                                    tarifaData['Energ E2 (€/kWh)'] = preciosFinales.energia.E2 || '';
+                                    tarifaData['Energ E3 (€/kWh)'] = preciosFinales.energia.E3 || '';
                                 } else if (peaje === '3.0TD' || peaje === '6.1TD' || peaje === '6.2TD') {
                                     // 3.0TD, 6.1TD, 6.2TD: P1-P6 y E1-E6
-                                    tarifaData['Pot P1 (€/kW/día)'] = precios.potencia.P1 || '';
-                                    tarifaData['Pot P2 (€/kW/día)'] = precios.potencia.P2 || '';
-                                    tarifaData['Pot P3 (€/kW/día)'] = precios.potencia.P3 || '';
-                                    tarifaData['Pot P4 (€/kW/día)'] = precios.potencia.P4 || '';
-                                    tarifaData['Pot P5 (€/kW/día)'] = precios.potencia.P5 || '';
-                                    tarifaData['Pot P6 (€/kW/día)'] = precios.potencia.P6 || '';
-                                    tarifaData['Energ E1 (€/kWh)'] = precios.energia.E1 || '';
-                                    tarifaData['Energ E2 (€/kWh)'] = precios.energia.E2 || '';
-                                    tarifaData['Energ E3 (€/kWh)'] = precios.energia.E3 || '';
-                                    tarifaData['Energ E4 (€/kWh)'] = precios.energia.E4 || '';
-                                    tarifaData['Energ E5 (€/kWh)'] = precios.energia.E5 || '';
-                                    tarifaData['Energ E6 (€/kWh)'] = precios.energia.E6 || '';
+                                    tarifaData['Pot P1 (€/kW/día)'] = preciosFinales.potencia.P1 || '';
+                                    tarifaData['Pot P2 (€/kW/día)'] = preciosFinales.potencia.P2 || '';
+                                    tarifaData['Pot P3 (€/kW/día)'] = preciosFinales.potencia.P3 || '';
+                                    tarifaData['Pot P4 (€/kW/día)'] = preciosFinales.potencia.P4 || '';
+                                    tarifaData['Pot P5 (€/kW/día)'] = preciosFinales.potencia.P5 || '';
+                                    tarifaData['Pot P6 (€/kW/día)'] = preciosFinales.potencia.P6 || '';
+                                    tarifaData['Energ E1 (€/kWh)'] = preciosFinales.energia.E1 || '';
+                                    tarifaData['Energ E2 (€/kWh)'] = preciosFinales.energia.E2 || '';
+                                    tarifaData['Energ E3 (€/kWh)'] = preciosFinales.energia.E3 || '';
+                                    tarifaData['Energ E4 (€/kWh)'] = preciosFinales.energia.E4 || '';
+                                    tarifaData['Energ E5 (€/kWh)'] = preciosFinales.energia.E5 || '';
+                                    tarifaData['Energ E6 (€/kWh)'] = preciosFinales.energia.E6 || '';
                                 }
                                 
                                 tarifasDelPeaje.push(tarifaData);

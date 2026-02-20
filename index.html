@@ -2261,8 +2261,19 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 
                                 const preciosFinales = precios || {potencia: {}, energia: {}};
                                 
-                                // Debug solo para primera tarifa de cada peaje
-                                if (tarifasDelPeaje.length === 0) {
+                                // Debug para 6.2TD
+                                if (peaje === '6.2TD') {
+                                    console.log(`[6.2TD] Tarifa: "${info.tarifa}" → Buscando: "${keyPrecios}"`);
+                                    console.log(`  ¿Encontrado? ${!!precios}`);
+                                    if (!precios) {
+                                        console.log(`  Claves con 6.2TD:`, Array.from(preciosPorTarifaPeaje.keys()).filter(k => k.includes('6.2TD')));
+                                    } else {
+                                        console.log(`  Precios: P1=${preciosFinales.potencia.P1}, E1=${preciosFinales.energia.E1}`);
+                                    }
+                                }
+                                
+                                // Debug solo para primera tarifa de cada peaje (excepto 6.2TD que ya tiene su propio log)
+                                if (tarifasDelPeaje.length === 0 && peaje !== '6.2TD') {
                                     console.log(`[${peaje}] Primera tarifa: "${info.tarifa}" → Precios ${precios ? 'encontrados' : 'NO encontrados'}`);
                                     if (!precios && preciosPorTarifaPeaje.size > 0) {
                                         console.log(`  Buscando: "${keyPrecios}"`);

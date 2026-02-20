@@ -2151,9 +2151,11 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     // ========================================
                     
                     console.log('=== EXTRAYENDO PRECIOS DE POTENCIA Y ENERGÍA ===');
+                    console.log('facturaTotalSheet existe:', !!facturaTotalSheet);
                     
                     const preciosPorTarifa = new Map(); // key: nombreTarifa, value: {potencia: {P1, P2...}, energia: {E1, E2...}}
                     
+                    console.log('Antes del try-catch');
                     try {
                         // Leer datos de FACTURA TOTAL
                         if (facturaTotalSheet) {

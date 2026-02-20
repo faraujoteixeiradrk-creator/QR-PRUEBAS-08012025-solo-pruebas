@@ -2810,63 +2810,26 @@ Revisa y envía cada uno." buttons {"OK"}`;
                 const timestamp = new Date().toISOString().split('T')[0];
                 XLSX.writeFile(analisisWb, `Analisis_Tarifas_${timestamp}.xlsx`);
                 
-                // Guardar datos para el visor en localStorage
+                // Guardar datos para el visor en localStorage leyendo del workbook
                 try {
                     const datosParaVisor = {
                         timestamp: new Date().toISOString(),
-                        datos: {
-                            '2_0TD': [],
-                            '3_0TD': [],
-                            '6_1TD': [],
-                            '6_2TD': [],
-                            resumenCompleto: resumenCompleto,
-                            vencimientos: [],
-                            resumenGas: []
-                        }
+                        datos: {}
                     };
                     
-                    // Guardar datos de las hojas de peaje
-                    for (const peaje of todosPeajes) {
-                        const nombreHoja = peaje.replace(/\./g, '_').replace(/\s/g, '_');
-                        const tarifasDelPeaje = [];
-                        
-                        for (const [key, info] of todasLasTarifasElec.entries()) {
-                            if (info.peajes.includes(peaje)) {
-                                const keyConteo = `${key}|${peaje}`;
-                                const consumoTotal = consumosPorTarifa[keyConteo] || 0;
-                                const facturas = conteoPorTarifa[keyConteo] || 0;
-                                const feeInfo = feesPorTarifaPeaje[keyConteo];
-                                const fee = feeInfo ? feeInfo.fee : '';
-                                let beneficio = '';
-                                if (fee && consumoTotal > 0) {
-                                    beneficio = Math.round(consumoTotal * fee * 100) / 100;
-                                }
-                                tarifasDelPeaje.push({
-                                    'Tarifa': info.tarifa,
-                                    'Peaje': peaje,
-                                    'Tipo': info.tipo,
-                                    'Comisión': info.comision,
-                                    'Estado': info.estado,
-                                    'Facturas': facturas,
-                                    'Consumos (kWh/mes)': consumoTotal,
-                                    'FEE (€/MWh)': fee,
-                                    'Beneficio (€)': beneficio
-                                });
-                            }
+                    // Leer cada hoja del workbook y guardar como JSON
+                    analisisWb.SheetNames.forEach(sheetName => {
+                        const sheet = analisisWb.Sheets[sheetName];
+                        if (sheetName === 'Resumen Completo') {
+                            datosParaVisor.datos.resumenCompleto = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                        } else {
+                            datosParaVisor.datos[sheetName.replace(/\./g, '_').replace(/\s/g, '_')] = XLSX.utils.sheet_to_json(sheet);
                         }
-                        
-                        if (nombreHoja && datosParaVisor.datos[nombreHoja]) {
-                            datosParaVisor.datos[nombreHoja] = tarifasDelPeaje;
-                        }
-                    }
-                    
-                    // Guardar vencimientos si existen
-                    if (vencimientosProximos && vencimientosProximos.length > 0) {
-                        datosParaVisor.datos.vencimientos = vencimientosProximos;
-                    }
+                    });
                     
                     localStorage.setItem('datosAnalisisTarifas', JSON.stringify(datosParaVisor));
                     console.log('✅ Datos guardados en localStorage para el visor');
+                    console.log('Hojas guardadas:', Object.keys(datosParaVisor.datos));
                 } catch (error) {
                     console.warn('No se pudieron guardar datos en localStorage:', error);
                 }
@@ -2922,14 +2885,25 @@ Revisa y envía cada uno." buttons {"OK"}`;
                 const data = await file.arrayBuffer();
                 const workbook = XLSX.read(data, {type: 'array'});
                 
-                // Extraer datos
+                // Extraer datos normalizando nombres
                 const datosVisor = {};
-                ['2_0TD','3_0TD','6_1TD','6_2TD','RL_1','RL_2','RL_3','RL_4','RL_5'].forEach(sheet => {
-                    if (workbook.Sheets[sheet]) datosVisor[sheet] = XLSX.utils.sheet_to_json(workbook.Sheets[sheet]);
+                workbook.SheetNames.forEach(sheetName => {
+                    const sheet = workbook.Sheets[sheetName];
+                    const nombreNormalizado = sheetName.replace(/\./g, '_').replace(/\s/g, '_');
+                    if (sheetName === 'Resumen Completo') {
+                        datosVisor.resumenCompleto = XLSX.utils.sheet_to_json(sheet, {header:1});
+                    } else {
+                        datosVisor[nombreNormalizado] = XLSX.utils.sheet_to_json(sheet);
+                    }
                 });
-                if (workbook.Sheets['Resumen Completo']) datosVisor.resumenCompleto = XLSX.utils.sheet_to_json(workbook.Sheets['Resumen Completo'], {header:1});
-                if (workbook.Sheets['Vencimientos Próximos']) datosVisor.vencimientos = XLSX.utils.sheet_to_json(workbook.Sheets['Vencimientos Próximos']);
-                if (workbook.Sheets['Resumen Gas']) datosVisor.resumenGas = XLSX.utils.sheet_to_json(workbook.Sheets['Resumen Gas']);
+                
+                // Guardar en localStorage
+                const datosParaGuardar = {
+                    timestamp: new Date().toISOString(),
+                    datos: datosVisor
+                };
+                localStorage.setItem('datosAnalisisTarifas', JSON.stringify(datosParaGuardar));
+                console.log('✅ Datos guardados desde Excel seleccionado');
                 
                 // Crear ventana del visor
                 abrirVisorEnNuevaVentana(datosVisor);
@@ -3137,17 +3111,18 @@ Revisa y envía cada uno." buttons {"OK"}`;
             html += '["RL_1","RL_2","RL_3","RL_4","RL_5"].forEach(sheet=>{';
             html += 'if(datos[sheet])htmlGas+=renderTabla(datos[sheet],sheet.replace("_","."));';
             html += '});';
-            html += 'if(datos.resumenGas)htmlGas+=renderTabla(datos.resumenGas,"Resumen Gas");';
+            html += 'if(datos.Resumen_Gas||datos.resumenGas)htmlGas+=renderTabla(datos.Resumen_Gas||datos.resumenGas,"Resumen Gas");';
             html += 'document.getElementById("gas").innerHTML=htmlGas;';
             
             // Vencimientos
-            html += 'if(datos.vencimientos){';
-            html += 'const vencidos=datos.vencimientos.filter(v=>v["Días Restantes"]<0);';
-            html += 'const urgentes=datos.vencimientos.filter(v=>v["Días Restantes"]>=0&&v["Días Restantes"]<=30);';
+            html += 'if(datos.Vencimientos_Próximos||datos.vencimientos){';
+            html += 'const datosVenc=datos.Vencimientos_Próximos||datos.vencimientos;';
+            html += 'const vencidos=datosVenc.filter(v=>v["Días Restantes"]<0);';
+            html += 'const urgentes=datosVenc.filter(v=>v["Días Restantes"]>=0&&v["Días Restantes"]<=30);';
             html += 'let htmlVenc="";';
             html += 'if(vencidos.length>0)htmlVenc+="<div class=' + "'alert alert-danger'" + '>⚠️ <strong>"+vencidos.length+" contratos vencidos</strong></div>";';
             html += 'if(urgentes.length>0)htmlVenc+="<div class=' + "'alert alert-warning'" + '>🔴 <strong>"+urgentes.length+" contratos urgentes (≤30 días)</strong></div>";';
-            html += 'htmlVenc+=renderTabla(datos.vencimientos,"Todos los Vencimientos");';
+            html += 'htmlVenc+=renderTabla(datosVenc,"Todos los Vencimientos");';
             html += 'document.getElementById("vencimientos").innerHTML=htmlVenc;';
             html += '}';
             

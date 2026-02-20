@@ -2823,7 +2823,8 @@ Revisa y envía cada uno." buttons {"OK"}`;
                         console.log('  Procesando hoja:', sheetName);
                         const sheet = analisisWb.Sheets[sheetName];
                         if (sheetName === 'Resumen Completo') {
-                            datosParaVisor.datos.resumenCompleto = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                            // Para Resumen Completo, leer con valores (no fórmulas)
+                            datosParaVisor.datos.resumenCompleto = XLSX.utils.sheet_to_json(sheet, {header: 1, raw: false, defval: ''});
                         } else {
                             const nombreNormalizado = sheetName.replace(/\./g, '_').replace(/\s/g, '_');
                             datosParaVisor.datos[nombreNormalizado] = XLSX.utils.sheet_to_json(sheet);
@@ -2922,7 +2923,7 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     const sheet = workbook.Sheets[sheetName];
                     const nombreNormalizado = sheetName.replace(/\./g, '_').replace(/\s/g, '_');
                     if (sheetName === 'Resumen Completo') {
-                        datosVisor.resumenCompleto = XLSX.utils.sheet_to_json(sheet, {header:1});
+                        datosVisor.resumenCompleto = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false, defval:''});
                     } else {
                         datosVisor[nombreNormalizado] = XLSX.utils.sheet_to_json(sheet);
                     }
@@ -3159,10 +3160,20 @@ Revisa y envía cada uno." buttons {"OK"}`;
             
             // Resumen
             html += 'if(datos.resumenCompleto){';
-            html += 'let htmlRes="<h2>📈 Resumen Completo</h2><table>";';
-            html += 'datos.resumenCompleto.forEach(row=>{';
+            html += 'let htmlRes="<h2>📈 Resumen Completo</h2><table style=' + "'width:100%'" + '>";';
+            html += 'datos.resumenCompleto.forEach((row,idx)=>{';
+            html += 'if(!row||row.length===0)return;';
             html += 'htmlRes+="<tr>";';
-            html += 'row.forEach(cell=>htmlRes+="<td><strong>"+(cell||"")+"</strong></td>");';
+            html += 'row.forEach((cell,colIdx)=>{';
+            html += 'let val=cell||"";';
+            html += 'if(typeof val==="number"&&val!==0){';
+            html += 'if(colIdx>=4){val=fmtCur(val);}';
+            html += 'else{val=fmt(val);}';
+            html += '}';
+            html += 'const isHeader=idx===0||idx===1||String(row[0]).includes("CONTRATOS")||String(row[0]).includes("CONSUMOS")||String(row[0]).includes("TOTAL");';
+            html += 'const style=isHeader?"font-weight:bold;background:#f5f5f5;padding:12px":"padding:10px";';
+            html += 'htmlRes+="<td style=' + "'" + '"+style+"' + "'" + '>"+val+"</td>";';
+            html += '});';
             html += 'htmlRes+="</tr>";';
             html += '});';
             html += 'htmlRes+="</table>";';

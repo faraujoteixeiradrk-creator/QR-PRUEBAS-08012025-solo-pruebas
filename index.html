@@ -210,16 +210,27 @@
                 <h2 style="color: white;">📊 ANÁLISIS DE TARIFAS</h2>
                 <p style="margin: 15px 0; opacity: 0.95;">Ver qué tarifas están activas y cuáles se están facturando</p>
                 <button class="download-btn" id="downloadAnalisisBtn" style="background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); border: 3px solid white;">📈 Analizar Tarifas Activas</button>
-                <button class="download-btn" id="visorInteractivoBtn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: 3px solid white; margin-top: 15px; display: none;">🎨 Visor Interactivo Web</button>
                 <p style="margin-top: 15px; font-size: 0.85em; opacity: 0.9;">
                     💡 <strong>Genera un Excel con:</strong><br>
                     • Tarifas únicas por peaje (2.0 TD, 3.0 TD, 6.1 TD, RL.1-5)<br>
                     • Estado: ACTIVA / CONFIGURADA / NO ENCONTRADA<br>
                     • Tipo: REPARTO / TOTAL<br>
-                    • Número de facturas por tarifa<br><br>
-                    <span id="visorInfo" style="display: none;">
-                    🎨 <strong>Visor Web:</strong> Dashboard visual con gráficos y tablas filtrables
-                    </span>
+                    • Número de facturas por tarifa
+                </p>
+            </div>
+            
+            <!-- VISOR INTERACTIVO WEB -->
+            <div class="section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h2 style="color: white;">🎨 VISOR INTERACTIVO WEB</h2>
+                <p style="margin: 15px 0; opacity: 0.95;">Visualiza el Excel de análisis en una interfaz web moderna</p>
+                <input type="file" id="excelVisorInput" accept=".xlsx" style="display: none;">
+                <button class="download-btn" id="abrirVisorBtn" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); border: 3px solid white;">🎨 Abrir Visor Web</button>
+                <p style="margin-top: 15px; font-size: 0.85em; opacity: 0.9;">
+                    📊 <strong>Visor web incluye:</strong><br>
+                    • Dashboard con KPIs y gráficos interactivos<br>
+                    • Tablas filtrables por peaje (2.0TD, 3.0TD, 6.1TD, Gas)<br>
+                    • Vista de vencimientos próximos con alertas<br>
+                    • Resumen completo INDEX vs FIJOS
                 </p>
             </div>
         </div>
@@ -279,23 +290,6 @@
         document.getElementById('downloadByComercialBtn').addEventListener('click', downloadByComercial);
         document.getElementById('downloadScriptBtn').addEventListener('click', downloadScript);
         document.getElementById('downloadAnalisisBtn').addEventListener('click', analizarTarifas);
-        
-        // Visor interactivo
-        let datosAnalisisVisor = null;
-        document.getElementById('visorInteractivoBtn').addEventListener('click', () => {
-            if (!datosAnalisisVisor) {
-                showStatus('⚠️ Primero genera el análisis', 'warning');
-                return;
-            }
-            const visorWindow = window.open('', '_blank');
-            if (visorWindow) {
-                visorWindow.document.write(generarVisorHTML(datosAnalisisVisor));
-                visorWindow.document.close();
-                showStatus('✅ Visor abierto', 'success');
-            } else {
-                showStatus('❌ Permite popups', 'error');
-            }
-        });
         
         function showStatus(msg, type) {
             const s = document.getElementById('status');
@@ -2817,18 +2811,6 @@ Revisa y envía cada uno." buttons {"OK"}`;
                 const timestamp = new Date().toISOString().split('T')[0];
                 XLSX.writeFile(analisisWb, `Analisis_Tarifas_${timestamp}.xlsx`);
                 
-                // Guardar datos completos para el visor
-                datosAnalisisVisor = {
-                    totalIndex: Object.keys(feesPorTarifaPeaje).length,
-                    beneficioMensual: beneficioTotalIndex,
-                    beneficioAnual: beneficioTotalIndex * 12,
-                    datosIndexados: datosIndexados,
-                    datosFijos: datosFijos,
-                    peajes: Array.from(todosPeajes).sort()
-                };
-                document.getElementById('visorInteractivoBtn').style.display = 'block';
-                document.getElementById('visorInfo').style.display = 'inline';
-                
                 showStatus('✅ Análisis de tarifas generado', 'success');
                 
             } catch (error) {
@@ -2837,163 +2819,406 @@ Revisa y envía cada uno." buttons {"OK"}`;
             }
         }
         
-        function generarVisorHTML(datos) {
-            // Preparar datos para gráficos
-            let tablaIndexados = '';
-            let totalContratosIndex = 0;
-            let totalContratosFijos = 0;
+        // ==========================================
+        // VISOR INTERACTIVO WEB
+        // ==========================================
+        
+        document.getElementById('abrirVisorBtn').addEventListener('click', () => {
+            document.getElementById('excelVisorInput').click();
+        });
+        
+        document.getElementById('excelVisorInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
             
-            datos.peajes.forEach(peaje => {
-                if (datos.datosIndexados[peaje]) {
-                    const d = datos.datosIndexados[peaje];
-                    totalContratosIndex += d.contratos;
-                    tablaIndexados += `<tr>
-                        <td>${peaje}</td>
-                        <td style="text-align:right">${d.contratos.toLocaleString('es-ES')}</td>
-                        <td style="text-align:right">${Math.round(d.consumo).toLocaleString('es-ES')}</td>
-                        <td style="text-align:right">${Math.round(d.beneficio).toLocaleString('es-ES')} €</td>
-                    </tr>`;
+            showStatus('📊 Cargando Excel para el visor...', 'info');
+            
+            try {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                // Extraer datos de todas las hojas
+                const datosVisor = extraerDatosParaVisor(workbook);
+                
+                // Generar y abrir el HTML del visor
+                const visorHTML = generarVisorCompleto(datosVisor);
+                const visorWindow = window.open('', '_blank', 'width=1400,height=900');
+                
+                if (visorWindow) {
+                    visorWindow.document.write(visorHTML);
+                    visorWindow.document.close();
+                    showStatus('✅ Visor web abierto', 'success');
+                } else {
+                    showStatus('❌ Permite popups en tu navegador', 'error');
                 }
-                if (datos.datosFijos[peaje]) {
-                    totalContratosFijos += datos.datosFijos[peaje].contratos;
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('❌ Error al abrir visor: ' + error.message, 'error');
+            }
+            
+            e.target.value = '';
+        });
+        
+        function extraerDatosParaVisor(workbook) {
+            const datos = {};
+            
+            // Hojas de electricidad
+            ['2_0TD', '3_0TD', '6_1TD', '6_2TD'].forEach(sheet => {
+                if (workbook.Sheets[sheet]) {
+                    datos[sheet] = XLSX.utils.sheet_to_json(workbook.Sheets[sheet]);
                 }
             });
             
+            // Hojas de gas
+            ['RL_1', 'RL_2', 'RL_3', 'RL_4', 'RL_5'].forEach(sheet => {
+                if (workbook.Sheets[sheet]) {
+                    datos[sheet] = XLSX.utils.sheet_to_json(workbook.Sheets[sheet]);
+                }
+            });
+            
+            // Resúmenes y vencimientos
+            if (workbook.Sheets['Resumen Completo']) {
+                datos.resumenCompleto = XLSX.utils.sheet_to_json(workbook.Sheets['Resumen Completo'], {header: 1});
+            }
+            if (workbook.Sheets['Vencimientos Próximos']) {
+                datos.vencimientos = XLSX.utils.sheet_to_json(workbook.Sheets['Vencimientos Próximos']);
+            }
+            if (workbook.Sheets['Resumen Gas']) {
+                datos.resumenGas = XLSX.utils.sheet_to_json(workbook.Sheets['Resumen Gas']);
+            }
+            
+            return datos;
+        }
+        
+        function generarVisorCompleto(datos) {
+            const datosJSON = JSON.stringify(datos).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+            
             return `<!DOCTYPE html>
-<html lang="es"><head>
+<html lang="es">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Visor Interactivo - Análisis de Tarifas</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',system-ui;background:linear-gradient(135deg,#667eea,#764ba2);padding:20px;min-height:100vh}
-.container{max-width:1400px;margin:0 auto;background:#fff;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
-h1{text-align:center;color:#667eea;margin-bottom:40px;font-size:2.5em}
-h2{color:#667eea;margin:30px 0 20px;font-size:1.8em}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);padding:20px;min-height:100vh}
+.container{max-width:1600px;margin:0 auto;background:#fff;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+h1{text-align:center;color:#667eea;margin-bottom:40px;font-size:2.5em;text-shadow:2px 2px 4px rgba(0,0,0,0.1)}
+.tabs{display:flex;gap:10px;margin-bottom:30px;border-bottom:3px solid #667eea;flex-wrap:wrap;padding-bottom:10px}
+.tab{padding:15px 25px;cursor:pointer;border:none;background:#f5f5f5;border-radius:10px 10px 0 0;font-weight:600;transition:all 0.3s;font-size:15px}
+.tab:hover{background:#e0e0e0;transform:translateY(-2px)}
+.tab.active{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;box-shadow:0 4px 10px rgba(102,126,234,0.3)}
+.tab-content{display:none;animation:fadeIn 0.3s}
+.tab-content.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:25px;margin-bottom:40px}
-.kpi-card{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:30px;border-radius:15px;text-align:center;box-shadow:0 8px 25px rgba(102,126,234,0.4);transition:transform 0.3s}
-.kpi-card:hover{transform:translateY(-5px)}
+.kpi-card{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:30px;border-radius:15px;text-align:center;box-shadow:0 10px 30px rgba(102,126,234,0.4);transition:transform 0.3s,box-shadow 0.3s}
+.kpi-card:hover{transform:translateY(-8px);box-shadow:0 15px 40px rgba(102,126,234,0.5)}
 .kpi-value{font-size:3em;font-weight:bold;margin:15px 0}
 .kpi-label{opacity:0.95;font-size:1em;text-transform:uppercase;letter-spacing:2px}
-.chart-container{background:#fff;padding:30px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,0.1);margin-bottom:30px}
+.chart-container{background:#fff;padding:30px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.1);margin-bottom:30px}
 .chart-box{position:relative;height:400px}
-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:15px}
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,0.05)}
 th,td{padding:15px;text-align:left;border-bottom:1px solid #eee}
-th{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:600;position:sticky;top:0}
-tr:hover{background:#f9f9f9}
-.table-container{background:#fff;padding:30px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,0.1)}
+th{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:600;position:sticky;top:0;z-index:10}
+tbody tr:hover{background:#f9f9f9;cursor:pointer}
+.search-box{width:100%;max-width:400px;padding:12px 20px;border:2px solid #667eea;border-radius:25px;font-size:15px;margin-bottom:20px;transition:all 0.3s}
+.search-box:focus{outline:none;border-color:#764ba2;box-shadow:0 0 10px rgba(102,126,234,0.3)}
+.alert{padding:15px 20px;border-radius:10px;margin:10px 0;font-weight:500}
+.alert-danger{background:#fee;color:#c00;border-left:4px solid #c00}
+.alert-warning{background:#ffc;color:#880;border-left:4px solid #fa0}
+.alert-info{background:#eff;color:#088;border-left:4px solid#088}
+.badge{display:inline-block;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;margin:0 5px}
+.badge-success{background:#22c55e;color:#fff}
+.badge-warning{background:#f59e0b;color:#fff}
+.badge-danger{background:#ef4444;color:#fff}
+h2{color:#667eea;margin:30px 0 20px;font-size:1.8em}
+.section-header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:20px;border-radius:10px;margin:30px 0 20px}
 </style>
-</head><body>
+</head>
+<body>
 <div class="container">
-<h1>🎨 Dashboard Interactivo - Análisis de Tarifas</h1>
+<h1>🎨 Visor Interactivo - Análisis de Tarifas</h1>
 
-<div class="kpi-grid">
-<div class="kpi-card">
-<div class="kpi-label">Contratos INDEX</div>
-<div class="kpi-value">${totalContratosIndex.toLocaleString('es-ES')}</div>
-</div>
-<div class="kpi-card">
-<div class="kpi-label">Contratos FIJOS</div>
-<div class="kpi-value">${totalContratosFijos.toLocaleString('es-ES')}</div>
-</div>
-<div class="kpi-card">
-<div class="kpi-label">Beneficio Mensual</div>
-<div class="kpi-value">${Math.round(datos.beneficioMensual).toLocaleString('es-ES')} €</div>
-</div>
-<div class="kpi-card">
-<div class="kpi-label">Beneficio Anual</div>
-<div class="kpi-value">${Math.round(datos.beneficioAnual).toLocaleString('es-ES')} €</div>
-</div>
+<div class="tabs">
+<button class="tab active" onclick="cambiarTab(event,'dashboard')">📊 Dashboard</button>
+<button class="tab" onclick="cambiarTab(event,'electricidad')">⚡ Electricidad</button>
+<button class="tab" onclick="cambiarTab(event,'gas')">🔥 Gas</button>
+<button class="tab" onclick="cambiarTab(event,'vencimientos')">📅 Vencimientos</button>
+<button class="tab" onclick="cambiarTab(event,'resumen')">📈 Resumen</button>
 </div>
 
+<div id="dashboard" class="tab-content active">
+<div id="kpis"></div>
 <div class="chart-container">
-<h2 style="margin-top:0">📊 Distribución de Contratos</h2>
-<div class="chart-box">
-<canvas id="chartContratos"></canvas>
+<h2 style="margin-top:0">📊 Distribución de Contratos por Peaje</h2>
+<div class="chart-box"><canvas id="chartPrincipal"></canvas></div>
+</div>
+<div class="chart-container">
+<h2 style="margin-top:0">💰 Beneficios INDEX por Peaje</h2>
+<div class="chart-box"><canvas id="chartBeneficios"></canvas></div>
 </div>
 </div>
 
-<div class="table-container">
-<h2 style="margin-top:0">💰 Detalle Contratos INDEX por Peaje</h2>
-<table>
-<thead>
-<tr>
-<th>Peaje</th>
-<th style="text-align:right">Contratos</th>
-<th style="text-align:right">Consumo (kWh/mes)</th>
-<th style="text-align:right">Beneficio Mensual</th>
-</tr>
-</thead>
-<tbody>
-${tablaIndexados}
-</tbody>
-</table>
+<div id="electricidad" class="tab-content">
+<div class="section-header"><h2 style="color:#fff;margin:0">⚡ Tarifas Electricidad</h2></div>
+<div class="tabs" style="border-bottom:2px solid #eee">
+<button class="tab active" onclick="cambiarSubTab(event,'2_0TD')">2.0 TD</button>
+<button class="tab" onclick="cambiarSubTab(event,'3_0TD')">3.0 TD</button>
+<button class="tab" onclick="cambiarSubTab(event,'6_1TD')">6.1 TD</button>
+<button class="tab" onclick="cambiarSubTab(event,'6_2TD')">6.2 TD</button>
+</div>
+<div id="2_0TD" class="tab-content active"></div>
+<div id="3_0TD" class="tab-content"></div>
+<div id="6_1TD" class="tab-content"></div>
+<div id="6_2TD" class="tab-content"></div>
+</div>
+
+<div id="gas" class="tab-content">
+<div class="section-header"><h2 style="color:#fff;margin:0">🔥 Tarifas Gas</h2></div>
+<div class="tabs" style="border-bottom:2px solid #eee">
+<button class="tab active" onclick="cambiarSubTab(event,'RL_1')">RL.1</button>
+<button class="tab" onclick="cambiarSubTab(event,'RL_2')">RL.2</button>
+<button class="tab" onclick="cambiarSubTab(event,'RL_3')">RL.3</button>
+<button class="tab" onclick="cambiarSubTab(event,'RL_4')">RL.4</button>
+<button class="tab" onclick="cambiarSubTab(event,'RL_5')">RL.5</button>
+</div>
+<div id="RL_1" class="tab-content active"></div>
+<div id="RL_2" class="tab-content"></div>
+<div id="RL_3" class="tab-content"></div>
+<div id="RL_4" class="tab-content"></div>
+<div id="RL_5" class="tab-content"></div>
+<div id="resumenGasDiv"></div>
+</div>
+
+<div id="vencimientos" class="tab-content">
+<div class="section-header"><h2 style="color:#fff;margin:0">📅 Vencimientos Próximos</h2></div>
+<div id="vencimientosContent"></div>
+</div>
+
+<div id="resumen" class="tab-content">
+<div class="section-header"><h2 style="color:#fff;margin:0">📈 Resumen Completo</h2></div>
+<div id="resumenContent"></div>
 </div>
 
 </div>
 
 <script>
-const datos = ${JSON.stringify(datos)};
+const datos = ${datosJSON};
 
-// Preparar datos para gráfico
-const labels = [];
-const valuesIndex = [];
-const valuesFijos = [];
+function cambiarTab(event, tabId) {
+    document.querySelectorAll('.tabs > .tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.container > .tab-content').forEach(c => c.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+}
 
-datos.peajes.forEach(peaje => {
-    labels.push(peaje);
-    valuesIndex.push(datos.datosIndexados[peaje] ? datos.datosIndexados[peaje].contratos : 0);
-    valuesFijos.push(datos.datosFijos[peaje] ? datos.datosFijos[peaje].contratos : 0);
+function cambiarSubTab(event, tabId) {
+    const parent = event.target.closest('.tab-content');
+    parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+}
+
+function fmt(num) {
+    return new Intl.NumberFormat('es-ES').format(Math.round(num));
+}
+
+function fmtCur(num) {
+    return new Intl.NumberFormat('es-ES', {style:'currency', currency:'EUR'}).format(num);
+}
+
+function renderTabla(datos, containerId, searchable = true) {
+    if (!datos || datos.length === 0) {
+        document.getElementById(containerId).innerHTML = '<p style="text-align:center;padding:40px;color:#999">No hay datos disponibles</p>';
+        return;
+    }
+    
+    const keys = Object.keys(datos[0]);
+    let html = '';
+    
+    if (searchable) {
+        html += \`<input type="text" class="search-box" placeholder="🔍 Buscar..." onkeyup="filtrarTabla(this, '\${containerId}-table')">\`;
+    }
+    
+    html += \`<table id="\${containerId}-table"><thead><tr>\`;
+    keys.forEach(k => html += \`<th>\${k}</th>\`);
+    html += '</tr></thead><tbody>';
+    
+    datos.forEach(row => {
+        html += '<tr>';
+        keys.forEach(k => {
+            let val = row[k] || '';
+            let cls = '';
+            if (k === 'Estado') {
+                if (val === 'ACTIVA') cls = 'badge badge-success';
+                else if (val === 'CONFIGURADA') cls = 'badge badge-warning';
+                else cls = 'badge badge-danger';
+            }
+            if (typeof val === 'number' && k.includes('Beneficio')) val = fmtCur(val);
+            else if (typeof val === 'number' && k.includes('Consumo')) val = fmt(val);
+            else if (typeof val === 'number') val = fmt(val);
+            html += \`<td><span class="\${cls}">\${val}</span></td>\`;
+        });
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    document.getElementById(containerId).innerHTML = html;
+}
+
+function filtrarTabla(input, tableId) {
+    const filter = input.value.toUpperCase();
+    const table = document.getElementById(tableId);
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const text = row.textContent.toUpperCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+    });
+}
+
+// Renderizar electricidad
+['2_0TD', '3_0TD', '6_1TD', '6_2TD'].forEach(sheet => {
+    if (datos[sheet]) renderTabla(datos[sheet], sheet);
 });
 
-// Gráfico de barras
-new Chart(document.getElementById('chartContratos'), {
+// Renderizar gas
+['RL_1', 'RL_2', 'RL_3', 'RL_4', 'RL_5'].forEach(sheet => {
+    if (datos[sheet]) renderTabla(datos[sheet], sheet);
+});
+
+if (datos.resumenGas) {
+    let html = '<h2>📊 Resumen Gas</h2>';
+    html += '<table><thead><tr>';
+    const keys = Object.keys(datos.resumenGas[0] || {});
+    keys.forEach(k => html += \`<th>\${k}</th>\`);
+    html += '</tr></thead><tbody>';
+    datos.resumenGas.forEach(row => {
+        html += '<tr>';
+        keys.forEach(k => html += \`<td>\${row[k]}</td>\`);
+        html += '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('resumenGasDiv').innerHTML = html;
+}
+
+// Vencimientos
+if (datos.vencimientos) {
+    const vencidos = datos.vencimientos.filter(v => v['Días Restantes'] < 0);
+    const urgentes = datos.vencimientos.filter(v => v['Días Restantes'] >= 0 && v['Días Restantes'] <= 30);
+    const proximos = datos.vencimientos.filter(v => v['Días Restantes'] > 30);
+    
+    let html = '';
+    if (vencidos.length > 0) html += \`<div class="alert alert-danger">⚠️ <strong>\${vencidos.length} contratos vencidos</strong></div>\`;
+    if (urgentes.length > 0) html += \`<div class="alert alert-warning">🔴 <strong>\${urgentes.length} contratos urgentes (≤30 días)</strong></div>\`;
+    if (proximos.length > 0) html += \`<div class="alert alert-info">🟡 <strong>\${proximos.length} contratos próximos (31-60 días)</strong></div>\`;
+    
+    html += '<h2>Todos los vencimientos</h2>';
+    document.getElementById('vencimientosContent').innerHTML = html;
+    renderTabla(datos.vencimientos, 'vencimientosContent', false);
+}
+
+// Resumen completo
+if (datos.resumenCompleto) {
+    let html = '<table>';
+    datos.resumenCompleto.forEach(row => {
+        html += '<tr>';
+        row.forEach(cell => html += \`<td style="padding:10px"><strong>\${cell || ''}</strong></td>\`);
+        html += '</tr>';
+    });
+    html += '</table>';
+    document.getElementById('resumenContent').innerHTML = html;
+}
+
+// KPIs y gráficos del dashboard
+let totalIndex = 0, totalFijos = 0, beneficioTotal = 0;
+const datosPeajes = {};
+
+['2_0TD', '3_0TD', '6_1TD', '6_2TD'].forEach(sheet => {
+    if (datos[sheet]) {
+        datosPeajes[sheet] = {index: 0, fijos: 0, beneficio: 0};
+        datos[sheet].forEach(row => {
+            const tarifa = (row.Tarifa || '').toUpperCase();
+            const esIndex = tarifa.includes('INDEX');
+            const facturas = row.Facturas || 0;
+            const beneficio = row['Beneficio (€)'] || 0;
+            
+            if (esIndex) {
+                totalIndex += facturas;
+                datosPeajes[sheet].index += facturas;
+                datosPeajes[sheet].beneficio += beneficio;
+                beneficioTotal += beneficio;
+            } else {
+                totalFijos += facturas;
+                datosPeajes[sheet].fijos += facturas;
+            }
+        });
+    }
+});
+
+document.getElementById('kpis').innerHTML = \`
+<div class="kpi-card">
+<div class="kpi-label">Contratos INDEX</div>
+<div class="kpi-value">\${fmt(totalIndex)}</div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">Contratos FIJOS</div>
+<div class="kpi-value">\${fmt(totalFijos)}</div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">Beneficio Mensual</div>
+<div class="kpi-value">\${fmtCur(beneficioTotal)}</div>
+</div>
+<div class="kpi-card">
+<div class="kpi-label">Beneficio Anual</div>
+<div class="kpi-value">\${fmtCur(beneficioTotal * 12)}</div>
+</div>
+\`;
+
+// Gráfico contratos
+new Chart(document.getElementById('chartPrincipal'), {
     type: 'bar',
     data: {
-        labels: labels,
+        labels: Object.keys(datosPeajes),
         datasets: [{
-            label: 'Contratos INDEX',
-            data: valuesIndex,
-            backgroundColor: 'rgba(102, 126, 234, 0.8)',
-            borderColor: 'rgba(102, 126, 234, 1)',
-            borderWidth: 2
+            label: 'INDEX',
+            data: Object.values(datosPeajes).map(d => d.index),
+            backgroundColor: 'rgba(102, 126, 234, 0.8)'
         }, {
-            label: 'Contratos FIJOS',
-            data: valuesFijos,
-            backgroundColor: 'rgba(118, 75, 162, 0.8)',
-            borderColor: 'rgba(118, 75, 162, 1)',
-            borderWidth: 2
+            label: 'FIJOS',
+            data: Object.values(datosPeajes).map(d => d.fijos),
+            backgroundColor: 'rgba(118, 75, 162, 0.8)'
         }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: true,
-                position: 'top',
-                labels: { font: { size: 14 } }
-            },
-            title: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: { font: { size: 12 } }
-            },
-            x: {
-                ticks: { font: { size: 12 } }
-            }
-        }
+        plugins: {legend: {display: true}}
     }
 });
 
-console.log('Dashboard cargado con éxito');
+// Gráfico beneficios
+new Chart(document.getElementById('chartBeneficios'), {
+    type: 'pie',
+    data: {
+        labels: Object.keys(datosPeajes),
+        datasets: [{
+            data: Object.values(datosPeajes).map(d => d.beneficio),
+            backgroundColor: ['#667eea', '#764ba2', '#ed64a6', '#2ec4b6']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+console.log('Visor cargado correctamente');
 </script>
-</body></html>`;
+</body>
+</html>`;
         }
 
     </script>

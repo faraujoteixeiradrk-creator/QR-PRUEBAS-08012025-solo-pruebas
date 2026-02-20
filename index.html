@@ -2196,6 +2196,11 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 }
                                 
                                 preciosPorTarifa.set(nombreTarifa, precios);
+                                
+                                // Log primeras 5 tarifas
+                                if (preciosPorTarifa.size <= 5) {
+                                    console.log(`  [${preciosPorTarifa.size}] "${nombreTarifa}" → P1=${precios.potencia.P1}, E1=${precios.energia.E1}`);
+                                }
                             }
                         }
                         
@@ -2230,7 +2235,29 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 }
                                 
                                 // Obtener precios de potencia y energía
-                                const precios = preciosPorTarifa.get(info.tarifa) || {potencia: {}, energia: {}};
+                                // Buscar por nombre exacto primero
+                                let precios = preciosPorTarifa.get(info.tarifa);
+                                
+                                // Si no se encuentra, buscar de forma case-insensitive
+                                if (!precios) {
+                                    const tarifaNormalizada = info.tarifa.toUpperCase().trim();
+                                    for (const [key, val] of preciosPorTarifa.entries()) {
+                                        if (key.toUpperCase().trim() === tarifaNormalizada) {
+                                            precios = val;
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                const preciosFinales = precios || {potencia: {}, energia: {}};
+                                
+                                // Debug solo para primera tarifa de cada peaje
+                                if (tarifasDelPeaje.length === 0) {
+                                    console.log(`[${peaje}] Primera tarifa: "${info.tarifa}" → Precios ${precios ? 'encontrados' : 'NO encontrados'}`);
+                                    if (!precios) {
+                                        console.log(`  Tarifas disponibles (primeras 3):`, Array.from(preciosPorTarifa.keys()).slice(0, 3));
+                                    }
+                                }
                                 
                                 // Crear objeto base
                                 const tarifaData = {

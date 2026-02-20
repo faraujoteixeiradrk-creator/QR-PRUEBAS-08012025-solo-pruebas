@@ -1778,6 +1778,10 @@ Revisa y envía cada uno." buttons {"OK"}`;
         }
 
         function analizarTarifas() {
+            console.log('🚀 INICIO DE analizarTarifas()');
+            console.log('processedWorkbook:', !!processedWorkbook);
+            console.log('originalWorkbook:', !!originalWorkbook);
+            
             if (!processedWorkbook && !processedWorkbookGas) {
                 showStatus('❌ No hay datos procesados para analizar', 'error');
                 return;

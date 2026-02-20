@@ -2896,8 +2896,21 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 row.push(0);
                             }
                         } else if (formula.match(/^[A-Z]+\d+$/)) {
-                            const refCell = sheet[formula];
-                            row.push(refCell && refCell.v !== undefined ? refCell.v : '');
+                            // Referencia simple como =C7
+                            const refMatch = formula.match(/([A-Z]+)(\d+)/);
+                            if (refMatch) {
+                                const refCol = refMatch[1].charCodeAt(0) - 65;
+                                const refRow = parseInt(refMatch[2]) - 1;
+                                // Usar valor ya evaluado si existe
+                                if (data[refRow] && data[refRow][refCol] !== undefined && data[refRow][refCol] !== '') {
+                                    row.push(data[refRow][refCol]);
+                                } else {
+                                    const refCell = sheet[formula];
+                                    row.push(refCell && refCell.v !== undefined ? refCell.v : '');
+                                }
+                            } else {
+                                row.push('');
+                            }
                         } else if (formula.includes('*12')) {
                             const match = formula.match(/([A-Z]+)(\d+)\*12/);
                             if (match) {
@@ -2908,11 +2921,24 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 row.push(0);
                             }
                         } else if (formula.includes('+')) {
+                            // Suma de celdas como =B18+B19
                             const parts = formula.split('+');
                             let sum = 0;
                             parts.forEach(part => {
-                                const refCell = sheet[part.trim()];
-                                if (refCell && typeof refCell.v === 'number') sum += refCell.v;
+                                const trimmed = part.trim();
+                                const refMatch = trimmed.match(/([A-Z]+)(\d+)/);
+                                if (refMatch) {
+                                    const refCol = refMatch[1].charCodeAt(0) - 65;
+                                    const refRow = parseInt(refMatch[2]) - 1;
+                                    // Usar valor ya evaluado si existe
+                                    if (data[refRow] && data[refRow][refCol] !== undefined && data[refRow][refCol] !== '') {
+                                        const val = data[refRow][refCol];
+                                        if (typeof val === 'number') sum += val;
+                                    } else {
+                                        const refCell = sheet[trimmed];
+                                        if (refCell && typeof refCell.v === 'number') sum += refCell.v;
+                                    }
+                                }
                             });
                             row.push(sum);
                         } else {

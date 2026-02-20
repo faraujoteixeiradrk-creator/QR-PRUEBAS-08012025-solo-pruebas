@@ -2155,7 +2155,12 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     const preciosPorTarifa = new Map(); // key: nombreTarifa, value: {potencia: {P1, P2...}, energia: {E1, E2...}}
                     
                     try {
-                        for (const factura of facturaTotal) {
+                        // Leer datos de FACTURA TOTAL
+                        if (facturaTotalSheet) {
+                            const facturasTotales = XLSX.utils.sheet_to_json(facturaTotalSheet);
+                            console.log(`Leyendo ${facturasTotales.length} facturas para extraer precios`);
+                            
+                            for (const factura of facturasTotales) {
                             const nombreTarifa = factura['Grupo'] || factura['GRUPO'];
                             if (!nombreTarifa) continue;
                             
@@ -2198,6 +2203,9 @@ Revisa y envía cada uno." buttons {"OK"}`;
                         if (preciosPorTarifa.size > 0) {
                             const primeraTarifa = Array.from(preciosPorTarifa.keys())[0];
                             console.log(`Ejemplo - ${primeraTarifa}:`, preciosPorTarifa.get(primeraTarifa));
+                        }
+                        } else {
+                            console.log('⚠️ No se encontró hoja FACTURA TOTAL');
                         }
                     } catch (error) {
                         console.error('❌ Error extrayendo precios:', error);

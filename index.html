@@ -2278,11 +2278,21 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 // Debug para 6.2TD
                                 if (peaje === '6.2TD') {
                                     console.log(`[6.2TD] Tarifa: "${info.tarifa}" → Buscando: "${keyPrecios}"`);
+                                    console.log(`  Longitud clave buscada: ${keyPrecios.length} chars`);
+                                    console.log(`  Códigos: [${Array.from(keyPrecios).map(c => c.charCodeAt(0)).join(', ')}]`);
                                     console.log(`  ¿Encontrado? ${!!precios}`);
                                     if (!precios) {
-                                        console.log(`  Claves con 6.2TD:`, Array.from(preciosPorTarifaPeaje.keys()).filter(k => k.includes('6.2TD')));
+                                        const clavesConPeaje = Array.from(preciosPorTarifaPeaje.keys()).filter(k => k.includes('6.2TD'));
+                                        console.log(`  Claves con 6.2TD:`, clavesConPeaje);
+                                        if (clavesConPeaje.length > 0) {
+                                            const primeraKey = clavesConPeaje[0];
+                                            console.log(`  Primera clave length: ${primeraKey.length} chars`);
+                                            console.log(`  Primera clave códigos: [${Array.from(primeraKey).map(c => c.charCodeAt(0)).join(', ')}]`);
+                                            console.log(`  ¿Son iguales (===)? ${keyPrecios === primeraKey}`);
+                                            console.log(`  ¿Son iguales (trim)? ${keyPrecios.trim() === primeraKey.trim()}`);
+                                        }
                                     } else {
-                                        console.log(`  Precios: P1=${preciosFinales.potencia.P1}, E1=${preciosFinales.energia.E1}`);
+                                        console.log(`  ✓ Precios: P1=${preciosFinales.potencia.P1}, E1=${preciosFinales.energia.E1}`);
                                     }
                                 }
                                 

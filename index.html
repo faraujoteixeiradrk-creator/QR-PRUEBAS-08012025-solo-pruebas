@@ -2262,39 +2262,27 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 const keyPrecios = `${info.tarifa}|${peaje}`;
                                 let precios = preciosPorTarifaPeaje.get(keyPrecios);
                                 
-                                // Si no se encuentra con el nombre exacto, buscar case-insensitive
-                                if (!precios) {
-                                    const keyNormalizado = keyPrecios.toUpperCase().trim();
-                                    for (const [k, v] of preciosPorTarifaPeaje.entries()) {
-                                        if (k.toUpperCase().trim() === keyNormalizado) {
-                                            precios = v;
-                                            break;
+                                // Debug para 6.2TD
+                                if (peaje === '6.2TD') {
+                                    console.log(`[6.2TD] Buscando: "${keyPrecios}"`);
+                                    console.log(`[6.2TD] ¿Existe en Map? ${preciosPorTarifaPeaje.has(keyPrecios)}`);
+                                    console.log(`[6.2TD] Valor obtenido:`, precios);
+                                    
+                                    // Intentar búsqueda manual
+                                    const todasLasClaves = Array.from(preciosPorTarifaPeaje.keys());
+                                    const clavesConPeaje = todasLasClaves.filter(k => k.includes('6.2TD'));
+                                    if (clavesConPeaje.length > 0) {
+                                        console.log(`[6.2TD] Intentando con clave del Map:`, clavesConPeaje[0]);
+                                        const preciosManual = preciosPorTarifaPeaje.get(clavesConPeaje[0]);
+                                        console.log(`[6.2TD] Precios obtenidos manualmente:`, preciosManual);
+                                        if (!precios) {
+                                            precios = preciosManual;
+                                            console.log(`[6.2TD] ✓ Usando precios obtenidos manualmente`);
                                         }
                                     }
                                 }
                                 
                                 const preciosFinales = precios || {potencia: {}, energia: {}};
-                                
-                                // Debug para 6.2TD
-                                if (peaje === '6.2TD') {
-                                    console.log(`[6.2TD] Tarifa: "${info.tarifa}" → Buscando: "${keyPrecios}"`);
-                                    console.log(`  Longitud clave buscada: ${keyPrecios.length} chars`);
-                                    console.log(`  Códigos: [${Array.from(keyPrecios).map(c => c.charCodeAt(0)).join(', ')}]`);
-                                    console.log(`  ¿Encontrado? ${!!precios}`);
-                                    if (!precios) {
-                                        const clavesConPeaje = Array.from(preciosPorTarifaPeaje.keys()).filter(k => k.includes('6.2TD'));
-                                        console.log(`  Claves con 6.2TD:`, clavesConPeaje);
-                                        if (clavesConPeaje.length > 0) {
-                                            const primeraKey = clavesConPeaje[0];
-                                            console.log(`  Primera clave length: ${primeraKey.length} chars`);
-                                            console.log(`  Primera clave códigos: [${Array.from(primeraKey).map(c => c.charCodeAt(0)).join(', ')}]`);
-                                            console.log(`  ¿Son iguales (===)? ${keyPrecios === primeraKey}`);
-                                            console.log(`  ¿Son iguales (trim)? ${keyPrecios.trim() === primeraKey.trim()}`);
-                                        }
-                                    } else {
-                                        console.log(`  ✓ Precios: P1=${preciosFinales.potencia.P1}, E1=${preciosFinales.energia.E1}`);
-                                    }
-                                }
                                 
                                 // Debug solo para primera tarifa de cada peaje (excepto 6.2TD que ya tiene su propio log)
                                 if (tarifasDelPeaje.length === 0 && peaje !== '6.2TD') {

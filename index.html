@@ -2154,46 +2154,55 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     
                     const preciosPorTarifa = new Map(); // key: nombreTarifa, value: {potencia: {P1, P2...}, energia: {E1, E2...}}
                     
-                    for (const factura of facturaTotal) {
-                        const nombreTarifa = factura['Grupo'] || factura['GRUPO'];
-                        if (!nombreTarifa) continue;
-                        
-                        // Solo procesar si no tenemos ya los precios de esta tarifa
-                        if (!preciosPorTarifa.has(nombreTarifa)) {
-                            const precios = {
-                                potencia: {},
-                                energia: {}
-                            };
+                    try {
+                        for (const factura of facturaTotal) {
+                            const nombreTarifa = factura['Grupo'] || factura['GRUPO'];
+                            if (!nombreTarifa) continue;
                             
-                            // Extraer precios de potencia
-                            precios.potencia.P1 = factura['Precio Potencia P1'] || factura['PRECIO POTENCIA P1'] || 0;
-                            precios.potencia.P2 = factura['Precio Potencia P2'] || factura['PRECIO POTENCIA P2'] || 0;
-                            
-                            // Para 3.0TD, 6.1TD, 6.2TD (tienen P3-P6)
-                            if (factura['Precio Potencia P3'] !== undefined || factura['PRECIO POTENCIA P3'] !== undefined) {
-                                precios.potencia.P3 = factura['Precio Potencia P3'] || factura['PRECIO POTENCIA P3'] || 0;
-                                precios.potencia.P4 = factura['Precio Potencia P4'] || factura['PRECIO POTENCIA P4'] || 0;
-                                precios.potencia.P5 = factura['Precio Potencia P5'] || factura['PRECIO POTENCIA P5'] || 0;
-                                precios.potencia.P6 = factura['Precio Potencia P6'] || factura['PRECIO POTENCIA P6'] || 0;
+                            // Solo procesar si no tenemos ya los precios de esta tarifa
+                            if (!preciosPorTarifa.has(nombreTarifa)) {
+                                const precios = {
+                                    potencia: {},
+                                    energia: {}
+                                };
+                                
+                                // Extraer precios de potencia
+                                precios.potencia.P1 = factura['Precio Potencia P1'] || factura['PRECIO POTENCIA P1'] || 0;
+                                precios.potencia.P2 = factura['Precio Potencia P2'] || factura['PRECIO POTENCIA P2'] || 0;
+                                
+                                // Para 3.0TD, 6.1TD, 6.2TD (tienen P3-P6)
+                                if (factura['Precio Potencia P3'] !== undefined || factura['PRECIO POTENCIA P3'] !== undefined) {
+                                    precios.potencia.P3 = factura['Precio Potencia P3'] || factura['PRECIO POTENCIA P3'] || 0;
+                                    precios.potencia.P4 = factura['Precio Potencia P4'] || factura['PRECIO POTENCIA P4'] || 0;
+                                    precios.potencia.P5 = factura['Precio Potencia P5'] || factura['PRECIO POTENCIA P5'] || 0;
+                                    precios.potencia.P6 = factura['Precio Potencia P6'] || factura['PRECIO POTENCIA P6'] || 0;
+                                }
+                                
+                                // Extraer precios de energía
+                                precios.energia.E1 = factura['Precio Energía P1'] || factura['PRECIO ENERGÍA P1'] || 0;
+                                precios.energia.E2 = factura['Precio Energía P2'] || factura['PRECIO ENERGÍA P2'] || 0;
+                                precios.energia.E3 = factura['Precio Energía P3'] || factura['PRECIO ENERGÍA P3'] || 0;
+                                
+                                // Para 3.0TD, 6.1TD, 6.2TD (tienen E4-E6)
+                                if (factura['Precio Energía P4'] !== undefined || factura['PRECIO ENERGÍA P4'] !== undefined) {
+                                    precios.energia.E4 = factura['Precio Energía P4'] || factura['PRECIO ENERGÍA P4'] || 0;
+                                    precios.energia.E5 = factura['Precio Energía P5'] || factura['PRECIO ENERGÍA P5'] || 0;
+                                    precios.energia.E6 = factura['Precio Energía P6'] || factura['PRECIO ENERGÍA P6'] || 0;
+                                }
+                                
+                                preciosPorTarifa.set(nombreTarifa, precios);
                             }
-                            
-                            // Extraer precios de energía
-                            precios.energia.E1 = factura['Precio Energía P1'] || factura['PRECIO ENERGÍA P1'] || 0;
-                            precios.energia.E2 = factura['Precio Energía P2'] || factura['PRECIO ENERGÍA P2'] || 0;
-                            precios.energia.E3 = factura['Precio Energía P3'] || factura['PRECIO ENERGÍA P3'] || 0;
-                            
-                            // Para 3.0TD, 6.1TD, 6.2TD (tienen E4-E6)
-                            if (factura['Precio Energía P4'] !== undefined || factura['PRECIO ENERGÍA P4'] !== undefined) {
-                                precios.energia.E4 = factura['Precio Energía P4'] || factura['PRECIO ENERGÍA P4'] || 0;
-                                precios.energia.E5 = factura['Precio Energía P5'] || factura['PRECIO ENERGÍA P5'] || 0;
-                                precios.energia.E6 = factura['Precio Energía P6'] || factura['PRECIO ENERGÍA P6'] || 0;
-                            }
-                            
-                            preciosPorTarifa.set(nombreTarifa, precios);
                         }
+                        
+                        console.log(`✅ Precios extraídos para ${preciosPorTarifa.size} tarifas`);
+                        if (preciosPorTarifa.size > 0) {
+                            const primeraTarifa = Array.from(preciosPorTarifa.keys())[0];
+                            console.log(`Ejemplo - ${primeraTarifa}:`, preciosPorTarifa.get(primeraTarifa));
+                        }
+                    } catch (error) {
+                        console.error('❌ Error extrayendo precios:', error);
+                        showStatus('⚠️ Error extrayendo precios. Continuando sin precios.', 'warning');
                     }
-                    
-                    console.log(`Precios extraídos para ${preciosPorTarifa.size} tarifas`);
                     
                     for (const peaje of todosPeajes) {
                         const tarifasDelPeaje = [];

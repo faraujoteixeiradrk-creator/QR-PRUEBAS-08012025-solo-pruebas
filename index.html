@@ -2810,6 +2810,67 @@ Revisa y envía cada uno." buttons {"OK"}`;
                 const timestamp = new Date().toISOString().split('T')[0];
                 XLSX.writeFile(analisisWb, `Analisis_Tarifas_${timestamp}.xlsx`);
                 
+                // Guardar datos para el visor en localStorage
+                try {
+                    const datosParaVisor = {
+                        timestamp: new Date().toISOString(),
+                        datos: {
+                            '2_0TD': [],
+                            '3_0TD': [],
+                            '6_1TD': [],
+                            '6_2TD': [],
+                            resumenCompleto: resumenCompleto,
+                            vencimientos: [],
+                            resumenGas: []
+                        }
+                    };
+                    
+                    // Guardar datos de las hojas de peaje
+                    for (const peaje of todosPeajes) {
+                        const nombreHoja = peaje.replace(/\./g, '_').replace(/\s/g, '_');
+                        const tarifasDelPeaje = [];
+                        
+                        for (const [key, info] of todasLasTarifasElec.entries()) {
+                            if (info.peajes.includes(peaje)) {
+                                const keyConteo = `${key}|${peaje}`;
+                                const consumoTotal = consumosPorTarifa[keyConteo] || 0;
+                                const facturas = conteoPorTarifa[keyConteo] || 0;
+                                const feeInfo = feesPorTarifaPeaje[keyConteo];
+                                const fee = feeInfo ? feeInfo.fee : '';
+                                let beneficio = '';
+                                if (fee && consumoTotal > 0) {
+                                    beneficio = Math.round(consumoTotal * fee * 100) / 100;
+                                }
+                                tarifasDelPeaje.push({
+                                    'Tarifa': info.tarifa,
+                                    'Peaje': peaje,
+                                    'Tipo': info.tipo,
+                                    'Comisión': info.comision,
+                                    'Estado': info.estado,
+                                    'Facturas': facturas,
+                                    'Consumos (kWh/mes)': consumoTotal,
+                                    'FEE (€/MWh)': fee,
+                                    'Beneficio (€)': beneficio
+                                });
+                            }
+                        }
+                        
+                        if (nombreHoja && datosParaVisor.datos[nombreHoja]) {
+                            datosParaVisor.datos[nombreHoja] = tarifasDelPeaje;
+                        }
+                    }
+                    
+                    // Guardar vencimientos si existen
+                    if (vencimientosProximos && vencimientosProximos.length > 0) {
+                        datosParaVisor.datos.vencimientos = vencimientosProximos;
+                    }
+                    
+                    localStorage.setItem('datosAnalisisTarifas', JSON.stringify(datosParaVisor));
+                    console.log('✅ Datos guardados en localStorage para el visor');
+                } catch (error) {
+                    console.warn('No se pudieron guardar datos en localStorage:', error);
+                }
+                
                 showStatus('✅ Análisis de tarifas generado', 'success');
                 
             } catch (error) {
@@ -2823,6 +2884,30 @@ Revisa y envía cada uno." buttons {"OK"}`;
         // ==========================================
         
         document.getElementById('abrirVisorBtn').addEventListener('click', () => {
+            // Primero intentar cargar desde localStorage
+            const datosGuardados = localStorage.getItem('datosAnalisisTarifas');
+            
+            if (datosGuardados) {
+                try {
+                    const datosParseados = JSON.parse(datosGuardados);
+                    const fechaGuardado = new Date(datosParseados.timestamp);
+                    const ahora = new Date();
+                    const horasTranscurridas = (ahora - fechaGuardado) / (1000 * 60 * 60);
+                    
+                    // Si los datos tienen menos de 24 horas, usarlos
+                    if (horasTranscurridas < 24) {
+                        showStatus('✅ Abriendo visor con datos guardados (' + fechaGuardado.toLocaleString('es-ES') + ')', 'success');
+                        abrirVisorEnNuevaVentana(datosParseados.datos);
+                        return;
+                    } else {
+                        showStatus('⚠️ Datos guardados tienen más de 24h. Selecciona el Excel actualizado.', 'warning');
+                    }
+                } catch (error) {
+                    console.warn('Error al cargar datos guardados:', error);
+                }
+            }
+            
+            // Si no hay datos guardados o son antiguos, pedir el archivo
             showStatus('📂 Selecciona el Excel generado...', 'info');
             document.getElementById('excelVisorInput').click();
         });
@@ -2876,7 +2961,8 @@ Revisa y envía cada uno." buttons {"OK"}`;
             html += '*{margin:0;padding:0;box-sizing:border-box}';
             html += 'body{font-family:system-ui;background:linear-gradient(135deg,#667eea,#764ba2);padding:20px;min-height:100vh}';
             html += '.container{max-width:1600px;margin:0 auto;background:#fff;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}';
-            html += 'h1{text-align:center;color:#667eea;margin-bottom:40px;font-size:2.5em}';
+            html += 'h1{text-align:center;color:#667eea;margin-bottom:20px;font-size:2.5em}';
+            html += '.info-banner{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:15px 25px;border-radius:10px;margin-bottom:30px;text-align:center}';
             html += '.tabs{display:flex;gap:10px;margin-bottom:30px;border-bottom:3px solid #667eea;flex-wrap:wrap}';
             html += '.tab{padding:15px 25px;cursor:pointer;border:none;background:#f5f5f5;border-radius:10px 10px 0 0;font-weight:600;transition:all 0.3s}';
             html += '.tab:hover{background:#e0e0e0}';
@@ -2906,6 +2992,12 @@ Revisa y envía cada uno." buttons {"OK"}`;
             html += '</style></head><body>';
             html += '<div class="container">';
             html += '<h1>🎨 Visor Interactivo - Análisis de Tarifas</h1>';
+            
+            // Info banner
+            const fechaCarga = new Date().toLocaleString('es-ES');
+            html += '<div class="info-banner">';
+            html += '📊 <strong>Datos cargados automáticamente</strong> | Última carga: ' + fechaCarga;
+            html += '</div>';
             
             // Tabs
             html += '<div class="tabs">';

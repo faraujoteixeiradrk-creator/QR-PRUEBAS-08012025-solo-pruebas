@@ -1785,21 +1785,30 @@ Revisa y envía cada uno." buttons {"OK"}`;
             console.log('processedWorkbook:', !!processedWorkbook);
             console.log('originalWorkbook:', !!originalWorkbook);
             
+            try {
+            
             if (!processedWorkbook && !processedWorkbookGas) {
                 showStatus('❌ No hay datos procesados para analizar', 'error');
+                console.log('❌ SALIDA: No hay workbooks procesados');
                 return;
             }
             
+            console.log('✓ Workbooks disponibles');
+            
             try {
                 showStatus('⏳ Analizando tarifas activas...', 'success');
+                console.log('⏳ Iniciando análisis...');
                 
                 const analisisWb = XLSX.utils.book_new();
+                console.log('✓ Workbook de análisis creado');
                 
                 // ========================================
                 // ANÁLISIS DE ELECTRICIDAD
                 // ========================================
                 
+                console.log('Verificando electricidad...');
                 if (processedWorkbook && originalWorkbook) {
+                    console.log('✓ Procesando ELECTRICIDAD');
                     // Leer hoja DATOS del workbook ORIGINAL
                     const datosSheet = originalWorkbook.Sheets['DATOS'];
                     const detalleSheet = processedWorkbook.Sheets['Detalle'];
@@ -3001,8 +3010,14 @@ Revisa y envía cada uno." buttons {"OK"}`;
                 showStatus('✅ Análisis de tarifas generado', 'success');
                 
             } catch (error) {
-                console.error('Error en análisis:', error);
+                console.error('❌❌❌ ERROR EN ANÁLISIS:', error);
+                console.error('Stack trace:', error.stack);
                 showStatus('❌ Error generando análisis: ' + error.message, 'error');
+            }
+            
+            } catch (outerError) {
+                console.error('❌❌❌ ERROR OUTER:', outerError);
+                console.error('Stack trace:', outerError.stack);
             }
         }
         

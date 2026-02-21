@@ -2345,10 +2345,6 @@ Revisa y envía cada uno." buttons {"OK"}`;
                         });
                         
                         if (tarifasDelPeaje.length > 0) {
-                            // Guardar datos para visor ANTES de crear hoja Excel
-                            const nombreHojaVisor = peaje.replace(/\./g, '_').replace(/\s/g, '_');
-                            datosParaVisor[nombreHojaVisor] = JSON.parse(JSON.stringify(tarifasDelPeaje)); // Deep copy
-                            
                             const ws = XLSX.utils.json_to_sheet(tarifasDelPeaje);
                             
                             // Aplicar formato a columnas
@@ -2370,6 +2366,10 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             // Limpiar nombre de peaje para nombre de hoja
                             const nombreHoja = peaje.replace(/\./g, '_').replace(/\s/g, '_');
                             XLSX.utils.book_append_sheet(analisisWb, ws, nombreHoja);
+                            
+                            // Guardar datos para visor (copia profunda del array con precios)
+                            datosParaVisor[nombreHoja] = tarifasDelPeaje.map(row => ({...row}));
+                            
                             console.log(`Hoja creada: ${nombreHoja} con ${tarifasDelPeaje.length} tarifas`);
                         }
                     }

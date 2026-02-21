@@ -2308,20 +2308,20 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 
                                 // Añadir precios según el peaje
                                 if (peaje === '2.0TD') {
-                                    // 2.0TD: P1, P2 y E1, E2, E3
-                                    tarifaData['Pot P1 (€/kW/día)'] = preciosFinales.potencia.P1 || '';
-                                    tarifaData['Pot P2 (€/kW/día)'] = preciosFinales.potencia.P2 || '';
+                                    // 2.0TD: P1, P2 (multiplicar por 365 para convertir a anual)
+                                    tarifaData['Pot P1 (€/kW/año)'] = preciosFinales.potencia.P1 ? (preciosFinales.potencia.P1 * 365) : '';
+                                    tarifaData['Pot P2 (€/kW/año)'] = preciosFinales.potencia.P2 ? (preciosFinales.potencia.P2 * 365) : '';
                                     tarifaData['Energ E1 (€/kWh)'] = preciosFinales.energia.E1 || '';
                                     tarifaData['Energ E2 (€/kWh)'] = preciosFinales.energia.E2 || '';
                                     tarifaData['Energ E3 (€/kWh)'] = preciosFinales.energia.E3 || '';
                                 } else if (peaje === '3.0TD' || peaje === '6.1TD' || peaje === '6.2TD') {
-                                    // 3.0TD, 6.1TD, 6.2TD: P1-P6 y E1-E6
-                                    tarifaData['Pot P1 (€/kW/día)'] = preciosFinales.potencia.P1 || '';
-                                    tarifaData['Pot P2 (€/kW/día)'] = preciosFinales.potencia.P2 || '';
-                                    tarifaData['Pot P3 (€/kW/día)'] = preciosFinales.potencia.P3 || '';
-                                    tarifaData['Pot P4 (€/kW/día)'] = preciosFinales.potencia.P4 || '';
-                                    tarifaData['Pot P5 (€/kW/día)'] = preciosFinales.potencia.P5 || '';
-                                    tarifaData['Pot P6 (€/kW/día)'] = preciosFinales.potencia.P6 || '';
+                                    // 3.0TD, 6.1TD, 6.2TD: P1-P6 (multiplicar por 365 para convertir a anual)
+                                    tarifaData['Pot P1 (€/kW/año)'] = preciosFinales.potencia.P1 ? (preciosFinales.potencia.P1 * 365) : '';
+                                    tarifaData['Pot P2 (€/kW/año)'] = preciosFinales.potencia.P2 ? (preciosFinales.potencia.P2 * 365) : '';
+                                    tarifaData['Pot P3 (€/kW/año)'] = preciosFinales.potencia.P3 ? (preciosFinales.potencia.P3 * 365) : '';
+                                    tarifaData['Pot P4 (€/kW/año)'] = preciosFinales.potencia.P4 ? (preciosFinales.potencia.P4 * 365) : '';
+                                    tarifaData['Pot P5 (€/kW/año)'] = preciosFinales.potencia.P5 ? (preciosFinales.potencia.P5 * 365) : '';
+                                    tarifaData['Pot P6 (€/kW/año)'] = preciosFinales.potencia.P6 ? (preciosFinales.potencia.P6 * 365) : '';
                                     tarifaData['Energ E1 (€/kWh)'] = preciosFinales.energia.E1 || '';
                                     tarifaData['Energ E2 (€/kWh)'] = preciosFinales.energia.E2 || '';
                                     tarifaData['Energ E3 (€/kWh)'] = preciosFinales.energia.E3 || '';

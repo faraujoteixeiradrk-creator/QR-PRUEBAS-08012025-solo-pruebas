@@ -3432,7 +3432,7 @@ Revisa y envía cada uno." buttons {"OK"}`;
             html += 'html+="<input class=' + "'search-box'" + ' placeholder=' + "'🔍 Buscar...'" + ' onkeyup=' + "'filtrarTabla(this)'" + '>";';
             html += '}';
             
-            html += 'html+="<table id=\\""+id+"\\"<thead><tr>";';
+            html += 'html+="<table id=\\""+id+"\\"><thead><tr>";';
             html += 'keys.forEach(k=>html+="<th>"+k+"</th>");';
             html += 'html+="</tr></thead><tbody>";';
             html += 'datos.forEach(row=>{';

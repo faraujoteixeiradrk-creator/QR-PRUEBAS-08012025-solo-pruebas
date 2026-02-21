@@ -1802,6 +1802,9 @@ Revisa y envía cada uno." buttons {"OK"}`;
                 const analisisWb = XLSX.utils.book_new();
                 console.log('✓ Workbook de análisis creado');
                 
+                // Objeto para guardar datos para el visor (sin pasar por workbook)
+                const datosParaVisor = {};
+                
                 // ========================================
                 // ANÁLISIS DE ELECTRICIDAD
                 // ========================================
@@ -2342,6 +2345,10 @@ Revisa y envía cada uno." buttons {"OK"}`;
                         });
                         
                         if (tarifasDelPeaje.length > 0) {
+                            // Guardar datos para visor ANTES de crear hoja Excel
+                            const nombreHojaVisor = peaje.replace(/\./g, '_').replace(/\s/g, '_');
+                            datosParaVisor[nombreHojaVisor] = JSON.parse(JSON.stringify(tarifasDelPeaje)); // Deep copy
+                            
                             const ws = XLSX.utils.json_to_sheet(tarifasDelPeaje);
                             
                             // Aplicar formato a columnas
@@ -3041,36 +3048,35 @@ Revisa y envía cada uno." buttons {"OK"}`;
                 const timestamp = new Date().toISOString().split('T')[0];
                 XLSX.writeFile(analisisWb, `Analisis_Tarifas_${timestamp}.xlsx`);
                 
-                // Guardar datos para el visor en localStorage leyendo del workbook
+                // Guardar datos para el visor en localStorage
                 try {
-                    console.log('🔄 Intentando guardar datos en localStorage...');
-                    const datosParaVisor = {
+                    console.log('🔄 Guardando datos en localStorage...');
+                    const datosLS = {
                         timestamp: new Date().toISOString(),
-                        datos: {}
+                        datos: datosParaVisor // Usar datos guardados directamente
                     };
                     
-                    // Leer cada hoja del workbook y guardar como JSON
+                    // Añadir también Resumen Completo y otras hojas especiales desde workbook
                     analisisWb.SheetNames.forEach(sheetName => {
-                        console.log('  Procesando hoja:', sheetName);
-                        const sheet = analisisWb.Sheets[sheetName];
-                        if (sheetName === 'Resumen Completo') {
-                            datosParaVisor.datos.resumenCompleto = evaluarResumenCompleto(sheet);
-                        } else {
-                            const nombreNormalizado = sheetName.replace(/\./g, '_').replace(/\s/g, '_');
-                            datosParaVisor.datos[nombreNormalizado] = XLSX.utils.sheet_to_json(sheet);
-                            console.log('    → Guardado como:', nombreNormalizado, '(' + datosParaVisor.datos[nombreNormalizado].length + ' filas)');
+                        const nombreNorm = sheetName.replace(/\./g, '_').replace(/\s/g, '_');
+                        // Solo añadir si no está ya en datosParaVisor
+                        if (!datosLS.datos[nombreNorm]) {
+                            const sheet = analisisWb.Sheets[sheetName];
+                            if (sheetName === 'Resumen Completo') {
+                                datosLS.datos.resumenCompleto = evaluarResumenCompleto(sheet);
+                            } else {
+                                datosLS.datos[nombreNorm] = XLSX.utils.sheet_to_json(sheet);
+                            }
                         }
                     });
                     
-                    const jsonString = JSON.stringify(datosParaVisor);
+                    const jsonString = JSON.stringify(datosLS);
                     const sizeKB = (jsonString.length / 1024).toFixed(2);
-                    console.log('📦 Tamaño de datos a guardar:', sizeKB, 'KB');
+                    console.log('📦 Tamaño:', sizeKB, 'KB');
                     
                     localStorage.setItem('datosAnalisisTarifas', jsonString);
-                    console.log('✅ Datos guardados en localStorage para el visor');
-                    console.log('📊 Hojas guardadas:', Object.keys(datosParaVisor.datos).join(', '));
-                    
-                    showStatus('✅ Análisis generado. Datos guardados para el visor.', 'success');
+                    console.log('✅ Datos guardados en localStorage');
+                    console.log('📊 Hojas:', Object.keys(datosLS.datos).join(', '));
                     
                 } catch (error) {
                     console.error('❌ Error guardando en localStorage:', error);

@@ -3387,58 +3387,51 @@ Revisa y envía cada uno." buttons {"OK"}`;
             html += 'function fmt(n){return new Intl.NumberFormat("es-ES",{minimumFractionDigits:2,maximumFractionDigits:2}).format(n)}';
             html += 'function fmtCur(n){return new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR"}).format(n)}';
             
-            html += 'function renderTabla(datos,titulo,mostrarFiltros){';
+            html += 'function renderTabla(datos,titulo,filtros){';
             html += 'if(!datos||datos.length===0)return "<p style=' + "'text-align:center;padding:40px;color:#999'" + '>No hay datos</p>";';
             html += 'const keys=Object.keys(datos[0]);';
-            html += 'const tablaId="tabla_"+titulo.replace(/[^a-zA-Z0-9]/g,"_");';
+            html += 'const id="tbl_"+titulo.replace(/[^a-zA-Z0-9]/g,"_");';
             html += 'let html="<h2>"+titulo+"</h2>";';
             
-            // Añadir filtros si se solicita
-            html += 'if(mostrarFiltros){';
-            html += 'html+="<div style=' + "'display:flex;gap:10px;margin:20px 0;flex-wrap:wrap'" + '>";';
-            html += 'html+="<input class=' + "'search-box'" + ' id=' + "'filtro_"+tablaId+"'" + ' placeholder=' + "'🔍 Buscar por nombre...'" + ' style=' + "'flex:1;min-width:200px'" + ' onkeyup=' + "'filtrarTablaPorCampos(\\""+tablaId+"\\")'" + '>";';
+            // Sección de filtros si está habilitada
+            html += 'if(filtros){';
+            html += 'html+="<div style=' + "'display:flex;gap:10px;margin:20px 0;flex-wrap:wrap;align-items:center'" + '>";';
+            html += 'html+="<input id=' + "'busq_"+id+"'" + ' class=' + "'search-box'" + ' placeholder=' + "'🔍 Buscar...'" + ' onkeyup=' + "'filtrarAvanzado(\\""+id+"\\")'" + ' style=' + "'flex:1;min-width:200px;margin:0'" + '>";';
             
-            // Detectar columnas para filtros
+            // Dropdown Peaje si existe la columna
             html += 'if(keys.includes("Peaje")){';
-            html += 'html+="<select id=' + "'filtro_peaje_"+tablaId+"'" + ' onchange=' + "'filtrarTablaPorCampos(\\""+tablaId+"\\")'" + ' style=' + "'padding:10px;border:2px solid #667eea;border-radius:10px'" + '>";';
-            html += 'html+="<option value=' + "''" + '>Todos los peajes</option>";';
-            html += 'const peajes=[...new Set(datos.map(d=>d.Peaje).filter(Boolean))];';
-            html += 'peajes.forEach(p=>html+="<option value=' + "'" + '"+p+"' + "'" + '>"+p+"</option>");';
+            html += 'const ps=[...new Set(datos.map(d=>d.Peaje).filter(Boolean))];';
+            html += 'html+="<select id=' + "'peaje_"+id+"'" + ' onchange=' + "'filtrarAvanzado(\\""+id+"\\")'" + ' style=' + "'padding:10px;border:2px solid #667eea;border-radius:10px'" + '><option value=' + "''" + '>Peajes</option>";';
+            html += 'ps.forEach(p=>html+="<option>"+p+"</option>");';
             html += 'html+="</select>";';
             html += '}';
             
+            // Dropdown Estado
             html += 'if(keys.includes("Estado")){';
-            html += 'html+="<select id=' + "'filtro_estado_"+tablaId+"'" + ' onchange=' + "'filtrarTablaPorCampos(\\""+tablaId+"\\")'" + ' style=' + "'padding:10px;border:2px solid #667eea;border-radius:10px'" + '>";';
-            html += 'html+="<option value=' + "''" + '>Todos los estados</option>";';
-            html += 'html+="<option value=' + "'ACTIVA'" + '>ACTIVA</option>";';
-            html += 'html+="<option value=' + "'CONFIGURADA'" + '>CONFIGURADA</option>";';
-            html += 'html+="</select>";';
+            html += 'html+="<select id=' + "'estado_"+id+"'" + ' onchange=' + "'filtrarAvanzado(\\""+id+"\\")'" + ' style=' + "'padding:10px;border:2px solid #667eea;border-radius:10px'" + '><option value=' + "''" + '>Estados</option><option>ACTIVA</option><option>CONFIGURADA</option></select>";';
             html += '}';
             
-            html += 'if(keys.includes("Canal")){';
-            html += 'html+="<select id=' + "'filtro_canal_"+tablaId+"'" + ' onchange=' + "'filtrarTablaPorCampos(\\""+tablaId+"\\")'" + ' style=' + "'padding:10px;border:2px solid #667eea;border-radius:10px;max-width:250px'" + '>";';
-            html += 'html+="<option value=' + "''" + '>Todos los canales</option>";';
-            html += 'const canales=[...new Set(datos.map(d=>d.Canal).filter(Boolean))];';
-            html += 'canales.forEach(c=>html+="<option value=' + "'" + '"+c+"' + "'" + '>"+c+"</option>");';
-            html += 'html+="</select>";';
-            html += '}';
-            
+            // Dropdown Tipo
             html += 'if(keys.includes("Tipo")){';
-            html += 'html+="<select id=' + "'filtro_tipo_"+tablaId+"'" + ' onchange=' + "'filtrarTablaPorCampos(\\""+tablaId+"\\")'" + ' style=' + "'padding:10px;border:2px solid #667eea;border-radius:10px'" + '>";';
-            html += 'html+="<option value=' + "''" + '>Todos los tipos</option>";';
-            html += 'html+="<option value=' + "'TOTAL'" + '>TOTAL</option>";';
-            html += 'html+="<option value=' + "'REPARTO'" + '>REPARTO</option>";';
+            html += 'html+="<select id=' + "'tipo_"+id+"'" + ' onchange=' + "'filtrarAvanzado(\\""+id+"\\")'" + ' style=' + "'padding:10px;border:2px solid #667eea;border-radius:10px'" + '><option value=' + "''" + '>Tipos</option><option>TOTAL</option><option>REPARTO</option></select>";';
+            html += '}';
+            
+            // Dropdown Canal
+            html += 'if(keys.includes("Canal")){';
+            html += 'const cs=[...new Set(datos.map(d=>d.Canal).filter(Boolean))].sort();';
+            html += 'html+="<select id=' + "'canal_"+id+"'" + ' onchange=' + "'filtrarAvanzado(\\""+id+"\\")'" + ' style=' + "'padding:10px;border:2px solid #667eea;border-radius:10px;max-width:250px'" + '><option value=' + "''" + '>Canales</option>";';
+            html += 'cs.forEach(c=>html+="<option>"+c+"</option>");';
             html += 'html+="</select>";';
             html += '}';
             
-            // Botón exportar
-            html += 'html+="<button onclick=' + "'exportarTablaExcel(\\""+tablaId+"\\",\\""+titulo+"\\")'" + ' style=' + "'padding:10px 20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600'" + '>📥 Exportar Excel</button>";';
+            // Botón exportar Excel
+            html += 'html+="<button onclick=' + "'exportarExcel(\\""+id+"\\",\\""+titulo+"\\")'" + ' style=' + "'padding:10px 20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600;white-space:nowrap'" + '>📥 Excel</button>";';
             html += 'html+="</div>";';
             html += '}else{';
             html += 'html+="<input class=' + "'search-box'" + ' placeholder=' + "'🔍 Buscar...'" + ' onkeyup=' + "'filtrarTabla(this)'" + '>";';
             html += '}';
             
-            html += 'html+="<table id=' + "'"+tablaId+"'" + '><thead><tr>";';
+            html += 'html+="<table id=' + "'"+id+"'" + '><thead><tr>";';
             html += 'keys.forEach(k=>html+="<th>"+k+"</th>");';
             html += 'html+="</tr></thead><tbody>";';
             html += 'datos.forEach(row=>{';
@@ -3479,65 +3472,51 @@ Revisa y envía cada uno." buttons {"OK"}`;
             html += '});';
             html += '}';
             
-            html += 'function filtrarTablaPorCampos(tablaId){';
+            // Nueva función: Filtrado avanzado
+            html += 'function filtrarAvanzado(tablaId){';
             html += 'const tabla=document.getElementById(tablaId);';
-            html += 'const filtroTexto=(document.getElementById("filtro_"+tablaId)||{}).value.toUpperCase();';
-            html += 'const filtroPeaje=(document.getElementById("filtro_peaje_"+tablaId)||{}).value;';
-            html += 'const filtroEstado=(document.getElementById("filtro_estado_"+tablaId)||{}).value;';
-            html += 'const filtroCanal=(document.getElementById("filtro_canal_"+tablaId)||{}).value;';
-            html += 'const filtroTipo=(document.getElementById("filtro_tipo_"+tablaId)||{}).value;';
-            html += 'const rows=tabla.querySelectorAll("tbody tr");';
-            html += 'rows.forEach(row=>{';
-            html += 'const texto=row.textContent.toUpperCase();';
+            html += 'const busq=(document.getElementById("busq_"+tablaId)||{}).value;';
+            html += 'const peaje=(document.getElementById("peaje_"+tablaId)||{}).value;';
+            html += 'const estado=(document.getElementById("estado_"+tablaId)||{}).value;';
+            html += 'const canal=(document.getElementById("canal_"+tablaId)||{}).value;';
+            html += 'const tipo=(document.getElementById("tipo_"+tablaId)||{}).value;';
+            html += 'const headers=Array.from(tabla.querySelectorAll("thead th")).map(h=>h.textContent);';
+            html += 'const iPeaje=headers.indexOf("Peaje");';
+            html += 'const iEstado=headers.indexOf("Estado");';
+            html += 'const iCanal=headers.indexOf("Canal");';
+            html += 'const iTipo=headers.indexOf("Tipo");';
+            html += 'tabla.querySelectorAll("tbody tr").forEach(row=>{';
             html += 'const celdas=row.querySelectorAll("td");';
-            html += 'let mostrar=true;';
-            html += 'if(filtroTexto&&!texto.includes(filtroTexto))mostrar=false;';
-            html += 'if(filtroPeaje){';
-            html += 'const headers=tabla.querySelectorAll("thead th");';
-            html += 'let peajeIdx=-1;';
-            html += 'headers.forEach((h,i)=>{if(h.textContent==="Peaje")peajeIdx=i;});';
-            html += 'if(peajeIdx>=0&&celdas[peajeIdx].textContent!==filtroPeaje)mostrar=false;';
-            html += '}';
-            html += 'if(filtroEstado){';
-            html += 'const headers=tabla.querySelectorAll("thead th");';
-            html += 'let estadoIdx=-1;';
-            html += 'headers.forEach((h,i)=>{if(h.textContent==="Estado")estadoIdx=i;});';
-            html += 'if(estadoIdx>=0&&!celdas[estadoIdx].textContent.includes(filtroEstado))mostrar=false;';
-            html += '}';
-            html += 'if(filtroCanal){';
-            html += 'const headers=tabla.querySelectorAll("thead th");';
-            html += 'let canalIdx=-1;';
-            html += 'headers.forEach((h,i)=>{if(h.textContent==="Canal")canalIdx=i;});';
-            html += 'if(canalIdx>=0&&!celdas[canalIdx].textContent.includes(filtroCanal))mostrar=false;';
-            html += '}';
-            html += 'if(filtroTipo){';
-            html += 'const headers=tabla.querySelectorAll("thead th");';
-            html += 'let tipoIdx=-1;';
-            html += 'headers.forEach((h,i)=>{if(h.textContent==="Tipo")tipoIdx=i;});';
-            html += 'if(tipoIdx>=0&&celdas[tipoIdx].textContent!==filtroTipo)mostrar=false;';
-            html += '}';
-            html += 'row.style.display=mostrar?"":"none";';
+            html += 'let ok=true;';
+            html += 'if(busq&&!row.textContent.toUpperCase().includes(busq.toUpperCase()))ok=false;';
+            html += 'if(peaje&&iPeaje>=0&&celdas[iPeaje].textContent!==peaje)ok=false;';
+            html += 'if(estado&&iEstado>=0&&!celdas[iEstado].textContent.includes(estado))ok=false;';
+            html += 'if(canal&&iCanal>=0&&!celdas[iCanal].textContent.includes(canal))ok=false;';
+            html += 'if(tipo&&iTipo>=0&&celdas[iTipo].textContent!==tipo)ok=false;';
+            html += 'row.style.display=ok?"":"none";';
             html += '});';
             html += '}';
             
-            html += 'function exportarTablaExcel(tablaId,nombreHoja){';
+            // Nueva función: Exportar a Excel
+            html += 'function exportarExcel(tablaId,nombre){';
             html += 'const tabla=document.getElementById(tablaId);';
             html += 'const filas=[];';
             html += 'tabla.querySelectorAll("tr").forEach(tr=>{';
             html += 'if(tr.style.display==="none")return;';
             html += 'const fila=[];';
-            html += 'tr.querySelectorAll("th,td").forEach(celda=>{';
-            html += 'let val=celda.textContent.trim();';
-            html += 'val=val.replace(/€/g,"").replace(/\\./g,"").replace(/,/g,".");';
-            html += 'if(!isNaN(val)&&val!=="")val=parseFloat(val);';
-            html += 'fila.push(val);';
+            html += 'tr.querySelectorAll("th,td").forEach(td=>{';
+            html += 'let v=td.textContent.trim();';
+            html += 'v=v.replace(/€/g,"").replace(/\\./g,"").replace(/,/g,".");';
+            html += 'if(!isNaN(v)&&v!=="")v=parseFloat(v);';
+            html += 'fila.push(v);';
             html += '});';
             html += 'filas.push(fila);';
             html += '});';
             html += 'const wb=XLSX.utils.book_new();';
             html += 'const ws=XLSX.utils.aoa_to_sheet(filas);';
-            html += 'XLSX.utils.book_append_sheet(wb,ws,nombreHoja.substring(0,31));';
-            html += 'XLSX.writeFile(wb,"Filtrado_"+nombreHoja.replace(/[^a-zA-Z0-9]/g,"_")+".xlsx");';
+            html += 'XLSX.utils.book_append_sheet(wb,ws,nombre.substring(0,31));';
+            html += 'const fecha=new Date().toISOString().split("T")[0];';
+            html += 'XLSX.writeFile(wb,"Filtro_"+nombre.replace(/[^a-zA-Z0-9]/g,"_")+"_"+fecha+".xlsx");';
             html += '}';
             
             // Renderizar dashboard

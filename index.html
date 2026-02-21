@@ -2651,6 +2651,9 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             const contratoActivo = contratosPorCups[cups];
                             if (!contratoActivo) continue;
                             
+                            // Extraer Canal
+                            const canal = contratoActivo['Canal'] || contratoActivo['CANAL'] || '';
+                            
                             // Obtener fecha de vencimiento (columna M: "Vto.")
                             const fechaVto = contratoActivo['Vto.'] || contratoActivo['VTO.'] || contratoActivo['Vto'] || contratoActivo['vto'];
                             if (!fechaVto) continue;
@@ -2749,8 +2752,9 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 'Precio P4': precios['P4'] || '',
                                 'Precio P5': precios['P5'] || '',
                                 'Precio P6': precios['P6'] || '',
-                                // Estado se añadirá después de los precios de potencia
-                                '_estado_temp': diasRestantes < 0 ? '⚠️ VENCIDO' : diasRestantes <= 30 ? '🔴 URGENTE' : '🟡 PRÓXIMO'
+                                // Estado y Canal se añadirán al final después de los precios de potencia
+                                '_estado_temp': diasRestantes < 0 ? '⚠️ VENCIDO' : diasRestantes <= 30 ? '🔴 URGENTE' : '🟡 PRÓXIMO',
+                                '_canal_temp': canal
                             });
                         }
                         
@@ -2824,9 +2828,11 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                     }
                                 }
                                 
-                                // Mover Estado al final
+                                // Mover Estado y Canal al final
                                 venc['Estado'] = venc['_estado_temp'];
+                                venc['Canal'] = venc['_canal_temp'];
                                 delete venc['_estado_temp'];
+                                delete venc['_canal_temp'];
                             });
                             
                             console.log('✅ Precios de potencia añadidos a vencimientos');

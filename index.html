@@ -2749,7 +2749,8 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 'Precio P4': precios['P4'] || '',
                                 'Precio P5': precios['P5'] || '',
                                 'Precio P6': precios['P6'] || '',
-                                'Estado': diasRestantes < 0 ? '⚠️ VENCIDO' : diasRestantes <= 30 ? '🔴 URGENTE' : '🟡 PRÓXIMO'
+                                // Estado se añadirá después de los precios de potencia
+                                '_estado_temp': diasRestantes < 0 ? '⚠️ VENCIDO' : diasRestantes <= 30 ? '🔴 URGENTE' : '🟡 PRÓXIMO'
                             });
                         }
                         
@@ -2822,6 +2823,10 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                         venc['Pot P6 Anual'] = filaTarifa['Pot P6 (€/kW/año)'] || '';
                                     }
                                 }
+                                
+                                // Mover Estado al final
+                                venc['Estado'] = venc['_estado_temp'];
+                                delete venc['_estado_temp'];
                             });
                             
                             console.log('✅ Precios de potencia añadidos a vencimientos');

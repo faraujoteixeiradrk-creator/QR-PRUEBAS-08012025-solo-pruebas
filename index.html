@@ -3395,37 +3395,37 @@ Revisa y envía cada uno." buttons {"OK"}`;
             
             // Sección de filtros si está habilitada
             html += 'if(filtros){';
-            html += 'html+="<div style=' + "'display:flex;gap:10px;margin:20px 0;flex-wrap:wrap;align-items:center'" + '>";';
-            html += 'html+="<input id=' + "'busq_"+id+"'" + ' class=' + "'search-box'" + ' placeholder=' + "'🔍 Buscar...'" + ' onkeyup=' + "'filtrarAvanzado(\\""+id+"\\")'" + ' style=' + "'flex:1;min-width:200px;margin:0'" + '>";';
+            html += 'html+="<div style=\\"display:flex;gap:10px;margin:20px 0;flex-wrap:wrap;align-items:center\\">";';
+            html += 'html+="<input id=\\"busq_"+id+"\\" class=\\"search-box\\" placeholder=\\"🔍 Buscar...\\" onkeyup=\\"filtrarAvanzado(\'"+id+"\')\\" style=\\"flex:1;min-width:200px;margin:0\\">";';
             
             // Dropdown Peaje si existe la columna
             html += 'if(keys.includes("Peaje")){';
             html += 'const ps=[...new Set(datos.map(d=>d.Peaje).filter(Boolean))];';
-            html += 'html+="<select id=' + "'peaje_"+id+"'" + ' onchange=' + "'filtrarAvanzado(\\""+id+"\\")'" + ' style=' + "'padding:10px;border:2px solid #667eea;border-radius:10px'" + '><option value=' + "''" + '>Peajes</option>";';
+            html += 'html+="<select id=\\"peaje_"+id+"\\" onchange=\\"filtrarAvanzado(\'"+id+"\')\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px\\"><option value=\\"\\">Peajes</option>";';
             html += 'ps.forEach(p=>html+="<option>"+p+"</option>");';
             html += 'html+="</select>";';
             html += '}';
             
             // Dropdown Estado
             html += 'if(keys.includes("Estado")){';
-            html += 'html+="<select id=' + "'estado_"+id+"'" + ' onchange=' + "'filtrarAvanzado(\\""+id+"\\")'" + ' style=' + "'padding:10px;border:2px solid #667eea;border-radius:10px'" + '><option value=' + "''" + '>Estados</option><option>ACTIVA</option><option>CONFIGURADA</option></select>";';
+            html += 'html+="<select id=\\"estado_"+id+"\\" onchange=\\"filtrarAvanzado(\'"+id+"\')\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px\\"><option value=\\"\\">Estados</option><option>ACTIVA</option><option>CONFIGURADA</option></select>";';
             html += '}';
             
             // Dropdown Tipo
             html += 'if(keys.includes("Tipo")){';
-            html += 'html+="<select id=' + "'tipo_"+id+"'" + ' onchange=' + "'filtrarAvanzado(\\""+id+"\\")'" + ' style=' + "'padding:10px;border:2px solid #667eea;border-radius:10px'" + '><option value=' + "''" + '>Tipos</option><option>TOTAL</option><option>REPARTO</option></select>";';
+            html += 'html+="<select id=\\"tipo_"+id+"\\" onchange=\\"filtrarAvanzado(\'"+id+"\')\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px\\"><option value=\\"\\">Tipos</option><option>TOTAL</option><option>REPARTO</option></select>";';
             html += '}';
             
             // Dropdown Canal
             html += 'if(keys.includes("Canal")){';
             html += 'const cs=[...new Set(datos.map(d=>d.Canal).filter(Boolean))].sort();';
-            html += 'html+="<select id=' + "'canal_"+id+"'" + ' onchange=' + "'filtrarAvanzado(\\""+id+"\\")'" + ' style=' + "'padding:10px;border:2px solid #667eea;border-radius:10px;max-width:250px'" + '><option value=' + "''" + '>Canales</option>";';
+            html += 'html+="<select id=\\"canal_"+id+"\\" onchange=\\"filtrarAvanzado(\'"+id+"\')\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px;max-width:250px\\"><option value=\\"\\">Canales</option>";';
             html += 'cs.forEach(c=>html+="<option>"+c+"</option>");';
             html += 'html+="</select>";';
             html += '}';
             
             // Botón exportar Excel
-            html += 'html+="<button onclick=' + "'exportarExcel(\\""+id+"\\",\\""+titulo+"\\")'" + ' style=' + "'padding:10px 20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600;white-space:nowrap'" + '>📥 Excel</button>";';
+            html += 'html+="<button onclick=\\"exportarExcel(\'"+id+"\',\'"+titulo+"\')\\" style=\\"padding:10px 20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600;white-space:nowrap\\">📥 Excel</button>";';
             html += 'html+="</div>";';
             html += '}else{';
             html += 'html+="<input class=' + "'search-box'" + ' placeholder=' + "'🔍 Buscar...'" + ' onkeyup=' + "'filtrarTabla(this)'" + '>";';

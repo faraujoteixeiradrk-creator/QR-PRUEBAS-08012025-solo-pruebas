@@ -2764,6 +2764,68 @@ Revisa y envía cada uno." buttons {"OK"}`;
                         });
                         
                         if (vencimientos.length > 0) {
+                            // ========================================
+                            // AÑADIR PRECIOS DE POTENCIA DESDE HOJAS DE ANÁLISIS
+                            // ========================================
+                            
+                            console.log('📊 Añadiendo precios de potencia a vencimientos...');
+                            
+                            // Leer las hojas de análisis ya creadas
+                            const hojasAnalisis = {
+                                '2.0TD': analisisWb.Sheets['2_0TD'],
+                                '3.0TD': analisisWb.Sheets['3_0TD'],
+                                '6.1TD': analisisWb.Sheets['6_1TD'],
+                                '6.2TD': analisisWb.Sheets['6_2TD']
+                            };
+                            
+                            // Convertir hojas a datos
+                            const datosPorPeaje = {};
+                            for (const [peaje, hoja] of Object.entries(hojasAnalisis)) {
+                                if (hoja) {
+                                    const datos = XLSX.utils.sheet_to_json(hoja);
+                                    // Indexar por tarifa para búsqueda rápida
+                                    datosPorPeaje[peaje] = new Map();
+                                    datos.forEach(fila => {
+                                        const tarifa = fila['Tarifa'];
+                                        if (tarifa) {
+                                            datosPorPeaje[peaje].set(tarifa, fila);
+                                        }
+                                    });
+                                }
+                            }
+                            
+                            // Añadir precios de potencia a cada vencimiento
+                            vencimientos.forEach(venc => {
+                                const tarifa = venc['Grupo'];  // Columna F
+                                let peaje = venc['Tarifa Peaje'] || venc['Tarifa']; // Columna G o H
+                                
+                                // Normalizar peaje
+                                if (peaje) {
+                                    peaje = peaje.replace(/\./g, '.').replace(/\s/g, '');
+                                    if (peaje.includes('2.0') || peaje.includes('20TD')) peaje = '2.0TD';
+                                    else if (peaje.includes('3.0') || peaje.includes('30TD')) peaje = '3.0TD';
+                                    else if (peaje.includes('6.1') || peaje.includes('61TD')) peaje = '6.1TD';
+                                    else if (peaje.includes('6.2') || peaje.includes('62TD')) peaje = '6.2TD';
+                                }
+                                
+                                // Buscar precios en la hoja correspondiente
+                                const mapaHoja = datosPorPeaje[peaje];
+                                if (mapaHoja && tarifa) {
+                                    const filaTarifa = mapaHoja.get(tarifa);
+                                    if (filaTarifa) {
+                                        // Añadir precios de potencia (columnas S-X)
+                                        venc['Pot P1 Anual'] = filaTarifa['Pot P1 (€/kW/año)'] || '';
+                                        venc['Pot P2 Anual'] = filaTarifa['Pot P2 (€/kW/año)'] || '';
+                                        venc['Pot P3 Anual'] = filaTarifa['Pot P3 (€/kW/año)'] || '';
+                                        venc['Pot P4 Anual'] = filaTarifa['Pot P4 (€/kW/año)'] || '';
+                                        venc['Pot P5 Anual'] = filaTarifa['Pot P5 (€/kW/año)'] || '';
+                                        venc['Pot P6 Anual'] = filaTarifa['Pot P6 (€/kW/año)'] || '';
+                                    }
+                                }
+                            });
+                            
+                            console.log('✅ Precios de potencia añadidos a vencimientos');
+                            
                             const wsVencimientos = XLSX.utils.json_to_sheet(vencimientos);
                             XLSX.utils.book_append_sheet(analisisWb, wsVencimientos, 'Vencimientos Próximos');
                         } else {

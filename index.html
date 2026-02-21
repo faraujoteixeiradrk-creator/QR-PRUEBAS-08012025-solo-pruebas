@@ -3369,6 +3369,13 @@ Revisa y envía cada uno." buttons {"OK"}`;
             // Script
             html += '<scr' + 'ipt>';
             html += 'const datos = ' + datosJSON + ';';
+            html += 'console.log("=== DEBUG VISOR ===");';
+            html += 'console.log("datos completo:", datos);';
+            html += 'console.log("Hojas:", Object.keys(datos.datos || {}));';
+            html += 'if(datos.datos && datos.datos["2_0TD"] && datos.datos["2_0TD"][0]){';
+            html += 'console.log("2.0TD primera fila:", datos.datos["2_0TD"][0]);';
+            html += 'console.log("Columnas:", Object.keys(datos.datos["2_0TD"][0]));';
+            html += '}';
             
             html += 'function cambiarTab(e,id){';
             html += 'document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));';

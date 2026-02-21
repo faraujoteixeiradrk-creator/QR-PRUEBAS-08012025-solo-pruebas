@@ -3396,37 +3396,37 @@ Revisa y envía cada uno." buttons {"OK"}`;
             
             // Sección de filtros si está habilitada
             html += 'if(filtros){';
-            html += 'html+="<div style=\\"display:flex;gap:10px;margin:20px 0;flex-wrap:wrap;align-items:center\\">";';
-            html += 'html+="<input id=\\"busq_"+id+"\\" class=\\"search-box\\" placeholder=\\"🔍 Buscar...\\" onkeyup=\\"filtrarAvanzado(\'"+id+"\')\\" style=\\"flex:1;min-width:200px;margin:0\\">";';
+            html += 'html+="<div class=\\"filtros-container\\" data-tabla-id=\\""+id+"\\" style=\\"display:flex;gap:10px;margin:20px 0;flex-wrap:wrap;align-items:center\\">";';
+            html += 'html+="<input class=\\"filtro-busq\\" placeholder=\\"🔍 Buscar...\\" onkeyup=\\"filtrarDesdeFiltro(this)\\" style=\\"flex:1;min-width:200px;margin:0\\">";';
             
             // Dropdown Peaje si existe la columna
             html += 'if(keys.includes("Peaje")){';
             html += 'const ps=[...new Set(datos.map(d=>d.Peaje).filter(Boolean))];';
-            html += 'html+="<select id=\\"peaje_"+id+"\\" onchange=\\"filtrarAvanzado(\'"+id+"\')\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px\\"><option value=\\"\\">Peajes</option>";';
+            html += 'html+="<select class=\\"filtro-peaje\\" onchange=\\"filtrarDesdeFiltro(this)\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px\\"><option value=\\"\\">Peajes</option>";';
             html += 'ps.forEach(p=>html+="<option>"+p+"</option>");';
             html += 'html+="</select>";';
             html += '}';
             
             // Dropdown Estado
             html += 'if(keys.includes("Estado")){';
-            html += 'html+="<select id=\\"estado_"+id+"\\" onchange=\\"filtrarAvanzado(\'"+id+"\')\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px\\"><option value=\\"\\">Estados</option><option>ACTIVA</option><option>CONFIGURADA</option></select>";';
+            html += 'html+="<select class=\\"filtro-estado\\" onchange=\\"filtrarDesdeFiltro(this)\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px\\"><option value=\\"\\">Estados</option><option>ACTIVA</option><option>CONFIGURADA</option></select>";';
             html += '}';
             
             // Dropdown Tipo
             html += 'if(keys.includes("Tipo")){';
-            html += 'html+="<select id=\\"tipo_"+id+"\\" onchange=\\"filtrarAvanzado(\'"+id+"\')\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px\\"><option value=\\"\\">Tipos</option><option>TOTAL</option><option>REPARTO</option></select>";';
+            html += 'html+="<select class=\\"filtro-tipo\\" onchange=\\"filtrarDesdeFiltro(this)\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px\\"><option value=\\"\\">Tipos</option><option>TOTAL</option><option>REPARTO</option></select>";';
             html += '}';
             
             // Dropdown Canal
             html += 'if(keys.includes("Canal")){';
             html += 'const cs=[...new Set(datos.map(d=>d.Canal).filter(Boolean))].sort();';
-            html += 'html+="<select id=\\"canal_"+id+"\\" onchange=\\"filtrarAvanzado(\'"+id+"\')\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px;max-width:250px\\"><option value=\\"\\">Canales</option>";';
+            html += 'html+="<select class=\\"filtro-canal\\" onchange=\\"filtrarDesdeFiltro(this)\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px;max-width:250px\\"><option value=\\"\\">Canales</option>";';
             html += 'cs.forEach(c=>html+="<option>"+c+"</option>");';
             html += 'html+="</select>";';
             html += '}';
             
             // Botón exportar Excel
-            html += 'html+="<button onclick=\\"exportarExcel(\'"+id+"\',\'"+titulo+"\')\\" style=\\"padding:10px 20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600;white-space:nowrap\\">📥 Excel</button>";';
+            html += 'html+="<button onclick=\\"exportarDesdeFiltro(this)\\" data-titulo=\\""+titulo+"\\" style=\\"padding:10px 20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600;white-space:nowrap\\">📥 Excel</button>";';
             html += 'html+="</div>";';
             html += '}else{';
             html += 'html+="<input class=' + "'search-box'" + ' placeholder=' + "'🔍 Buscar...'" + ' onkeyup=' + "'filtrarTabla(this)'" + '>";';
@@ -3473,59 +3473,42 @@ Revisa y envía cada uno." buttons {"OK"}`;
             html += '});';
             html += '}';
             
-            // Nueva función: Filtrado avanzado
-            html += 'function filtrarAvanzado(tablaId){';
+            // Nueva función: Filtrar desde elemento del filtro
+            html += 'function filtrarDesdeFiltro(elem){';
+            html += 'const container=elem.closest(".filtros-container");';
+            html += 'const tablaId=container.getAttribute("data-tabla-id");';
             html += 'const tabla=document.getElementById(tablaId);';
             html += 'if(!tabla){console.error("Tabla no encontrada:",tablaId);return;}';
-            html += 'const busq=(document.getElementById("busq_"+tablaId)||{}).value;';
-            html += 'const peaje=(document.getElementById("peaje_"+tablaId)||{}).value;';
-            html += 'const estado=(document.getElementById("estado_"+tablaId)||{}).value;';
-            html += 'const canal=(document.getElementById("canal_"+tablaId)||{}).value;';
-            html += 'const tipo=(document.getElementById("tipo_"+tablaId)||{}).value;';
-            html += 'console.log("Filtros:",{busq,peaje,estado,canal,tipo});';
+            html += 'const busq=container.querySelector(".filtro-busq")?container.querySelector(".filtro-busq").value:"";';
+            html += 'const peaje=container.querySelector(".filtro-peaje")?container.querySelector(".filtro-peaje").value:"";';
+            html += 'const estado=container.querySelector(".filtro-estado")?container.querySelector(".filtro-estado").value:"";';
+            html += 'const canal=container.querySelector(".filtro-canal")?container.querySelector(".filtro-canal").value:"";';
+            html += 'const tipo=container.querySelector(".filtro-tipo")?container.querySelector(".filtro-tipo").value:"";';
             html += 'const headers=Array.from(tabla.querySelectorAll("thead th")).map(h=>h.textContent);';
-            html += 'console.log("Headers encontrados:",headers);';
             html += 'const iPeaje=headers.indexOf("Peaje");';
             html += 'const iEstado=headers.indexOf("Estado");';
             html += 'const iCanal=headers.indexOf("Canal");';
             html += 'const iTipo=headers.indexOf("Tipo");';
-            html += 'console.log("Índices:",{iPeaje,iEstado,iCanal,iTipo});';
-            html += 'let visibles=0;';
-            html += 'tabla.querySelectorAll("tbody tr").forEach((row,idx)=>{';
+            html += 'tabla.querySelectorAll("tbody tr").forEach(row=>{';
             html += 'const celdas=row.querySelectorAll("td");';
             html += 'let ok=true;';
             html += 'if(busq&&!row.textContent.toUpperCase().includes(busq.toUpperCase()))ok=false;';
-            html += 'if(peaje&&iPeaje>=0){';
-            html += 'const txtPeaje=celdas[iPeaje].textContent.trim();';
-            html += 'if(idx===0)console.log("Peaje celda:",txtPeaje,"vs filtro:",peaje,"match:",txtPeaje===peaje);';
-            html += 'if(txtPeaje!==peaje)ok=false;';
-            html += '}';
-            html += 'if(estado&&iEstado>=0){';
-            html += 'const span=celdas[iEstado].querySelector("span");';
-            html += 'const txtEstado=span?span.textContent.trim():celdas[iEstado].textContent.trim();';
-            html += 'if(idx===0)console.log("Estado celda:",txtEstado,"vs filtro:",estado,"match:",txtEstado===estado);';
-            html += 'if(txtEstado!==estado)ok=false;';
-            html += '}';
-            html += 'if(canal&&iCanal>=0){';
-            html += 'const txtCanal=celdas[iCanal].textContent.trim();';
-            html += 'if(!txtCanal.includes(canal))ok=false;';
-            html += '}';
-            html += 'if(tipo&&iTipo>=0){';
-            html += 'const txtTipo=celdas[iTipo].textContent.trim();';
-            html += 'if(idx===0)console.log("Tipo celda:",txtTipo,"vs filtro:",tipo,"match:",txtTipo===tipo);';
-            html += 'if(txtTipo!==tipo)ok=false;';
-            html += '}';
+            html += 'if(peaje&&iPeaje>=0&&celdas[iPeaje].textContent.trim()!==peaje)ok=false;';
+            html += 'if(estado&&iEstado>=0){const s=celdas[iEstado].querySelector("span");const txt=s?s.textContent.trim():celdas[iEstado].textContent.trim();if(txt!==estado)ok=false;}';
+            html += 'if(canal&&iCanal>=0&&!celdas[iCanal].textContent.trim().includes(canal))ok=false;';
+            html += 'if(tipo&&iTipo>=0&&celdas[iTipo].textContent.trim()!==tipo)ok=false;';
             html += 'row.style.display=ok?"":"none";';
-            html += 'if(ok)visibles++;';
             html += '});';
-            html += 'console.log("Filas visibles:",visibles);';
             html += '}';
             
-            // Nueva función: Exportar a Excel
-            html += 'function exportarExcel(tablaId,nombre){';
+            // Nueva función: Exportar desde botón  
+            html += 'function exportarDesdeFiltro(btn){';
             html += 'if(typeof XLSX==="undefined"){alert("Error: Librería XLSX no cargada");return;}';
+            html += 'const container=btn.closest(".filtros-container");';
+            html += 'const tablaId=container.getAttribute("data-tabla-id");';
+            html += 'const titulo=btn.getAttribute("data-titulo");';
             html += 'const tabla=document.getElementById(tablaId);';
-            html += 'if(!tabla){alert("Error: Tabla no encontrada: "+tablaId);return;}';
+            html += 'if(!tabla){alert("Tabla no encontrada");return;}';
             html += 'const filas=[];';
             html += 'tabla.querySelectorAll("tr").forEach(tr=>{';
             html += 'if(tr.style.display==="none")return;';
@@ -3538,14 +3521,11 @@ Revisa y envía cada uno." buttons {"OK"}`;
             html += '});';
             html += 'if(fila.length>0)filas.push(fila);';
             html += '});';
-            html += 'if(filas.length===0){alert("No hay datos para exportar");return;}';
-            html += 'try{';
+            html += 'if(filas.length===0){alert("No hay datos");return;}';
             html += 'const wb=XLSX.utils.book_new();';
             html += 'const ws=XLSX.utils.aoa_to_sheet(filas);';
-            html += 'XLSX.utils.book_append_sheet(wb,ws,nombre.substring(0,31));';
-            html += 'const fecha=new Date().toISOString().split("T")[0];';
-            html += 'XLSX.writeFile(wb,"Filtro_"+nombre.replace(/[^a-zA-Z0-9]/g,"_")+"_"+fecha+".xlsx");';
-            html += '}catch(e){alert("Error al exportar: "+e.message);}';
+            html += 'XLSX.utils.book_append_sheet(wb,ws,titulo.substring(0,31));';
+            html += 'XLSX.writeFile(wb,"Filtro_"+titulo.replace(/[^a-zA-Z0-9]/g,"_")+"_"+new Date().toISOString().split("T")[0]+".xlsx");';
             html += '}';
             
             // Renderizar dashboard

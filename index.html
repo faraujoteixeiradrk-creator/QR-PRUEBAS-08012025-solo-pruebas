@@ -3484,6 +3484,7 @@ Revisa y envía cada uno." buttons {"OK"}`;
             html += 'const tipo=(document.getElementById("tipo_"+tablaId)||{}).value;';
             html += 'console.log("Filtros:",{busq,peaje,estado,canal,tipo});';
             html += 'const headers=Array.from(tabla.querySelectorAll("thead th")).map(h=>h.textContent);';
+            html += 'console.log("Headers encontrados:",headers);';
             html += 'const iPeaje=headers.indexOf("Peaje");';
             html += 'const iEstado=headers.indexOf("Estado");';
             html += 'const iCanal=headers.indexOf("Canal");';

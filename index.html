@@ -974,7 +974,6 @@
 
                 // ==================== PASO 1: CARGAR DATOSGAS ====================
                 const comisionesGasMap = {}; // { "SPORT HI INDEX": { RL1: 15, RL2: 15, ... } }
-                const feesGasMap = {}; // { "SPORT HI INDEX": 5.5 }
 
                 if (datosGasSheet) {
                     // Leer con headers
@@ -1006,19 +1005,9 @@
                             'RL. 5': parseFloat(row['RL5'] || row['RL.5'] || row['RL. 5'] || row['RL 5'] || 0),
                             'RL5': parseFloat(row['RL5'] || row['RL.5'] || row['RL. 5'] || row['RL 5'] || 0)
                         };
-                        
-                        // FEE - buscar por nombre de columna
-                        const fee = parseFloat(row['FEE'] || row['Fee'] || row['fee'] || row['FEE (€/MWh)'] || 0);
-                        if (fee > 0) {
-                            feesGasMap[tarifa] = fee;
-                        }
                     });
                     
                     console.log('✓ Tarifas GAS cargadas:', Object.keys(comisionesGasMap).length);
-                    console.log('✓ FEEs cargados:', Object.keys(feesGasMap).length);
-                    if (Object.keys(feesGasMap).length > 0) {
-                        console.log('📋 Ejemplo FEE:', Object.keys(feesGasMap)[0], '→', feesGasMap[Object.keys(feesGasMap)[0]]);
-                    }
                 }
 
                 // ==================== PASO 2: PROCESAR FACTURASGAS ====================
@@ -1090,14 +1079,10 @@
                         comision = comisionesGasMap[tarifaNormalizada][peajeNormalizado] || 0;
                     }
                     
-                    // Obtener FEE (por ahora 0 porque no existe en DATOSGAS)
-                    const fee = feesGasMap[tarifaNormalizada] || 0;
+                    // Calcular beneficio: Comisión × (Consumo / 1000)
+                    const beneficio = comision * (consumo / 1000);
                     
-                    // Calcular beneficio: (Consumo / 1000) × FEE
-                    // NOTA: FEE es 0 porque no existe en DATOSGAS
-                    const beneficio = (consumo / 1000) * fee;
-                    
-                    // Crear objeto de contrato (SIN columna FEE ya que no existe en DATOSGAS)
+                    // Crear objeto de contrato
                     const contratoObj = {
                         'Cliente': cliente,
                         'Contrato': contrato,

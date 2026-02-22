@@ -458,7 +458,7 @@
                     // Guardar workbook original para análisis posterior
                     originalWorkbook = wb;
                     await processExcel(wb);
-                    processedWorkbookGas = await processGas(wb);
+                    await processGas(wb);
                 } catch (error) {
                     document.getElementById('loading').style.display = 'none';
                     showStatus('❌ Error: ' + error.message, 'error');
@@ -927,285 +927,401 @@
         
         async function processGas(wb) {
             try {
-                // ==================== PROCESAMIENTO MEJORADO DE GAS ====================
-                console.log('🔍 Iniciando procesamiento MEJORADO de GAS...');
-                console.log('🔍 Workbook recibido:', wb ? 'SÍ' : 'NO');
-                
-                try {
-                    const sheetNames = wb.SheetNames;
-                    console.log('📋 Hojas disponibles en el Excel:', sheetNames);
-                } catch (e) {
-                    console.error('❌ Error obteniendo SheetNames:', e);
-                    return null;
-                }
-
-                const datosGasSheet = wb.Sheets['DATOSGAS'] || wb.Sheets['DatosGas'] || wb.Sheets['datosgas'];
-                console.log('🔍 DATOSGAS sheet:', datosGasSheet ? 'ENCONTRADA' : 'NO ENCONTRADA');
-                
-                // Buscar FACTURASGAS de manera más flexible
-                let facturasGasSheet = null;
+                console.log('🔍 Iniciando procesamiento de GAS...');
                 const sheetNames = wb.SheetNames;
-                const facturasGasName = sheetNames.find(n => {
-                    const upper = n.toUpperCase();
-                    return upper.includes('FACTURASGAS') || 
-                           upper.includes('FACTURAS GAS') ||
-                           upper.includes('FACTURA GAS') ||
-                           upper === 'FACTURASGAS';
-                });
+                console.log('📋 Hojas disponibles:', sheetNames);
                 
-                if (facturasGasName) {
-                    facturasGasSheet = wb.Sheets[facturasGasName];
-                    console.log('✓ FACTURASGAS encontrada con nombre:', facturasGasName);
-                } else {
-                    console.log('❌ FACTURASGAS NO encontrada. Hojas disponibles:', sheetNames);
-                    console.log('   Buscando hojas que contengan "GAS"...');
-                    const gasSheets = sheetNames.filter(n => n.toUpperCase().includes('GAS'));
-                    console.log('   Hojas con "GAS":', gasSheets);
-                }
-
+                const datosGasSheet = wb.Sheets['DATOSGAS'] || wb.Sheets['DatosGas'] || wb.Sheets['datosgas'];
+                const comercialesGasSheet = wb.Sheets['COMERCIALESGAS'] || wb.Sheets['ComercialesGas'] || wb.Sheets['comercialesgas'];
+                const facturasGasSheet = wb.Sheets[sheetNames.find(n => n.toUpperCase().includes('FACTURASGAS') || n.toUpperCase().includes('FACTURAS GAS'))];
+                
                 console.log('✓ DATOSGAS:', datosGasSheet ? 'Encontrada' : 'NO encontrada');
+                console.log('✓ COMERCIALESGAS:', comercialesGasSheet ? 'Encontrada' : 'NO encontrada');
                 console.log('✓ FACTURASGAS:', facturasGasSheet ? 'Encontrada' : 'NO encontrada');
-
+                
                 if (!facturasGasSheet) {
                     console.log('ℹ️ No se encontró hoja FACTURASGAS - GAS no procesado');
                     showStatus('ℹ️ Solo se procesó ELECTRICIDAD (no se encontró FACTURASGAS)', 'success');
                     return null;
                 }
-
-                // ==================== PASO 1: CARGAR DATOSGAS ====================
-                const comisionesGasMap = {}; // { "SPORT HI INDEX": { RL1: 15, RL2: 15, ... } }
-
+                
+                // Procesar DATOSGAS
+                const tarifasGasMap = {};
                 if (datosGasSheet) {
-                    // Leer con headers
-                    const datosGasConHeaders = XLSX.utils.sheet_to_json(datosGasSheet);
-                    console.log('📊 DATOSGAS filas:', datosGasConHeaders.length);
+                    const datosGasRaw = XLSX.utils.sheet_to_json(datosGasSheet, { header: 1 });
+                    console.log('📊 DATOSGAS filas:', datosGasRaw.length);
                     
-                    if (datosGasConHeaders.length > 0) {
-                        console.log('🔍 Columnas en DATOSGAS:', Object.keys(datosGasConHeaders[0]));
-                    }
-                    
-                    datosGasConHeaders.forEach(row => {
-                        const tarifa = String(row['TARIFA'] || row['Tarifa'] || row['tarifa'] || '').toUpperCase().trim();
-                        if (!tarifa) return;
+                    for (let i = 1; i < datosGasRaw.length; i++) {
+                        const row = datosGasRaw[i];
+                        if (!row[0]) continue;
                         
-                        comisionesGasMap[tarifa] = {
-                            'RL.1': parseFloat(row['RL1'] || row['RL.1'] || row['RL. 1'] || row['RL 1'] || 0),
-                            'RL. 1': parseFloat(row['RL1'] || row['RL.1'] || row['RL. 1'] || row['RL 1'] || 0),
-                            'RL1': parseFloat(row['RL1'] || row['RL.1'] || row['RL. 1'] || row['RL 1'] || 0),
-                            'RL.2': parseFloat(row['RL2'] || row['RL.2'] || row['RL. 2'] || row['RL 2'] || 0),
-                            'RL. 2': parseFloat(row['RL2'] || row['RL.2'] || row['RL. 2'] || row['RL 2'] || 0),
-                            'RL2': parseFloat(row['RL2'] || row['RL.2'] || row['RL. 2'] || row['RL 2'] || 0),
-                            'RL.3': parseFloat(row['RL3'] || row['RL.3'] || row['RL. 3'] || row['RL 3'] || 0),
-                            'RL. 3': parseFloat(row['RL3'] || row['RL.3'] || row['RL. 3'] || row['RL 3'] || 0),
-                            'RL3': parseFloat(row['RL3'] || row['RL.3'] || row['RL. 3'] || row['RL 3'] || 0),
-                            'RL.4': parseFloat(row['RL4'] || row['RL.4'] || row['RL. 4'] || row['RL 4'] || 0),
-                            'RL. 4': parseFloat(row['RL4'] || row['RL.4'] || row['RL. 4'] || row['RL 4'] || 0),
-                            'RL4': parseFloat(row['RL4'] || row['RL.4'] || row['RL. 4'] || row['RL 4'] || 0),
-                            'RL.5': parseFloat(row['RL5'] || row['RL.5'] || row['RL. 5'] || row['RL 5'] || 0),
-                            'RL. 5': parseFloat(row['RL5'] || row['RL.5'] || row['RL. 5'] || row['RL 5'] || 0),
-                            'RL5': parseFloat(row['RL5'] || row['RL.5'] || row['RL. 5'] || row['RL 5'] || 0)
+                        const tarifa = String(row[0]).toUpperCase().trim();
+                        tarifasGasMap[tarifa] = {
+                            'RL.1': parseFloat(row[1]) || 0,
+                            'RL. 1': parseFloat(row[1]) || 0,
+                            'RL1': parseFloat(row[1]) || 0,
+                            'RL.2': parseFloat(row[2]) || 0,
+                            'RL. 2': parseFloat(row[2]) || 0,
+                            'RL2': parseFloat(row[2]) || 0,
+                            'RL.3': parseFloat(row[3]) || 0,
+                            'RL. 3': parseFloat(row[3]) || 0,
+                            'RL3': parseFloat(row[3]) || 0,
+                            'RL.4': parseFloat(row[4]) || 0,
+                            'RL. 4': parseFloat(row[4]) || 0,
+                            'RL4': parseFloat(row[4]) || 0,
+                            'RL.5': parseFloat(row[5]) || 0,
+                            'RL. 5': parseFloat(row[5]) || 0,
+                            'RL5': parseFloat(row[5]) || 0
                         };
-                    });
-                    
-                    console.log('✓ Tarifas GAS cargadas:', Object.keys(comisionesGasMap).length);
+                    }
+                    console.log('✓ Tarifas GAS cargadas:', Object.keys(tarifasGasMap).length);
+                    console.log('📋 Tarifas:', Object.keys(tarifasGasMap));
                 }
-
-                // ==================== PASO 2: PROCESAR FACTURASGAS ====================
+                
+                // Procesar COMERCIALESGAS
+                const comercialesGasMap = {};
+                const numeroComercialGasMap = {};
+                
+                if (comercialesGasSheet) {
+                    const comercialesGasRaw = XLSX.utils.sheet_to_json(comercialesGasSheet, { header: 1 });
+                    
+                    for (let i = 1; i < comercialesGasRaw.length; i++) {
+                        const row = comercialesGasRaw[i];
+                        if (!row[0]) continue;
+                        
+                        const agente = String(row[0]).toUpperCase().trim();
+                        const numeroComercial = row[1];
+                        const porcentaje = parseFloat(row[2]) || 0;
+                        
+                        let numero;
+                        if (typeof numeroComercial === 'number') {
+                            numero = String(Math.floor(numeroComercial)).padStart(2, '0');
+                        } else {
+                            const nums = String(numeroComercial).match(/\d+/);
+                            numero = nums ? String(parseInt(nums[0])).padStart(2, '0') : '00';
+                        }
+                        
+                        comercialesGasMap[agente] = {
+                            numeroComercial: numero,
+                            porcentaje: porcentaje,
+                            nombreOriginal: row[0]
+                        };
+                        
+                        if (!numeroComercialGasMap[numero]) {
+                            numeroComercialGasMap[numero] = { nombres: [], porcentaje: porcentaje };
+                        }
+                        numeroComercialGasMap[numero].nombres.push(row[0]);
+                    }
+                }
+                
+                // Procesar FACTURASGAS
                 const facturaGasData = XLSX.utils.sheet_to_json(facturasGasSheet);
                 console.log('📋 FACTURASGAS filas:', facturaGasData.length);
-
-                const contratosPorRL = {
-                    'RL_1': [],
-                    'RL_2': [],
-                    'RL_3': [],
-                    'RL_4': [],
-                    'RL_5': []
+                
+                const processedGas = [];
+                const tarifasGasNoEncontradas = new Set();
+                
+                tarifasGasNuevas = {};
+                comercialesGasNuevos = {};
+                
+                const formatearFecha = (fecha) => {
+                    if (!fecha) return '';
+                    if (fecha instanceof Date) {
+                        return fecha.toLocaleDateString('es-ES');
+                    }
+                    return String(fecha);
                 };
-
-                for (const factura of facturaGasData) {
-                    // Debug primera fila para ver nombres de columnas
-                    if (facturaGasData.indexOf(factura) === 0) {
-                        console.log('🔍 Columnas en FACTURASGAS:', Object.keys(factura));
-                    }
-                    
-                    // Extraer datos usando nombres de columnas EXACTOS
-                    const cliente = factura['Cliente'] || '';
-                    const contrato = factura['Contrato'] || '';
-                    const cups = factura['CUPS'] || '';
-                    const direccion = factura['Dirección'] || '';
-                    const serieNumero = factura['Serie/Numero'] || '';
-                    const finSuministro = factura['Fecha Fin Suministro'] || '';
-                    const peaje = factura['Tarifa Peaje'] || '';
-                    const tarifa = factura['Grupo'] || '';
-                    
-                    // Consumo (columna X) - usar valor absoluto si es negativo
-                    let consumo = parseFloat(factura['Consumo'] || 0);
-                    consumo = Math.abs(consumo); // Convertir a positivo
-                    
-                    // Precios
-                    const precioTFijo = parseFloat(factura['Precio T. Fijo'] || 0);
-                    const precioEnergiaP1 = parseFloat(factura['Precio Energía P1'] || 0);
-                    const canalComercial = factura['Comercial'] || '';
-                    
-                    // Normalizar tarifa (eliminar números del final)
-                    let tarifaLimpia = String(tarifa).trim().replace(/\s+\d+$/, '');
-                    const tarifaNormalizada = tarifaLimpia.toUpperCase().trim();
-                    
-                    // Normalizar peaje (quitar espacios para comparación)
-                    const peajeNormalizado = String(peaje).toUpperCase().trim().replace(/\s+/g, '');
-                    
-                    // Determinar RL
-                    let rlKey = '';
-                    if (peajeNormalizado.includes('RL.1') || peajeNormalizado.includes('RL1')) {
-                        rlKey = 'RL_1';
-                    } else if (peajeNormalizado.includes('RL.2') || peajeNormalizado.includes('RL2')) {
-                        rlKey = 'RL_2';
-                    } else if (peajeNormalizado.includes('RL.3') || peajeNormalizado.includes('RL3')) {
-                        rlKey = 'RL_3';
-                    } else if (peajeNormalizado.includes('RL.4') || peajeNormalizado.includes('RL4')) {
-                        rlKey = 'RL_4';
-                    } else if (peajeNormalizado.includes('RL.5') || peajeNormalizado.includes('RL5')) {
-                        rlKey = 'RL_5';
-                    }
-                    
-                    if (!rlKey) {
-                        console.warn('⚠️ No se pudo determinar RL para peaje:', peaje);
-                        continue;
-                    }
-                    
-                    // Obtener comisión
-                    let comision = 0;
-                    if (comisionesGasMap[tarifaNormalizada]) {
-                        comision = comisionesGasMap[tarifaNormalizada][peajeNormalizado] || 0;
-                    }
-                    
-                    // Calcular beneficio: Comisión × (Consumo / 1000)
-                    const beneficio = comision * (consumo / 1000);
-                    
-                    // Crear objeto de contrato
-                    const contratoObj = {
-                        'Cliente': cliente,
-                        'Contrato': contrato,
-                        'CUPS': cups,
-                        'Dirección': direccion,
-                        'Fin de suministro': finSuministro,
-                        'Tarifa': tarifa,
-                        'Peaje': peaje,
-                        'Comisión': comision,
-                        'Estado': 'ACTIVA',
-                        'Facturas': serieNumero,
-                        'Consumos (kWh/mes)': consumo,
-                        'Beneficio (€)': parseFloat(beneficio.toFixed(2)),
-                        'Precio T. Fijo': precioTFijo,
-                        'Precio Energía Gas P1': precioEnergiaP1,
-                        'Canal comercial': canalComercial
-                    };
-                    
-                    contratosPorRL[rlKey].push(contratoObj);
-                }
-
-                console.log('✅ Contratos por RL:');
-                Object.keys(contratosPorRL).forEach(rl => {
-                    console.log(`  ${rl}: ${contratosPorRL[rl].length} contratos`);
-                });
                 
-                // Debug: mostrar primer contrato de cada RL
-                Object.keys(contratosPorRL).forEach(rl => {
-                    if (contratosPorRL[rl].length > 0) {
-                        console.log(`📋 Primer contrato ${rl}:`, contratosPorRL[rl][0]);
-                    }
-                });
-
-                // ==================== PASO 3: CREAR RESUMEN GAS ====================
-                const resumenGasData = [];
-
-                Object.keys(contratosPorRL).sort().forEach(rl => {
-                    const contratos = contratosPorRL[rl];
+                for (const r of facturaGasData) {
+                    const comercial = r['Comercial'] || r['Identidad'] || '';
+                    const grupoOriginal = r['Grupo'] || '';
+                    const tarifaPeaje = r['Tarifa Peaje'] || r['TarifaPeaje'] || '';
+                    const consumo = parseFloat(r['Consumo'] || 0);
                     
-                    // Agrupar por tarifa
-                    const porTarifa = {};
-                    contratos.forEach(c => {
-                        const tarifa = c['Tarifa'];
-                        if (!porTarifa[tarifa]) {
-                            porTarifa[tarifa] = 0;
+                    if (!grupoOriginal || !consumo || !tarifaPeaje) continue;
+                    
+                    // Normalizar grupo: eliminar número del final (ej: "Sport HI Index 1" → "Sport HI Index")
+                    let grupoLimpio = String(grupoOriginal).trim();
+                    grupoLimpio = grupoLimpio.replace(/\s+\d+$/, ''); // Eliminar " 1", " 2", etc. del final
+                    const grupo = grupoLimpio.toUpperCase().trim();
+                    
+                    const peaje = String(tarifaPeaje).toUpperCase().trim();
+                    
+                    // DEBUG: Log de primera factura para ver qué busca
+                    if (processedGas.length === 0) {
+                        console.log('🔍 Primera factura GAS:');
+                        console.log('  Grupo original:', grupoOriginal);
+                        console.log('  Grupo limpio:', grupoLimpio);
+                        console.log('  Grupo normalizado:', grupo);
+                        console.log('  Peaje original:', tarifaPeaje);
+                        console.log('  Peaje normalizado:', peaje);
+                        console.log('  ¿Existe en mapa?', tarifasGasMap[grupo] ? 'SÍ' : 'NO');
+                        if (tarifasGasMap[grupo]) {
+                            console.log('  Comisión para peaje:', tarifasGasMap[grupo][peaje]);
                         }
-                        porTarifa[tarifa] += c['Beneficio (€)'];
-                    });
+                    }
                     
-                    // Añadir al resumen
-                    Object.keys(porTarifa).sort().forEach(tarifa => {
-                        resumenGasData.push({
-                            'RL': rl.replace('_', '.'),
-                            'Tarifa': tarifa,
-                            'Beneficio mensual total (€)': parseFloat(porTarifa[tarifa].toFixed(2))
-                        });
+                    let comisionBase = 0;
+                    let tarifaData = tarifasGasMap[grupo];
+                    
+                    if (tarifaData) {
+                        comisionBase = tarifaData[peaje] || 0;
+                    } else {
+                        // Buscar en tarifas ya preguntadas
+                        const key = `${grupo}|${peaje}`;
+                        if (tarifasGasNuevas[key]) {
+                            comisionBase = tarifasGasNuevas[key];
+                        } else {
+                            // PREGUNTAR al usuario
+                            const respuesta = await preguntarTarifaGasNueva(grupoOriginal, tarifaPeaje);
+                            if (respuesta) {
+                                tarifasGasNuevas[key] = respuesta;
+                                comisionBase = respuesta;
+                            } else {
+                                // Usuario canceló - usar 0
+                                comisionBase = 0;
+                            }
+                        }
+                        
+                        tarifasGasNoEncontradas.add(JSON.stringify({ 
+                            tarifa: grupoOriginal, 
+                            peaje: peaje 
+                        }));
+                    }
+                    
+                    const comercialU = String(comercial).toUpperCase().trim();
+                    let comercialInfo = comercialesGasMap[comercialU];
+                    
+                    if (!comercialInfo) {
+                        for (let k in comercialesGasMap) {
+                            if (comercialU.includes(k) || k.includes(comercialU)) {
+                                comercialInfo = comercialesGasMap[k];
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Buscar en comerciales ya preguntados
+                    if (!comercialInfo && comercialesGasNuevos[comercialU]) {
+                        comercialInfo = comercialesGasNuevos[comercialU];
+                    }
+                    
+                    // PREGUNTAR al usuario si no existe
+                    if (!comercialInfo) {
+                        const respuesta = await preguntarComercialGasNuevo(comercial);
+                        if (respuesta) {
+                            comercialesGasNuevos[comercialU] = {
+                                numeroComercial: String(respuesta.numero).padStart(2, '0'),
+                                porcentaje: respuesta.porcentaje,
+                                nombreOriginal: comercial
+                            };
+                            comercialInfo = comercialesGasNuevos[comercialU];
+                            
+                            // Actualizar mapa para resumen
+                            if (!numeroComercialGasMap[comercialInfo.numeroComercial]) {
+                                numeroComercialGasMap[comercialInfo.numeroComercial] = { nombres: [], porcentaje: respuesta.porcentaje };
+                            }
+                            numeroComercialGasMap[comercialInfo.numeroComercial].nombres.push(comercial);
+                        } else {
+                            // Usuario canceló - usar valores por defecto
+                            comercialInfo = {
+                                numeroComercial: '00',
+                                porcentaje: 0,
+                                nombreOriginal: comercial
+                            };
+                        }
+                    }
+                    
+                    const numeroComercial = comercialInfo.numeroComercial;
+                    const pctComercial = comercialInfo.porcentaje;
+                    
+                    const consumoMWh = consumo / 1000;
+                    const comisionCalculada = consumoMWh * comisionBase * pctComercial;
+                    const formulaCalculo = `(${consumo}/1000)*${comisionBase}*${pctComercial.toFixed(2)}=${comisionCalculada.toFixed(2)} [GAS]`;
+                    
+                    const serieNumero = r['Serie/Numero'] || r['Serie'] || '';
+                    let serie = '', numero = '';
+                    const match = String(serieNumero).match(/^([A-Z]+)(\d+)$/i);
+                    if (match) { 
+                        serie = match[1]; 
+                        numero = match[2]; 
+                    }
+                    
+                    processedGas.push({
+                        'X': 'SigeCom.DTO.TablasMaestras.AgenteComisionDetailsDTO',
+                        'Agente': 'GAS-' + comercial,
+                        'Tipo Comision': 'Importe € kWh facturado',
+                        'Fecha': '',
+                        'Comisión': parseFloat(comisionCalculada.toFixed(2)),
+                        'Serie': serie,
+                        'Numero': numero,
+                        'Importe Base': consumo,
+                        'Código Contrato': r['Contrato'] || '',
+                        'Fecha Activación': '',
+                        'CUPS': r['CUPS'] || '',
+                        'Identidad': r['Identidad'] || '',
+                        'Fecha Contratación': formatearFecha(r['Fecha Factura']),
+                        'Fecha Desde': formatearFecha(r['Fecha Inicio Suministro']),
+                        'Fecha Hasta': formatearFecha(r['Fecha Fin Suministro']),
+                        'Grupo': grupoOriginal,
+                        'Cliente': r['Cliente'] || '',
+                        'Dirección': r['Dirección'] || '',
+                        'Tarifa Peaje': tarifaPeaje,
+                        'Tarifa': r['Tarifa'] || '',
+                        'Fórmula Cálculo': formulaCalculo,
+                        '_numComercial': numeroComercial,
+                        '_agente': comercial
                     });
-                });
-
-                console.log('✅ Resumen GAS generado con', resumenGasData.length, 'filas');
-
-                // ==================== PASO 4: CREAR EXCEL ====================
+                }
                 
-                // Verificar si hay datos
-                const totalContratos = Object.values(contratosPorRL).reduce((sum, arr) => sum + arr.length, 0);
+                console.log('✅ Facturas GAS procesadas:', processedGas.length);
+                console.log('⚠️ Tarifas no encontradas:', tarifasGasNoEncontradas.size);
                 
-                if (totalContratos === 0) {
-                    console.log('⚠️ No se encontraron contratos de GAS - no se genera Excel');
-                    showStatus('⚠️ GAS procesado pero sin contratos válidos', 'warning');
+                if (processedGas.length === 0) {
+                    console.log('❌ No se procesó ninguna factura de GAS');
+                    showStatus('⚠️ No se procesaron facturas de GAS', 'error');
                     return null;
                 }
                 
-                const newWbGas = XLSX.utils.book_new();
-
-                // Añadir hojas RL
-                let hojasAñadidas = 0;
-                Object.keys(contratosPorRL).sort().forEach(rl => {
-                    const datos = contratosPorRL[rl];
-                    if (datos.length > 0) {
-                        const ws = XLSX.utils.json_to_sheet(datos);
-                        XLSX.utils.book_append_sheet(newWbGas, ws, rl);
-                        hojasAñadidas++;
-                        console.log(`✓ Hoja ${rl} añadida con ${datos.length} contratos`);
-                    }
+                processedGas.sort((a, b) => {
+                    const numComp = (a._numComercial || 0) - (b._numComercial || 0);
+                    if (numComp !== 0) return numComp;
+                    return a._agente.localeCompare(b._agente);
                 });
-
-                // Añadir hoja Resumen Gas
-                if (resumenGasData.length > 0) {
-                    const wsResumen = XLSX.utils.json_to_sheet(resumenGasData);
-                    XLSX.utils.book_append_sheet(newWbGas, wsResumen, 'Resumen_Gas');
-                    hojasAñadidas++;
-                    console.log(`✓ Hoja Resumen_Gas añadida con ${resumenGasData.length} filas`);
+                
+                const groupsGas = {};
+                processedGas.forEach(r => {
+                    const numCom = r._numComercial;
+                    if (!groupsGas[numCom]) groupsGas[numCom] = [];
+                    groupsGas[numCom].push(r);
+                });
+                
+                const finalGas = [];
+                const resumenGas = [];
+                let currentRow = 2;
+                
+                Object.keys(groupsGas).sort((a, b) => parseInt(a) - parseInt(b)).forEach(numCom => {
+                    const rows = groupsGas[numCom];
+                    const startRow = currentRow;
+                    
+                    rows.forEach(r => {
+                        delete r._numComercial;
+                        delete r._agente;
+                        finalGas.push(r);
+                        currentRow++;
+                    });
+                    
+                    const endRow = currentRow - 1;
+                    const nombrePrincipal = numeroComercialGasMap[numCom]?.nombres[0] || 'Comercial ' + numCom;
+                    const subtotal = rows.reduce((sum, r) => sum + (r['Comisión'] || 0), 0);
+                    
+                    resumenGas.push({
+                        numeroComercial: numCom,
+                        nombre: nombrePrincipal,
+                        subtotal: subtotal
+                    });
+                    
+                    finalGas.push({});
+                    currentRow++;
+                    finalGas.push({});
+                    currentRow++;
+                    
+                    finalGas.push({
+                        'X': '',
+                        'Agente': 'SUBTOTAL ' + nombrePrincipal,
+                        'Comisión': { f: `SUM(E${startRow}:E${endRow})` }
+                    });
+                    currentRow++;
+                    
+                    finalGas.push({
+                        'X': '',
+                        'Agente': 'SUBTOTAL CON IVA ' + nombrePrincipal,
+                        'Comisión': { f: `1.21*SUM(E${startRow}:E${endRow})` }
+                    });
+                    currentRow++;
+                    
+                    finalGas.push({});
+                    currentRow++;
+                    finalGas.push({});
+                    currentRow++;
+                });
+                
+                const resumenGasData = [];
+                resumenGasData.push(['=== RESUMEN GAS (SIN IVA) ===']);
+                resumenGasData.push([]);
+                
+                const rowInicioResumenGas = 3;
+                resumenGas.sort((a, b) => parseInt(a.numeroComercial) - parseInt(b.numeroComercial));
+                resumenGas.forEach(i => {
+                    resumenGasData.push([
+                        i.nombre,
+                        parseFloat(i.subtotal.toFixed(2)),
+                        i.numeroComercial
+                    ]);
+                });
+                const rowFinResumenGas = rowInicioResumenGas + resumenGas.length - 1;
+                
+                resumenGasData.push([]);
+                resumenGasData.push([]);
+                
+                const rowTotalGeneralGas = rowFinResumenGas + 3;
+                resumenGasData.push([
+                    'TOTAL GENERAL:',
+                    { f: `SUM(B${rowInicioResumenGas}:B${rowFinResumenGas})` }
+                ]);
+                
+                resumenGasData.push([
+                    'TOTAL CON IVA:',
+                    { f: `B${rowTotalGeneralGas}*1.21` }
+                ]);
+                
+                const newWbGas = XLSX.utils.book_new();
+                const wsGas = XLSX.utils.json_to_sheet(finalGas, { cellFormula: true });
+                XLSX.utils.book_append_sheet(newWbGas, wsGas, 'Detalle GAS');
+                
+                const wsResumenGas = XLSX.utils.aoa_to_sheet(resumenGasData);
+                const rangeResumenGas = XLSX.utils.decode_range(wsResumenGas['!ref']);
+                for (let R = 2; R <= rangeResumenGas.e.r; R++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: R, c: 1 });
+                    if (wsResumenGas[cellAddress] && typeof wsResumenGas[cellAddress].v === 'number') {
+                        wsResumenGas[cellAddress].z = '#,##0.00 "€"';
+                    }
+                }
+                XLSX.utils.book_append_sheet(newWbGas, wsResumenGas, 'Resumen GAS');
+                
+                if (tarifasGasNoEncontradas.size > 0) {
+                    const tarifasFaltantes = Array.from(tarifasGasNoEncontradas).map(t => {
+                        const obj = JSON.parse(t);
+                        return { 
+                            'Tarifa': obj.tarifa, 
+                            'Peaje': obj.peaje,
+                            'Estado': 'Pendiente'
+                        };
+                    });
+                    const wsMissing = XLSX.utils.json_to_sheet(tarifasFaltantes);
+                    XLSX.utils.book_append_sheet(newWbGas, wsMissing, 'TARIFAS_GAS_NO_ENCONTRADAS');
                 }
                 
-                console.log(`📊 Total hojas en workbook GAS: ${hojasAñadidas}`);
-
-                // ==================== MOSTRAR RESULTADOS ====================
-                const totalBeneficio = resumenGasData.reduce((sum, r) => sum + r['Beneficio mensual total (€)'], 0);
-
-                const resultGasEl = document.getElementById('resultGas');
-                if (resultGasEl) {
-                    resultGasEl.innerHTML = `
-                        <h3>📊 Resultados GAS</h3>
-                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin:20px 0;">
-                            <div class="stat-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
-                                <h3>${totalContratos}</h3>
-                                <p>Total Contratos</p>
-                            </div>
-                            <div class="stat-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
-                                <h3>${Object.keys(contratosPorRL).filter(rl => contratosPorRL[rl].length > 0).length}</h3>
-                                <p>RLs con datos</p>
-                            </div>
-                            <div class="stat-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
-                                <h3>${totalBeneficio.toFixed(2)}€</h3>
-                                <p>Beneficio Total</p>
-                            </div>
-                        </div>
-                    `;
-                }
+                processedWorkbookGas = newWbGas;
+                processedDataByGroupGas = groupsGas;
+                allProcessedDataGas = { numeroComercialGasMap, tarifasGasNoEncontradas };
                 
-                console.log('✅ GAS procesado:', totalContratos, 'contratos,', totalBeneficio.toFixed(2), '€ beneficio');
-                showStatus('✅ GAS procesado: ' + totalContratos + ' contratos', 'success');
+                // Calcular total GAS
+                const totalGas = resumenGas.reduce((s, a) => s + a.subtotal, 0);
+                
+                // Mostrar estadísticas de GAS
+                document.getElementById('statsContainerGas').innerHTML = `
+                    <div class="stats" style="margin-top: 20px;">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);"><h3>${processedGas.length}</h3><p>Facturas GAS</p></div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);"><h3>${Object.keys(groupsGas).length}</h3><p>Comerciales</p></div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);"><h3>${tarifasGasNoEncontradas.size}</h3><p>Tarifas pendientes</p></div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);"><h3>${totalGas.toFixed(2)}€</h3><p>Total GAS</p></div>
+                    </div>
+                `;
+                
+                showStatus('✅ GAS procesado: ' + processedGas.length + ' facturas', 'success');
                 document.getElementById('downloadSectionGas').style.display = 'block';
+                document.getElementById('downloadSectionScript').style.display = 'block';
                 document.getElementById('downloadSectionAnalisis').style.display = 'block';
                 
                 return newWbGas;
@@ -2745,77 +2861,187 @@ Revisa y envía cada uno." buttons {"OK"}`;
                 // ========================================
                 
                 if (processedWorkbookGas && originalWorkbook) {
-                    console.log('✓ Procesando análisis de GAS');
+                    // Leer DATOSGAS del workbook ORIGINAL
+                    const datosGasSheet = originalWorkbook.Sheets['DATOSGAS'];
+                    const detalleGasSheet = processedWorkbookGas.Sheets['Detalle GAS'];
+                    const tarifasGasNoEncontradasSheet = processedWorkbookGas.Sheets['TARIFAS_GAS_NO_ENCONTRADAS'];
                     
-                    // Función para sanitizar datos
-                    const sanitizarDatos = (datos) => {
-                        return datos.map(row => {
-                            const rowLimpia = {};
-                            for (const key in row) {
-                                let val = row[key];
-                                // Convertir null/undefined a string vacío
-                                if (val === null || val === undefined) {
-                                    val = '';
-                                }
-                                // Convertir fechas a string
-                                else if (val instanceof Date) {
-                                    val = val.toLocaleDateString('es-ES');
-                                }
-                                // Asegurar que números sean válidos
-                                else if (typeof val === 'number' && !isFinite(val)) {
-                                    val = 0;
-                                }
-                                rowLimpia[key] = val;
-                            }
-                            return rowLimpia;
-                        });
-                    };
+                    if (!datosGasSheet) {
+                        console.log('⚠️ No se encontró hoja DATOSGAS en el workbook original');
+                    }
                     
-                    // Leer hojas RL del workbook de GAS
-                    const rlSheets = ['RL_1', 'RL_2', 'RL_3', 'RL_4', 'RL_5'];
+                    // Para GAS necesitamos leer la estructura de DATOSGAS que tiene las tarifas en filas y peajes en columnas
+                    const tarifasGasConfiguradasMap = {};
                     
-                    rlSheets.forEach(rlName => {
-                        const rlSheet = processedWorkbookGas.Sheets[rlName];
-                        if (rlSheet) {
-                            const rlData = XLSX.utils.sheet_to_json(rlSheet);
+                    if (datosGasSheet) {
+                        const datosGasRaw = XLSX.utils.sheet_to_json(datosGasSheet, { header: 1 });
+                        
+                        console.log('=== TARIFAS GAS EN DATOSGAS (original) ===');
+                        console.log('Total filas:', datosGasRaw.length);
+                        
+                        for (let i = 1; i < datosGasRaw.length; i++) {
+                            const row = datosGasRaw[i];
+                            if (!row || !row[0]) continue;
                             
-                            // Sanitizar datos
-                            const rlDataLimpia = sanitizarDatos(rlData);
+                            const tarifa = String(row[0]).trim();
+                            const tarifaUpper = tarifa.toUpperCase();
                             
-                            // Guardar directamente para el visor
-                            datosParaVisor[rlName] = rlDataLimpia.map(row => ({...row}));
+                            tarifasGasConfiguradasMap[tarifaUpper] = {
+                                tarifa: tarifa,
+                                comisiones: {
+                                    'RL.1': parseFloat(row[1]) || 0,
+                                    'RL. 1': parseFloat(row[1]) || 0,
+                                    'RL.2': parseFloat(row[2]) || 0,
+                                    'RL. 2': parseFloat(row[2]) || 0,
+                                    'RL.3': parseFloat(row[3]) || 0,
+                                    'RL. 3': parseFloat(row[3]) || 0,
+                                    'RL.4': parseFloat(row[4]) || 0,
+                                    'RL. 4': parseFloat(row[4]) || 0,
+                                    'RL.5': parseFloat(row[5]) || 0,
+                                    'RL. 5': parseFloat(row[5]) || 0
+                                }
+                            };
                             
-                            // Añadir al workbook de análisis SOLO si hay datos
-                            if (rlDataLimpia.length > 0) {
-                                const ws = XLSX.utils.json_to_sheet(rlDataLimpia);
-                                XLSX.utils.book_append_sheet(analisisWb, ws, rlName);
-                                console.log(`✓ ${rlName}: ${rlDataLimpia.length} contratos`);
+                            if (i <= 10) {
+                                console.log(`  "${tarifaUpper}" → RL.1:${row[1]}, RL.2:${row[2]}, RL.3:${row[3]}, RL.4:${row[4]}, RL.5:${row[5]}`);
                             }
                         }
-                    });
+                        console.log(`Total tarifas GAS configuradas: ${Object.keys(tarifasGasConfiguradasMap).length}`);
+                    }
                     
-                    // Leer Resumen_Gas
-                    const resumenGasSheet = processedWorkbookGas.Sheets['Resumen_Gas'];
-                    if (resumenGasSheet) {
-                        const resumenGasData = XLSX.utils.sheet_to_json(resumenGasSheet);
+                    // Extraer del detalle GAS
+                    const tarifasActivasGasMap = {};
+                    const conteoPorTarifaGas = {};
+                    
+                    if (detalleGasSheet) {
+                        const detalleGasData = XLSX.utils.sheet_to_json(detalleGasSheet);
                         
-                        // Sanitizar datos
-                        const resumenGasLimpia = sanitizarDatos(resumenGasData);
-                        
-                        // Guardar para el visor
-                        datosParaVisor['Resumen_Gas'] = resumenGasLimpia.map(row => ({...row}));
-                        
-                        // Añadir al workbook de análisis SOLO si hay datos
-                        if (resumenGasLimpia.length > 0) {
-                            const ws = XLSX.utils.json_to_sheet(resumenGasLimpia);
-                            XLSX.utils.book_append_sheet(analisisWb, ws, 'Resumen_Gas');
-                            console.log(`✓ Resumen_Gas: ${resumenGasLimpia.length} filas`);
+                        for (const row of detalleGasData) {
+                            let grupo = row['Grupo'];
+                            const tarifaPeaje = row['Tarifa Peaje'];
+                            if (!grupo || !tarifaPeaje) continue;
+                            
+                            // Limpiar número del final
+                            grupo = String(grupo).trim().replace(/\s+\d+$/, '');
+                            const grupoUpper = grupo.toUpperCase();
+                            const peajeNorm = String(tarifaPeaje).trim().toUpperCase();
+                            
+                            if (!tarifasActivasGasMap[grupoUpper]) {
+                                tarifasActivasGasMap[grupoUpper] = {
+                                    grupo: grupo,
+                                    peajes: new Set()
+                                };
+                            }
+                            tarifasActivasGasMap[grupoUpper].peajes.add(peajeNorm);
+                            
+                            const key = `${grupoUpper}|${peajeNorm}`;
+                            conteoPorTarifaGas[key] = (conteoPorTarifaGas[key] || 0) + 1;
                         }
                     }
                     
-                    console.log('✅ GAS procesado para análisis');
-                } else {
-                    console.log('ℹ️  No hay datos de GAS para analizar');
+                    // Combinar información de GAS
+                    const todasLasTarifasGas = new Map();
+                    
+                    // De configuradas
+                    for (const [key, info] of Object.entries(tarifasGasConfiguradasMap)) {
+                        todasLasTarifasGas.set(key, {
+                            tarifa: info.tarifa,
+                            comisiones: info.comisiones,
+                            estado: 'CONFIGURADA',
+                            peajes: [],
+                            facturas: 0
+                        });
+                    }
+                    
+                    // De activas
+                    for (const [key, info] of Object.entries(tarifasActivasGasMap)) {
+                        const peajes = Array.from(info.peajes);
+                        if (todasLasTarifasGas.has(key)) {
+                            todasLasTarifasGas.get(key).estado = 'ACTIVA';
+                            todasLasTarifasGas.get(key).peajes = peajes;
+                        } else {
+                            todasLasTarifasGas.set(key, {
+                                tarifa: info.grupo,
+                                comisiones: {},
+                                estado: 'ACTIVA',
+                                peajes: peajes,
+                                facturas: 0
+                            });
+                        }
+                    }
+                    
+                    // Agregar conteo de facturas
+                    for (const [keyTarifa, info] of todasLasTarifasGas.entries()) {
+                        let totalFacturas = 0;
+                        for (const peaje of info.peajes) {
+                            const key = `${keyTarifa}|${peaje}`;
+                            totalFacturas += (conteoPorTarifaGas[key] || 0);
+                        }
+                        info.facturas = totalFacturas;
+                    }
+                    
+                    // Clasificar por peaje GAS
+                    const peajesGas = ['RL.1', 'RL.2', 'RL.3', 'RL.4', 'RL.5', 'RL. 1', 'RL. 2', 'RL. 3', 'RL. 4', 'RL. 5'];
+                    const peajesUnicos = new Set();
+                    
+                    for (const [key, info] of todasLasTarifasGas.entries()) {
+                        for (const peaje of info.peajes) {
+                            peajesUnicos.add(peaje);
+                        }
+                    }
+                    
+                    for (const peaje of peajesUnicos) {
+                        const tarifasDelPeaje = [];
+                        
+                        for (const [key, info] of todasLasTarifasGas.entries()) {
+                            if (info.peajes.includes(peaje)) {
+                                const keyConteo = `${key}|${peaje}`;
+                                const comision = info.comisiones ? info.comisiones[peaje] || 0 : 0;
+                                
+                                tarifasDelPeaje.push({
+                                    'Tarifa': info.tarifa,
+                                    'Peaje': peaje,
+                                    'Comisión': comision,
+                                    'Estado': info.estado,
+                                    'Facturas': conteoPorTarifaGas[keyConteo] || 0
+                                });
+                            }
+                        }
+                        
+                        tarifasDelPeaje.sort((a, b) => {
+                            if (a.Estado === 'ACTIVA' && b.Estado !== 'ACTIVA') return -1;
+                            if (a.Estado !== 'ACTIVA' && b.Estado === 'ACTIVA') return 1;
+                            return b.Facturas - a.Facturas; // Mayor a menor
+                        });
+                        
+                        if (tarifasDelPeaje.length > 0) {
+                            const ws = XLSX.utils.json_to_sheet(tarifasDelPeaje);
+                            const nombreHoja = peaje.replace('.', '_').replace(' ', '');
+                            XLSX.utils.book_append_sheet(analisisWb, ws, nombreHoja);
+                        }
+                    }
+                    
+                    // Hoja resumen GAS
+                    const resumenGas = [];
+                    for (const [key, info] of todasLasTarifasGas.entries()) {
+                        resumenGas.push({
+                            'Tarifa': info.tarifa,
+                            'Estado': info.estado,
+                            'Peajes': info.peajes.join(', '),
+                            'Facturas': info.facturas
+                        });
+                    }
+                    
+                    resumenGas.sort((a, b) => {
+                        // Primero por estado (ACTIVA primero)
+                        if (a.Estado === 'ACTIVA' && b.Estado !== 'ACTIVA') return -1;
+                        if (a.Estado !== 'ACTIVA' && b.Estado === 'ACTIVA') return 1;
+                        // Luego por número de facturas (mayor a menor)
+                        return b.Facturas - a.Facturas;
+                    });
+                    
+                    const wsResumenGas = XLSX.utils.json_to_sheet(resumenGas);
+                    XLSX.utils.book_append_sheet(analisisWb, wsResumenGas, 'Resumen Gas');
                 }
                 
                 // Descargar el archivo

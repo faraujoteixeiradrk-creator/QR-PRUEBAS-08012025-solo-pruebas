@@ -1048,20 +1048,20 @@
                     let tarifaLimpia = String(tarifa).trim().replace(/\s+\d+$/, '');
                     const tarifaNormalizada = tarifaLimpia.toUpperCase().trim();
                     
-                    // Normalizar peaje
-                    const peajeNormalizado = String(peaje).toUpperCase().trim();
+                    // Normalizar peaje (quitar espacios para comparación)
+                    const peajeNormalizado = String(peaje).toUpperCase().trim().replace(/\s+/g, '');
                     
                     // Determinar RL
                     let rlKey = '';
-                    if (peajeNormalizado.includes('RL.1') || peajeNormalizado.includes('RL 1') || peajeNormalizado === 'RL1') {
+                    if (peajeNormalizado.includes('RL.1') || peajeNormalizado.includes('RL1')) {
                         rlKey = 'RL_1';
-                    } else if (peajeNormalizado.includes('RL.2') || peajeNormalizado.includes('RL 2') || peajeNormalizado === 'RL2') {
+                    } else if (peajeNormalizado.includes('RL.2') || peajeNormalizado.includes('RL2')) {
                         rlKey = 'RL_2';
-                    } else if (peajeNormalizado.includes('RL.3') || peajeNormalizado.includes('RL 3') || peajeNormalizado === 'RL3') {
+                    } else if (peajeNormalizado.includes('RL.3') || peajeNormalizado.includes('RL3')) {
                         rlKey = 'RL_3';
-                    } else if (peajeNormalizado.includes('RL.4') || peajeNormalizado.includes('RL 4') || peajeNormalizado === 'RL4') {
+                    } else if (peajeNormalizado.includes('RL.4') || peajeNormalizado.includes('RL4')) {
                         rlKey = 'RL_4';
-                    } else if (peajeNormalizado.includes('RL.5') || peajeNormalizado.includes('RL 5') || peajeNormalizado === 'RL5') {
+                    } else if (peajeNormalizado.includes('RL.5') || peajeNormalizado.includes('RL5')) {
                         rlKey = 'RL_5';
                     }
                     
@@ -1160,24 +1160,28 @@
                 const totalBeneficio = resumenGasData.reduce((sum, r) => sum + r['Beneficio mensual total (€)'], 0);
                 const totalContratos = Object.values(contratosPorRL).reduce((sum, arr) => sum + arr.length, 0);
 
-                document.getElementById('resultGas').innerHTML = `
-                    <h3>📊 Resultados GAS</h3>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin:20px 0;">
-                        <div class="stat-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
-                            <h3>${totalContratos}</h3>
-                            <p>Total Contratos</p>
+                const resultGasEl = document.getElementById('resultGas');
+                if (resultGasEl) {
+                    resultGasEl.innerHTML = `
+                        <h3>📊 Resultados GAS</h3>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin:20px 0;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
+                                <h3>${totalContratos}</h3>
+                                <p>Total Contratos</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
+                                <h3>${Object.keys(contratosPorRL).filter(rl => contratosPorRL[rl].length > 0).length}</h3>
+                                <p>RLs con datos</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
+                                <h3>${totalBeneficio.toFixed(2)}€</h3>
+                                <p>Beneficio Total</p>
+                            </div>
                         </div>
-                        <div class="stat-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
-                            <h3>${Object.keys(contratosPorRL).filter(rl => contratosPorRL[rl].length > 0).length}</h3>
-                            <p>RLs con datos</p>
-                        </div>
-                        <div class="stat-card" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
-                            <h3>${totalBeneficio.toFixed(2)}€</h3>
-                            <p>Beneficio Total</p>
-                        </div>
-                    </div>
-                `;
+                    `;
+                }
                 
+                console.log('✅ GAS procesado:', totalContratos, 'contratos,', totalBeneficio.toFixed(2), '€ beneficio');
                 showStatus('✅ GAS procesado: ' + totalContratos + ' contratos', 'success');
                 document.getElementById('downloadSectionGas').style.display = 'block';
                 document.getElementById('downloadSectionAnalisis').style.display = 'block';

@@ -929,13 +929,22 @@
             try {
                 // ==================== PROCESAMIENTO MEJORADO DE GAS ====================
                 console.log('🔍 Iniciando procesamiento MEJORADO de GAS...');
-                const sheetNames = wb.SheetNames;
-                console.log('📋 Hojas disponibles en el Excel:', sheetNames);
+                console.log('🔍 Workbook recibido:', wb ? 'SÍ' : 'NO');
+                
+                try {
+                    const sheetNames = wb.SheetNames;
+                    console.log('📋 Hojas disponibles en el Excel:', sheetNames);
+                } catch (e) {
+                    console.error('❌ Error obteniendo SheetNames:', e);
+                    return null;
+                }
 
                 const datosGasSheet = wb.Sheets['DATOSGAS'] || wb.Sheets['DatosGas'] || wb.Sheets['datosgas'];
+                console.log('🔍 DATOSGAS sheet:', datosGasSheet ? 'ENCONTRADA' : 'NO ENCONTRADA');
                 
                 // Buscar FACTURASGAS de manera más flexible
                 let facturasGasSheet = null;
+                const sheetNames = wb.SheetNames;
                 const facturasGasName = sheetNames.find(n => {
                     const upper = n.toUpperCase();
                     return upper.includes('FACTURASGAS') || 

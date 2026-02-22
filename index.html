@@ -1182,7 +1182,6 @@
 
                 // ==================== MOSTRAR RESULTADOS ====================
                 const totalBeneficio = resumenGasData.reduce((sum, r) => sum + r['Beneficio mensual total (€)'], 0);
-                const totalContratos = Object.values(contratosPorRL).reduce((sum, arr) => sum + arr.length, 0);
 
                 const resultGasEl = document.getElementById('resultGas');
                 if (resultGasEl) {

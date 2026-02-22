@@ -1185,6 +1185,107 @@
                     return null;
                 }
                 
+                // ==================== AGRUPAR POR RL PARA ANÁLISIS ====================
+                const contratosPorRL = {
+                    'RL_1': [],
+                    'RL_2': [],
+                    'RL_3': [],
+                    'RL_4': [],
+                    'RL_5': []
+                };
+                
+                // Procesar cada factura de GAS para agrupar por RL
+                for (const factura of facturaGasData) {
+                    const tarifaPeaje = factura['Tarifa Peaje'] || factura['TarifaPeaje'] || '';
+                    const grupoOriginal = factura['Grupo'] || '';
+                    let consumo = parseFloat(factura['Consumo'] || 0);
+                    consumo = Math.abs(consumo);
+                    
+                    if (!tarifaPeaje || !consumo) continue;
+                    
+                    // Normalizar peaje
+                    const peajeNorm = String(tarifaPeaje).toUpperCase().trim().replace(/\s+/g, '');
+                    
+                    // Normalizar grupo
+                    let grupoLimpio = String(grupoOriginal).trim().replace(/\s+\d+$/, '');
+                    const grupoNorm = grupoLimpio.toUpperCase().trim();
+                    
+                    // Determinar RL
+                    let rlKey = '';
+                    if (peajeNorm.includes('RL.1') || peajeNorm.includes('RL1')) {
+                        rlKey = 'RL_1';
+                    } else if (peajeNorm.includes('RL.2') || peajeNorm.includes('RL2')) {
+                        rlKey = 'RL_2';
+                    } else if (peajeNorm.includes('RL.3') || peajeNorm.includes('RL3')) {
+                        rlKey = 'RL_3';
+                    } else if (peajeNorm.includes('RL.4') || peajeNorm.includes('RL4')) {
+                        rlKey = 'RL_4';
+                    } else if (peajeNorm.includes('RL.5') || peajeNorm.includes('RL5')) {
+                        rlKey = 'RL_5';
+                    }
+                    
+                    if (!rlKey) continue;
+                    
+                    // Obtener comisión
+                    let comision = 0;
+                    if (tarifasGasMap[grupoNorm]) {
+                        comision = tarifasGasMap[grupoNorm][peajeNorm] || 0;
+                    }
+                    
+                    // Calcular beneficio
+                    const beneficio = comision * (consumo / 1000);
+                    
+                    contratosPorRL[rlKey].push({
+                        'Cliente': factura['Cliente'] || '',
+                        'Contrato': factura['Contrato'] || '',
+                        'CUPS': factura['CUPS'] || '',
+                        'Dirección': factura['Dirección'] || '',
+                        'Fin de suministro': formatearFecha(factura['Fecha Fin Suministro']),
+                        'Tarifa': grupoOriginal,
+                        'Peaje': tarifaPeaje,
+                        'Comisión': comision,
+                        'Estado': 'ACTIVA',
+                        'Facturas': factura['Serie/Numero'] || '',
+                        'Consumos (kWh/mes)': consumo,
+                        'Beneficio (€)': parseFloat(beneficio.toFixed(2)),
+                        'Precio T. Fijo': parseFloat(factura['Precio T. Fijo'] || 0),
+                        'Precio Energía Gas P1': parseFloat(factura['Precio Energía P1'] || 0),
+                        'Canal comercial': factura['Comercial'] || ''
+                    });
+                }
+                
+                console.log('✅ Contratos por RL:');
+                Object.keys(contratosPorRL).forEach(rl => {
+                    console.log(`  ${rl}: ${contratosPorRL[rl].length} contratos`);
+                });
+                
+                // Generar Resumen_Gas por RL y Tarifa
+                const resumenGasPorRL = [];
+                Object.keys(contratosPorRL).forEach(rl => {
+                    const contratos = contratosPorRL[rl];
+                    const beneficioPorTarifa = {};
+                    
+                    contratos.forEach(c => {
+                        const tarifa = c['Tarifa'];
+                        if (!beneficioPorTarifa[tarifa]) {
+                            beneficioPorTarifa[tarifa] = 0;
+                        }
+                        beneficioPorTarifa[tarifa] += c['Beneficio (€)'];
+                    });
+                    
+                    Object.keys(beneficioPorTarifa).forEach(tarifa => {
+                        resumenGasPorRL.push({
+                            'RL': rl,
+                            'Tarifa': tarifa,
+                            'Beneficio mensual total (€)': parseFloat(beneficioPorTarifa[tarifa].toFixed(2))
+                        });
+                    });
+                });
+                
+                console.log('✅ Resumen GAS por RL generado con', resumenGasPorRL.length, 'filas');
+                
+                // ==================== FIN AGRUPAR POR RL ====================
+                
                 processedGas.sort((a, b) => {
                     const numComp = (a._numComercial || 0) - (b._numComercial || 0);
                     if (numComp !== 0) return numComp;
@@ -1290,6 +1391,23 @@
                     }
                 }
                 XLSX.utils.book_append_sheet(newWbGas, wsResumenGas, 'Resumen GAS');
+                
+                // Añadir hojas RL_1 a RL_5 para el análisis
+                Object.keys(contratosPorRL).sort().forEach(rlName => {
+                    const datos = contratosPorRL[rlName];
+                    if (datos.length > 0) {
+                        const wsRL = XLSX.utils.json_to_sheet(datos);
+                        XLSX.utils.book_append_sheet(newWbGas, wsRL, rlName);
+                        console.log(`✓ Hoja ${rlName} añadida con ${datos.length} contratos`);
+                    }
+                });
+                
+                // Añadir hoja Resumen_Gas (para análisis)
+                if (resumenGasPorRL.length > 0) {
+                    const wsResumenGasAnalisis = XLSX.utils.json_to_sheet(resumenGasPorRL);
+                    XLSX.utils.book_append_sheet(newWbGas, wsResumenGasAnalisis, 'Resumen_Gas');
+                    console.log(`✓ Hoja Resumen_Gas añadida con ${resumenGasPorRL.length} filas`);
+                }
                 
                 if (tarifasGasNoEncontradas.size > 0) {
                     const tarifasFaltantes = Array.from(tarifasGasNoEncontradas).map(t => {

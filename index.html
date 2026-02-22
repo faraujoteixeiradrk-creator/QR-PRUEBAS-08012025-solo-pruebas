@@ -1036,7 +1036,8 @@
                     const comercial = r['Comercial'] || r['Identidad'] || '';
                     const grupoOriginal = r['Grupo'] || '';
                     const tarifaPeaje = r['Tarifa Peaje'] || r['TarifaPeaje'] || '';
-                    const consumo = parseFloat(r['Consumo'] || 0);
+                    let consumo = parseFloat(r['Consumo'] || 0);
+                    consumo = Math.abs(consumo); // Convertir a valor absoluto
                     
                     if (!grupoOriginal || !consumo || !tarifaPeaje) continue;
                     
@@ -1045,7 +1046,8 @@
                     grupoLimpio = grupoLimpio.replace(/\s+\d+$/, ''); // Eliminar " 1", " 2", etc. del final
                     const grupo = grupoLimpio.toUpperCase().trim();
                     
-                    const peaje = String(tarifaPeaje).toUpperCase().trim();
+                    // Normalizar peaje: quitar espacios para comparación (RL. 1 → RL.1)
+                    const peaje = String(tarifaPeaje).toUpperCase().trim().replace(/\s+/g, '');
                     
                     // DEBUG: Log de primera factura para ver qué busca
                     if (processedGas.length === 0) {

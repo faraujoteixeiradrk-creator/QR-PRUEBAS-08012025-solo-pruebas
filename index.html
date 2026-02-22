@@ -2748,6 +2748,30 @@ Revisa y envía cada uno." buttons {"OK"}`;
                 if (processedWorkbookGas && originalWorkbook) {
                     console.log('✓ Procesando análisis de GAS');
                     
+                    // Función para sanitizar datos
+                    const sanitizarDatos = (datos) => {
+                        return datos.map(row => {
+                            const rowLimpia = {};
+                            for (const key in row) {
+                                let val = row[key];
+                                // Convertir null/undefined a string vacío
+                                if (val === null || val === undefined) {
+                                    val = '';
+                                }
+                                // Convertir fechas a string
+                                else if (val instanceof Date) {
+                                    val = val.toLocaleDateString('es-ES');
+                                }
+                                // Asegurar que números sean válidos
+                                else if (typeof val === 'number' && !isFinite(val)) {
+                                    val = 0;
+                                }
+                                rowLimpia[key] = val;
+                            }
+                            return rowLimpia;
+                        });
+                    };
+                    
                     // Leer hojas RL del workbook de GAS
                     const rlSheets = ['RL_1', 'RL_2', 'RL_3', 'RL_4', 'RL_5'];
                     
@@ -2756,14 +2780,18 @@ Revisa y envía cada uno." buttons {"OK"}`;
                         if (rlSheet) {
                             const rlData = XLSX.utils.sheet_to_json(rlSheet);
                             
+                            // Sanitizar datos
+                            const rlDataLimpia = sanitizarDatos(rlData);
+                            
                             // Guardar directamente para el visor
-                            datosParaVisor[rlName] = rlData.map(row => ({...row}));
+                            datosParaVisor[rlName] = rlDataLimpia.map(row => ({...row}));
                             
-                            // Añadir al workbook de análisis
-                            const ws = XLSX.utils.json_to_sheet(rlData);
-                            XLSX.utils.book_append_sheet(analisisWb, ws, rlName);
-                            
-                            console.log(`✓ ${rlName}: ${rlData.length} contratos`);
+                            // Añadir al workbook de análisis SOLO si hay datos
+                            if (rlDataLimpia.length > 0) {
+                                const ws = XLSX.utils.json_to_sheet(rlDataLimpia);
+                                XLSX.utils.book_append_sheet(analisisWb, ws, rlName);
+                                console.log(`✓ ${rlName}: ${rlDataLimpia.length} contratos`);
+                            }
                         }
                     });
                     
@@ -2772,14 +2800,18 @@ Revisa y envía cada uno." buttons {"OK"}`;
                     if (resumenGasSheet) {
                         const resumenGasData = XLSX.utils.sheet_to_json(resumenGasSheet);
                         
+                        // Sanitizar datos
+                        const resumenGasLimpia = sanitizarDatos(resumenGasData);
+                        
                         // Guardar para el visor
-                        datosParaVisor['Resumen_Gas'] = resumenGasData.map(row => ({...row}));
+                        datosParaVisor['Resumen_Gas'] = resumenGasLimpia.map(row => ({...row}));
                         
-                        // Añadir al workbook de análisis
-                        const ws = XLSX.utils.json_to_sheet(resumenGasData);
-                        XLSX.utils.book_append_sheet(analisisWb, ws, 'Resumen_Gas');
-                        
-                        console.log(`✓ Resumen_Gas: ${resumenGasData.length} filas`);
+                        // Añadir al workbook de análisis SOLO si hay datos
+                        if (resumenGasLimpia.length > 0) {
+                            const ws = XLSX.utils.json_to_sheet(resumenGasLimpia);
+                            XLSX.utils.book_append_sheet(analisisWb, ws, 'Resumen_Gas');
+                            console.log(`✓ Resumen_Gas: ${resumenGasLimpia.length} filas`);
+                        }
                     }
                     
                     console.log('✅ GAS procesado para análisis');

@@ -1109,6 +1109,13 @@
                 Object.keys(contratosPorRL).forEach(rl => {
                     console.log(`  ${rl}: ${contratosPorRL[rl].length} contratos`);
                 });
+                
+                // Debug: mostrar primer contrato de cada RL
+                Object.keys(contratosPorRL).forEach(rl => {
+                    if (contratosPorRL[rl].length > 0) {
+                        console.log(`📋 Primer contrato ${rl}:`, contratosPorRL[rl][0]);
+                    }
+                });
 
                 // ==================== PASO 3: CREAR RESUMEN GAS ====================
                 const resumenGasData = [];
@@ -1139,14 +1146,27 @@
                 console.log('✅ Resumen GAS generado con', resumenGasData.length, 'filas');
 
                 // ==================== PASO 4: CREAR EXCEL ====================
+                
+                // Verificar si hay datos
+                const totalContratos = Object.values(contratosPorRL).reduce((sum, arr) => sum + arr.length, 0);
+                
+                if (totalContratos === 0) {
+                    console.log('⚠️ No se encontraron contratos de GAS - no se genera Excel');
+                    showStatus('⚠️ GAS procesado pero sin contratos válidos', 'warning');
+                    return null;
+                }
+                
                 const newWbGas = XLSX.utils.book_new();
 
                 // Añadir hojas RL
+                let hojasAñadidas = 0;
                 Object.keys(contratosPorRL).sort().forEach(rl => {
                     const datos = contratosPorRL[rl];
                     if (datos.length > 0) {
                         const ws = XLSX.utils.json_to_sheet(datos);
                         XLSX.utils.book_append_sheet(newWbGas, ws, rl);
+                        hojasAñadidas++;
+                        console.log(`✓ Hoja ${rl} añadida con ${datos.length} contratos`);
                     }
                 });
 
@@ -1154,7 +1174,11 @@
                 if (resumenGasData.length > 0) {
                     const wsResumen = XLSX.utils.json_to_sheet(resumenGasData);
                     XLSX.utils.book_append_sheet(newWbGas, wsResumen, 'Resumen_Gas');
+                    hojasAñadidas++;
+                    console.log(`✓ Hoja Resumen_Gas añadida con ${resumenGasData.length} filas`);
                 }
+                
+                console.log(`📊 Total hojas en workbook GAS: ${hojasAñadidas}`);
 
                 // ==================== MOSTRAR RESULTADOS ====================
                 const totalBeneficio = resumenGasData.reduce((sum, r) => sum + r['Beneficio mensual total (€)'], 0);

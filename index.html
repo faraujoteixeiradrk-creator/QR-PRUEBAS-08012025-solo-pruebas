@@ -218,6 +218,20 @@
                     • Número de facturas por tarifa
                 </p>
             </div>
+            
+            <!-- VISOR INTERACTIVO WEB -->
+            <div class="section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h2 style="color: white;">🎨 VISOR INTERACTIVO WEB</h2>
+                <p style="margin: 15px 0; opacity: 0.95;">Visualiza el Excel generado en una interfaz web moderna</p>
+                <input type="file" id="excelVisorInput" accept=".xlsx" style="display: none;">
+                <button class="download-btn" id="abrirVisorBtn" style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); border: 3px solid white;">🎨 Abrir Visor Web</button>
+                <p style="margin-top: 15px; font-size: 0.85em; opacity: 0.9;">
+                    📊 <strong>Instrucciones:</strong><br>
+                    1. Click en "Abrir Visor Web"<br>
+                    2. Selecciona el Excel generado<br>
+                    3. ¡Explora tus datos de forma visual!
+                </p>
+            </div>
         </div>
     </div>
 
@@ -274,7 +288,10 @@
         document.getElementById('downloadBtn').addEventListener('click', downloadFile);
         document.getElementById('downloadByComercialBtn').addEventListener('click', downloadByComercial);
         document.getElementById('downloadScriptBtn').addEventListener('click', downloadScript);
-        document.getElementById('downloadAnalisisBtn').addEventListener('click', analizarTarifas);
+        document.getElementById('downloadAnalisisBtn').addEventListener('click', () => {
+            console.log('🔴 CLICK EN BOTÓN ANALIZAR TARIFAS');
+            analizarTarifas();
+        });
         
         function showStatus(msg, type) {
             const s = document.getElementById('status');
@@ -1019,7 +1036,8 @@
                     const comercial = r['Comercial'] || r['Identidad'] || '';
                     const grupoOriginal = r['Grupo'] || '';
                     const tarifaPeaje = r['Tarifa Peaje'] || r['TarifaPeaje'] || '';
-                    const consumo = parseFloat(r['Consumo'] || 0);
+                    let consumo = parseFloat(r['Consumo'] || 0);
+                    consumo = Math.abs(consumo); // Convertir a valor absoluto
                     
                     if (!grupoOriginal || !consumo || !tarifaPeaje) continue;
                     
@@ -1028,7 +1046,8 @@
                     grupoLimpio = grupoLimpio.replace(/\s+\d+$/, ''); // Eliminar " 1", " 2", etc. del final
                     const grupo = grupoLimpio.toUpperCase().trim();
                     
-                    const peaje = String(tarifaPeaje).toUpperCase().trim();
+                    // Normalizar peaje: quitar espacios (RL. 1 → RL.1)
+                    const peaje = String(tarifaPeaje).toUpperCase().trim().replace(/\s+/g, '');
                     
                     // DEBUG: Log de primera factura para ver qué busca
                     if (processedGas.length === 0) {
@@ -1166,6 +1185,107 @@
                     return null;
                 }
                 
+                // ==================== AGRUPAR POR RL PARA ANÁLISIS ====================
+                const contratosPorRL = {
+                    'RL_1': [],
+                    'RL_2': [],
+                    'RL_3': [],
+                    'RL_4': [],
+                    'RL_5': []
+                };
+                
+                // Procesar cada factura de GAS para agrupar por RL
+                for (const factura of facturaGasData) {
+                    const tarifaPeaje = factura['Tarifa Peaje'] || factura['TarifaPeaje'] || '';
+                    const grupoOriginal = factura['Grupo'] || '';
+                    let consumo = parseFloat(factura['Consumo'] || 0);
+                    consumo = Math.abs(consumo);
+                    
+                    if (!tarifaPeaje || !consumo) continue;
+                    
+                    // Normalizar peaje
+                    const peajeNorm = String(tarifaPeaje).toUpperCase().trim().replace(/\s+/g, '');
+                    
+                    // Normalizar grupo
+                    let grupoLimpio = String(grupoOriginal).trim().replace(/\s+\d+$/, '');
+                    const grupoNorm = grupoLimpio.toUpperCase().trim();
+                    
+                    // Determinar RL
+                    let rlKey = '';
+                    if (peajeNorm.includes('RL.1') || peajeNorm.includes('RL1')) {
+                        rlKey = 'RL_1';
+                    } else if (peajeNorm.includes('RL.2') || peajeNorm.includes('RL2')) {
+                        rlKey = 'RL_2';
+                    } else if (peajeNorm.includes('RL.3') || peajeNorm.includes('RL3')) {
+                        rlKey = 'RL_3';
+                    } else if (peajeNorm.includes('RL.4') || peajeNorm.includes('RL4')) {
+                        rlKey = 'RL_4';
+                    } else if (peajeNorm.includes('RL.5') || peajeNorm.includes('RL5')) {
+                        rlKey = 'RL_5';
+                    }
+                    
+                    if (!rlKey) continue;
+                    
+                    // Obtener comisión
+                    let comision = 0;
+                    if (tarifasGasMap[grupoNorm]) {
+                        comision = tarifasGasMap[grupoNorm][peajeNorm] || 0;
+                    }
+                    
+                    // Calcular beneficio
+                    const beneficio = comision * (consumo / 1000);
+                    
+                    contratosPorRL[rlKey].push({
+                        'Cliente': factura['Cliente'] || '',
+                        'Contrato': factura['Contrato'] || '',
+                        'CUPS': factura['CUPS'] || '',
+                        'Dirección': factura['Dirección'] || '',
+                        'Fin de suministro': formatearFecha(factura['Fecha Fin Suministro']),
+                        'Tarifa': grupoOriginal,
+                        'Peaje': tarifaPeaje,
+                        'Comisión': comision,
+                        'Estado': 'ACTIVA',
+                        'Facturas': factura['Serie/Numero'] || '',
+                        'Consumos (kWh/mes)': consumo,
+                        'Beneficio (€)': parseFloat(beneficio.toFixed(2)),
+                        'Precio T. Fijo': parseFloat(factura['Precio T. Fijo'] || 0),
+                        'Precio Energía Gas P1': parseFloat(factura['Precio Energía P1'] || 0),
+                        'Canal comercial': factura['Comercial'] || ''
+                    });
+                }
+                
+                console.log('✅ Contratos por RL:');
+                Object.keys(contratosPorRL).forEach(rl => {
+                    console.log(`  ${rl}: ${contratosPorRL[rl].length} contratos`);
+                });
+                
+                // Generar Resumen_Gas por RL y Tarifa
+                const resumenGasPorRL = [];
+                Object.keys(contratosPorRL).forEach(rl => {
+                    const contratos = contratosPorRL[rl];
+                    const beneficioPorTarifa = {};
+                    
+                    contratos.forEach(c => {
+                        const tarifa = c['Tarifa'];
+                        if (!beneficioPorTarifa[tarifa]) {
+                            beneficioPorTarifa[tarifa] = 0;
+                        }
+                        beneficioPorTarifa[tarifa] += c['Beneficio (€)'];
+                    });
+                    
+                    Object.keys(beneficioPorTarifa).forEach(tarifa => {
+                        resumenGasPorRL.push({
+                            'RL': rl,
+                            'Tarifa': tarifa,
+                            'Beneficio mensual total (€)': parseFloat(beneficioPorTarifa[tarifa].toFixed(2))
+                        });
+                    });
+                });
+                
+                console.log('✅ Resumen GAS por RL generado con', resumenGasPorRL.length, 'filas');
+                
+                // ==================== FIN AGRUPAR POR RL ====================
+                
                 processedGas.sort((a, b) => {
                     const numComp = (a._numComercial || 0) - (b._numComercial || 0);
                     if (numComp !== 0) return numComp;
@@ -1271,6 +1391,23 @@
                     }
                 }
                 XLSX.utils.book_append_sheet(newWbGas, wsResumenGas, 'Resumen GAS');
+                
+                // Añadir hojas RL_1 a RL_5 para el análisis
+                Object.keys(contratosPorRL).sort().forEach(rlName => {
+                    const datos = contratosPorRL[rlName];
+                    if (datos.length > 0) {
+                        const wsRL = XLSX.utils.json_to_sheet(datos);
+                        XLSX.utils.book_append_sheet(newWbGas, wsRL, rlName);
+                        console.log(`✓ Hoja ${rlName} añadida con ${datos.length} contratos`);
+                    }
+                });
+                
+                // Añadir hoja Resumen_Gas (para análisis)
+                if (resumenGasPorRL.length > 0) {
+                    const wsResumenGasAnalisis = XLSX.utils.json_to_sheet(resumenGasPorRL);
+                    XLSX.utils.book_append_sheet(newWbGas, wsResumenGasAnalisis, 'Resumen_Gas');
+                    console.log(`✓ Hoja Resumen_Gas añadida con ${resumenGasPorRL.length} filas`);
+                }
                 
                 if (tarifasGasNoEncontradas.size > 0) {
                     const tarifasFaltantes = Array.from(tarifasGasNoEncontradas).map(t => {
@@ -1764,21 +1901,37 @@ Revisa y envía cada uno." buttons {"OK"}`;
         }
 
         function analizarTarifas() {
+            console.log('🚀 INICIO DE analizarTarifas()');
+            console.log('processedWorkbook:', !!processedWorkbook);
+            console.log('originalWorkbook:', !!originalWorkbook);
+            
+            try {
+            
             if (!processedWorkbook && !processedWorkbookGas) {
                 showStatus('❌ No hay datos procesados para analizar', 'error');
+                console.log('❌ SALIDA: No hay workbooks procesados');
                 return;
             }
             
+            console.log('✓ Workbooks disponibles');
+            
             try {
                 showStatus('⏳ Analizando tarifas activas...', 'success');
+                console.log('⏳ Iniciando análisis...');
                 
                 const analisisWb = XLSX.utils.book_new();
+                console.log('✓ Workbook de análisis creado');
+                
+                // Objeto para guardar datos para el visor (sin pasar por workbook)
+                const datosParaVisor = {};
                 
                 // ========================================
                 // ANÁLISIS DE ELECTRICIDAD
                 // ========================================
                 
+                console.log('Verificando electricidad...');
                 if (processedWorkbook && originalWorkbook) {
+                    console.log('✓ Procesando ELECTRICIDAD');
                     // Leer hoja DATOS del workbook ORIGINAL
                     const datosSheet = originalWorkbook.Sheets['DATOS'];
                     const detalleSheet = processedWorkbook.Sheets['Detalle'];
@@ -2130,6 +2283,85 @@ Revisa y envía cada uno." buttons {"OK"}`;
                         if (Object.keys(feesPorTarifaPeaje).length > 0) {
                             console.log('Primeras 5 claves:', Object.keys(feesPorTarifaPeaje).slice(0, 5));
                         }
+                    } // FIN del if (contratosActivosSheetFee && facturaTotalSheet)
+                    
+                    // ========================================
+                    // EXTRAER PRECIOS DE POTENCIA Y ENERGÍA
+                    // ========================================
+                    
+                    console.log('=== EXTRAYENDO PRECIOS DE POTENCIA Y ENERGÍA ===');
+                    
+                    const preciosPorTarifaPeaje = new Map(); // key: "tarifa|peaje", value: {potencia, energia, fecha}
+                    
+                    try {
+                        if (facturaTotalSheet) {
+                            const facturasTotales = XLSX.utils.sheet_to_json(facturaTotalSheet);
+                            console.log(`Leyendo ${facturasTotales.length} facturas para extraer precios`);
+                            
+                            for (const factura of facturasTotales) {
+                                const nombreTarifa = factura['Grupo'] || factura['GRUPO'];
+                                const tarifaPeaje = factura['Tarifa Peaje'] || factura['TARIFA PEAJE'] || '';
+                                const fechaFactura = factura['Fecha Factura'] || factura['FECHA FACTURA'] || '';
+                                
+                                if (!nombreTarifa || !tarifaPeaje) continue;
+                                
+                                const key = `${nombreTarifa}|${tarifaPeaje}`;
+                                
+                                // Solo actualizar si no tenemos precios o si esta factura es más reciente
+                                const existente = preciosPorTarifaPeaje.get(key);
+                                if (!existente || (fechaFactura && fechaFactura > (existente.fecha || ''))) {
+                                    const precios = {
+                                        potencia: {},
+                                        energia: {},
+                                        fecha: fechaFactura
+                                    };
+                                    
+                                    // Determinar si es 2.0TD
+                                    const es2TD = (tarifaPeaje.includes('2.0') || tarifaPeaje.includes('2TD')) && !tarifaPeaje.includes('6.2');
+                                    
+                                    if (es2TD) {
+                                        // Para 2.0TD: P1=AO, P2=AQ
+                                        precios.potencia.P1 = factura['Precio Potencia P1'] || 0;
+                                        precios.potencia.P2 = factura['Precio Potencia P3'] || 0;
+                                        precios.energia.E1 = factura['Precio Energía P1'] || 0;
+                                        precios.energia.E2 = factura['Precio Energía P2'] || 0;
+                                        precios.energia.E3 = factura['Precio Energía P3'] || 0;
+                                    } else {
+                                        // Para 3.0TD, 6.1TD, 6.2TD
+                                        precios.potencia.P1 = factura['Precio Potencia P1'] || 0;
+                                        precios.potencia.P2 = factura['Precio Potencia P2'] || 0;
+                                        precios.potencia.P3 = factura['Precio Potencia P3'] || 0;
+                                        precios.potencia.P4 = factura['Precio Potencia P4'] || 0;
+                                        precios.potencia.P5 = factura['Precio Potencia P5'] || 0;
+                                        precios.potencia.P6 = factura['Precio Potencia P6'] || 0;
+                                        precios.energia.E1 = factura['Precio Energía P1'] || 0;
+                                        precios.energia.E2 = factura['Precio Energía P2'] || 0;
+                                        precios.energia.E3 = factura['Precio Energía P3'] || 0;
+                                        precios.energia.E4 = factura['Precio Energía P4'] || 0;
+                                        precios.energia.E5 = factura['Precio Energía P5'] || 0;
+                                        precios.energia.E6 = factura['Precio Energía P6'] || 0;
+                                    }
+                                    
+                                    preciosPorTarifaPeaje.set(key, precios);
+                                }
+                            }
+                            
+                            console.log(`✅ Precios extraídos para ${preciosPorTarifaPeaje.size} combinaciones tarifa+peaje`);
+                            
+                            // Mostrar todas las claves con 6.2TD
+                            const claves62TD = Array.from(preciosPorTarifaPeaje.keys()).filter(k => k.includes('6.2TD'));
+                            console.log(`🔍 Claves con 6.2TD (${claves62TD.length}):`, claves62TD);
+                            
+                            if (preciosPorTarifaPeaje.size > 0 && preciosPorTarifaPeaje.size <= 3) {
+                                Array.from(preciosPorTarifaPeaje.entries()).slice(0, 3).forEach(([k, v]) => {
+                                    console.log(`  "${k}" → P1=${v.potencia.P1}, E1=${v.energia.E1}`);
+                                });
+                            }
+                        } else {
+                            console.log('⚠️ No se encontró hoja FACTURA TOTAL');
+                        }
+                    } catch (error) {
+                        console.error('❌ Error extrayendo precios:', error);
                     }
                     
                     for (const peaje of todosPeajes) {
@@ -2148,7 +2380,44 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                     // Fórmula: (Consumos÷1000) × (FEE×1000) = Consumos × FEE
                                     beneficio = Math.round(consumoTotal * fee * 100) / 100;
                                 }
-                                tarifasDelPeaje.push({
+                                
+                                // Obtener precios de potencia y energía
+                                const keyPrecios = `${info.tarifa}|${peaje}`;
+                                let precios = preciosPorTarifaPeaje.get(keyPrecios);
+                                
+                                // Debug para 6.2TD
+                                if (peaje === '6.2TD') {
+                                    console.log(`[6.2TD] Buscando: "${keyPrecios}"`);
+                                    console.log(`[6.2TD] ¿Existe en Map? ${preciosPorTarifaPeaje.has(keyPrecios)}`);
+                                    console.log(`[6.2TD] Valor obtenido:`, precios);
+                                    
+                                    // Intentar búsqueda manual
+                                    const todasLasClaves = Array.from(preciosPorTarifaPeaje.keys());
+                                    const clavesConPeaje = todasLasClaves.filter(k => k.includes('6.2TD'));
+                                    if (clavesConPeaje.length > 0) {
+                                        console.log(`[6.2TD] Intentando con clave del Map:`, clavesConPeaje[0]);
+                                        const preciosManual = preciosPorTarifaPeaje.get(clavesConPeaje[0]);
+                                        console.log(`[6.2TD] Precios obtenidos manualmente:`, preciosManual);
+                                        if (!precios) {
+                                            precios = preciosManual;
+                                            console.log(`[6.2TD] ✓ Usando precios obtenidos manualmente`);
+                                        }
+                                    }
+                                }
+                                
+                                const preciosFinales = precios || {potencia: {}, energia: {}};
+                                
+                                // Debug solo para primera tarifa de cada peaje (excepto 6.2TD que ya tiene su propio log)
+                                if (tarifasDelPeaje.length === 0 && peaje !== '6.2TD') {
+                                    console.log(`[${peaje}] Primera tarifa: "${info.tarifa}" → Precios ${precios ? 'encontrados' : 'NO encontrados'}`);
+                                    if (!precios && preciosPorTarifaPeaje.size > 0) {
+                                        console.log(`  Buscando: "${keyPrecios}"`);
+                                        console.log(`  Claves disponibles (primeras 3):`, Array.from(preciosPorTarifaPeaje.keys()).slice(0, 3));
+                                    }
+                                }
+                                
+                                // Crear objeto base
+                                const tarifaData = {
                                     'Tarifa': info.tarifa,
                                     'Peaje': peaje,
                                     'Tipo': info.tipo,
@@ -2158,7 +2427,33 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                     'Consumos (kWh/mes)': consumoTotal,
                                     'FEE (€/MWh)': fee,
                                     'Beneficio (€)': beneficio
-                                });
+                                };
+                                
+                                // Añadir precios según el peaje
+                                if (peaje === '2.0TD') {
+                                    // 2.0TD: P1, P2 (multiplicar por 365 para convertir a anual)
+                                    tarifaData['Pot P1 (€/kW/año)'] = preciosFinales.potencia.P1 ? (preciosFinales.potencia.P1 * 365) : '';
+                                    tarifaData['Pot P2 (€/kW/año)'] = preciosFinales.potencia.P2 ? (preciosFinales.potencia.P2 * 365) : '';
+                                    tarifaData['Energ E1 (€/kWh)'] = preciosFinales.energia.E1 || '';
+                                    tarifaData['Energ E2 (€/kWh)'] = preciosFinales.energia.E2 || '';
+                                    tarifaData['Energ E3 (€/kWh)'] = preciosFinales.energia.E3 || '';
+                                } else if (peaje === '3.0TD' || peaje === '6.1TD' || peaje === '6.2TD') {
+                                    // 3.0TD, 6.1TD, 6.2TD: P1-P6 (multiplicar por 365 para convertir a anual)
+                                    tarifaData['Pot P1 (€/kW/año)'] = preciosFinales.potencia.P1 ? (preciosFinales.potencia.P1 * 365) : '';
+                                    tarifaData['Pot P2 (€/kW/año)'] = preciosFinales.potencia.P2 ? (preciosFinales.potencia.P2 * 365) : '';
+                                    tarifaData['Pot P3 (€/kW/año)'] = preciosFinales.potencia.P3 ? (preciosFinales.potencia.P3 * 365) : '';
+                                    tarifaData['Pot P4 (€/kW/año)'] = preciosFinales.potencia.P4 ? (preciosFinales.potencia.P4 * 365) : '';
+                                    tarifaData['Pot P5 (€/kW/año)'] = preciosFinales.potencia.P5 ? (preciosFinales.potencia.P5 * 365) : '';
+                                    tarifaData['Pot P6 (€/kW/año)'] = preciosFinales.potencia.P6 ? (preciosFinales.potencia.P6 * 365) : '';
+                                    tarifaData['Energ E1 (€/kWh)'] = preciosFinales.energia.E1 || '';
+                                    tarifaData['Energ E2 (€/kWh)'] = preciosFinales.energia.E2 || '';
+                                    tarifaData['Energ E3 (€/kWh)'] = preciosFinales.energia.E3 || '';
+                                    tarifaData['Energ E4 (€/kWh)'] = preciosFinales.energia.E4 || '';
+                                    tarifaData['Energ E5 (€/kWh)'] = preciosFinales.energia.E5 || '';
+                                    tarifaData['Energ E6 (€/kWh)'] = preciosFinales.energia.E6 || '';
+                                }
+                                
+                                tarifasDelPeaje.push(tarifaData);
                             }
                         }
                         
@@ -2191,6 +2486,10 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             // Limpiar nombre de peaje para nombre de hoja
                             const nombreHoja = peaje.replace(/\./g, '_').replace(/\s/g, '_');
                             XLSX.utils.book_append_sheet(analisisWb, ws, nombreHoja);
+                            
+                            // Guardar datos para visor (copia profunda del array con precios)
+                            datosParaVisor[nombreHoja] = tarifasDelPeaje.map(row => ({...row}));
+                            
                             console.log(`Hoja creada: ${nombreHoja} con ${tarifasDelPeaje.length} tarifas`);
                         }
                     }
@@ -2479,6 +2778,9 @@ Revisa y envía cada uno." buttons {"OK"}`;
                             const contratoActivo = contratosPorCups[cups];
                             if (!contratoActivo) continue;
                             
+                            // Extraer Canal
+                            const canal = contratoActivo['Canal'] || contratoActivo['CANAL'] || '';
+                            
                             // Obtener fecha de vencimiento (columna M: "Vto.")
                             const fechaVto = contratoActivo['Vto.'] || contratoActivo['VTO.'] || contratoActivo['Vto'] || contratoActivo['vto'];
                             if (!fechaVto) continue;
@@ -2577,7 +2879,9 @@ Revisa y envía cada uno." buttons {"OK"}`;
                                 'Precio P4': precios['P4'] || '',
                                 'Precio P5': precios['P5'] || '',
                                 'Precio P6': precios['P6'] || '',
-                                'Estado': diasRestantes < 0 ? '⚠️ VENCIDO' : diasRestantes <= 30 ? '🔴 URGENTE' : '🟡 PRÓXIMO'
+                                // Estado y Canal se añadirán al final después de los precios de potencia
+                                '_estado_temp': diasRestantes < 0 ? '⚠️ VENCIDO' : diasRestantes <= 30 ? '🔴 URGENTE' : '🟡 PRÓXIMO',
+                                '_canal_temp': canal
                             });
                         }
                         
@@ -2592,6 +2896,74 @@ Revisa y envía cada uno." buttons {"OK"}`;
                         });
                         
                         if (vencimientos.length > 0) {
+                            // ========================================
+                            // AÑADIR PRECIOS DE POTENCIA DESDE HOJAS DE ANÁLISIS
+                            // ========================================
+                            
+                            console.log('📊 Añadiendo precios de potencia a vencimientos...');
+                            
+                            // Leer las hojas de análisis ya creadas
+                            const hojasAnalisis = {
+                                '2.0TD': analisisWb.Sheets['2_0TD'],
+                                '3.0TD': analisisWb.Sheets['3_0TD'],
+                                '6.1TD': analisisWb.Sheets['6_1TD'],
+                                '6.2TD': analisisWb.Sheets['6_2TD']
+                            };
+                            
+                            // Convertir hojas a datos
+                            const datosPorPeaje = {};
+                            for (const [peaje, hoja] of Object.entries(hojasAnalisis)) {
+                                if (hoja) {
+                                    const datos = XLSX.utils.sheet_to_json(hoja);
+                                    // Indexar por tarifa para búsqueda rápida
+                                    datosPorPeaje[peaje] = new Map();
+                                    datos.forEach(fila => {
+                                        const tarifa = fila['Tarifa'];
+                                        if (tarifa) {
+                                            datosPorPeaje[peaje].set(tarifa, fila);
+                                        }
+                                    });
+                                }
+                            }
+                            
+                            // Añadir precios de potencia a cada vencimiento
+                            vencimientos.forEach(venc => {
+                                const tarifa = venc['Grupo'];  // Columna F
+                                let peaje = venc['Tarifa Peaje'] || venc['Tarifa']; // Columna G o H
+                                
+                                // Normalizar peaje
+                                if (peaje) {
+                                    peaje = peaje.replace(/\./g, '.').replace(/\s/g, '');
+                                    if (peaje.includes('2.0') || peaje.includes('20TD')) peaje = '2.0TD';
+                                    else if (peaje.includes('3.0') || peaje.includes('30TD')) peaje = '3.0TD';
+                                    else if (peaje.includes('6.1') || peaje.includes('61TD')) peaje = '6.1TD';
+                                    else if (peaje.includes('6.2') || peaje.includes('62TD')) peaje = '6.2TD';
+                                }
+                                
+                                // Buscar precios en la hoja correspondiente
+                                const mapaHoja = datosPorPeaje[peaje];
+                                if (mapaHoja && tarifa) {
+                                    const filaTarifa = mapaHoja.get(tarifa);
+                                    if (filaTarifa) {
+                                        // Añadir precios de potencia (columnas S-X)
+                                        venc['Pot P1 Anual'] = filaTarifa['Pot P1 (€/kW/año)'] || '';
+                                        venc['Pot P2 Anual'] = filaTarifa['Pot P2 (€/kW/año)'] || '';
+                                        venc['Pot P3 Anual'] = filaTarifa['Pot P3 (€/kW/año)'] || '';
+                                        venc['Pot P4 Anual'] = filaTarifa['Pot P4 (€/kW/año)'] || '';
+                                        venc['Pot P5 Anual'] = filaTarifa['Pot P5 (€/kW/año)'] || '';
+                                        venc['Pot P6 Anual'] = filaTarifa['Pot P6 (€/kW/año)'] || '';
+                                    }
+                                }
+                                
+                                // Mover Estado y Canal al final
+                                venc['Estado'] = venc['_estado_temp'];
+                                venc['Canal'] = venc['_canal_temp'];
+                                delete venc['_estado_temp'];
+                                delete venc['_canal_temp'];
+                            });
+                            
+                            console.log('✅ Precios de potencia añadidos a vencimientos');
+                            
                             const wsVencimientos = XLSX.utils.json_to_sheet(vencimientos);
                             XLSX.utils.book_append_sheet(analisisWb, wsVencimientos, 'Vencimientos Próximos');
                         } else {
@@ -2609,199 +2981,690 @@ Revisa y envía cada uno." buttons {"OK"}`;
                 // ========================================
                 
                 if (processedWorkbookGas && originalWorkbook) {
-                    // Leer DATOSGAS del workbook ORIGINAL
-                    const datosGasSheet = originalWorkbook.Sheets['DATOSGAS'];
-                    const detalleGasSheet = processedWorkbookGas.Sheets['Detalle GAS'];
-                    const tarifasGasNoEncontradasSheet = processedWorkbookGas.Sheets['TARIFAS_GAS_NO_ENCONTRADAS'];
+                    console.log('✓ Procesando análisis de GAS');
                     
-                    if (!datosGasSheet) {
-                        console.log('⚠️ No se encontró hoja DATOSGAS en el workbook original');
-                    }
-                    
-                    // Para GAS necesitamos leer la estructura de DATOSGAS que tiene las tarifas en filas y peajes en columnas
-                    const tarifasGasConfiguradasMap = {};
-                    
-                    if (datosGasSheet) {
-                        const datosGasRaw = XLSX.utils.sheet_to_json(datosGasSheet, { header: 1 });
-                        
-                        console.log('=== TARIFAS GAS EN DATOSGAS (original) ===');
-                        console.log('Total filas:', datosGasRaw.length);
-                        
-                        for (let i = 1; i < datosGasRaw.length; i++) {
-                            const row = datosGasRaw[i];
-                            if (!row || !row[0]) continue;
-                            
-                            const tarifa = String(row[0]).trim();
-                            const tarifaUpper = tarifa.toUpperCase();
-                            
-                            tarifasGasConfiguradasMap[tarifaUpper] = {
-                                tarifa: tarifa,
-                                comisiones: {
-                                    'RL.1': parseFloat(row[1]) || 0,
-                                    'RL. 1': parseFloat(row[1]) || 0,
-                                    'RL.2': parseFloat(row[2]) || 0,
-                                    'RL. 2': parseFloat(row[2]) || 0,
-                                    'RL.3': parseFloat(row[3]) || 0,
-                                    'RL. 3': parseFloat(row[3]) || 0,
-                                    'RL.4': parseFloat(row[4]) || 0,
-                                    'RL. 4': parseFloat(row[4]) || 0,
-                                    'RL.5': parseFloat(row[5]) || 0,
-                                    'RL. 5': parseFloat(row[5]) || 0
+                    // Función para sanitizar datos
+                    const sanitizarDatos = (datos) => {
+                        return datos.map(row => {
+                            const rowLimpia = {};
+                            for (const key in row) {
+                                let val = row[key];
+                                // Convertir null/undefined a string vacío
+                                if (val === null || val === undefined) {
+                                    val = '';
                                 }
-                            };
+                                // Convertir fechas a string
+                                else if (val instanceof Date) {
+                                    val = val.toLocaleDateString('es-ES');
+                                }
+                                // Asegurar que números sean válidos
+                                else if (typeof val === 'number' && !isFinite(val)) {
+                                    val = 0;
+                                }
+                                rowLimpia[key] = val;
+                            }
+                            return rowLimpia;
+                        });
+                    };
+                    
+                    // Leer hojas RL del workbook de GAS
+                    const rlSheets = ['RL_1', 'RL_2', 'RL_3', 'RL_4', 'RL_5'];
+                    
+                    rlSheets.forEach(rlName => {
+                        const rlSheet = processedWorkbookGas.Sheets[rlName];
+                        if (rlSheet) {
+                            const rlData = XLSX.utils.sheet_to_json(rlSheet);
                             
-                            if (i <= 10) {
-                                console.log(`  "${tarifaUpper}" → RL.1:${row[1]}, RL.2:${row[2]}, RL.3:${row[3]}, RL.4:${row[4]}, RL.5:${row[5]}`);
+                            // Sanitizar datos
+                            const rlDataLimpia = sanitizarDatos(rlData);
+                            
+                            // Guardar directamente para el visor
+                            datosParaVisor[rlName] = rlDataLimpia.map(row => ({...row}));
+                            
+                            // Añadir al workbook de análisis SOLO si hay datos
+                            if (rlDataLimpia.length > 0) {
+                                const ws = XLSX.utils.json_to_sheet(rlDataLimpia);
+                                XLSX.utils.book_append_sheet(analisisWb, ws, rlName);
+                                console.log(`✓ ${rlName}: ${rlDataLimpia.length} contratos`);
                             }
                         }
-                        console.log(`Total tarifas GAS configuradas: ${Object.keys(tarifasGasConfiguradasMap).length}`);
-                    }
-                    
-                    // Extraer del detalle GAS
-                    const tarifasActivasGasMap = {};
-                    const conteoPorTarifaGas = {};
-                    
-                    if (detalleGasSheet) {
-                        const detalleGasData = XLSX.utils.sheet_to_json(detalleGasSheet);
-                        
-                        for (const row of detalleGasData) {
-                            let grupo = row['Grupo'];
-                            const tarifaPeaje = row['Tarifa Peaje'];
-                            if (!grupo || !tarifaPeaje) continue;
-                            
-                            // Limpiar número del final
-                            grupo = String(grupo).trim().replace(/\s+\d+$/, '');
-                            const grupoUpper = grupo.toUpperCase();
-                            const peajeNorm = String(tarifaPeaje).trim().toUpperCase();
-                            
-                            if (!tarifasActivasGasMap[grupoUpper]) {
-                                tarifasActivasGasMap[grupoUpper] = {
-                                    grupo: grupo,
-                                    peajes: new Set()
-                                };
-                            }
-                            tarifasActivasGasMap[grupoUpper].peajes.add(peajeNorm);
-                            
-                            const key = `${grupoUpper}|${peajeNorm}`;
-                            conteoPorTarifaGas[key] = (conteoPorTarifaGas[key] || 0) + 1;
-                        }
-                    }
-                    
-                    // Combinar información de GAS
-                    const todasLasTarifasGas = new Map();
-                    
-                    // De configuradas
-                    for (const [key, info] of Object.entries(tarifasGasConfiguradasMap)) {
-                        todasLasTarifasGas.set(key, {
-                            tarifa: info.tarifa,
-                            comisiones: info.comisiones,
-                            estado: 'CONFIGURADA',
-                            peajes: [],
-                            facturas: 0
-                        });
-                    }
-                    
-                    // De activas
-                    for (const [key, info] of Object.entries(tarifasActivasGasMap)) {
-                        const peajes = Array.from(info.peajes);
-                        if (todasLasTarifasGas.has(key)) {
-                            todasLasTarifasGas.get(key).estado = 'ACTIVA';
-                            todasLasTarifasGas.get(key).peajes = peajes;
-                        } else {
-                            todasLasTarifasGas.set(key, {
-                                tarifa: info.grupo,
-                                comisiones: {},
-                                estado: 'ACTIVA',
-                                peajes: peajes,
-                                facturas: 0
-                            });
-                        }
-                    }
-                    
-                    // Agregar conteo de facturas
-                    for (const [keyTarifa, info] of todasLasTarifasGas.entries()) {
-                        let totalFacturas = 0;
-                        for (const peaje of info.peajes) {
-                            const key = `${keyTarifa}|${peaje}`;
-                            totalFacturas += (conteoPorTarifaGas[key] || 0);
-                        }
-                        info.facturas = totalFacturas;
-                    }
-                    
-                    // Clasificar por peaje GAS
-                    const peajesGas = ['RL.1', 'RL.2', 'RL.3', 'RL.4', 'RL.5', 'RL. 1', 'RL. 2', 'RL. 3', 'RL. 4', 'RL. 5'];
-                    const peajesUnicos = new Set();
-                    
-                    for (const [key, info] of todasLasTarifasGas.entries()) {
-                        for (const peaje of info.peajes) {
-                            peajesUnicos.add(peaje);
-                        }
-                    }
-                    
-                    for (const peaje of peajesUnicos) {
-                        const tarifasDelPeaje = [];
-                        
-                        for (const [key, info] of todasLasTarifasGas.entries()) {
-                            if (info.peajes.includes(peaje)) {
-                                const keyConteo = `${key}|${peaje}`;
-                                const comision = info.comisiones ? info.comisiones[peaje] || 0 : 0;
-                                
-                                tarifasDelPeaje.push({
-                                    'Tarifa': info.tarifa,
-                                    'Peaje': peaje,
-                                    'Comisión': comision,
-                                    'Estado': info.estado,
-                                    'Facturas': conteoPorTarifaGas[keyConteo] || 0
-                                });
-                            }
-                        }
-                        
-                        tarifasDelPeaje.sort((a, b) => {
-                            if (a.Estado === 'ACTIVA' && b.Estado !== 'ACTIVA') return -1;
-                            if (a.Estado !== 'ACTIVA' && b.Estado === 'ACTIVA') return 1;
-                            return b.Facturas - a.Facturas; // Mayor a menor
-                        });
-                        
-                        if (tarifasDelPeaje.length > 0) {
-                            const ws = XLSX.utils.json_to_sheet(tarifasDelPeaje);
-                            const nombreHoja = peaje.replace('.', '_').replace(' ', '');
-                            XLSX.utils.book_append_sheet(analisisWb, ws, nombreHoja);
-                        }
-                    }
-                    
-                    // Hoja resumen GAS
-                    const resumenGas = [];
-                    for (const [key, info] of todasLasTarifasGas.entries()) {
-                        resumenGas.push({
-                            'Tarifa': info.tarifa,
-                            'Estado': info.estado,
-                            'Peajes': info.peajes.join(', '),
-                            'Facturas': info.facturas
-                        });
-                    }
-                    
-                    resumenGas.sort((a, b) => {
-                        // Primero por estado (ACTIVA primero)
-                        if (a.Estado === 'ACTIVA' && b.Estado !== 'ACTIVA') return -1;
-                        if (a.Estado !== 'ACTIVA' && b.Estado === 'ACTIVA') return 1;
-                        // Luego por número de facturas (mayor a menor)
-                        return b.Facturas - a.Facturas;
                     });
                     
-                    const wsResumenGas = XLSX.utils.json_to_sheet(resumenGas);
-                    XLSX.utils.book_append_sheet(analisisWb, wsResumenGas, 'Resumen Gas');
+                    // Leer Resumen_Gas
+                    const resumenGasSheet = processedWorkbookGas.Sheets['Resumen_Gas'];
+                    if (resumenGasSheet) {
+                        const resumenGasData = XLSX.utils.sheet_to_json(resumenGasSheet);
+                        
+                        // Sanitizar datos
+                        const resumenGasLimpia = sanitizarDatos(resumenGasData);
+                        
+                        // Guardar para el visor
+                        datosParaVisor['Resumen_Gas'] = resumenGasLimpia.map(row => ({...row}));
+                        
+                        // Añadir al workbook de análisis SOLO si hay datos
+                        if (resumenGasLimpia.length > 0) {
+                            const ws = XLSX.utils.json_to_sheet(resumenGasLimpia);
+                            XLSX.utils.book_append_sheet(analisisWb, ws, 'Resumen_Gas');
+                            console.log(`✓ Resumen_Gas: ${resumenGasLimpia.length} filas`);
+                        }
+                    }
+                    
+                    console.log('✅ GAS procesado para análisis');
+                } else {
+                    console.log('ℹ️  No hay datos de GAS para analizar');
                 }
                 
                 // Descargar el archivo
                 const timestamp = new Date().toISOString().split('T')[0];
                 XLSX.writeFile(analisisWb, `Analisis_Tarifas_${timestamp}.xlsx`);
                 
+                // Guardar datos para el visor en localStorage
+                try {
+                    console.log('🔄 Guardando datos en localStorage...');
+                    const datosLS = {
+                        timestamp: new Date().toISOString(),
+                        datos: datosParaVisor // Usar datos guardados directamente
+                    };
+                    
+                    // Añadir también Resumen Completo y otras hojas especiales desde workbook
+                    analisisWb.SheetNames.forEach(sheetName => {
+                        const nombreNorm = sheetName.replace(/\./g, '_').replace(/\s/g, '_');
+                        // Solo añadir si no está ya en datosParaVisor
+                        if (!datosLS.datos[nombreNorm]) {
+                            const sheet = analisisWb.Sheets[sheetName];
+                            if (sheetName === 'Resumen Completo') {
+                                datosLS.datos.resumenCompleto = evaluarResumenCompleto(sheet);
+                            } else {
+                                datosLS.datos[nombreNorm] = XLSX.utils.sheet_to_json(sheet);
+                            }
+                        }
+                    });
+                    
+                    const jsonString = JSON.stringify(datosLS);
+                    const sizeKB = (jsonString.length / 1024).toFixed(2);
+                    console.log('📦 Tamaño:', sizeKB, 'KB');
+                    
+                    localStorage.setItem('datosAnalisisTarifas', jsonString);
+                    console.log('✅ Datos guardados en localStorage');
+                    console.log('📊 Hojas:', Object.keys(datosLS.datos).join(', '));
+                    
+                } catch (error) {
+                    console.error('❌ Error guardando en localStorage:', error);
+                    if (error.name === 'QuotaExceededError') {
+                        showStatus('⚠️ Análisis generado. Datos muy grandes, usa el Excel para abrir el visor.', 'warning');
+                    } else {
+                        console.warn('No se pudieron guardar datos en localStorage:', error);
+                        showStatus('✅ Análisis de tarifas generado', 'success');
+                    }
+                    return;
+                }
+                
                 showStatus('✅ Análisis de tarifas generado', 'success');
                 
             } catch (error) {
-                console.error('Error en análisis:', error);
+                console.error('❌❌❌ ERROR EN ANÁLISIS:', error);
+                console.error('Stack trace:', error.stack);
                 showStatus('❌ Error generando análisis: ' + error.message, 'error');
             }
+            
+            } catch (outerError) {
+                console.error('❌❌❌ ERROR OUTER:', outerError);
+                console.error('Stack trace:', outerError.stack);
+            }
+        }
+        
+        // ==========================================
+        // VISOR INTERACTIVO WEB - TODO EN UN HTML
+        // ==========================================
+        
+        // Función auxiliar para evaluar fórmulas simples del Resumen Completo
+        function evaluarResumenCompleto(sheet) {
+            const range = XLSX.utils.decode_range(sheet['!ref']);
+            const data = [];
+            
+            for (let R = range.s.r; R <= range.e.r; R++) {
+                const row = [];
+                for (let C = range.s.c; C <= range.e.c; C++) {
+                    const cellAddress = XLSX.utils.encode_cell({r: R, c: C});
+                    const cell = sheet[cellAddress];
+                    
+                    if (!cell) {
+                        row.push('');
+                    } else if (cell.f) {
+                        const formula = cell.f;
+                        if (formula.startsWith('SUM(')) {
+                            const match = formula.match(/SUM\(([A-Z]+)(\d+):([A-Z]+)(\d+)\)/);
+                            if (match) {
+                                const col = match[1].charCodeAt(0) - 65;
+                                const rowStart = parseInt(match[2]) - 1;
+                                const rowEnd = parseInt(match[4]) - 1;
+                                let sum = 0;
+                                console.log(`      SUM ${cellAddress}=${formula} → col ${col}, filas ${rowStart}-${rowEnd}`);
+                                for (let r = rowStart; r <= rowEnd; r++) {
+                                    // SIEMPRE usar valores ya evaluados de data
+                                    if (data[r] && data[r][col] !== undefined && data[r][col] !== '') {
+                                        const val = data[r][col];
+                                        if (typeof val === 'number') {
+                                            console.log(`        Fila ${r+1}: ${val}`);
+                                            sum += val;
+                                        }
+                                    }
+                                }
+                                console.log(`        → Total: ${sum}`);
+                                row.push(sum);
+                            } else {
+                                row.push(0);
+                            }
+                        } else if (formula.match(/^[A-Z]+\d+$/)) {
+                            // Referencia simple como =C7
+                            const refMatch = formula.match(/([A-Z]+)(\d+)/);
+                            if (refMatch) {
+                                const refCol = refMatch[1].charCodeAt(0) - 65;
+                                const refRow = parseInt(refMatch[2]) - 1;
+                                console.log(`      Referencia ${cellAddress}=${formula} → buscar fila ${refRow} col ${refCol}`);
+                                // Usar valor ya evaluado si existe
+                                if (data[refRow] && data[refRow][refCol] !== undefined && data[refRow][refCol] !== '') {
+                                    console.log(`        ✓ Encontrado en data: ${data[refRow][refCol]}`);
+                                    row.push(data[refRow][refCol]);
+                                } else {
+                                    console.log(`        ✗ No en data, buscar en sheet`);
+                                    const refCell = sheet[formula];
+                                    const val = refCell && refCell.v !== undefined ? refCell.v : '';
+                                    console.log(`        Valor en sheet: ${val}`);
+                                    row.push(val);
+                                }
+                            } else {
+                                row.push('');
+                            }
+                        } else if (formula.includes('*12')) {
+                            const match = formula.match(/([A-Z]+)(\d+)\*12/);
+                            if (match) {
+                                const refAddr = match[1] + match[2];
+                                const refCell = sheet[refAddr];
+                                row.push(refCell && typeof refCell.v === 'number' ? refCell.v * 12 : 0);
+                            } else {
+                                row.push(0);
+                            }
+                        } else if (formula.includes('+')) {
+                            // Suma de celdas como =B18+B19
+                            const parts = formula.split('+');
+                            let sum = 0;
+                            parts.forEach(part => {
+                                const trimmed = part.trim();
+                                const refMatch = trimmed.match(/([A-Z]+)(\d+)/);
+                                if (refMatch) {
+                                    const refCol = refMatch[1].charCodeAt(0) - 65;
+                                    const refRow = parseInt(refMatch[2]) - 1;
+                                    // Usar valor ya evaluado si existe
+                                    if (data[refRow] && data[refRow][refCol] !== undefined && data[refRow][refCol] !== '') {
+                                        const val = data[refRow][refCol];
+                                        if (typeof val === 'number') sum += val;
+                                    } else {
+                                        const refCell = sheet[trimmed];
+                                        if (refCell && typeof refCell.v === 'number') sum += refCell.v;
+                                    }
+                                }
+                            });
+                            row.push(sum);
+                        } else {
+                            row.push(0);
+                        }
+                    } else {
+                        row.push(cell.v !== undefined ? cell.v : '');
+                    }
+                }
+                data.push(row);
+            }
+            return data;
+        }
+        
+        document.getElementById('abrirVisorBtn').addEventListener('click', () => {
+            console.log('🎨 Click en Abrir Visor Web');
+            
+            // Primero intentar cargar desde localStorage
+            const datosGuardados = localStorage.getItem('datosAnalisisTarifas');
+            console.log('📦 localStorage tiene datos:', datosGuardados ? 'SÍ (' + (datosGuardados.length/1024).toFixed(2) + ' KB)' : 'NO');
+            
+            if (datosGuardados) {
+                try {
+                    const datosParseados = JSON.parse(datosGuardados);
+                    console.log('✅ Datos parseados correctamente');
+                    console.log('📅 Timestamp:', datosParseados.timestamp);
+                    console.log('📊 Hojas disponibles:', Object.keys(datosParseados.datos).join(', '));
+                    
+                    const fechaGuardado = new Date(datosParseados.timestamp);
+                    const ahora = new Date();
+                    const horasTranscurridas = (ahora - fechaGuardado) / (1000 * 60 * 60);
+                    console.log('⏱️ Horas transcurridas:', horasTranscurridas.toFixed(2));
+                    
+                    // Si los datos tienen menos de 24 horas, usarlos
+                    if (horasTranscurridas < 24) {
+                        console.log('✅ Datos frescos, abriendo visor automáticamente');
+                        showStatus('✅ Abriendo visor con datos guardados (' + fechaGuardado.toLocaleString('es-ES') + ')', 'success');
+                        abrirVisorEnNuevaVentana(datosParseados.datos);
+                        return;
+                    } else {
+                        console.log('⚠️ Datos antiguos (más de 24h)');
+                        showStatus('⚠️ Datos guardados tienen más de 24h. Selecciona el Excel actualizado.', 'warning');
+                    }
+                } catch (error) {
+                    console.error('❌ Error al parsear datos guardados:', error);
+                }
+            } else {
+                console.log('ℹ️ No hay datos guardados en localStorage');
+            }
+            
+            // Si no hay datos guardados o son antiguos, pedir el archivo
+            console.log('📂 Abriendo selector de archivos...');
+            showStatus('📂 Selecciona el Excel generado...', 'info');
+            document.getElementById('excelVisorInput').click();
+        });
+        
+        document.getElementById('excelVisorInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            showStatus('📊 Cargando ' + file.name + '...', 'info');
+            
+            try {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data, {type: 'array'});
+                
+                // Extraer datos normalizando nombres
+                const datosVisor = {};
+                workbook.SheetNames.forEach(sheetName => {
+                    const sheet = workbook.Sheets[sheetName];
+                    const nombreNormalizado = sheetName.replace(/\./g, '_').replace(/\s/g, '_');
+                    if (sheetName === 'Resumen Completo') {
+                        datosVisor.resumenCompleto = evaluarResumenCompleto(sheet);
+                    } else {
+                        datosVisor[nombreNormalizado] = XLSX.utils.sheet_to_json(sheet);
+                    }
+                });
+                
+                // Guardar en localStorage
+                const datosParaGuardar = {
+                    timestamp: new Date().toISOString(),
+                    datos: datosVisor
+                };
+                localStorage.setItem('datosAnalisisTarifas', JSON.stringify(datosParaGuardar));
+                console.log('✅ Datos guardados desde Excel seleccionado');
+                
+                // Crear ventana del visor
+                abrirVisorEnNuevaVentana(datosVisor);
+                showStatus('✅ Visor abierto', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('❌ Error: ' + error.message, 'error');
+            }
+            
+            e.target.value = '';
+        });
+        
+        function abrirVisorEnNuevaVentana(datos) {
+            const visorWindow = window.open('', '_blank', 'width=1400,height=900');
+            if (!visorWindow) {
+                alert('Permite popups para abrir el visor');
+                return;
+            }
+            
+            // Construir HTML usando concatenación (sin template literals)
+            const datosJSON = JSON.stringify(datos);
+            
+            let html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">';
+            html += '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+            html += '<title>Visor Interactivo</title>';
+            html += '<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></scr' + 'ipt>';
+            html += '<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></scr' + 'ipt>';
+            html += '<style>';
+            html += '*{margin:0;padding:0;box-sizing:border-box}';
+            html += 'body{font-family:system-ui;background:linear-gradient(135deg,#667eea,#764ba2);padding:20px;min-height:100vh}';
+            html += '.container{max-width:1600px;margin:0 auto;background:#fff;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}';
+            html += 'h1{text-align:center;color:#667eea;margin-bottom:20px;font-size:2.5em}';
+            html += '.info-banner{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:15px 25px;border-radius:10px;margin-bottom:30px;text-align:center}';
+            html += '.tabs{display:flex;gap:10px;margin-bottom:30px;border-bottom:3px solid #667eea;flex-wrap:wrap}';
+            html += '.tab{padding:15px 25px;cursor:pointer;border:none;background:#f5f5f5;border-radius:10px 10px 0 0;font-weight:600;transition:all 0.3s}';
+            html += '.tab:hover{background:#e0e0e0}';
+            html += '.tab.active{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}';
+            html += '.tab-content{display:none}';
+            html += '.tab-content.active{display:block}';
+            html += '.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:25px;margin-bottom:40px}';
+            html += '.kpi-card{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:30px;border-radius:15px;text-align:center;box-shadow:0 10px 30px rgba(102,126,234,0.4);transition:transform 0.3s}';
+            html += '.kpi-card:hover{transform:translateY(-8px)}';
+            html += '.kpi-value{font-size:3em;font-weight:bold;margin:15px 0}';
+            html += '.kpi-label{opacity:0.95;font-size:1em;text-transform:uppercase;letter-spacing:2px}';
+            html += 'table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}';
+            html += 'th,td{padding:15px;text-align:left;border-bottom:1px solid #eee}';
+            html += 'th{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:600;position:sticky;top:0}';
+            html += 'tr:hover{background:#f9f9f9}';
+            html += '.search-box{width:100%;max-width:400px;padding:12px 20px;border:2px solid #667eea;border-radius:25px;margin-bottom:20px}';
+            html += '.chart-container{background:#fff;padding:30px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.1);margin-bottom:30px}';
+            html += '.chart-box{position:relative;height:400px}';
+            html += '.badge{display:inline-block;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600}';
+            html += '.badge-success{background:#22c55e;color:#fff}';
+            html += '.badge-warning{background:#f59e0b;color:#fff}';
+            html += '.badge-danger{background:#ef4444;color:#fff}';
+            html += '.alert{padding:15px 20px;border-radius:10px;margin:10px 0;font-weight:500}';
+            html += '.alert-danger{background:#fee;color:#c00;border-left:4px solid #c00}';
+            html += '.alert-warning{background:#ffc;color:#880;border-left:4px solid #fa0}';
+            html += 'h2{color:#667eea;margin:30px 0 20px;font-size:1.8em}';
+            html += '</style></head><body>';
+            html += '<div class="container">';
+            html += '<h1>🎨 Visor Interactivo - Análisis de Tarifas</h1>';
+            
+            // Info banner
+            const fechaCarga = new Date().toLocaleString('es-ES');
+            html += '<div class="info-banner">';
+            html += '📊 <strong>Datos cargados automáticamente</strong> | Última carga: ' + fechaCarga;
+            html += '</div>';
+            
+            // Tabs
+            html += '<div class="tabs">';
+            html += '<button class="tab active" onclick="cambiarTab(event,' + "'dashboard'" + ')">📊 Dashboard</button>';
+            html += '<button class="tab" onclick="cambiarTab(event,' + "'electricidad'" + ')">⚡ Electricidad</button>';
+            html += '<button class="tab" onclick="cambiarTab(event,' + "'gas'" + ')">🔥 Gas</button>';
+            html += '<button class="tab" onclick="cambiarTab(event,' + "'vencimientos'" + ')">📅 Vencimientos</button>';
+            html += '<button class="tab" onclick="cambiarTab(event,' + "'resumen'" + ')">📈 Resumen</button>';
+            html += '</div>';
+            
+            // Tab contents
+            html += '<div id="dashboard" class="tab-content active"></div>';
+            html += '<div id="electricidad" class="tab-content"></div>';
+            html += '<div id="gas" class="tab-content"></div>';
+            html += '<div id="vencimientos" class="tab-content"></div>';
+            html += '<div id="resumen" class="tab-content"></div>';
+            
+            html += '</div>';
+            
+            // Script
+            html += '<scr' + 'ipt>';
+            html += 'const datos = ' + datosJSON + ';';
+            html += 'console.log("=== DEBUG VISOR ===");';
+            html += 'console.log("datos completo:", datos);';
+            html += 'console.log("Hojas:", Object.keys(datos));';
+            html += 'if(datos["2_0TD"] && datos["2_0TD"][0]){';
+            html += 'console.log("2.0TD primera fila:", datos["2_0TD"][0]);';
+            html += 'console.log("Columnas:", Object.keys(datos["2_0TD"][0]));';
+            html += '}';
+            
+            html += 'function cambiarTab(e,id){';
+            html += 'document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));';
+            html += 'document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));';
+            html += 'e.target.classList.add("active");';
+            html += 'document.getElementById(id).classList.add("active");';
+            html += '}';
+            
+            html += 'function fmt(n){return new Intl.NumberFormat("es-ES",{minimumFractionDigits:2,maximumFractionDigits:2}).format(n)}';
+            html += 'function fmtCur(n){return new Intl.NumberFormat("es-ES",{style:"currency",currency:"EUR"}).format(n)}';
+            
+            html += 'function renderTabla(datos,titulo,filtros){';
+            html += 'if(!datos||datos.length===0)return "<p style=' + "'text-align:center;padding:40px;color:#999'" + '>No hay datos</p>";';
+            html += 'const keys=Object.keys(datos[0]);';
+            html += 'const id="tbl_"+titulo.replace(/[^a-zA-Z0-9]/g,"_");';
+            html += 'let html="<h2>"+titulo+"</h2>";';
+            
+            // Sección de filtros si está habilitada
+            html += 'if(filtros){';
+            html += 'html+="<div class=\\"filtros-container\\" data-tabla-id=\\""+id+"\\" style=\\"display:flex;gap:10px;margin:20px 0;flex-wrap:wrap;align-items:center\\">";';
+            html += 'html+="<input class=\\"filtro-busq\\" placeholder=\\"🔍 Buscar...\\" onkeyup=\\"filtrarDesdeFiltro(this)\\" style=\\"flex:1;min-width:200px;margin:0\\">";';
+            
+            // Dropdown Peaje si existe la columna
+            html += 'if(keys.includes("Peaje")){';
+            html += 'const ps=[...new Set(datos.map(d=>d.Peaje).filter(Boolean))];';
+            html += 'html+="<select class=\\"filtro-peaje\\" onchange=\\"filtrarDesdeFiltro(this)\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px\\"><option value=\\"\\">Peajes</option>";';
+            html += 'ps.forEach(p=>html+="<option>"+p+"</option>");';
+            html += 'html+="</select>";';
+            html += '}';
+            
+            // Dropdown Estado
+            html += 'if(keys.includes("Estado")){';
+            html += 'html+="<select class=\\"filtro-estado\\" onchange=\\"filtrarDesdeFiltro(this)\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px\\"><option value=\\"\\">Estados</option><option>ACTIVA</option><option>CONFIGURADA</option></select>";';
+            html += '}';
+            
+            // Dropdown Tipo
+            html += 'if(keys.includes("Tipo")){';
+            html += 'html+="<select class=\\"filtro-tipo\\" onchange=\\"filtrarDesdeFiltro(this)\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px\\"><option value=\\"\\">Tipos</option><option>TOTAL</option><option>REPARTO</option></select>";';
+            html += '}';
+            
+            // Dropdown Canal
+            html += 'if(keys.includes("Canal")){';
+            html += 'const cs=[...new Set(datos.map(d=>d.Canal).filter(Boolean))].sort();';
+            html += 'html+="<select class=\\"filtro-canal\\" onchange=\\"filtrarDesdeFiltro(this)\\" style=\\"padding:10px;border:2px solid #667eea;border-radius:10px;max-width:250px\\"><option value=\\"\\">Canales</option>";';
+            html += 'cs.forEach(c=>html+="<option>"+c+"</option>");';
+            html += 'html+="</select>";';
+            html += '}';
+            
+            // Botón exportar Excel
+            html += 'html+="<button onclick=\\"exportarDesdeFiltro(this)\\" data-titulo=\\""+titulo+"\\" style=\\"padding:10px 20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600;white-space:nowrap\\">📥 Excel</button>";';
+            html += 'html+="</div>";';
+            html += '}else{';
+            html += 'html+="<input class=' + "'search-box'" + ' placeholder=' + "'🔍 Buscar...'" + ' onkeyup=' + "'filtrarTabla(this)'" + '>";';
+            html += '}';
+            
+            html += 'html+="<table id=\\""+id+"\\"><thead><tr>";';
+            html += 'keys.forEach(k=>html+="<th>"+k+"</th>");';
+            html += 'html+="</tr></thead><tbody>";';
+            html += 'datos.forEach(row=>{';
+            html += 'html+="<tr>";';
+            html += 'keys.forEach(k=>{';
+            html += 'let val=row[k]||"";';
+            html += 'let cls="";';
+            html += 'if(k==="Estado"){';
+            html += 'if(val==="ACTIVA")cls="badge badge-success";';
+            html += 'else if(val==="CONFIGURADA")cls="badge badge-warning";';
+            html += 'else cls="badge badge-danger";';
+            html += '}';
+            html += 'if(typeof val==="number"){';
+            html += 'if(k.includes("Beneficio"))val=fmtCur(val);';
+            html += 'else if(k.includes("Consumo"))val=new Intl.NumberFormat("es-ES",{maximumFractionDigits:0}).format(val);';
+            html += 'else if(k.startsWith("Pot ")&&k.includes("(€/kW")){';
+            html += 'if(!k.includes("año"))val=val*365;';
+            html += 'val=new Intl.NumberFormat("es-ES",{minimumFractionDigits:2,maximumFractionDigits:6}).format(val);';
+            html += '}';
+            html += 'else if(k.startsWith("Energ ")||k.includes("Precio")){';
+            html += 'val=new Intl.NumberFormat("es-ES",{minimumFractionDigits:2,maximumFractionDigits:6}).format(val);';
+            html += '}';
+            html += 'else val=fmt(val);';
+            html += '}';
+            html += 'html+="<td><span class=' + "'" + '"+cls+"' + "'" + '>"+val+"</span></td>";';
+            html += '});';
+            html += 'html+="</tr>";';
+            html += '});';
+            html += 'html+="</tbody></table>";';
+            html += 'return html;';
+            html += '}';
+            
+            html += 'function filtrarTabla(input){';
+            html += 'const filter=input.value.toUpperCase();';
+            html += 'const rows=input.nextElementSibling.querySelectorAll("tbody tr");';
+            html += 'rows.forEach(row=>{';
+            html += 'row.style.display=row.textContent.toUpperCase().includes(filter)?"":"none";';
+            html += '});';
+            html += '}';
+            
+            // Nueva función: Filtrar desde elemento del filtro
+            html += 'function filtrarDesdeFiltro(elem){';
+            html += 'console.log("=== FILTRAR DESDE FILTRO ===");';
+            html += 'const container=elem.closest(".filtros-container");';
+            html += 'console.log("Container:",container);';
+            html += 'const tablaId=container.getAttribute("data-tabla-id");';
+            html += 'console.log("Tabla ID:",tablaId);';
+            html += 'const tabla=document.getElementById(tablaId);';
+            html += 'console.log("Tabla:",tabla);';
+            html += 'if(!tabla){console.error("Tabla no encontrada:",tablaId);return;}';
+            html += 'const busq=container.querySelector(".filtro-busq")?container.querySelector(".filtro-busq").value:"";';
+            html += 'const peaje=container.querySelector(".filtro-peaje")?container.querySelector(".filtro-peaje").value:"";';
+            html += 'const estado=container.querySelector(".filtro-estado")?container.querySelector(".filtro-estado").value:"";';
+            html += 'const canal=container.querySelector(".filtro-canal")?container.querySelector(".filtro-canal").value:"";';
+            html += 'const tipo=container.querySelector(".filtro-tipo")?container.querySelector(".filtro-tipo").value:"";';
+            html += 'console.log("Filtros:",{busq,peaje,estado,canal,tipo});';
+            html += 'const headers=Array.from(tabla.querySelectorAll("thead th")).map(h=>h.textContent);';
+            html += 'console.log("Headers:",headers);';
+            html += 'const iPeaje=headers.indexOf("Peaje");';
+            html += 'const iEstado=headers.indexOf("Estado");';
+            html += 'const iCanal=headers.indexOf("Canal");';
+            html += 'const iTipo=headers.indexOf("Tipo");';
+            html += 'console.log("Índices:",{iPeaje,iEstado,iCanal,iTipo});';
+            html += 'let visibles=0;';
+            html += 'tabla.querySelectorAll("tbody tr").forEach((row,idx)=>{';
+            html += 'const celdas=row.querySelectorAll("td");';
+            html += 'let ok=true;';
+            html += 'if(busq&&!row.textContent.toUpperCase().includes(busq.toUpperCase()))ok=false;';
+            html += 'if(peaje&&iPeaje>=0&&celdas[iPeaje].textContent.trim()!==peaje)ok=false;';
+            html += 'if(estado&&iEstado>=0){const s=celdas[iEstado].querySelector("span");const txt=s?s.textContent.trim():celdas[iEstado].textContent.trim();if(txt!==estado)ok=false;}';
+            html += 'if(canal&&iCanal>=0&&!celdas[iCanal].textContent.trim().includes(canal))ok=false;';
+            html += 'if(tipo&&iTipo>=0){';
+            html += 'const txtTipo=celdas[iTipo].textContent.trim();';
+            html += 'if(idx===0)console.log("Primera fila - Tipo celda:",txtTipo,"Filtro tipo:",tipo,"Match:",txtTipo===tipo);';
+            html += 'if(txtTipo!==tipo)ok=false;';
+            html += '}';
+            html += 'row.style.display=ok?"":"none";';
+            html += 'if(ok)visibles++;';
+            html += '});';
+            html += 'console.log("Filas visibles:",visibles);';
+            html += '}';
+            
+            // Nueva función: Exportar desde botón  
+            html += 'function exportarDesdeFiltro(btn){';
+            html += 'if(typeof XLSX==="undefined"){alert("Error: Librería XLSX no cargada");return;}';
+            html += 'const container=btn.closest(".filtros-container");';
+            html += 'const tablaId=container.getAttribute("data-tabla-id");';
+            html += 'const titulo=btn.getAttribute("data-titulo");';
+            html += 'const tabla=document.getElementById(tablaId);';
+            html += 'if(!tabla){alert("Tabla no encontrada");return;}';
+            html += 'const filas=[];';
+            html += 'tabla.querySelectorAll("tr").forEach(tr=>{';
+            html += 'if(tr.style.display==="none")return;';
+            html += 'const fila=[];';
+            html += 'tr.querySelectorAll("th,td").forEach(td=>{';
+            html += 'let v=td.querySelector("span")?td.querySelector("span").textContent:td.textContent;';
+            html += 'v=v.trim().replace(/€/g,"").replace(/\\./g,"").replace(/,/g,".");';
+            html += 'if(!isNaN(v)&&v!=="")v=parseFloat(v);';
+            html += 'fila.push(v);';
+            html += '});';
+            html += 'if(fila.length>0)filas.push(fila);';
+            html += '});';
+            html += 'if(filas.length===0){alert("No hay datos");return;}';
+            html += 'const wb=XLSX.utils.book_new();';
+            html += 'const ws=XLSX.utils.aoa_to_sheet(filas);';
+            html += 'XLSX.utils.book_append_sheet(wb,ws,titulo.substring(0,31));';
+            html += 'XLSX.writeFile(wb,"Filtro_"+titulo.replace(/[^a-zA-Z0-9]/g,"_")+"_"+new Date().toISOString().split("T")[0]+".xlsx");';
+            html += '}';
+            
+            // Renderizar dashboard
+            html += 'let totalIndex=0,totalFijos=0,beneficioTotal=0;';
+            html += 'const datosPeajes={};';
+            html += '["2_0TD","3_0TD","6_1TD","6_2TD"].forEach(sheet=>{';
+            html += 'if(datos[sheet]){';
+            html += 'datosPeajes[sheet]={index:0,fijos:0,beneficio:0};';
+            html += 'datos[sheet].forEach(row=>{';
+            html += 'const esIndex=(row.Tarifa||"").toUpperCase().includes("INDEX");';
+            html += 'const facturas=row.Facturas||0;';
+            html += 'const beneficio=row["Beneficio (€)"]||0;';
+            html += 'if(esIndex){';
+            html += 'totalIndex+=facturas;';
+            html += 'datosPeajes[sheet].index+=facturas;';
+            html += 'datosPeajes[sheet].beneficio+=beneficio;';
+            html += 'beneficioTotal+=beneficio;';
+            html += '}else{';
+            html += 'totalFijos+=facturas;';
+            html += 'datosPeajes[sheet].fijos+=facturas;';
+            html += '}';
+            html += '});';
+            html += '}';
+            html += '});';
+            
+            html += 'document.getElementById("dashboard").innerHTML=';
+            html += '"<div class=' + "'kpi-grid'" + '>";';
+            html += 'document.getElementById("dashboard").innerHTML+=';
+            html += '"<div class=' + "'kpi-card'" + '><div class=' + "'kpi-label'" + '>Contratos INDEX</div><div class=' + "'kpi-value'" + '>"+fmt(totalIndex)+"</div></div>";';
+            html += 'document.getElementById("dashboard").innerHTML+=';
+            html += '"<div class=' + "'kpi-card'" + '><div class=' + "'kpi-label'" + '>Contratos FIJOS</div><div class=' + "'kpi-value'" + '>"+fmt(totalFijos)+"</div></div>";';
+            html += 'document.getElementById("dashboard").innerHTML+=';
+            html += '"<div class=' + "'kpi-card'" + '><div class=' + "'kpi-label'" + '>Beneficio Mensual</div><div class=' + "'kpi-value'" + '>"+fmtCur(beneficioTotal)+"</div></div>";';
+            html += 'document.getElementById("dashboard").innerHTML+=';
+            html += '"<div class=' + "'kpi-card'" + '><div class=' + "'kpi-label'" + '>Beneficio Anual</div><div class=' + "'kpi-value'" + '>"+fmtCur(beneficioTotal*12)+"</div></div>";';
+            html += 'document.getElementById("dashboard").innerHTML+="</div>";';
+            
+            html += 'document.getElementById("dashboard").innerHTML+=';
+            html += '"<div class=' + "'chart-container'" + '><h2>📊 Distribución de Contratos</h2><div class=' + "'chart-box'" + '><canvas id=' + "'chart1'" + '></canvas></div></div>";';
+            html += 'document.getElementById("dashboard").innerHTML+=';
+            html += '"<div class=' + "'chart-container'" + '><h2>💰 Beneficios INDEX</h2><div class=' + "'chart-box'" + '><canvas id=' + "'chart2'" + '></canvas></div></div>";';
+            
+            html += 'new Chart(document.getElementById("chart1"),{';
+            html += 'type:"bar",';
+            html += 'data:{';
+            html += 'labels:Object.keys(datosPeajes),';
+            html += 'datasets:[{label:"INDEX",data:Object.values(datosPeajes).map(d=>d.index),backgroundColor:"rgba(102,126,234,0.8)"},';
+            html += '{label:"FIJOS",data:Object.values(datosPeajes).map(d=>d.fijos),backgroundColor:"rgba(118,75,162,0.8)"}]';
+            html += '},';
+            html += 'options:{responsive:true,maintainAspectRatio:false}';
+            html += '});';
+            
+            html += 'new Chart(document.getElementById("chart2"),{';
+            html += 'type:"pie",';
+            html += 'data:{';
+            html += 'labels:Object.keys(datosPeajes),';
+            html += 'datasets:[{data:Object.values(datosPeajes).map(d=>d.beneficio),backgroundColor:["#667eea","#764ba2","#ed64a6","#2ec4b6"]}]';
+            html += '},';
+            html += 'options:{responsive:true,maintainAspectRatio:false}';
+            html += '});';
+            
+            // Electricidad
+            html += 'let htmlElec="<h2>⚡ Tarifas Electricidad</h2>";';
+            html += '["2_0TD","3_0TD","6_1TD","6_2TD"].forEach(sheet=>{';
+            html += 'if(datos[sheet])htmlElec+=renderTabla(datos[sheet],sheet.replace("_","."),true);';
+            html += '});';
+            html += 'document.getElementById("electricidad").innerHTML=htmlElec;';
+            
+            // Gas
+            html += 'let htmlGas="<h2>🔥 Tarifas Gas</h2>";';
+            html += '["RL_1","RL_2","RL_3","RL_4","RL_5"].forEach(sheet=>{';
+            html += 'if(datos[sheet])htmlGas+=renderTabla(datos[sheet],sheet.replace("_","."),true);';
+            html += '});';
+            html += 'if(datos.Resumen_Gas||datos.resumenGas)htmlGas+=renderTabla(datos.Resumen_Gas||datos.resumenGas,"Resumen Gas",true);';
+            html += 'document.getElementById("gas").innerHTML=htmlGas;';
+            
+            // Vencimientos
+            html += 'if(datos.Vencimientos_Próximos||datos.vencimientos){';
+            html += 'const datosVenc=datos.Vencimientos_Próximos||datos.vencimientos;';
+            html += 'const vencidos=datosVenc.filter(v=>v["Días Restantes"]<0);';
+            html += 'const urgentes=datosVenc.filter(v=>v["Días Restantes"]>=0&&v["Días Restantes"]<=30);';
+            html += 'let htmlVenc="";';
+            html += 'if(vencidos.length>0)htmlVenc+="<div class=' + "'alert alert-danger'" + '>⚠️ <strong>"+vencidos.length+" contratos vencidos</strong></div>";';
+            html += 'if(urgentes.length>0)htmlVenc+="<div class=' + "'alert alert-warning'" + '>🔴 <strong>"+urgentes.length+" contratos urgentes (≤30 días)</strong></div>";';
+            html += 'htmlVenc+=renderTabla(datosVenc,"Todos los Vencimientos",true);';
+            html += 'document.getElementById("vencimientos").innerHTML=htmlVenc;';
+            html += '}';
+            
+            // Resumen
+            html += 'if(datos.resumenCompleto){';
+            html += 'let htmlRes="<h2>📈 Resumen Completo</h2><table style=' + "'width:100%'" + '>";';
+            html += 'datos.resumenCompleto.forEach((row,idx)=>{';
+            html += 'if(!row||row.length===0)return;';
+            html += 'htmlRes+="<tr>";';
+            html += 'row.forEach((cell,colIdx)=>{';
+            html += 'let val=cell||"";';
+            html += 'if(typeof val==="number"&&val!==0){';
+            html += 'if(colIdx>=4){val=fmtCur(val);}';
+            html += 'else{val=fmt(val);}';
+            html += '}';
+            html += 'const isHeader=idx===0||idx===1||String(row[0]).includes("CONTRATOS")||String(row[0]).includes("CONSUMOS")||String(row[0]).includes("TOTAL");';
+            html += 'const style=isHeader?"font-weight:bold;background:#f5f5f5;padding:12px":"padding:10px";';
+            html += 'htmlRes+="<td style=' + "'" + '"+style+"' + "'" + '>"+val+"</td>";';
+            html += '});';
+            html += 'htmlRes+="</tr>";';
+            html += '});';
+            html += 'htmlRes+="</table>";';
+            html += 'document.getElementById("resumen").innerHTML=htmlRes;';
+            html += '}';
+            
+            html += '</scr' + 'ipt>';
+            html += '</body></html>';
+            
+            visorWindow.document.write(html);
+            visorWindow.document.close();
         }
 
     </script>

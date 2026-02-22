@@ -930,10 +930,29 @@
                 // ==================== PROCESAMIENTO MEJORADO DE GAS ====================
                 console.log('🔍 Iniciando procesamiento MEJORADO de GAS...');
                 const sheetNames = wb.SheetNames;
-                console.log('📋 Hojas disponibles:', sheetNames);
+                console.log('📋 Hojas disponibles en el Excel:', sheetNames);
 
                 const datosGasSheet = wb.Sheets['DATOSGAS'] || wb.Sheets['DatosGas'] || wb.Sheets['datosgas'];
-                const facturasGasSheet = wb.Sheets[sheetNames.find(n => n.toUpperCase().includes('FACTURASGAS') || n.toUpperCase().includes('FACTURAS GAS'))];
+                
+                // Buscar FACTURASGAS de manera más flexible
+                let facturasGasSheet = null;
+                const facturasGasName = sheetNames.find(n => {
+                    const upper = n.toUpperCase();
+                    return upper.includes('FACTURASGAS') || 
+                           upper.includes('FACTURAS GAS') ||
+                           upper.includes('FACTURA GAS') ||
+                           upper === 'FACTURASGAS';
+                });
+                
+                if (facturasGasName) {
+                    facturasGasSheet = wb.Sheets[facturasGasName];
+                    console.log('✓ FACTURASGAS encontrada con nombre:', facturasGasName);
+                } else {
+                    console.log('❌ FACTURASGAS NO encontrada. Hojas disponibles:', sheetNames);
+                    console.log('   Buscando hojas que contengan "GAS"...');
+                    const gasSheets = sheetNames.filter(n => n.toUpperCase().includes('GAS'));
+                    console.log('   Hojas con "GAS":', gasSheets);
+                }
 
                 console.log('✓ DATOSGAS:', datosGasSheet ? 'Encontrada' : 'NO encontrada');
                 console.log('✓ FACTURASGAS:', facturasGasSheet ? 'Encontrada' : 'NO encontrada');

@@ -977,44 +977,48 @@
                 const feesGasMap = {}; // { "SPORT HI INDEX": 5.5 }
 
                 if (datosGasSheet) {
-                    const datosGasRaw = XLSX.utils.sheet_to_json(datosGasSheet, { header: 1 });
-                    console.log('📊 DATOSGAS filas:', datosGasRaw.length);
+                    // Leer con headers
+                    const datosGasConHeaders = XLSX.utils.sheet_to_json(datosGasSheet);
+                    console.log('📊 DATOSGAS filas:', datosGasConHeaders.length);
                     
-                    for (let i = 1; i < datosGasRaw.length; i++) {
-                        const row = datosGasRaw[i];
-                        if (!row[0]) continue;
-                        
-                        const tarifa = String(row[0]).toUpperCase().trim();
+                    if (datosGasConHeaders.length > 0) {
+                        console.log('🔍 Columnas en DATOSGAS:', Object.keys(datosGasConHeaders[0]));
+                    }
+                    
+                    datosGasConHeaders.forEach(row => {
+                        const tarifa = String(row['TARIFA'] || row['Tarifa'] || row['tarifa'] || '').toUpperCase().trim();
+                        if (!tarifa) return;
                         
                         comisionesGasMap[tarifa] = {
-                            'RL.1': parseFloat(row[1]) || 0,
-                            'RL. 1': parseFloat(row[1]) || 0,
-                            'RL1': parseFloat(row[1]) || 0,
-                            'RL.2': parseFloat(row[2]) || 0,
-                            'RL. 2': parseFloat(row[2]) || 0,
-                            'RL2': parseFloat(row[2]) || 0,
-                            'RL.3': parseFloat(row[3]) || 0,
-                            'RL. 3': parseFloat(row[3]) || 0,
-                            'RL3': parseFloat(row[3]) || 0,
-                            'RL.4': parseFloat(row[4]) || 0,
-                            'RL. 4': parseFloat(row[4]) || 0,
-                            'RL4': parseFloat(row[4]) || 0,
-                            'RL.5': parseFloat(row[5]) || 0,
-                            'RL. 5': parseFloat(row[5]) || 0,
-                            'RL5': parseFloat(row[5]) || 0
+                            'RL.1': parseFloat(row['RL1'] || row['RL.1'] || row['RL. 1'] || row['RL 1'] || 0),
+                            'RL. 1': parseFloat(row['RL1'] || row['RL.1'] || row['RL. 1'] || row['RL 1'] || 0),
+                            'RL1': parseFloat(row['RL1'] || row['RL.1'] || row['RL. 1'] || row['RL 1'] || 0),
+                            'RL.2': parseFloat(row['RL2'] || row['RL.2'] || row['RL. 2'] || row['RL 2'] || 0),
+                            'RL. 2': parseFloat(row['RL2'] || row['RL.2'] || row['RL. 2'] || row['RL 2'] || 0),
+                            'RL2': parseFloat(row['RL2'] || row['RL.2'] || row['RL. 2'] || row['RL 2'] || 0),
+                            'RL.3': parseFloat(row['RL3'] || row['RL.3'] || row['RL. 3'] || row['RL 3'] || 0),
+                            'RL. 3': parseFloat(row['RL3'] || row['RL.3'] || row['RL. 3'] || row['RL 3'] || 0),
+                            'RL3': parseFloat(row['RL3'] || row['RL.3'] || row['RL. 3'] || row['RL 3'] || 0),
+                            'RL.4': parseFloat(row['RL4'] || row['RL.4'] || row['RL. 4'] || row['RL 4'] || 0),
+                            'RL. 4': parseFloat(row['RL4'] || row['RL.4'] || row['RL. 4'] || row['RL 4'] || 0),
+                            'RL4': parseFloat(row['RL4'] || row['RL.4'] || row['RL. 4'] || row['RL 4'] || 0),
+                            'RL.5': parseFloat(row['RL5'] || row['RL.5'] || row['RL. 5'] || row['RL 5'] || 0),
+                            'RL. 5': parseFloat(row['RL5'] || row['RL.5'] || row['RL. 5'] || row['RL 5'] || 0),
+                            'RL5': parseFloat(row['RL5'] || row['RL.5'] || row['RL. 5'] || row['RL 5'] || 0)
                         };
                         
-                        // FEE buscar en columnas posteriores
-                        for (let col = 6; col < row.length; col++) {
-                            if (row[col] && !isNaN(row[col])) {
-                                feesGasMap[tarifa] = parseFloat(row[col]);
-                                break;
-                            }
+                        // FEE - buscar por nombre de columna
+                        const fee = parseFloat(row['FEE'] || row['Fee'] || row['fee'] || row['FEE (€/MWh)'] || 0);
+                        if (fee > 0) {
+                            feesGasMap[tarifa] = fee;
                         }
-                    }
+                    });
                     
                     console.log('✓ Tarifas GAS cargadas:', Object.keys(comisionesGasMap).length);
                     console.log('✓ FEEs cargados:', Object.keys(feesGasMap).length);
+                    if (Object.keys(feesGasMap).length > 0) {
+                        console.log('📋 Ejemplo FEE:', Object.keys(feesGasMap)[0], '→', feesGasMap[Object.keys(feesGasMap)[0]]);
+                    }
                 }
 
                 // ==================== PASO 2: PROCESAR FACTURASGAS ====================
@@ -1030,19 +1034,26 @@
                 };
 
                 for (const factura of facturaGasData) {
-                    // Extraer datos básicos por nombre de columna o índice
-                    const cliente = factura['Cliente'] || factura[Object.keys(factura)[0]] || '';
-                    const contrato = factura['Contrato'] || factura['Código Contrato'] || factura[Object.keys(factura)[2]] || '';
-                    const cups = factura['CUPS'] || factura[Object.keys(factura)[4]] || '';
-                    const direccion = factura['Dirección'] || factura['Direccion'] || factura[Object.keys(factura)[5]] || '';
-                    const serieNumero = factura['Serie/Numero'] || factura['Serie'] || factura['Facturas'] || factura[Object.keys(factura)[8]] || '';
-                    const finSuministro = factura['Fecha Fin Suministro'] || factura['Fin de suministro'] || factura[Object.keys(factura)[11]] || '';
-                    const peaje = factura['Tarifa Peaje'] || factura['TarifaPeaje'] || factura[Object.keys(factura)[12]] || '';
-                    const tarifa = factura['Grupo'] || factura['Tarifa'] || factura[Object.keys(factura)[13]] || '';
-                    const consumo = parseFloat(factura['Consumo'] || factura[Object.keys(factura)[23]] || 0);
-                    const precioTFijo = parseFloat(factura[Object.keys(factura)[28]] || 0); // Columna AC
-                    const precioEnergiaP1 = parseFloat(factura[Object.keys(factura)[30]] || 0); // Columna AE
-                    const canalComercial = factura[Object.keys(factura)[48]] || ''; // Columna AW
+                    // Debug primera fila para ver nombres de columnas
+                    if (facturaGasData.indexOf(factura) === 0) {
+                        console.log('🔍 Columnas en FACTURASGAS:', Object.keys(factura));
+                    }
+                    
+                    // Extraer datos usando nombres de columnas
+                    const cliente = factura['Cliente'] || '';
+                    const contrato = factura['Contrato'] || factura['Código Contrato'] || '';
+                    const cups = factura['CUPS'] || '';
+                    const direccion = factura['Dirección'] || factura['Direccion'] || '';
+                    const serieNumero = factura['Serie/Numero'] || factura['Serie'] || factura['Facturas'] || '';
+                    const finSuministro = factura['Fecha Fin Suministro'] || factura['Fin de suministro'] || '';
+                    const peaje = factura['Tarifa Peaje'] || factura['TarifaPeaje'] || '';
+                    const tarifa = factura['Grupo'] || factura['Tarifa'] || '';
+                    const consumo = parseFloat(factura['Consumo'] || 0);
+                    
+                    // Precios - buscar por nombre exacto de columna
+                    const precioTFijo = parseFloat(factura['Precio T. Fijo'] || factura['Precio Fijo'] || 0);
+                    const precioEnergiaP1 = parseFloat(factura['Precio Energía Gas P1'] || factura['Precio Energia Gas P1'] || 0);
+                    const canalComercial = factura['Canal comercial'] || factura['Canal'] || '';
                     
                     // Normalizar tarifa (eliminar números del final)
                     let tarifaLimpia = String(tarifa).trim().replace(/\s+\d+$/, '');

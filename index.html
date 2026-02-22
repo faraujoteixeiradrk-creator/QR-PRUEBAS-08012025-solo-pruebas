@@ -1039,21 +1039,24 @@
                         console.log('🔍 Columnas en FACTURASGAS:', Object.keys(factura));
                     }
                     
-                    // Extraer datos usando nombres de columnas
+                    // Extraer datos usando nombres de columnas EXACTOS
                     const cliente = factura['Cliente'] || '';
-                    const contrato = factura['Contrato'] || factura['Código Contrato'] || '';
+                    const contrato = factura['Contrato'] || '';
                     const cups = factura['CUPS'] || '';
-                    const direccion = factura['Dirección'] || factura['Direccion'] || '';
-                    const serieNumero = factura['Serie/Numero'] || factura['Serie'] || factura['Facturas'] || '';
-                    const finSuministro = factura['Fecha Fin Suministro'] || factura['Fin de suministro'] || '';
-                    const peaje = factura['Tarifa Peaje'] || factura['TarifaPeaje'] || '';
-                    const tarifa = factura['Grupo'] || factura['Tarifa'] || '';
-                    const consumo = parseFloat(factura['Consumo'] || 0);
+                    const direccion = factura['Dirección'] || '';
+                    const serieNumero = factura['Serie/Numero'] || '';
+                    const finSuministro = factura['Fecha Fin Suministro'] || '';
+                    const peaje = factura['Tarifa Peaje'] || '';
+                    const tarifa = factura['Grupo'] || '';
                     
-                    // Precios - buscar por nombre exacto de columna
-                    const precioTFijo = parseFloat(factura['Precio T. Fijo'] || factura['Precio Fijo'] || 0);
-                    const precioEnergiaP1 = parseFloat(factura['Precio Energía Gas P1'] || factura['Precio Energia Gas P1'] || 0);
-                    const canalComercial = factura['Canal comercial'] || factura['Canal'] || '';
+                    // Consumo (columna X) - usar valor absoluto si es negativo
+                    let consumo = parseFloat(factura['Consumo'] || 0);
+                    consumo = Math.abs(consumo); // Convertir a positivo
+                    
+                    // Precios
+                    const precioTFijo = parseFloat(factura['Precio T. Fijo'] || 0);
+                    const precioEnergiaP1 = parseFloat(factura['Precio Energía P1'] || 0);
+                    const canalComercial = factura['Comercial'] || '';
                     
                     // Normalizar tarifa (eliminar números del final)
                     let tarifaLimpia = String(tarifa).trim().replace(/\s+\d+$/, '');
@@ -1087,13 +1090,18 @@
                         comision = comisionesGasMap[tarifaNormalizada][peajeNormalizado] || 0;
                     }
                     
-                    // Obtener FEE
+                    // Obtener FEE (por ahora 0 porque no existe en DATOSGAS)
                     const fee = feesGasMap[tarifaNormalizada] || 0;
                     
                     // Calcular beneficio: (Consumo / 1000) × FEE
+                    // NOTA: FEE es 0 porque no existe en DATOSGAS
                     const beneficio = (consumo / 1000) * fee;
                     
-                    // Crear objeto de contrato
+                    // Calcular beneficio: (Consumo / 1000) × FEE
+                    // NOTA: FEE es 0 porque no existe en DATOSGAS
+                    const beneficio = (consumo / 1000) * fee;
+                    
+                    // Crear objeto de contrato (SIN columna FEE ya que no existe en DATOSGAS)
                     const contratoObj = {
                         'Cliente': cliente,
                         'Contrato': contrato,
@@ -1106,7 +1114,6 @@
                         'Estado': 'ACTIVA',
                         'Facturas': serieNumero,
                         'Consumos (kWh/mes)': consumo,
-                        'FEE (€/MWh)': fee,
                         'Beneficio (€)': parseFloat(beneficio.toFixed(2)),
                         'Precio T. Fijo': precioTFijo,
                         'Precio Energía Gas P1': precioEnergiaP1,

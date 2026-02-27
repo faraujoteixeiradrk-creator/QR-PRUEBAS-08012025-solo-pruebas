@@ -55,6 +55,9 @@
         }
     </script>
     <style>
+        /* Ocultar permanentemente sección modo comparación */
+        #modo-comparacion-section { display: none !important; }
+
         /* === SISTEMA PANTALLAS === */
         .screen { display: none; }
         .screen.active { display: block; }
@@ -250,7 +253,7 @@
     <div id="app" class="w-full max-w-lg mx-auto p-4 md:p-6 flex-grow">
 
         <!-- MODO DE COMPARACIÓN (Siempre visible al inicio) -->
-        <div id="modo-comparacion-section" class="fade-in mb-6" style="display:none !important">
+        <div id="modo-comparacion-section" class="fade-in mb-6">
             <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
                 <p class="text-sm font-bold text-drk-800 mb-3 text-center uppercase tracking-wider">MODO DE COMPARACIÓN</p>
                 <div class="flex flex-wrap justify-center gap-2 text-sm">
@@ -258,11 +261,11 @@
                         <input type="radio" name="comparison_mode" value="drk_only" class="hidden" checked>
                         <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
                     </label>
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400" style="display:none;">
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400">
                         <input type="radio" name="comparison_mode" value="drk_prioritized" class="hidden">
                         <span class="font-semibold flex items-center justify-between w-full">DRK Prioritario<svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
                     </label>
-                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400" style="display:none;">
+                    <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400">
                         <input type="radio" name="comparison_mode" value="overall_best" class="hidden">
                         <span class="font-black flex flex-col items-center justify-center w-full leading-tight">
                             <span class="text-base">POWER CUP</span><span class="text-xs font-semibold -mt-0.5">Global</span>
@@ -3184,12 +3187,8 @@
             document.querySelectorAll('.hidden-period').forEach(el => el.style.display = 'none');
             document.getElementById('tariff-display-badge').textContent = '0';
             
-            // FINALMENTE: Mostrar pantalla inicial y selector de modo
+            // FINALMENTE: Mostrar pantalla inicial (modo-comparacion siempre oculto)
             document.getElementById('screen-inicio')?.classList.add('active');
-            const modoComparacionSection = document.getElementById('modo-comparacion-section');
-            if (modoComparacionSection) {
-                modoComparacionSection.style.display = 'block';
-            }
             
             console.log('✅ resetToLanding completada - screen-inicio activa');
         };
@@ -15646,8 +15645,6 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             // Actualizar estilos específicos de los selectores de modo
             document.querySelectorAll('input[name="comparison_mode"]').forEach(r => {
                 const label = r.closest('label');
-                // No tocar los labels ocultos (DRK Prioritario y POWER CUP)
-                if (label.style.display === 'none') return;
                 const isSelected = r.value === newMode;
                 const colorClass = r.value === 'overall_best' ? 'powercup' : 'drk';
                 
@@ -21552,12 +21549,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             
             hideAllScreens();
             document.getElementById('screen-inicio').classList.add('active');
-            // Mostrar el modo de comparación
-            
-            // Siempre forzar DRK Únicamente al volver al inicio
-            const drkOnlyInput = document.querySelector('input[name="comparison_mode"][value="drk_only"]');
-            if (drkOnlyInput) drkOnlyInput.checked = true;
-            updateComparisonMode('drk_only');
+            // modo-comparacion-section siempre oculto (CSS !important)
         }
 
         function goToElectricidad() {

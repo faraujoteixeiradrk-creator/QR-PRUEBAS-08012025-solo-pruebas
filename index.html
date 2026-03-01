@@ -55,9 +55,6 @@
         }
     </script>
     <style>
-        /* Ocultar permanentemente sección modo comparación */
-        #modo-comparacion-section { display: none !important; }
-
         /* === SISTEMA PANTALLAS === */
         .screen { display: none; }
         .screen.active { display: block; }
@@ -1171,24 +1168,23 @@
                         <span>PISTOLA QR (USB)</span>
                     </button>
 
-                    <!-- NUEVO: SUBIR PDF DESDE MÓVIL -->
-                    <button id="mobile-upload-btn" onclick="abrirModalSubirMovil()" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mt-3">
+                    <!-- SUBIR PDF DESDE MÓVIL -->
+                    <button onclick="abrirModalSubirMovil()" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mt-3">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                         <span>📱 SUBIR PDF DESDE MÓVIL</span>
                     </button>
 
-                    <!-- NUEVO: SUBIR POR IA -->
+                    <!-- SUBIR POR IA -->
                     <input type="file" id="ai-file-input-20td" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaIA(this.files[0], '2.0TD')">
                     <button onclick="document.getElementById('ai-file-input-20td').click()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mt-3">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"></path></svg>
                         <span>🤖 SUBIR POR IA (PDF o FOTO)</span>
                     </button>
                 </div>
-
+                
                 <!-- ===== MODAL: SUBIR PDF DESDE MÓVIL ===== -->
                 <div id="mobile-upload-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden" style="max-height:95vh;overflow-y:auto;">
-                        <!-- Header -->
                         <div class="bg-gradient-to-r from-violet-500 to-purple-600 p-5 flex items-center justify-between">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -1203,11 +1199,8 @@
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                             </button>
                         </div>
-
-                        <!-- Body -->
                         <div class="p-5">
-
-                            <!-- SECCIÓN 1: QR para móvil propio -->
+                            <!-- Sección 1: QR -->
                             <div class="mb-4">
                                 <div class="flex items-center gap-2 mb-3">
                                     <div class="w-7 h-7 bg-violet-100 rounded-full flex items-center justify-center text-violet-600 font-black text-sm">1</div>
@@ -1224,27 +1217,21 @@
                                     </div>
                                 </div>
                             </div>
-
                             <div class="relative my-4">
                                 <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
                                 <div class="relative flex justify-center"><span class="bg-white px-3 text-xs text-slate-400 font-semibold">O ENVÍA EL LINK AL CLIENTE</span></div>
                             </div>
-
-                            <!-- SECCIÓN 2: Enviar link al cliente -->
+                            <!-- Sección 2: Compartir link -->
                             <div class="mb-4">
                                 <div class="flex items-center gap-2 mb-3">
                                     <div class="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-black text-sm">2</div>
                                     <p class="font-bold text-slate-700 text-sm">Comparte el link con tu cliente</p>
                                 </div>
-                                <p class="text-xs text-slate-400 mb-3 leading-relaxed">Tu cliente recibirá una página donde puede subir el PDF desde su móvil u ordenador. Cuando lo suba, aparecerá aquí automáticamente.</p>
-
-                                <!-- Link display -->
+                                <p class="text-xs text-slate-400 mb-3 leading-relaxed">Tu cliente verá un QR, zona de arrastre y botón para subir el PDF. Cuando lo suba aparecerá aquí automáticamente.</p>
                                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3 flex items-center gap-2">
                                     <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
                                     <p class="text-xs text-slate-500 truncate flex-1 font-mono" id="mobile-link-display"></p>
                                 </div>
-
-                                <!-- Botones de compartir -->
                                 <div class="grid grid-cols-3 gap-2">
                                     <button onclick="copiarLinkCliente()" id="btn-copiar-link" class="flex flex-col items-center gap-1 bg-violet-50 hover:bg-violet-100 border border-violet-200 text-violet-700 rounded-xl py-2.5 px-2 transition text-xs font-semibold">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
@@ -1261,19 +1248,14 @@
                                 </div>
                                 <p class="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mt-3 text-center">⏳ El link expira al cerrar este modal</p>
                             </div>
-
                             <div class="relative my-4">
                                 <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
                                 <div class="relative flex justify-center"><span class="bg-white px-3 text-xs text-slate-400 font-semibold">ESTADO</span></div>
                             </div>
-
-                            <!-- Status badge -->
                             <div id="mobile-status-badge" class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-amber-50 border-amber-200 text-amber-600 mb-3">
                                 <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block"></span>
                                 Esperando PDF del móvil...
                             </div>
-
-                            <!-- Resultado recibido (oculto hasta recibir) -->
                             <div id="mobile-received-section" class="hidden">
                                 <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-3 text-left">
                                     <div class="flex items-center gap-2 mb-2">
@@ -1281,19 +1263,30 @@
                                         <span class="font-bold text-green-700">¡PDF recibido!</span>
                                     </div>
                                     <p class="text-sm text-green-600" id="mobile-file-name-display"></p>
-                                    <p class="text-xs text-green-500" id="mobile-file-size-display"></p>
+                                    <p class="text-xs text-green-500 mb-3" id="mobile-file-size-display"></p>
+                                    <!-- Datos del cliente -->
+                                    <div id="mobile-client-data" class="hidden border-t border-green-200 pt-3 mt-1">
+                                        <p class="text-xs font-bold text-green-700 mb-2">📋 Datos del cliente:</p>
+                                        <p class="text-sm text-green-700" id="mobile-client-nombre"></p>
+                                        <p class="text-sm text-green-700" id="mobile-client-email"></p>
+                                        <p class="text-sm text-green-700" id="mobile-client-telefono"></p>
+                                    </div>
                                 </div>
+                                <!-- Botón descargar PDF -->
+                                <button onclick="descargarPDFMovil()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-6 rounded-xl transition flex items-center justify-center gap-2 mb-2 text-sm border border-slate-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    Descargar PDF del cliente
+                                </button>
                                 <button onclick="procesarPDFMovil()" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transition">
                                     Procesar este PDF →
                                 </button>
                             </div>
-
                             <p class="text-xs text-slate-400 mt-3 text-center">⚠️ Solo se admiten archivos PDF · Máx. 5 MB</p>
                         </div>
                     </div>
                 </div>
                 <!-- ===== FIN MODAL MÓVIL ===== -->
-                
+
                 <!-- Modal de PISTOLA QR - Estilo Terminal Profesional -->
                 <div id="gun-scan-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl shadow-2xl max-w-md w-full border-4 border-amber-500/30 overflow-hidden">
@@ -3315,8 +3308,12 @@
             document.querySelectorAll('.hidden-period').forEach(el => el.style.display = 'none');
             document.getElementById('tariff-display-badge').textContent = '0';
             
-            // FINALMENTE: Mostrar pantalla inicial (modo-comparacion siempre oculto)
+            // FINALMENTE: Mostrar pantalla inicial y selector de modo
             document.getElementById('screen-inicio')?.classList.add('active');
+            const modoComparacionSection = document.getElementById('modo-comparacion-section');
+            if (modoComparacionSection) {
+                modoComparacionSection.style.display = 'block';
+            }
             
             console.log('✅ resetToLanding completada - screen-inicio activa');
         };
@@ -20946,360 +20943,12 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
         }
         // ===== FIN PISTOLA QR =====
 
-        // ===== SUBIR PDF DESDE MÓVIL (PeerJS) =====
+        // ===== SUBIR PDF DESDE MÓVIL (MQTT HiveMQ) =====
         (function() {
-            // Detectar si estamos en vista móvil (?mobile=1&session=XXX)
             const urlParams = new URLSearchParams(window.location.search);
             const isMobileView = urlParams.get('mobile') === '1';
             const mobileSession = urlParams.get('session');
 
-            if (isMobileView && mobileSession) {
-                // ── VISTA MÓVIL: reemplazar body con formulario de subida ──
-                document.addEventListener('DOMContentLoaded', function() {
-                    document.body.innerHTML = `
-                    <style>
-                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-                        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-                        body {
-                            font-family: 'Inter', sans-serif;
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            min-height: 100vh;
-                            display: flex;
-                            flex-direction: column;
-                            align-items: center;
-                            justify-content: center;
-                            padding: 20px;
-                        }
-                        .card {
-                            background: white;
-                            border-radius: 24px;
-                            padding: 32px 24px;
-                            width: 100%;
-                            max-width: 360px;
-                            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-                            text-align: center;
-                        }
-                        .logo { font-size: 2.5rem; margin-bottom: 8px; }
-                        h2 { font-size: 1.4rem; font-weight: 700; color: #1e1b4b; margin-bottom: 6px; }
-                        .subtitle { color: #6b7280; font-size: 0.85rem; margin-bottom: 28px; line-height: 1.5; }
-                        .session-badge {
-                            display: inline-block;
-                            background: #ede9fe;
-                            color: #7c3aed;
-                            padding: 4px 12px;
-                            border-radius: 99px;
-                            font-size: 0.78rem;
-                            font-weight: 600;
-                            font-family: monospace;
-                            margin-bottom: 24px;
-                        }
-                        input[type=file] { display: none; }
-                        .btn-upload {
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            gap: 10px;
-                            width: 100%;
-                            padding: 16px;
-                            background: linear-gradient(135deg, #667eea, #764ba2);
-                            color: white;
-                            border: none;
-                            border-radius: 14px;
-                            font-size: 1rem;
-                            font-weight: 700;
-                            cursor: pointer;
-                            margin-bottom: 10px;
-                            font-family: 'Inter', sans-serif;
-                            transition: opacity 0.2s;
-                        }
-                        .btn-upload:hover { opacity: 0.9; }
-                        .btn-upload:active { transform: scale(0.98); }
-                        .drop-area {
-                            border: 2px dashed #c4b5fd;
-                            border-radius: 14px;
-                            padding: 32px 16px;
-                            color: #7c3aed;
-                            cursor: pointer;
-                            margin-bottom: 10px;
-                            transition: all 0.2s;
-                            background: #faf5ff;
-                        }
-                        .drop-area:hover { background: #ede9fe; }
-                        .drop-area p { font-size: 0.85rem; color: #6b7280; margin-top: 8px; }
-                        .progress-bar {
-                            display: none;
-                            height: 8px;
-                            background: #e5e7eb;
-                            border-radius: 99px;
-                            overflow: hidden;
-                            margin: 16px 0 8px;
-                        }
-                        .progress-fill {
-                            height: 100%;
-                            background: linear-gradient(90deg, #667eea, #764ba2);
-                            border-radius: 99px;
-                            width: 0;
-                            transition: width 0.5s ease;
-                        }
-                        .status-msg { font-size: 0.85rem; color: #6b7280; margin-bottom: 4px; }
-                        .success-box {
-                            display: none;
-                            background: #f0fdf4;
-                            border: 1px solid #bbf7d0;
-                            border-radius: 14px;
-                            padding: 20px;
-                            margin-top: 16px;
-                        }
-                        .success-box .icon { font-size: 2.5rem; margin-bottom: 8px; }
-                        .success-box h3 { font-size: 1.1rem; font-weight: 700; color: #15803d; }
-                        .success-box p { font-size: 0.82rem; color: #4ade80; margin-top: 4px; }
-                        .error-msg { color: #ef4444; font-size: 0.82rem; margin-top: 8px; display: none; }
-                        .note { font-size: 0.75rem; color: #9ca3af; margin-top: 16px; line-height: 1.4; }
-                    </style>
-                    <div class="card">
-                        <div class="logo">📄</div>
-                        <h2>Subir Factura PDF</h2>
-                        <p class="subtitle">Elige cómo quieres enviar tu factura</p>
-                        <div class="session-badge">Sesión: ${mobileSession}</div>
-
-                        <!-- OPCIÓN 1: QR para abrir en el móvil -->
-                        <div style="background:#f5f3ff;border:2px solid #c4b5fd;border-radius:16px;padding:16px;margin:16px 0;text-align:center;">
-                            <p style="font-weight:700;color:#4c1d95;font-size:0.9rem;margin-bottom:4px;">📱 Desde tu móvil</p>
-                            <p style="color:#7c3aed;font-size:0.75rem;margin-bottom:12px;">Escanea con la cámara para abrirlo en el móvil</p>
-                            <div id="mob-qr-box" style="display:inline-block;background:white;border:3px solid #7c3aed;border-radius:14px;padding:8px;"></div>
-                            <p style="color:#9ca3af;font-size:0.7rem;margin-top:8px;">Apunta la cámara al QR</p>
-                        </div>
-
-                        <div style="display:flex;align-items:center;gap:8px;margin:4px 0 12px;">
-                            <div style="flex:1;height:1px;background:#e5e7eb"></div>
-                            <span style="font-size:0.75rem;color:#9ca3af;font-weight:600">O SUBE DESDE AQUÍ</span>
-                            <div style="flex:1;height:1px;background:#e5e7eb"></div>
-                        </div>
-
-                        <input type="file" id="mob-file-input" accept="application/pdf">
-
-                        <!-- Zona principal de subida -->
-                        <div class="drop-area" id="mob-drop-area">
-                            <div style="font-size:2.5rem;margin-bottom:8px">☁️</div>
-                            <p style="font-weight:700;color:#4c1d95;font-size:0.95rem">Arrastra tu factura aquí</p>
-                            <p style="color:#9ca3af;font-size:0.78rem;margin-top:4px">PDF, máx. 5 MB</p>
-                        </div>
-
-                        <div style="display:flex;align-items:center;gap:8px;margin:10px 0;">
-                            <div style="flex:1;height:1px;background:#e5e7eb"></div>
-                            <span style="font-size:0.75rem;color:#9ca3af;font-weight:600">O</span>
-                            <div style="flex:1;height:1px;background:#e5e7eb"></div>
-                        </div>
-
-                        <button class="btn-upload" onclick="document.getElementById('mob-file-input').click()">
-                            <span>📁</span> Seleccionar archivo PDF
-                        </button>
-
-                        <div class="progress-bar" id="mob-progress-bar">
-                            <div class="progress-fill" id="mob-progress-fill"></div>
-                        </div>
-                        <p class="status-msg" id="mob-status-msg"></p>
-                        <p class="error-msg" id="mob-error-msg"></p>
-
-                        <div class="success-box" id="mob-success-box">
-                            <div class="icon">✅</div>
-                            <h3>¡PDF enviado!</h3>
-                            <p>Ya puedes cerrar esta página</p>
-                        </div>
-
-                        <p class="note">⚠️ Solo se admiten archivos PDF · Máx. 5 MB</p>
-                    </div>
-                    `;
-
-                    // Cargar MQTT.js
-                    function loadMQTT(cb) {
-                        if (window.mqtt) { cb(); return; }
-                        const s = document.createElement('script');
-                        s.src = 'https://unpkg.com/mqtt/dist/mqtt.min.js';
-                        s.onload = cb;
-                        s.onerror = function() {
-                            const s2 = document.createElement('script');
-                            s2.src = 'https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js';
-                            s2.onload = cb;
-                            document.head.appendChild(s2);
-                        };
-                        document.head.appendChild(s);
-                    }
-
-                    function handleMobileFile(file) {
-                        if (!file) return;
-                        if (file.type !== 'application/pdf') {
-                            const err = document.getElementById('mob-error-msg');
-                            err.textContent = '❌ Solo se admiten archivos PDF';
-                            err.style.display = 'block';
-                            return;
-                        }
-                        if (file.size > 5 * 1024 * 1024) {
-                            const err = document.getElementById('mob-error-msg');
-                            err.textContent = '❌ El PDF es demasiado grande (máx. 5 MB). Reduce el tamaño e inténtalo de nuevo.';
-                            err.style.display = 'block';
-                            return;
-                        }
-
-                        document.getElementById('mob-progress-bar').style.display = 'block';
-                        const fill = document.getElementById('mob-progress-fill');
-                        const msg = document.getElementById('mob-status-msg');
-                        fill.style.width = '15%';
-                        msg.textContent = 'Leyendo PDF...';
-                        document.getElementById('mob-error-msg').style.display = 'none';
-
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            fill.style.width = '40%';
-                            msg.textContent = 'Conectando...';
-
-                            loadMQTT(function() {
-                                const clientId = 'drk_mob_' + Math.random().toString(36).substr(2, 6);
-                                const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt', {
-                                    clientId: clientId,
-                                    connectTimeout: 10000,
-                                    reconnectPeriod: 0
-                                });
-
-                                client.on('connect', function() {
-                                    fill.style.width = '60%';
-                                    msg.textContent = 'Enviando PDF...';
-
-                                    const payload = JSON.stringify({
-                                        session: mobileSession,
-                                        name: file.name,
-                                        size: file.size,
-                                        type: file.type,
-                                        data: e.target.result,
-                                        timestamp: Date.now()
-                                    });
-
-                                    const topic = 'drk/pdf/' + mobileSession;
-                                    // Enviar en chunks si es necesario, o directo
-                                    client.publish(topic, payload, { qos: 1, retain: false }, function(err) {
-                                        if (err) {
-                                            showMobileError('❌ Error al enviar. Inténtalo de nuevo.');
-                                        } else {
-                                            fill.style.width = '100%';
-                                            msg.textContent = '';
-                                            document.getElementById('mob-success-box').style.display = 'block';
-                                            document.getElementById('mob-progress-bar').style.display = 'none';
-                                        }
-                                        client.end();
-                                    });
-                                });
-
-                                client.on('error', function(err) {
-                                    showMobileError('❌ Error de conexión. Comprueba tu WiFi e inténtalo de nuevo.');
-                                    client.end();
-                                });
-
-                                // Timeout de seguridad
-                                setTimeout(function() {
-                                    if (document.getElementById('mob-success-box').style.display !== 'block') {
-                                        showMobileError('❌ Tiempo de espera agotado. Comprueba tu conexión e inténtalo de nuevo.');
-                                        try { client.end(true); } catch(e){}
-                                    }
-                                }, 15000);
-                            });
-                        };
-                        reader.onerror = function() {
-                            document.getElementById('mob-error-msg').textContent = '❌ Error leyendo el archivo. Inténtalo de nuevo.';
-                            document.getElementById('mob-error-msg').style.display = 'block';
-                        };
-                        reader.readAsDataURL(file);
-                    }
-
-                    function showMobileError(txt) {
-                        const err = document.getElementById('mob-error-msg');
-                        err.textContent = txt;
-                        err.style.display = 'block';
-                        document.getElementById('mob-progress-bar').style.display = 'none';
-                        document.getElementById('mob-status-msg').textContent = '';
-                    }
-
-                    document.getElementById('mob-file-input').addEventListener('change', e => handleMobileFile(e.target.files[0]));
-
-                    // Generar QR con la URL actual para que el cliente lo escanee con su móvil
-                    (function() {
-                        const currentURL = window.location.href;
-                        const qrBox = document.getElementById('mob-qr-box');
-                        if (!qrBox) return;
-                        // Cargar QRCode.js si no está
-                        function makeQR() {
-                            new QRCode(qrBox, {
-                                text: currentURL,
-                                width: 140,
-                                height: 140,
-                                colorDark: '#4c1d95',
-                                colorLight: '#ffffff',
-                                correctLevel: QRCode.CorrectLevel.M
-                            });
-                        }
-                        if (typeof QRCode !== 'undefined') {
-                            makeQR();
-                        } else {
-                            const s = document.createElement('script');
-                            s.src = 'https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js';
-                            s.onload = makeQR;
-                            document.head.appendChild(s);
-                        }
-                    })();
-
-                    const dropArea = document.getElementById('mob-drop-area');
-                    dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.style.background = '#ede9fe'; });
-                    dropArea.addEventListener('dragleave', () => { dropArea.style.background = '#faf5ff'; });
-                    dropArea.addEventListener('drop', e => {
-                        e.preventDefault();
-                        dropArea.style.background = '#faf5ff';
-                        handleMobileFile(e.dataTransfer.files[0]);
-                    });
-                    dropArea.addEventListener('click', () => document.getElementById('mob-file-input').click());
-                });
-                return; // No ejecutar lógica de escritorio
-            }
-
-            // ── VISTA ESCRITORIO ──
-            let mobileSessionId = null;
-            let mobileQRGenerated = false;
-            let desktopPollInterval = null;
-            let mobileReceivedData = null;
-
-            window.abrirModalSubirMovil = function() {
-                const modal = document.getElementById('mobile-upload-modal');
-                modal.classList.remove('hidden');
-
-                if (!mobileQRGenerated) {
-                    mobileSessionId = Math.random().toString(36).substr(2, 8).toUpperCase();
-                    document.getElementById('mobile-session-display').textContent = mobileSessionId;
-
-                    const baseURL = 'https://faraujoteixeiradrk-creator.github.io/QR-PRUEBAS-08012025-solo-pruebas/';
-                    const mobileURL = baseURL + '?mobile=1&session=' + mobileSessionId;
-
-                    const container = document.getElementById('mobile-qr-code');
-                    container.innerHTML = '';
-                    if (typeof QRCode !== 'undefined') {
-                        new QRCode(container, {
-                            text: mobileURL,
-                            width: 180,
-                            height: 180,
-                            colorDark: '#4c1d95',
-                            colorLight: '#ffffff',
-                            correctLevel: QRCode.CorrectLevel.M
-                        });
-                    } else {
-                        container.innerHTML = '<div style="font-size:0.7rem;word-break:break-all;color:#6b7280;padding:8px;">' + mobileURL + '</div>';
-                    }
-
-                    mobileQRGenerated = true;
-                    // Guardar URL para compartir
-                    window._drkMobileURL = mobileURL;
-                    document.getElementById('mobile-link-display').textContent = mobileURL;
-                    iniciarEsperaMovil();
-                }
-            };
-
-            // Cargar MQTT.js en escritorio
             function loadMQTT(cb) {
                 if (window.mqtt) { cb(); return; }
                 const s = document.createElement('script');
@@ -21314,131 +20963,331 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                 document.head.appendChild(s);
             }
 
+            if (isMobileView && mobileSession) {
+                // ── VISTA MÓVIL ──
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.body.innerHTML = `
+                    <style>
+                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+                        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+                        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px; }
+                        .card { background: white; border-radius: 24px; padding: 28px 20px; width: 100%; max-width: 380px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); text-align: center; margin: 20px 0; }
+                        .logo { font-size: 2.2rem; margin-bottom: 6px; }
+                        h2 { font-size: 1.3rem; font-weight: 700; color: #1e1b4b; margin-bottom: 4px; }
+                        .subtitle { color: #6b7280; font-size: 0.82rem; margin-bottom: 16px; line-height: 1.5; }
+                        .session-badge { display: inline-block; background: #f5f3ff; border: 1px solid #c4b5fd; color: #7c3aed; font-family: monospace; font-weight: 700; font-size: 0.8rem; padding: 4px 12px; border-radius: 99px; margin-bottom: 16px; }
+                        .btn-upload { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; font-weight: 700; font-size: 0.95rem; padding: 14px; border: none; border-radius: 14px; cursor: pointer; margin-bottom: 10px; font-family: 'Inter', sans-serif; transition: opacity 0.2s; }
+                        .btn-upload:hover { opacity: 0.9; }
+                        .drop-area { border: 2px dashed #c4b5fd; border-radius: 14px; padding: 28px 16px; color: #7c3aed; cursor: pointer; margin-bottom: 10px; transition: all 0.2s; background: #faf5ff; }
+                        .drop-area:hover { background: #ede9fe; }
+                        .drop-area p { font-size: 0.85rem; color: #6b7280; margin-top: 6px; }
+                        .progress-bar { display: none; height: 8px; background: #e5e7eb; border-radius: 99px; overflow: hidden; margin: 14px 0 6px; }
+                        .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 99px; width: 0; transition: width 0.5s ease; }
+                        .status-msg { font-size: 0.82rem; color: #6b7280; margin-bottom: 4px; }
+                        .success-box { display: none; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 14px; padding: 20px; margin-top: 14px; }
+                        .success-box .icon { font-size: 2.2rem; margin-bottom: 6px; }
+                        .success-box h3 { font-size: 1rem; font-weight: 700; color: #15803d; }
+                        .success-box p { font-size: 0.78rem; color: #4ade80; margin-top: 4px; }
+                        .error-msg { color: #ef4444; font-size: 0.8rem; margin-top: 8px; display: none; }
+                        .note { font-size: 0.72rem; color: #9ca3af; margin-top: 14px; line-height: 1.4; }
+                        .divider { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
+                        .divider div { flex: 1; height: 1px; background: #e5e7eb; }
+                        .divider span { font-size: 0.72rem; color: #9ca3af; font-weight: 600; }
+                    </style>
+                    <div class="card">
+                        <div class="logo">📄</div>
+                        <h2>Subir Factura PDF</h2>
+                        <p class="subtitle">Introduce tus datos y sube tu factura</p>
+                        <div class="session-badge">Sesión: ${mobileSession}</div>
+
+                        <!-- FORMULARIO DE DATOS DEL CLIENTE -->
+                        <div id="mob-form-section">
+                            <div style="text-align:left;margin-bottom:14px;">
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:0.78rem;font-weight:600;color:#4c1d95;display:block;margin-bottom:4px;">👤 Nombre</label>
+                                    <input id="mob-nombre" type="text" placeholder="Tu nombre completo" style="width:100%;padding:10px 12px;border:2px solid #e5e7eb;border-radius:10px;font-size:0.88rem;font-family:'Inter',sans-serif;outline:none;transition:border 0.2s;" onfocus="this.style.border='2px solid #7c3aed'" onblur="this.style.border='2px solid #e5e7eb'">
+                                </div>
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:0.78rem;font-weight:600;color:#4c1d95;display:block;margin-bottom:4px;">📧 Email</label>
+                                    <input id="mob-email" type="email" placeholder="tu@email.com" style="width:100%;padding:10px 12px;border:2px solid #e5e7eb;border-radius:10px;font-size:0.88rem;font-family:'Inter',sans-serif;outline:none;transition:border 0.2s;" onfocus="this.style.border='2px solid #7c3aed'" onblur="this.style.border='2px solid #e5e7eb'">
+                                </div>
+                                <div style="margin-bottom:14px;">
+                                    <label style="font-size:0.78rem;font-weight:600;color:#4c1d95;display:block;margin-bottom:4px;">📱 Teléfono</label>
+                                    <input id="mob-telefono" type="tel" placeholder="600 000 000" style="width:100%;padding:10px 12px;border:2px solid #e5e7eb;border-radius:10px;font-size:0.88rem;font-family:'Inter',sans-serif;outline:none;transition:border 0.2s;" onfocus="this.style.border='2px solid #7c3aed'" onblur="this.style.border='2px solid #e5e7eb'">
+                                </div>
+                            </div>
+                            <p id="mob-form-error" style="color:#ef4444;font-size:0.78rem;margin-bottom:8px;display:none;">⚠️ Introduce al menos tu nombre y un medio de contacto (email o teléfono)</p>
+                            <button class="btn-upload" onclick="mostrarSeccionSubida()">
+                                <span>✅</span> Continuar
+                            </button>
+                        </div>
+
+                        <!-- SECCIÓN DE SUBIDA (oculta hasta que rellene el form) -->
+                        <div id="mob-upload-section" style="display:none;">
+                            <!-- Datos confirmados -->
+                            <div id="mob-datos-confirmados" style="background:#f5f3ff;border:1px solid #c4b5fd;border-radius:12px;padding:10px 14px;margin-bottom:14px;text-align:left;font-size:0.78rem;color:#4c1d95;"></div>
+
+                            <div style="background:#f5f3ff;border:2px solid #c4b5fd;border-radius:16px;padding:14px;margin-bottom:14px;text-align:center;">
+                                <p style="font-weight:700;color:#4c1d95;font-size:0.88rem;margin-bottom:4px;">📱 Abre en tu móvil</p>
+                                <p style="color:#7c3aed;font-size:0.72rem;margin-bottom:10px;">Escanea este QR con la cámara</p>
+                                <div id="mob-qr-box" style="display:inline-block;background:white;border:3px solid #7c3aed;border-radius:12px;padding:6px;"></div>
+                                <p style="color:#9ca3af;font-size:0.68rem;margin-top:6px;">Apunta la cámara al código</p>
+                            </div>
+
+                            <div class="divider"><div></div><span>O SUBE DESDE AQUÍ</span><div></div></div>
+
+                            <input type="file" id="mob-file-input" accept="application/pdf" style="display:none;">
+                            <div class="drop-area" id="mob-drop-area">
+                                <div style="font-size:2.2rem;margin-bottom:6px">☁️</div>
+                                <p style="font-weight:700;color:#4c1d95;font-size:0.9rem">Arrastra tu factura aquí</p>
+                                <p style="color:#9ca3af;font-size:0.75rem;margin-top:3px">PDF, máx. 5 MB</p>
+                            </div>
+                            <div class="divider"><div></div><span>O</span><div></div></div>
+                            <button class="btn-upload" onclick="document.getElementById('mob-file-input').click()">
+                                <span>📁</span> Seleccionar archivo PDF
+                            </button>
+                        </div>
+
+                        <div class="progress-bar" id="mob-progress-bar"><div class="progress-fill" id="mob-progress-fill"></div></div>
+                        <p class="status-msg" id="mob-status-msg"></p>
+                        <p class="error-msg" id="mob-error-msg"></p>
+                        <div class="success-box" id="mob-success-box">
+                            <div class="icon">✅</div>
+                            <h3>¡PDF enviado!</h3>
+                            <p>Ya puedes cerrar esta página</p>
+                        </div>
+                        <p class="note">⚠️ Solo se admiten archivos PDF · Máx. 5 MB</p>
+                    </div>
+                    `;
+
+                    // Validar form y mostrar sección de subida
+                    window.mostrarSeccionSubida = function() {
+                        const nombre = document.getElementById('mob-nombre').value.trim();
+                        const email = document.getElementById('mob-email').value.trim();
+                        const tel = document.getElementById('mob-telefono').value.trim();
+                        if (!nombre || (!email && !tel)) {
+                            document.getElementById('mob-form-error').style.display = 'block';
+                            return;
+                        }
+                        document.getElementById('mob-form-error').style.display = 'none';
+                        document.getElementById('mob-form-section').style.display = 'none';
+                        document.getElementById('mob-upload-section').style.display = 'block';
+                        // Mostrar datos confirmados
+                        let html = '';
+                        if (nombre) html += '<b>👤</b> ' + nombre + '<br>';
+                        if (email) html += '<b>📧</b> ' + email + '<br>';
+                        if (tel) html += '<b>📱</b> ' + tel;
+                        document.getElementById('mob-datos-confirmados').innerHTML = html;
+                        // Generar QR con URL actual
+                        const currentURL = window.location.href;
+                        const qrBox = document.getElementById('mob-qr-box');
+                        function makeQR() { new QRCode(qrBox, { text: currentURL, width: 130, height: 130, colorDark: '#4c1d95', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M }); }
+                        if (typeof QRCode !== 'undefined') { makeQR(); }
+                        else { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js'; s.onload = makeQR; document.head.appendChild(s); }
+                    };
+
+                    function handleMobileFile(file) {
+                        if (!file) return;
+                        if (file.type !== 'application/pdf') { showMobileError('❌ Solo se admiten archivos PDF'); return; }
+                        if (file.size > 5 * 1024 * 1024) { showMobileError('❌ El PDF es demasiado grande (máx. 5 MB).'); return; }
+                        document.getElementById('mob-progress-bar').style.display = 'block';
+                        const fill = document.getElementById('mob-progress-fill');
+                        const msg = document.getElementById('mob-status-msg');
+                        fill.style.width = '15%'; msg.textContent = 'Leyendo PDF...';
+                        document.getElementById('mob-error-msg').style.display = 'none';
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            fill.style.width = '40%'; msg.textContent = 'Conectando...';
+                            loadMQTT(function() {
+                                const clientId = 'drk_mob_' + Math.random().toString(36).substr(2, 6);
+                                const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt', { clientId, connectTimeout: 10000, reconnectPeriod: 0 });
+                                client.on('connect', function() {
+                                    fill.style.width = '60%'; msg.textContent = 'Enviando PDF...';
+                                    const payload = JSON.stringify({ 
+                                        session: mobileSession, 
+                                        name: file.name, size: file.size, type: file.type, 
+                                        data: e.target.result, timestamp: Date.now(),
+                                        cliente: {
+                                            nombre: document.getElementById('mob-nombre') ? document.getElementById('mob-nombre').value.trim() : '',
+                                            email: document.getElementById('mob-email') ? document.getElementById('mob-email').value.trim() : '',
+                                            telefono: document.getElementById('mob-telefono') ? document.getElementById('mob-telefono').value.trim() : ''
+                                        }
+                                    });
+                                    client.publish('drk/pdf/' + mobileSession, payload, { qos: 1 }, function(err) {
+                                        if (err) { showMobileError('❌ Error al enviar. Inténtalo de nuevo.'); }
+                                        else { fill.style.width = '100%'; msg.textContent = ''; document.getElementById('mob-success-box').style.display = 'block'; document.getElementById('mob-progress-bar').style.display = 'none'; }
+                                        client.end();
+                                    });
+                                });
+                                client.on('error', function() { showMobileError('❌ Error de conexión. Comprueba tu WiFi.'); client.end(); });
+                                setTimeout(function() {
+                                    if (document.getElementById('mob-success-box').style.display !== 'block') {
+                                        showMobileError('❌ Tiempo agotado. Inténtalo de nuevo.');
+                                        try { client.end(true); } catch(e) {}
+                                    }
+                                }, 15000);
+                            });
+                        };
+                        reader.onerror = function() { showMobileError('❌ Error leyendo el archivo.'); };
+                        reader.readAsDataURL(file);
+                    }
+
+                    function showMobileError(txt) {
+                        const err = document.getElementById('mob-error-msg');
+                        err.textContent = txt; err.style.display = 'block';
+                        document.getElementById('mob-progress-bar').style.display = 'none';
+                        document.getElementById('mob-status-msg').textContent = '';
+                    }
+
+                    document.getElementById('mob-file-input').addEventListener('change', e => handleMobileFile(e.target.files[0]));
+                    const dropArea = document.getElementById('mob-drop-area');
+                    dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.style.background = '#ede9fe'; });
+                    dropArea.addEventListener('dragleave', () => { dropArea.style.background = '#faf5ff'; });
+                    dropArea.addEventListener('drop', e => { e.preventDefault(); dropArea.style.background = '#faf5ff'; handleMobileFile(e.dataTransfer.files[0]); });
+                    dropArea.addEventListener('click', () => document.getElementById('mob-file-input').click());
+                });
+                return;
+            }
+
+            // ── VISTA ESCRITORIO ──
+            let mobileSessionId = null, mobileQRGenerated = false, mobileReceivedData = null;
+
+            window.abrirModalSubirMovil = function() {
+                document.getElementById('mobile-upload-modal').classList.remove('hidden');
+                if (!mobileQRGenerated) {
+                    mobileSessionId = Math.random().toString(36).substr(2, 8).toUpperCase();
+                    document.getElementById('mobile-session-display').textContent = mobileSessionId;
+                    const baseURL = 'https://faraujoteixeiradrk-creator.github.io/QR-PRUEBAS-08012025-solo-pruebas/';
+                    const mobileURL = baseURL + '?mobile=1&session=' + mobileSessionId;
+                    window._drkMobileURL = mobileURL;
+                    document.getElementById('mobile-link-display').textContent = mobileURL;
+                    const container = document.getElementById('mobile-qr-code');
+                    container.innerHTML = '';
+                    if (typeof QRCode !== 'undefined') {
+                        new QRCode(container, { text: mobileURL, width: 130, height: 130, colorDark: '#4c1d95', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+                    } else {
+                        container.innerHTML = '<div style="font-size:0.7rem;word-break:break-all;color:#6b7280;padding:8px;">' + mobileURL + '</div>';
+                    }
+                    mobileQRGenerated = true;
+                    iniciarEsperaMovil();
+                }
+            };
+
             function iniciarEsperaMovil() {
                 loadMQTT(function() {
                     const clientId = 'drk_desk_' + Math.random().toString(36).substr(2, 6);
-                    const desktopClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt', {
-                        clientId: clientId,
-                        connectTimeout: 10000,
-                        reconnectPeriod: 3000
-                    });
-
+                    const desktopClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt', { clientId, connectTimeout: 10000, reconnectPeriod: 3000 });
                     const topic = 'drk/pdf/' + mobileSessionId;
-
-                    desktopClient.on('connect', function() {
-                        desktopClient.subscribe(topic, { qos: 1 });
-                        console.log('DRK: escuchando en topic', topic);
-                    });
-
+                    desktopClient.on('connect', function() { desktopClient.subscribe(topic, { qos: 1 }); });
                     desktopClient.on('message', function(t, message) {
                         if (t === topic) {
                             try {
                                 const data = JSON.parse(message.toString());
-                                if (data.session === mobileSessionId) {
-                                    desktopClient.end();
-                                    recibirPDFMovil(data);
-                                }
-                            } catch(e) { console.error('Error parseando PDF móvil', e); }
+                                if (data.session === mobileSessionId) { desktopClient.end(); recibirPDFMovil(data); }
+                            } catch(e) {}
                         }
                     });
-
-                    desktopClient.on('error', function(err) {
-                        console.warn('MQTT desktop error:', err);
-                    });
-
-                    // Guardar referencia para poder cerrarla
                     window._drkMqttClient = desktopClient;
                 });
             }
 
             function recibirPDFMovil(data) {
                 mobileReceivedData = data;
-
-                // Actualizar badge
                 const badge = document.getElementById('mobile-status-badge');
-                badge.className = 'inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium bg-green-50 border-green-200 text-green-600 mb-4';
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> ✅ PDF recibido del móvil';
-
-                // Mostrar info del archivo
+                badge.className = 'flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-green-50 border-green-200 text-green-600 mb-3';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> ✅ PDF recibido del cliente';
                 document.getElementById('mobile-file-name-display').textContent = '📄 ' + data.name;
-                const sizeMB = (data.size / 1024 / 1024).toFixed(2);
-                document.getElementById('mobile-file-size-display').textContent = sizeMB + ' MB';
+                document.getElementById('mobile-file-size-display').textContent = (data.size / 1024 / 1024).toFixed(2) + ' MB';
+                // Mostrar datos del cliente si existen
+                if (data.cliente && (data.cliente.nombre || data.cliente.email || data.cliente.telefono)) {
+                    const cd = document.getElementById('mobile-client-data');
+                    cd.classList.remove('hidden');
+                    if (data.cliente.nombre) document.getElementById('mobile-client-nombre').textContent = '👤 ' + data.cliente.nombre;
+                    if (data.cliente.email) document.getElementById('mobile-client-email').innerHTML = '📧 <a href="mailto:' + data.cliente.email + '" style="color:#059669;text-decoration:underline;">' + data.cliente.email + '</a>';
+                    if (data.cliente.telefono) document.getElementById('mobile-client-telefono').innerHTML = '📱 <a href="tel:' + data.cliente.telefono + '" style="color:#059669;text-decoration:underline;">' + data.cliente.telefono + '</a>';
+                }
                 document.getElementById('mobile-received-section').classList.remove('hidden');
             }
 
+            window.descargarPDFMovil = function() {
+                if (!mobileReceivedData || !mobileReceivedData.data) return;
+                // Convertir base64 a Blob real
+                const base64 = mobileReceivedData.data.split(',')[1];
+                const byteChars = atob(base64);
+                const byteArr = new Uint8Array(byteChars.length);
+                for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+                const blob = new Blob([byteArr], { type: 'application/pdf' });
+                const blobURL = URL.createObjectURL(blob);
+
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                if (isIOS) {
+                    // iOS: abrir el Blob como PDF real en nueva pestaña
+                    // El usuario verá el PDF nativo y puede "Compartir → Guardar en Archivos"
+                    window.open(blobURL, '_blank');
+                } else {
+                    // Android y escritorio: descarga directa
+                    const a = document.createElement('a');
+                    a.href = blobURL;
+                    a.download = mobileReceivedData.name || 'factura_cliente.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(() => URL.revokeObjectURL(blobURL), 3000);
+                }
+            };
+
             window.cerrarModalSubirMovil = function() {
                 document.getElementById('mobile-upload-modal').classList.add('hidden');
-                if (desktopPollInterval) { clearInterval(desktopPollInterval); desktopPollInterval = null; }
                 if (window._drkMqttClient) { try { window._drkMqttClient.end(true); } catch(e){} window._drkMqttClient = null; }
-                mobileQRGenerated = false;
-                mobileSessionId = null;
-                mobileReceivedData = null;
-                document.getElementById('mobile-status-badge').className = 'inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium bg-amber-50 border-amber-200 text-amber-600 mb-4';
+                mobileQRGenerated = false; mobileSessionId = null; mobileReceivedData = null;
+                document.getElementById('mobile-status-badge').className = 'flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-amber-50 border-amber-200 text-amber-600 mb-3';
                 document.getElementById('mobile-status-badge').innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block"></span> Esperando PDF del móvil...';
                 document.getElementById('mobile-received-section').classList.add('hidden');
+                document.getElementById('mobile-client-data').classList.add('hidden');
+                document.getElementById('mobile-client-nombre').textContent = '';
+                document.getElementById('mobile-client-email').textContent = '';
+                document.getElementById('mobile-client-telefono').textContent = '';
             };
 
             window.procesarPDFMovil = function() {
                 if (!mobileReceivedData) return;
                 const savedData = mobileReceivedData;
                 cerrarModalSubirMovil();
-
-                // Convertir base64 a File y llamar directamente a handleFile
-                const base64Data = savedData.data;
-                const byteString = atob(base64Data.split(',')[1]);
+                const byteString = atob(savedData.data.split(',')[1]);
                 const ab = new ArrayBuffer(byteString.length);
                 const ia = new Uint8Array(ab);
                 for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
                 const blob = new Blob([ab], { type: 'application/pdf' });
                 const file = new File([blob], savedData.name, { type: 'application/pdf' });
-
-                // Llamar directamente a la función de análisis
-                if (typeof handleFile === 'function') {
-                    handleFile(file);
-                } else {
-                    // Fallback: inyectar en el input
-                    const fileUploadInput = document.getElementById('file-upload-input');
-                    if (fileUploadInput) {
-                        const dt = new DataTransfer();
-                        dt.items.add(file);
-                        fileUploadInput.files = dt.files;
-                        fileUploadInput.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
+                if (typeof handleFile === 'function') { handleFile(file); }
+                else {
+                    const inp = document.getElementById('file-upload-input');
+                    if (inp) { const dt = new DataTransfer(); dt.items.add(file); inp.files = dt.files; inp.dispatchEvent(new Event('change', { bubbles: true })); }
                 }
             };
 
             window.copiarLinkCliente = function() {
-                const url = window._drkMobileURL;
-                if (!url) return;
+                const url = window._drkMobileURL; if (!url) return;
                 navigator.clipboard.writeText(url).then(function() {
                     const btn = document.getElementById('btn-copiar-link');
-                    const original = btn.innerHTML;
+                    const orig = btn.innerHTML;
                     btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>¡Copiado!';
                     btn.classList.add('bg-violet-200');
-                    setTimeout(function() { btn.innerHTML = original; btn.classList.remove('bg-violet-200'); }, 2000);
+                    setTimeout(function() { btn.innerHTML = orig; btn.classList.remove('bg-violet-200'); }, 2000);
                 }).catch(function() {
-                    const ta = document.createElement('textarea');
-                    ta.value = url;
-                    document.body.appendChild(ta);
-                    ta.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(ta);
+                    const ta = document.createElement('textarea'); ta.value = url;
+                    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
                 });
             };
 
             window.compartirWhatsApp = function() {
-                const url = window._drkMobileURL;
-                if (!url) return;
-                const msg = encodeURIComponent('Hola, por favor sube tu factura PDF en este enlace:\n\n' + url + '\n\nEl enlace es temporal, úsalo ahora mismo.');
-                window.open('https://wa.me/?text=' + msg, '_blank');
+                const url = window._drkMobileURL; if (!url) return;
+                window.open('https://wa.me/?text=' + encodeURIComponent('Hola, por favor sube tu factura PDF en este enlace:\n\n' + url + '\n\nEl enlace es temporal, úsalo ahora mismo.'), '_blank');
             };
 
             window.compartirEmail = function() {
-                const url = window._drkMobileURL;
-                if (!url) return;
-                const subject = encodeURIComponent('Subir factura PDF - Enlace de acceso');
-                const body = encodeURIComponent('Hola,\n\nPor favor accede a este enlace para subir tu factura PDF:\n\n' + url + '\n\nEste enlace es temporal, úsalo cuanto antes.\n\nGracias.');
-                window.open('mailto:?subject=' + subject + '&body=' + body);
+                const url = window._drkMobileURL; if (!url) return;
+                window.open('mailto:?subject=' + encodeURIComponent('Subir factura PDF') + '&body=' + encodeURIComponent('Hola,\n\nPor favor accede a este enlace para subir tu factura PDF:\n\n' + url + '\n\nEste enlace es temporal.\n\nGracias.'));
             };
 
         })();
@@ -22175,7 +22024,8 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             
             hideAllScreens();
             document.getElementById('screen-inicio').classList.add('active');
-            // modo-comparacion-section siempre oculto (CSS !important)
+            // Mostrar el modo de comparación
+            document.getElementById('modo-comparacion-section').style.display = 'block';
         }
 
         function goToElectricidad() {
@@ -30323,9 +30173,6 @@ ${clientName}
                 "ESCANEAR QR AHORA": { en: "SCAN QR NOW", zh: "立即扫描二维码", de: "QR JETZT SCANNEN", fr: "SCANNER QR MAINTENANT" },
                 "OTRAS OPCIONES DE CAPTURA": { en: "OTHER CAPTURE OPTIONS", zh: "其他捕获选项", de: "ANDERE AUFNAHMEOPTIONEN", fr: "AUTRES OPTIONS DE CAPTURE" },
                 "DATOS A MANO": { en: "MANUAL DATA", zh: "手动数据", de: "MANUELLE DATEN", fr: "DONNÉES MANUELLES" },
-                "📱 SUBIR PDF DESDE MÓVIL": { en: "📱 UPLOAD PDF FROM MOBILE", zh: "📱 从手机上传PDF", de: "📱 PDF VOM HANDY HOCHLADEN", fr: "📱 ENVOYER PDF DEPUIS MOBILE" },
-                "Subir PDF desde Móvil": { en: "Upload PDF from Mobile", zh: "从手机上传PDF", de: "PDF vom Handy hochladen", fr: "Envoyer PDF depuis Mobile" },
-                "Esperando PDF del móvil...": { en: "Waiting for mobile PDF...", zh: "等待手机PDF...", de: "Warte auf Handy-PDF...", fr: "En attente du PDF mobile..." },
                 "Volver a selección": { en: "Back to selection", zh: "返回选择", de: "Zurück zur Auswahl", fr: "Retour à la sélection" },
                 "Seleccione Opción QR": { en: "Select QR Option", zh: "选择二维码选项", de: "QR-Option wählen", fr: "Sélectionner l'Option QR" },
                 "Capturar Foto": { en: "Capture Photo", zh: "拍照", de: "Foto aufnehmen", fr: "Capturer une Photo" },
@@ -31991,15 +31838,11 @@ ${clientName}
                 </div>
             </div>
             <div class="p-6">
-                <!-- Barra de progreso -->
                 <div class="bg-slate-100 rounded-full h-2 mb-4 overflow-hidden">
                     <div id="ai-progress-bar" class="h-2 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full transition-all duration-700" style="width:0%"></div>
                 </div>
-                <!-- Log de pasos -->
                 <div id="ai-log" class="space-y-2 mb-4 max-h-48 overflow-y-auto"></div>
-                <!-- Resultado preview -->
                 <div id="ai-result-preview" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-sm"></div>
-                <!-- Botones -->
                 <div id="ai-action-btns" class="hidden space-y-2">
                     <button onclick="confirmarDatosIA()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3 rounded-xl transition">
                         ✅ Usar estos datos
@@ -32010,9 +31853,7 @@ ${clientName}
                 </div>
                 <div id="ai-error-section" class="hidden">
                     <div class="bg-red-50 border border-red-200 rounded-xl p-3 mb-3 text-sm text-red-700" id="ai-error-msg"></div>
-                    <button onclick="cerrarModalIA()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl text-sm transition">
-                        Cerrar
-                    </button>
+                    <button onclick="cerrarModalIA()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl text-sm transition">Cerrar</button>
                 </div>
             </div>
         </div>
@@ -32020,9 +31861,7 @@ ${clientName}
     <!-- ===== FIN MODAL IA ===== -->
 
     <script>
-    // ===== SISTEMA IA - EXTRACCIÓN DE FACTURAS =====
     (function() {
-
         let aiExtractedData = null;
         let aiTargetTariff = null;
 
@@ -32040,8 +31879,7 @@ ${clientName}
         }
 
         function mostrarModalIA() {
-            const modal = document.getElementById('ai-processing-modal');
-            modal.classList.remove('hidden');
+            document.getElementById('ai-processing-modal').classList.remove('hidden');
             document.getElementById('ai-log').innerHTML = '';
             document.getElementById('ai-result-preview').classList.add('hidden');
             document.getElementById('ai-action-btns').classList.add('hidden');
@@ -32051,25 +31889,19 @@ ${clientName}
 
         window.cerrarModalIA = function() {
             document.getElementById('ai-processing-modal').classList.add('hidden');
-            aiExtractedData = null;
-            aiTargetTariff = null;
+            aiExtractedData = null; aiTargetTariff = null;
         };
 
-        // Convertir PDF a imagen usando pdf.js
         async function pdfToBase64Image(file) {
             return new Promise(async (resolve, reject) => {
                 try {
                     const arrayBuffer = await file.arrayBuffer();
                     const uint8 = new Uint8Array(arrayBuffer);
-                    // Cargar pdf.js si no está
                     if (!window.pdfjsLib) {
                         await new Promise((res, rej) => {
                             const s = document.createElement('script');
                             s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-                            s.onload = () => {
-                                window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-                                res();
-                            };
+                            s.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; res(); };
                             s.onerror = rej;
                             document.head.appendChild(s);
                         });
@@ -32078,16 +31910,13 @@ ${clientName}
                     const page = await pdfDoc.getPage(1);
                     const viewport = page.getViewport({ scale: 2.0 });
                     const canvas = document.createElement('canvas');
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-                    const ctx = canvas.getContext('2d');
-                    await page.render({ canvasContext: ctx, viewport }).promise;
+                    canvas.width = viewport.width; canvas.height = viewport.height;
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
                     resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
                 } catch(e) { reject(e); }
             });
         }
 
-        // Imagen a base64
         async function imageToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -32101,128 +31930,63 @@ ${clientName}
             if (!file) return;
             aiTargetTariff = tariffType;
             mostrarModalIA();
-            addAILog('Archivo recibido: ' + file.name, 'info');
+            addAILog('Archivo: ' + file.name, 'info');
             setAIProgress(10, 'Preparando archivo...');
-
             try {
                 let base64Image;
                 if (file.type === 'application/pdf') {
-                    addAILog('PDF detectado — convirtiendo primera página a imagen...', 'working');
+                    addAILog('PDF detectado — convirtiendo a imagen...', 'working');
                     setAIProgress(25, 'Convirtiendo PDF...');
                     base64Image = await pdfToBase64Image(file);
-                    addAILog('PDF convertido correctamente', 'success');
+                    addAILog('PDF convertido', 'success');
                 } else {
-                    addAILog('Imagen detectada — preparando...', 'working');
+                    addAILog('Imagen detectada', 'working');
                     setAIProgress(25, 'Cargando imagen...');
                     base64Image = await imageToBase64(file);
                     addAILog('Imagen lista', 'success');
                 }
-
                 setAIProgress(45, 'Enviando a Claude IA...');
-                addAILog('Analizando factura con Claude...', 'working');
+                addAILog('Analizando con Claude...', 'working');
 
-                const prompt = `Eres un experto en facturas de electricidad españolas. Analiza esta factura y extrae EXACTAMENTE estos datos en formato JSON.
+                const prompt = `Eres un experto en facturas de electricidad españolas. Analiza esta factura y extrae EXACTAMENTE estos datos en formato JSON. Devuelve SOLO el JSON sin texto adicional:\n\n{"cups":"ES00...","dias":30,"tarifa":"2.0TD o 3.0TD","potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0.00,"notas":"..."}\n\nIMPORTANTE: Para 2.0TD solo P1-P2 y E1-E3. Para 3.0TD P1-P6 y E1-E6. Si no encuentras un dato pon 0.`;
 
-Devuelve SOLO el JSON, sin texto adicional, sin markdown, sin explicaciones:
-
-{
-  "cups": "ES00XXXXXXXXXXXXXXXX (código CUPS, empieza por ES)",
-  "dias": 30,
-  "tarifa": "2.0TD o 3.0TD",
-  "potencias_kw": {
-    "p1": 0.0,
-    "p2": 0.0,
-    "p3": 0.0,
-    "p4": 0.0,
-    "p5": 0.0,
-    "p6": 0.0
-  },
-  "energia_kwh": {
-    "e1": 0,
-    "e2": 0,
-    "e3": 0,
-    "e4": 0,
-    "e5": 0,
-    "e6": 0
-  },
-  "total_factura": 0.00,
-  "notas": "cualquier dato relevante que veas"
-}
-
-IMPORTANTE:
-- Para 2.0TD solo hay P1 y P2 de potencia, y E1, E2, E3 de energía (P3-P6 y E4-E6 = 0)
-- Para 3.0TD hay P1-P6 de potencia y E1-E6 de energía
-- Si no encuentras algún dato, pon 0 o null
-- El total_factura es el importe TOTAL de la factura en euros
-- Los días son los días del período de facturación`;
-
-                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                const response = await fetch('https://drk-ai-proxy.f-araujo-teixeira-drk.workers.dev', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         model: 'claude-opus-4-5',
                         max_tokens: 1024,
-                        messages: [{
-                            role: 'user',
-                            content: [{
-                                type: 'image',
-                                source: { type: 'base64', media_type: 'image/jpeg', data: base64Image }
-                            }, {
-                                type: 'text',
-                                text: prompt
-                            }]
-                        }]
+                        messages: [{ role: 'user', content: [
+                            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64Image } },
+                            { type: 'text', text: prompt }
+                        ]}]
                     })
                 });
 
-                if (!response.ok) {
-                    const err = await response.json();
-                    throw new Error(err.error?.message || 'Error API: ' + response.status);
-                }
-
+                if (!response.ok) { const err = await response.json(); throw new Error(err.error?.message || 'Error ' + response.status); }
                 setAIProgress(80, 'Procesando respuesta...');
                 const data = await response.json();
                 const rawText = data.content[0].text.trim();
-                addAILog('Respuesta recibida de Claude', 'success');
+                addAILog('Respuesta recibida', 'success');
 
-                // Parsear JSON
                 let parsed;
-                try {
-                    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-                    parsed = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
-                } catch(e) {
-                    throw new Error('No se pudo parsear la respuesta. Inténtalo de nuevo.');
-                }
+                try { const m = rawText.match(/\{[\s\S]*\}/); parsed = JSON.parse(m ? m[0] : rawText); }
+                catch(e) { throw new Error('No se pudo leer la respuesta. Inténtalo de nuevo.'); }
 
                 aiExtractedData = parsed;
                 setAIProgress(100, '¡Datos extraídos!');
-                addAILog('Datos extraídos correctamente', 'success');
+                addAILog('Extracción completada', 'success');
 
-                // Mostrar preview
-                const tarifa = parsed.tarifa || tariffType;
-                const es30 = tarifa === '3.0TD' || tariffType === '3.0TD';
-                let preview = `<div class="space-y-1.5">`;
-                preview += `<div class="flex justify-between"><span class="text-slate-500">Tarifa</span><span class="font-bold text-blue-600">${tarifa || tariffType}</span></div>`;
+                const es30 = (parsed.tarifa || tariffType) === '3.0TD';
+                let preview = '<div class="space-y-1.5">';
+                preview += `<div class="flex justify-between"><span class="text-slate-500">Tarifa</span><span class="font-bold text-blue-600">${parsed.tarifa || tariffType}</span></div>`;
                 if (parsed.cups) preview += `<div class="flex justify-between"><span class="text-slate-500">CUPS</span><span class="font-mono text-xs font-bold">${parsed.cups.substring(0,20)}</span></div>`;
                 if (parsed.dias) preview += `<div class="flex justify-between"><span class="text-slate-500">Días</span><span class="font-bold">${parsed.dias}</span></div>`;
-                if (parsed.potencias_kw) {
-                    const p = parsed.potencias_kw;
-                    const potStr = es30
-                        ? `P1:${p.p1||0} P2:${p.p2||0} P3:${p.p3||0} P4:${p.p4||0} P5:${p.p5||0} P6:${p.p6||0}`
-                        : `P1:${p.p1||0} P2:${p.p2||0}`;
-                    preview += `<div class="flex justify-between"><span class="text-slate-500">Potencias kW</span><span class="font-bold text-xs">${potStr}</span></div>`;
-                }
-                if (parsed.energia_kwh) {
-                    const e = parsed.energia_kwh;
-                    const eneStr = es30
-                        ? `E1:${e.e1||0} E2:${e.e2||0} E3:${e.e3||0} E4:${e.e4||0} E5:${e.e5||0} E6:${e.e6||0}`
-                        : `E1:${e.e1||0} E2:${e.e2||0} E3:${e.e3||0}`;
-                    preview += `<div class="flex justify-between"><span class="text-slate-500">Energía kWh</span><span class="font-bold text-xs">${eneStr}</span></div>`;
-                }
+                if (parsed.potencias_kw) { const p = parsed.potencias_kw; preview += `<div class="flex justify-between"><span class="text-slate-500">Potencias kW</span><span class="font-bold text-xs">${es30 ? `P1:${p.p1||0} P2:${p.p2||0} P3:${p.p3||0} P4:${p.p4||0} P5:${p.p5||0} P6:${p.p6||0}` : `P1:${p.p1||0} P2:${p.p2||0}`}</span></div>`; }
+                if (parsed.energia_kwh) { const e = parsed.energia_kwh; preview += `<div class="flex justify-between"><span class="text-slate-500">Energía kWh</span><span class="font-bold text-xs">${es30 ? `E1:${e.e1||0} E2:${e.e2||0} E3:${e.e3||0} E4:${e.e4||0} E5:${e.e5||0} E6:${e.e6||0}` : `E1:${e.e1||0} E2:${e.e2||0} E3:${e.e3||0}`}</span></div>`; }
                 if (parsed.total_factura) preview += `<div class="flex justify-between border-t border-slate-200 pt-2 mt-2"><span class="font-bold text-slate-700">Total factura</span><span class="font-black text-green-600">${parsed.total_factura}€</span></div>`;
                 if (parsed.notas) preview += `<div class="text-xs text-slate-400 mt-2 italic">${parsed.notas}</div>`;
-                preview += `</div>`;
-
+                preview += '</div>';
                 document.getElementById('ai-result-preview').innerHTML = preview;
                 document.getElementById('ai-result-preview').classList.remove('hidden');
                 document.getElementById('ai-action-btns').classList.remove('hidden');
@@ -32239,56 +32003,17 @@ IMPORTANTE:
             if (!aiExtractedData) return;
             const d = aiExtractedData;
             const tariff = d.tarifa || aiTargetTariff;
-
-            // Abrir el modal manual con la tarifa correcta
             document.getElementById('manual-input-modal').classList.remove('hidden');
             document.getElementById('manual-input-modal').classList.add('flex');
-
-            // Rellenar campos
             setTimeout(() => {
-                if (d.cups) setValue('input-cups', d.cups);
-                if (d.dias) setValue('input-billing-days', d.dias);
-                if (d.total_factura) setValue('input-total-bill', d.total_factura);
-
-                if (d.potencias_kw) {
-                    const p = d.potencias_kw;
-                    if (p.p1) setValue('input-p1-kw', p.p1);
-                    if (p.p2) setValue('input-p2-kw', p.p2);
-                    if (p.p3) setValue('input-p3-kw', p.p3);
-                    if (p.p4) setValue('input-p4-kw', p.p4);
-                    if (p.p5) setValue('input-p5-kw', p.p5);
-                    if (p.p6) setValue('input-p6-kw', p.p6);
-                }
-                if (d.energia_kwh) {
-                    const e = d.energia_kwh;
-                    if (e.e1) setValue('input-e1-kwh', e.e1);
-                    if (e.e2) setValue('input-e2-kwh', e.e2);
-                    if (e.e3) setValue('input-e3-kwh', e.e3);
-                    if (e.e4) setValue('input-e4-kwh', e.e4);
-                    if (e.e5) setValue('input-e5-kwh', e.e5);
-                    if (e.e6) setValue('input-e6-kwh', e.e6);
-                }
-
-                // Activar períodos correctos según tarifa
-                if (typeof toggleMultiCupsInputPeriods === 'function') {
-                    toggleMultiCupsInputPeriods(tariff, 'input');
-                }
+                function sv(id, val) { const el = document.getElementById(id); if (el && val) { el.value = val; el.style.borderColor = '#06b6d4'; el.style.background = '#ecfeff'; setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 3000); } }
+                sv('input-cups', d.cups); sv('input-billing-days', d.dias); sv('input-total-bill', d.total_factura);
+                if (d.potencias_kw) { const p = d.potencias_kw; sv('input-p1-kw',p.p1); sv('input-p2-kw',p.p2); sv('input-p3-kw',p.p3); sv('input-p4-kw',p.p4); sv('input-p5-kw',p.p5); sv('input-p6-kw',p.p6); }
+                if (d.energia_kwh) { const e = d.energia_kwh; sv('input-e1-kwh',e.e1); sv('input-e2-kwh',e.e2); sv('input-e3-kwh',e.e3); sv('input-e4-kwh',e.e4); sv('input-e5-kwh',e.e5); sv('input-e6-kwh',e.e6); }
+                if (typeof toggleMultiCupsInputPeriods === 'function') toggleMultiCupsInputPeriods(tariff, 'input');
             }, 150);
-
             cerrarModalIA();
         };
-
-        function setValue(id, val) {
-            const el = document.getElementById(id);
-            if (el && val !== null && val !== undefined && val !== 0) {
-                el.value = val;
-                el.style.borderColor = '#06b6d4';
-                el.style.background = '#ecfeff';
-                setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 3000);
-            }
-        }
-
     })();
-    // ===== FIN SISTEMA IA =====
     </script>
 </body></html>

@@ -1399,7 +1399,7 @@
                     </div>
                 </div>
                 <input type="file" id="ai-file-input-30td" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaIA(this.files[0], '3.0TD')">
-                <div id="ai-btn-30td-wrapper">
+                <div id="ai-btn-30td-wrapper" style="display:none;">
                 <input type="file" id="ai-file-input-30td-drop" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaIA(this.files[0], '3.0TD')">
                 <div id="ai-drop-zone-30td" style="border:2px dashed #06b6d4;border-radius:16px;padding:14px;margin-top:12px;margin-bottom:12px;text-align:center;cursor:pointer;transition:background 0.2s;background:#ecfeff;" onclick="document.getElementById('ai-file-input-30td').click()">
                     <div style="font-size:1.6rem;margin-bottom:4px;">🤖</div>
@@ -4207,10 +4207,12 @@
                 // --- FIX: 3.0TD always manual ---
                 if (config.requiresQR && type === '2.0TD') { // 2.0TD is the only single tariff with QR
                     qrButtonsContainer.classList.remove('hidden');
+                    const ai30w = document.getElementById('ai-btn-30td-wrapper'); if(ai30w) ai30w.style.display='none';
                     document.getElementById('manual-input-btn').classList.add('mt-3');
                     document.getElementById('scan-instruction-text').textContent = "Escanea el código QR o introduce datos manualmente.";
                 } else { // 3.0TD (Siempre manual)
                     qrButtonsContainer.classList.add('hidden');
+                    const ai30show = document.getElementById('ai-btn-30td-wrapper'); if(ai30show) ai30show.style.display='';
                     document.getElementById('manual-input-btn').classList.remove('mt-3');
                     document.getElementById('scan-instruction-text').textContent = "Introduce los datos de la factura manualmente.";
                     document.getElementById('qr-toggle-checkbox').checked = false;
@@ -32065,7 +32067,29 @@ Devuelve SOLO este JSON sin texto adicional ni markdown:
 {"cups":"ES...","tarifa":"2.0TD","dias":30,"potencias_kw":{"p1":0.0,"p2":0.0,"p3":0.0,"p4":0.0,"p5":0.0,"p6":0.0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0.00,"notas":""}`;
         }
 
-                window.confirmarDatosIA = function() {
+                // ===== DRAG & DROP ZONES =====
+        function setupDragZone(zoneId, tariff) {
+            const zone = document.getElementById(zoneId);
+            if (!zone) return;
+            zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.background='#cffafe'; zone.style.borderColor='#0891b2'; });
+            zone.addEventListener('dragleave', () => { zone.style.background='#ecfeff'; zone.style.borderColor='#06b6d4'; });
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.style.background='#ecfeff'; zone.style.borderColor='#06b6d4';
+                const file = e.dataTransfer.files[0];
+                if (file) procesarFacturaIA(file, tariff);
+            });
+        }
+        // Setup on DOMContentLoaded and also after tariff switch
+        function initDragZones() {
+            setupDragZone('ai-drop-zone-20td', '2.0TD');
+            setupDragZone('ai-drop-zone-30td', '3.0TD');
+        }
+        document.addEventListener('DOMContentLoaded', initDragZones);
+        setTimeout(initDragZones, 1000);
+        // ===== FIN DRAG & DROP =====
+
+        window.confirmarDatosIA = function() {
             if (!aiExtractedData) return;
             const d = aiExtractedData;
             const tariff = d.tarifa || aiTargetTariff;

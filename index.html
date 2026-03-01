@@ -21237,37 +21237,31 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
 
             window.procesarPDFMovil = function() {
                 if (!mobileReceivedData) return;
+                const savedData = mobileReceivedData;
                 cerrarModalSubirMovil();
 
-                // Convertir base64 a File y usar el flujo existente de procesamiento de PDF
-                const base64Data = mobileReceivedData.data;
+                // Convertir base64 a File y llamar directamente a handleFile
+                const base64Data = savedData.data;
                 const byteString = atob(base64Data.split(',')[1]);
                 const ab = new ArrayBuffer(byteString.length);
                 const ia = new Uint8Array(ab);
                 for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
                 const blob = new Blob([ab], { type: 'application/pdf' });
-                const file = new File([blob], mobileReceivedData.name, { type: 'application/pdf' });
+                const file = new File([blob], savedData.name, { type: 'application/pdf' });
 
-                // Inyectar en el input de subida existente de la app
-                const fileUploadInput = document.getElementById('file-upload-input');
-                if (fileUploadInput) {
-                    const dt = new DataTransfer();
-                    dt.items.add(file);
-                    fileUploadInput.files = dt.files;
-                    fileUploadInput.dispatchEvent(new Event('change', { bubbles: true }));
+                // Llamar directamente a la función de análisis
+                if (typeof handleFile === 'function') {
+                    handleFile(file);
                 } else {
-                    // Fallback: usar el input de imagen
-                    const imgInput = document.getElementById('image-file-input');
-                    if (imgInput) {
+                    // Fallback: inyectar en el input
+                    const fileUploadInput = document.getElementById('file-upload-input');
+                    if (fileUploadInput) {
                         const dt = new DataTransfer();
                         dt.items.add(file);
-                        imgInput.files = dt.files;
-                        imgInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        fileUploadInput.files = dt.files;
+                        fileUploadInput.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 }
-
-                // Limpiar datos
-                mobileReceivedData = null;
             };
         })();
         // ===== FIN SUBIR PDF DESDE MÓVIL =====

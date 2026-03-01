@@ -31932,61 +31932,94 @@ ${clientName}
             mostrarModalIA();
             addAILog('Archivo: ' + file.name, 'info');
             setAIProgress(10, 'Preparando archivo...');
-            try {
-                let base64Image;
-                if (file.type === 'application/pdf') {
-                    addAILog('PDF detectado — convirtiendo a imagen...', 'working');
-                    setAIProgress(25, 'Convirtiendo PDF...');
-                    base64Image = await pdfToBase64Image(file);
-                    addAILog('PDF convertido', 'success');
-                } else {
-                    addAILog('Imagen detectada', 'working');
-                    setAIProgress(25, 'Cargando imagen...');
-                    base64Image = await imageToBase64(file);
-                    addAILog('Imagen lista', 'success');
-                }
-                setAIProgress(45, 'Enviando a Claude IA...');
-                addAILog('Analizando con Claude...', 'working');
 
-                const prompt = `Eres un experto en facturas de electricidad españolas. Analiza esta factura y extrae EXACTAMENTE estos datos en formato JSON. Devuelve SOLO el JSON sin texto adicional:\n\n{"cups":"ES00...","dias":30,"tarifa":"2.0TD o 3.0TD","potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0.00,"notas":"..."}\n\nIMPORTANTE: Para 2.0TD solo P1-P2 y E1-E3. Para 3.0TD P1-P6 y E1-E6. Si no encuentras un dato pon 0.`;
+            try {
+                let messageContent = [];
+
+                if (file.type === 'application/pdf') {
+                    addAILog('PDF detectado - enviando directamente a Claude...', 'working');
+                    setAIProgress(25, 'Leyendo PDF...');
+                    const base64PDF = await imageToBase64(file);
+                    addAILog('PDF listo', 'success');
+                    messageContent = [
+                        { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64PDF } },
+                        { type: 'text', text: getPromptIA() }
+                    ];
+                } else {
+                    addAILog('Imagen detectada - preparando...', 'working');
+                    setAIProgress(25, 'Cargando imagen...');
+                    const base64Img = await imageToBase64(file);
+                    addAILog('Imagen lista', 'success');
+                    messageContent = [
+                        { type: 'image', source: { type: 'base64', media_type: file.type, data: base64Img } },
+                        { type: 'text', text: getPromptIA() }
+                    ];
+                }
+
+                setAIProgress(45, 'Enviando a Claude IA...');
+                addAILog('Analizando factura con Claude...', 'working');
 
                 const response = await fetch('https://drk-ai-proxy.f-araujo-teixeira-drk.workers.dev', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         model: 'claude-opus-4-5',
-                        max_tokens: 1024,
-                        messages: [{ role: 'user', content: [
-                            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64Image } },
-                            { type: 'text', text: prompt }
-                        ]}]
+                        max_tokens: 1500,
+                        messages: [{ role: 'user', content: messageContent }]
                     })
                 });
 
-                if (!response.ok) { const err = await response.json(); throw new Error(err.error?.message || 'Error ' + response.status); }
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error?.message || 'Error API: ' + response.status);
+                }
+
                 setAIProgress(80, 'Procesando respuesta...');
                 const data = await response.json();
                 const rawText = data.content[0].text.trim();
-                addAILog('Respuesta recibida', 'success');
+                addAILog('Respuesta recibida de Claude', 'success');
 
                 let parsed;
-                try { const m = rawText.match(/\{[\s\S]*\}/); parsed = JSON.parse(m ? m[0] : rawText); }
-                catch(e) { throw new Error('No se pudo leer la respuesta. Inténtalo de nuevo.'); }
+                try {
+                    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+                    parsed = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
+                } catch(e) {
+                    throw new Error('No se pudo parsear la respuesta. Intentalo de nuevo.');
+                }
 
-                aiExtractedData = parsed;
-                setAIProgress(100, '¡Datos extraídos!');
-                addAILog('Extracción completada', 'success');
+                // Normalizar datos
+                const p = parsed.potencias_kw || {};
+                const e = parsed.energia_kwh || {};
+                aiExtractedData = {
+                    cups: parsed.cups || '',
+                    tarifa: parsed.tarifa || tariffType,
+                    dias: parsed.dias || 0,
+                    potencias_kw: p,
+                    energia_kwh: e,
+                    total_factura: parsed.total_factura || 0
+                };
 
-                const es30 = (parsed.tarifa || tariffType) === '3.0TD';
+                setAIProgress(100, 'Datos extraidos!');
+                addAILog('Datos extraidos correctamente', 'success');
+
+                const tarifa = aiExtractedData.tarifa;
+                const es30 = tarifa === '3.0TD';
                 let preview = '<div class="space-y-1.5">';
-                preview += `<div class="flex justify-between"><span class="text-slate-500">Tarifa</span><span class="font-bold text-blue-600">${parsed.tarifa || tariffType}</span></div>`;
-                if (parsed.cups) preview += `<div class="flex justify-between"><span class="text-slate-500">CUPS</span><span class="font-mono text-xs font-bold">${parsed.cups.substring(0,20)}</span></div>`;
-                if (parsed.dias) preview += `<div class="flex justify-between"><span class="text-slate-500">Días</span><span class="font-bold">${parsed.dias}</span></div>`;
-                if (parsed.potencias_kw) { const p = parsed.potencias_kw; preview += `<div class="flex justify-between"><span class="text-slate-500">Potencias kW</span><span class="font-bold text-xs">${es30 ? `P1:${p.p1||0} P2:${p.p2||0} P3:${p.p3||0} P4:${p.p4||0} P5:${p.p5||0} P6:${p.p6||0}` : `P1:${p.p1||0} P2:${p.p2||0}`}</span></div>`; }
-                if (parsed.energia_kwh) { const e = parsed.energia_kwh; preview += `<div class="flex justify-between"><span class="text-slate-500">Energía kWh</span><span class="font-bold text-xs">${es30 ? `E1:${e.e1||0} E2:${e.e2||0} E3:${e.e3||0} E4:${e.e4||0} E5:${e.e5||0} E6:${e.e6||0}` : `E1:${e.e1||0} E2:${e.e2||0} E3:${e.e3||0}`}</span></div>`; }
-                if (parsed.total_factura) preview += `<div class="flex justify-between border-t border-slate-200 pt-2 mt-2"><span class="font-bold text-slate-700">Total factura</span><span class="font-black text-green-600">${parsed.total_factura}€</span></div>`;
-                if (parsed.notas) preview += `<div class="text-xs text-slate-400 mt-2 italic">${parsed.notas}</div>`;
+                preview += '<div class="flex justify-between"><span class="text-slate-500">Tarifa</span><span class="font-bold text-blue-600">' + tarifa + '</span></div>';
+                if (aiExtractedData.cups) preview += '<div class="flex justify-between"><span class="text-slate-500">CUPS</span><span class="font-mono text-xs font-bold">' + aiExtractedData.cups.substring(0,22) + '</span></div>';
+                if (aiExtractedData.dias) preview += '<div class="flex justify-between"><span class="text-slate-500">Dias</span><span class="font-bold">' + aiExtractedData.dias + '</span></div>';
+                if (p.p1 || p.p2) {
+                    const potStr = es30 ? 'P1:' + (p.p1||0) + ' P2:' + (p.p2||0) + ' P3:' + (p.p3||0) + ' P4:' + (p.p4||0) + ' P5:' + (p.p5||0) + ' P6:' + (p.p6||0) : 'P1:' + (p.p1||0) + ' P2:' + (p.p2||0);
+                    preview += '<div class="flex justify-between"><span class="text-slate-500">Potencias kW</span><span class="font-bold text-xs">' + potStr + '</span></div>';
+                }
+                if (e.e1 || e.e2 || e.e3) {
+                    const eneStr = es30 ? 'E1:' + (e.e1||0) + ' E2:' + (e.e2||0) + ' E3:' + (e.e3||0) + ' E4:' + (e.e4||0) + ' E5:' + (e.e5||0) + ' E6:' + (e.e6||0) : 'E1:' + (e.e1||0) + ' E2:' + (e.e2||0) + ' E3:' + (e.e3||0);
+                    preview += '<div class="flex justify-between"><span class="text-slate-500">Energia kWh</span><span class="font-bold text-xs">' + eneStr + '</span></div>';
+                }
+                if (aiExtractedData.total_factura) preview += '<div class="flex justify-between border-t border-slate-200 pt-2 mt-2"><span class="font-bold text-slate-700">Total factura</span><span class="font-black text-green-600">' + aiExtractedData.total_factura + '€</span></div>';
+                if (parsed.notas) preview += '<div class="text-xs text-slate-400 mt-2 italic">' + parsed.notas + '</div>';
                 preview += '</div>';
+
                 document.getElementById('ai-result-preview').innerHTML = preview;
                 document.getElementById('ai-result-preview').classList.remove('hidden');
                 document.getElementById('ai-action-btns').classList.remove('hidden');
@@ -31999,7 +32032,23 @@ ${clientName}
             }
         };
 
-        window.confirmarDatosIA = function() {
+        function getPromptIA() {
+            return `Eres un experto en facturas de electricidad españolas. Analiza esta factura con maxima precision.
+
+INSTRUCCIONES:
+1. CUPS: Codigo de 20-22 caracteres que SIEMPRE empieza por "ES". Esta en "Datos del contrato" o "Datos de suministro". NO confundir con referencias de contrato.
+2. TARIFA: Busca "Peaje de acceso" o "Tarifa". Sera "2.0TD" (menos de 15kW, 2 potencias) o "3.0TD" (empresa, 6 potencias).
+3. DIAS: Del periodo de facturacion o deducelo de la formula kW * precio * dias.
+4. POTENCIAS (kW contratados): En "Detalle de factura" o "Facturacion por potencia". Para 2.0TD: P1 punta y P2 valle. Para 3.0TD: P1 a P6. Son los kW, NO el importe en euros.
+5. ENERGIA (kWh consumidos): En "Facturacion por energia consumida". Para 2.0TD: E1 punta, E2 llano, E3 valle. Para 3.0TD: E1 a E6. Son los kWh, NO el importe.
+6. TOTAL: El importe final a pagar.
+
+Devuelve SOLO este JSON sin texto adicional ni markdown:
+
+{"cups":"ES...","tarifa":"2.0TD","dias":30,"potencias_kw":{"p1":0.0,"p2":0.0,"p3":0.0,"p4":0.0,"p5":0.0,"p6":0.0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0.00,"notas":""}`;
+        }
+
+                window.confirmarDatosIA = function() {
             if (!aiExtractedData) return;
             const d = aiExtractedData;
             const tariff = d.tarifa || aiTargetTariff;

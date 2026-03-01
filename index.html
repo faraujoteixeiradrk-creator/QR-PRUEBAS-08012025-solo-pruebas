@@ -20880,12 +20880,28 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
         }
         // ===== FIN PISTOLA QR =====
 
-        // ===== SUBIR PDF DESDE MÓVIL =====
+        // ===== SUBIR PDF DESDE MÓVIL (PeerJS) =====
         (function() {
             // Detectar si estamos en vista móvil (?mobile=1&session=XXX)
             const urlParams = new URLSearchParams(window.location.search);
             const isMobileView = urlParams.get('mobile') === '1';
             const mobileSession = urlParams.get('session');
+
+            // Cargar PeerJS dinámicamente
+            function loadPeerJS(cb) {
+                if (window.Peer) { cb(); return; }
+                const s = document.createElement('script');
+                s.src = 'https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js';
+                s.onload = cb;
+                s.onerror = function() {
+                    // fallback CDN
+                    const s2 = document.createElement('script');
+                    s2.src = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js';
+                    s2.onload = cb;
+                    document.head.appendChild(s2);
+                };
+                document.head.appendChild(s);
+            }
 
             if (isMobileView && mobileSession) {
                 // ── VISTA MÓVIL: reemplazar body con formulario de subida ──
@@ -21031,9 +21047,9 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                             err.style.display = 'block';
                             return;
                         }
-                        if (file.size > 5 * 1024 * 1024) {
+                        if (file.size > 8 * 1024 * 1024) {
                             const err = document.getElementById('mob-error-msg');
-                            err.textContent = '❌ El PDF es demasiado grande (máx. 5 MB). Reduce el tamaño e inténtalo de nuevo.';
+                            err.textContent = '❌ El PDF es demasiado grande (máx. 8 MB). Reduce el tamaño e inténtalo de nuevo.';
                             err.style.display = 'block';
                             return;
                         }
@@ -21041,15 +21057,15 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                         document.getElementById('mob-progress-bar').style.display = 'block';
                         const fill = document.getElementById('mob-progress-fill');
                         const msg = document.getElementById('mob-status-msg');
-                        fill.style.width = '30%';
-                        msg.textContent = 'Leyendo archivo...';
+                        fill.style.width = '20%';
+                        msg.textContent = 'Conectando con el ordenador...';
                         document.getElementById('mob-error-msg').style.display = 'none';
 
                         const reader = new FileReader();
                         reader.onload = function(e) {
-                            fill.style.width = '70%';
-                            msg.textContent = 'Enviando...';
-                            const key = 'drk_mobile_pdf_' + mobileSession;
+                            fill.style.width = '40%';
+                            msg.textContent = 'Enviando PDF...';
+
                             const payload = {
                                 name: file.name,
                                 size: file.size,
@@ -21057,25 +21073,54 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                                 data: e.target.result,
                                 timestamp: Date.now()
                             };
-                            try {
-                                localStorage.setItem(key, JSON.stringify(payload));
-                                fill.style.width = '100%';
-                                msg.textContent = '';
-                                document.getElementById('mob-success-box').style.display = 'block';
-                                document.getElementById('mob-progress-bar').style.display = 'none';
-                            } catch(storageErr) {
-                                const err = document.getElementById('mob-error-msg');
-                                err.textContent = '❌ El PDF es demasiado grande para transferir. Reduce el tamaño (intenta comprimir el PDF) e inténtalo de nuevo.';
-                                err.style.display = 'block';
-                                document.getElementById('mob-progress-bar').style.display = 'none';
-                                msg.textContent = '';
-                            }
+
+                            // Conectar al peer del escritorio (cuyo ID es la session)
+                            loadPeerJS(function() {
+                                const mobilePeer = new Peer();
+                                mobilePeer.on('open', function() {
+                                    fill.style.width = '60%';
+                                    const conn = mobilePeer.connect('drk-' + mobileSession.toLowerCase());
+                                    conn.on('open', function() {
+                                        fill.style.width = '80%';
+                                        msg.textContent = 'Transfiriendo...';
+                                        conn.send(JSON.stringify(payload));
+                                        setTimeout(function() {
+                                            fill.style.width = '100%';
+                                            msg.textContent = '';
+                                            document.getElementById('mob-success-box').style.display = 'block';
+                                            document.getElementById('mob-progress-bar').style.display = 'none';
+                                            conn.close();
+                                            mobilePeer.destroy();
+                                        }, 800);
+                                    });
+                                    conn.on('error', function(err) {
+                                        showMobileError('❌ Error de conexión. Asegúrate de que el ordenador tiene el modal abierto e inténtalo de nuevo.');
+                                        mobilePeer.destroy();
+                                    });
+                                });
+                                mobilePeer.on('error', function(err) {
+                                    if (err.type === 'peer-unavailable') {
+                                        showMobileError('❌ El ordenador no está listo. Abre el modal en el ordenador y vuelve a intentarlo.');
+                                    } else {
+                                        showMobileError('❌ Error de red: ' + err.type + '. Inténtalo de nuevo.');
+                                    }
+                                    mobilePeer.destroy();
+                                });
+                            });
                         };
                         reader.onerror = function() {
                             document.getElementById('mob-error-msg').textContent = '❌ Error leyendo el archivo. Inténtalo de nuevo.';
                             document.getElementById('mob-error-msg').style.display = 'block';
                         };
                         reader.readAsDataURL(file);
+                    }
+
+                    function showMobileError(txt) {
+                        const err = document.getElementById('mob-error-msg');
+                        err.textContent = txt;
+                        err.style.display = 'block';
+                        document.getElementById('mob-progress-bar').style.display = 'none';
+                        document.getElementById('mob-status-msg').textContent = '';
                     }
 
                     document.getElementById('mob-file-input').addEventListener('change', e => handleMobileFile(e.target.files[0]));
@@ -21096,7 +21141,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             // ── VISTA ESCRITORIO ──
             let mobileSessionId = null;
             let mobileQRGenerated = false;
-            let mobilePollInterval = null;
+            let desktopPeer = null;
             let mobileReceivedData = null;
 
             window.abrirModalSubirMovil = function() {
@@ -21106,18 +21151,6 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                 if (!mobileQRGenerated) {
                     mobileSessionId = Math.random().toString(36).substr(2, 8).toUpperCase();
                     document.getElementById('mobile-session-display').textContent = mobileSessionId;
-
-                    // Limpiar sesiones antiguas
-                    for (let k of Object.keys(localStorage)) {
-                        if (k.startsWith('drk_mobile_pdf_')) {
-                            try {
-                                const d = JSON.parse(localStorage.getItem(k) || '{}');
-                                if (d.timestamp && Date.now() - d.timestamp > 30 * 60 * 1000) {
-                                    localStorage.removeItem(k);
-                                }
-                            } catch(e) { localStorage.removeItem(k); }
-                        }
-                    }
 
                     // Generar URL móvil: misma página + parámetros
                     const baseURL = 'https://faraujoteixeiradrk-creator.github.io/QR-PRUEBAS-08012025-solo-pruebas/';
@@ -21136,42 +21169,42 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                             correctLevel: QRCode.CorrectLevel.M
                         });
                     } else {
-                        // Fallback: mostrar URL
                         container.innerHTML = '<div style="font-size:0.7rem;word-break:break-all;color:#6b7280;padding:8px;">' + mobileURL + '</div>';
                     }
 
                     mobileQRGenerated = true;
-                    iniciarPollingMovil();
+                    iniciarEsperaMovil();
                 }
             };
 
-            function iniciarPollingMovil() {
-                if (mobilePollInterval) clearInterval(mobilePollInterval);
-                const key = 'drk_mobile_pdf_' + mobileSessionId;
+            function iniciarEsperaMovil() {
+                loadPeerJS(function() {
+                    const peerId = 'drk-' + mobileSessionId.toLowerCase();
+                    desktopPeer = new Peer(peerId);
 
-                mobilePollInterval = setInterval(function() {
-                    const raw = localStorage.getItem(key);
-                    if (raw) {
-                        try {
-                            const data = JSON.parse(raw);
-                            localStorage.removeItem(key);
-                            clearInterval(mobilePollInterval);
-                            recibirPDFMovil(data);
-                        } catch(e) { /* sigue esperando */ }
-                    }
-                }, 1500);
+                    desktopPeer.on('open', function(id) {
+                        console.log('DRK móvil: esperando en peer', id);
+                    });
 
-                // También escucha evento storage (misma pestaña o multi-pestaña)
-                window.addEventListener('storage', function mobileStorageListener(e) {
-                    if (e.key === key && e.newValue) {
-                        try {
-                            const data = JSON.parse(e.newValue);
-                            localStorage.removeItem(key);
-                            clearInterval(mobilePollInterval);
-                            window.removeEventListener('storage', mobileStorageListener);
-                            recibirPDFMovil(data);
-                        } catch(e) { /* ignora */ }
-                    }
+                    desktopPeer.on('connection', function(conn) {
+                        conn.on('data', function(rawData) {
+                            try {
+                                const data = JSON.parse(rawData);
+                                recibirPDFMovil(data);
+                            } catch(e) {
+                                console.error('Error parseando datos móvil', e);
+                            }
+                        });
+                    });
+
+                    desktopPeer.on('error', function(err) {
+                        console.warn('PeerJS desktop error:', err.type);
+                        if (err.type === 'unavailable-id') {
+                            // ID ya en uso, regenerar sesión
+                            mobileQRGenerated = false;
+                            setTimeout(function() { abrirModalSubirMovil(); }, 500);
+                        }
+                    });
                 });
             }
 
@@ -21192,7 +21225,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
 
             window.cerrarModalSubirMovil = function() {
                 document.getElementById('mobile-upload-modal').classList.add('hidden');
-                if (mobilePollInterval) clearInterval(mobilePollInterval);
+                if (desktopPeer) { desktopPeer.destroy(); desktopPeer = null; }
                 // Reiniciar para próxima apertura
                 mobileQRGenerated = false;
                 mobileSessionId = null;

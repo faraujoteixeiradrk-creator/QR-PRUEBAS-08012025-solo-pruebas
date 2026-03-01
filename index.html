@@ -32036,12 +32036,24 @@ ${clientName}
             return `Eres un experto en facturas de electricidad españolas. Analiza esta factura con maxima precision.
 
 INSTRUCCIONES:
-1. CUPS: Codigo de 20-22 caracteres que SIEMPRE empieza por "ES". Esta en "Datos del contrato" o "Datos de suministro". NO confundir con referencias de contrato.
-2. TARIFA: Busca "Peaje de acceso" o "Tarifa". Sera "2.0TD" (menos de 15kW, 2 potencias) o "3.0TD" (empresa, 6 potencias).
+1. CUPS: Codigo de 20-22 caracteres que SIEMPRE empieza por "ES". Esta en "Datos del contrato", "Datos de suministro" o "Informacion adicional". NO confundir con referencias de contrato ni numeros de contador.
+
+2. TARIFA: Busca "Peaje de acceso", "ATR" o "Tarifa". Sera "2.0TD" (menos de 15kW, 2 potencias) o "3.0TD" (empresa, 6 potencias).
+
 3. DIAS: Del periodo de facturacion o deducelo de la formula kW * precio * dias.
-4. POTENCIAS (kW contratados): En "Detalle de factura" o "Facturacion por potencia". Para 2.0TD: P1 punta y P2 valle. Para 3.0TD: P1 a P6. Son los kW, NO el importe en euros.
-5. ENERGIA (kWh consumidos): En "Facturacion por energia consumida". Para 2.0TD: E1 punta, E2 llano, E3 valle. Para 3.0TD: E1 a E6. Son los kWh, NO el importe.
-6. TOTAL: El importe final a pagar.
+
+4. POTENCIAS (kW contratados): En "Detalle de factura" o "Facturacion por potencia". Para 2.0TD: P1 punta y P2 valle. Para 3.0TD: P1 a P6. Son los kW CONTRATADOS, NO el importe en euros.
+
+5. ENERGIA (kWh consumidos en el periodo):
+   - Busca en "Facturacion por energia consumida" o "Detalle de factura".
+   - Para 2.0TD: E1 punta, E2 llano, E3 valle.
+   - Para 3.0TD: E1 a E6.
+   - CRITICO para facturas IBERDROLA: La factura muestra DOS tipos de datos que NO debes confundir:
+     * "Lecturas desagregadas" (punta/llano/valle en kWh) = lecturas ACUMULADAS del contador. NO usar estos valores.
+     * "Sus consumos desagregados han sido punta: X kWh; llano: X kWh; valle X kWh" = consumo REAL del periodo. USAR ESTOS VALORES.
+   - Si los consumos del periodo son 0 kWh, pon 0. Es correcto si la factura no muestra energia consumida.
+
+6. TOTAL: El importe final a pagar ("TOTAL IMPORTE FACTURA" o "TOTAL").
 
 Devuelve SOLO este JSON sin texto adicional ni markdown:
 

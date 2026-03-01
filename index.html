@@ -1180,7 +1180,7 @@
 
                 <!-- ===== MODAL: SUBIR PDF DESDE MÓVIL ===== -->
                 <div id="mobile-upload-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden">
+                    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden" style="max-height:95vh;overflow-y:auto;">
                         <!-- Header -->
                         <div class="bg-gradient-to-r from-violet-500 to-purple-600 p-5 flex items-center justify-between">
                             <div class="flex items-center gap-3">
@@ -1188,8 +1188,8 @@
                                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                                 </div>
                                 <div>
-                                    <h3 class="text-lg font-black text-white">Subir PDF desde Móvil</h3>
-                                    <p class="text-xs text-white/80">Escanea con la cámara del móvil</p>
+                                    <h3 class="text-lg font-black text-white">Subir Factura PDF</h3>
+                                    <p class="text-xs text-white/80">Desde móvil o envía el link al cliente</p>
                                 </div>
                             </div>
                             <button onclick="cerrarModalSubirMovil()" class="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition">
@@ -1198,24 +1198,77 @@
                         </div>
 
                         <!-- Body -->
-                        <div class="p-6 text-center">
-                            <!-- QR Code -->
-                            <div class="inline-block bg-white border-4 border-violet-500 rounded-2xl p-3 shadow-lg mb-4" id="mobile-qr-container">
-                                <div id="mobile-qr-code" style="width:180px;height:180px;"></div>
+                        <div class="p-5">
+
+                            <!-- SECCIÓN 1: QR para móvil propio -->
+                            <div class="mb-4">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div class="w-7 h-7 bg-violet-100 rounded-full flex items-center justify-center text-violet-600 font-black text-sm">1</div>
+                                    <p class="font-bold text-slate-700 text-sm">Escanea con tu móvil</p>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div class="inline-block bg-white border-4 border-violet-500 rounded-2xl p-2 shadow-md flex-shrink-0" id="mobile-qr-container">
+                                        <div id="mobile-qr-code" style="width:130px;height:130px;"></div>
+                                    </div>
+                                    <div class="text-left">
+                                        <p class="text-xs text-slate-400 mb-1">Sesión activa</p>
+                                        <p class="font-mono font-black text-violet-600 text-lg" id="mobile-session-display"></p>
+                                        <p class="text-xs text-slate-400 mt-2 leading-relaxed">Abre la cámara del móvil, escanea el QR y sube el PDF</p>
+                                    </div>
+                                </div>
                             </div>
 
-                            <p class="text-slate-500 text-sm mb-1">Sesión: <strong class="text-violet-600 font-mono" id="mobile-session-display"></strong></p>
-                            <p class="text-slate-400 text-xs mb-4">El móvil abrirá una página para subir el PDF</p>
+                            <div class="relative my-4">
+                                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+                                <div class="relative flex justify-center"><span class="bg-white px-3 text-xs text-slate-400 font-semibold">O ENVÍA EL LINK AL CLIENTE</span></div>
+                            </div>
+
+                            <!-- SECCIÓN 2: Enviar link al cliente -->
+                            <div class="mb-4">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div class="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-black text-sm">2</div>
+                                    <p class="font-bold text-slate-700 text-sm">Comparte el link con tu cliente</p>
+                                </div>
+                                <p class="text-xs text-slate-400 mb-3 leading-relaxed">Tu cliente recibirá una página donde puede subir el PDF desde su móvil u ordenador. Cuando lo suba, aparecerá aquí automáticamente.</p>
+
+                                <!-- Link display -->
+                                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3 flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                                    <p class="text-xs text-slate-500 truncate flex-1 font-mono" id="mobile-link-display"></p>
+                                </div>
+
+                                <!-- Botones de compartir -->
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button onclick="copiarLinkCliente()" id="btn-copiar-link" class="flex flex-col items-center gap-1 bg-violet-50 hover:bg-violet-100 border border-violet-200 text-violet-700 rounded-xl py-2.5 px-2 transition text-xs font-semibold">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                        Copiar link
+                                    </button>
+                                    <button onclick="compartirWhatsApp()" class="flex flex-col items-center gap-1 bg-green-50 hover:bg-green-100 border border-green-200 text-green-700 rounded-xl py-2.5 px-2 transition text-xs font-semibold">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                        WhatsApp
+                                    </button>
+                                    <button onclick="compartirEmail()" class="flex flex-col items-center gap-1 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-xl py-2.5 px-2 transition text-xs font-semibold">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                        Email
+                                    </button>
+                                </div>
+                                <p class="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mt-3 text-center">⏳ El link expira al cerrar este modal</p>
+                            </div>
+
+                            <div class="relative my-4">
+                                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+                                <div class="relative flex justify-center"><span class="bg-white px-3 text-xs text-slate-400 font-semibold">ESTADO</span></div>
+                            </div>
 
                             <!-- Status badge -->
-                            <div id="mobile-status-badge" class="inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium bg-amber-50 border-amber-200 text-amber-600 mb-4">
+                            <div id="mobile-status-badge" class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-amber-50 border-amber-200 text-amber-600 mb-3">
                                 <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block"></span>
                                 Esperando PDF del móvil...
                             </div>
 
                             <!-- Resultado recibido (oculto hasta recibir) -->
                             <div id="mobile-received-section" class="hidden">
-                                <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 text-left">
+                                <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-3 text-left">
                                     <div class="flex items-center gap-2 mb-2">
                                         <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         <span class="font-bold text-green-700">¡PDF recibido!</span>
@@ -1228,7 +1281,7 @@
                                 </button>
                             </div>
 
-                            <p class="text-xs text-slate-400 mt-3">⚠️ Solo se admiten archivos PDF</p>
+                            <p class="text-xs text-slate-400 mt-3 text-center">⚠️ Solo se admiten archivos PDF · Máx. 5 MB</p>
                         </div>
                     </div>
                 </div>
@@ -20993,19 +21046,27 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     <div class="card">
                         <div class="logo">📄</div>
                         <h2>Subir Factura PDF</h2>
-                        <p class="subtitle">Selecciona el PDF de tu factura<br>y se enviará automáticamente al ordenador</p>
+                        <p class="subtitle">Selecciona o arrastra tu factura PDF<br>y se enviará automáticamente</p>
                         <div class="session-badge">Sesión: ${mobileSession}</div>
 
                         <input type="file" id="mob-file-input" accept="application/pdf">
 
-                        <button class="btn-upload" onclick="document.getElementById('mob-file-input').click()">
-                            <span>📁</span> Seleccionar PDF
-                        </button>
-
+                        <!-- Zona principal de subida -->
                         <div class="drop-area" id="mob-drop-area">
-                            <div style="font-size:1.8rem">☁️</div>
-                            <p>O arrastra el PDF aquí</p>
+                            <div style="font-size:2.5rem;margin-bottom:8px">☁️</div>
+                            <p style="font-weight:700;color:#4c1d95;font-size:0.95rem">Arrastra tu factura aquí</p>
+                            <p style="color:#9ca3af;font-size:0.78rem;margin-top:4px">PDF, máx. 5 MB</p>
                         </div>
+
+                        <div style="display:flex;align-items:center;gap:8px;margin:10px 0;">
+                            <div style="flex:1;height:1px;background:#e5e7eb"></div>
+                            <span style="font-size:0.75rem;color:#9ca3af;font-weight:600">O</span>
+                            <div style="flex:1;height:1px;background:#e5e7eb"></div>
+                        </div>
+
+                        <button class="btn-upload" onclick="document.getElementById('mob-file-input').click()">
+                            <span>📁</span> Seleccionar archivo PDF
+                        </button>
 
                         <div class="progress-bar" id="mob-progress-bar">
                             <div class="progress-fill" id="mob-progress-fill"></div>
@@ -21016,10 +21077,10 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                         <div class="success-box" id="mob-success-box">
                             <div class="icon">✅</div>
                             <h3>¡PDF enviado!</h3>
-                            <p>Ya puedes volver al ordenador</p>
+                            <p>Ya puedes cerrar esta página</p>
                         </div>
 
-                        <p class="note">⚠️ Solo se admiten archivos PDF<br>Máx. recomendado: 4 MB</p>
+                        <p class="note">⚠️ Solo se admiten archivos PDF · Máx. 5 MB</p>
                     </div>
                     `;
 
@@ -21178,6 +21239,9 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     }
 
                     mobileQRGenerated = true;
+                    // Guardar URL para compartir
+                    window._drkMobileURL = mobileURL;
+                    document.getElementById('mobile-link-display').textContent = mobileURL;
                     iniciarEsperaMovil();
                 }
             };
@@ -21289,6 +21353,41 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     }
                 }
             };
+
+            window.copiarLinkCliente = function() {
+                const url = window._drkMobileURL;
+                if (!url) return;
+                navigator.clipboard.writeText(url).then(function() {
+                    const btn = document.getElementById('btn-copiar-link');
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>¡Copiado!';
+                    btn.classList.add('bg-violet-200');
+                    setTimeout(function() { btn.innerHTML = original; btn.classList.remove('bg-violet-200'); }, 2000);
+                }).catch(function() {
+                    const ta = document.createElement('textarea');
+                    ta.value = url;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                });
+            };
+
+            window.compartirWhatsApp = function() {
+                const url = window._drkMobileURL;
+                if (!url) return;
+                const msg = encodeURIComponent('Hola, por favor sube tu factura PDF en este enlace:\n\n' + url + '\n\nEl enlace es temporal, úsalo ahora mismo.');
+                window.open('https://wa.me/?text=' + msg, '_blank');
+            };
+
+            window.compartirEmail = function() {
+                const url = window._drkMobileURL;
+                if (!url) return;
+                const subject = encodeURIComponent('Subir factura PDF - Enlace de acceso');
+                const body = encodeURIComponent('Hola,\n\nPor favor accede a este enlace para subir tu factura PDF:\n\n' + url + '\n\nEste enlace es temporal, úsalo cuanto antes.\n\nGracias.');
+                window.open('mailto:?subject=' + subject + '&body=' + body);
+            };
+
         })();
         // ===== FIN SUBIR PDF DESDE MÓVIL =====
         

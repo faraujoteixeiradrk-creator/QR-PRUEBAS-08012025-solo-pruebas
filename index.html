@@ -1256,8 +1256,20 @@
                                         <span class="font-bold text-green-700">¡PDF recibido!</span>
                                     </div>
                                     <p class="text-sm text-green-600" id="mobile-file-name-display"></p>
-                                    <p class="text-xs text-green-500" id="mobile-file-size-display"></p>
+                                    <p class="text-xs text-green-500 mb-3" id="mobile-file-size-display"></p>
+                                    <!-- Datos del cliente -->
+                                    <div id="mobile-client-data" class="hidden border-t border-green-200 pt-3 mt-1">
+                                        <p class="text-xs font-bold text-green-700 mb-2">📋 Datos del cliente:</p>
+                                        <p class="text-sm text-green-700" id="mobile-client-nombre"></p>
+                                        <p class="text-sm text-green-700" id="mobile-client-email"></p>
+                                        <p class="text-sm text-green-700" id="mobile-client-telefono"></p>
+                                    </div>
                                 </div>
+                                <!-- Botón descargar PDF -->
+                                <button onclick="descargarPDFMovil()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-6 rounded-xl transition flex items-center justify-center gap-2 mb-2 text-sm border border-slate-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    Descargar PDF del cliente
+                                </button>
                                 <button onclick="procesarPDFMovil()" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transition">
                                     Procesar este PDF →
                                 </button>
@@ -20972,28 +20984,57 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     <div class="card">
                         <div class="logo">📄</div>
                         <h2>Subir Factura PDF</h2>
-                        <p class="subtitle">Elige cómo quieres enviar tu factura</p>
+                        <p class="subtitle">Introduce tus datos y sube tu factura</p>
                         <div class="session-badge">Sesión: ${mobileSession}</div>
 
-                        <div style="background:#f5f3ff;border:2px solid #c4b5fd;border-radius:16px;padding:14px;margin-bottom:14px;text-align:center;">
-                            <p style="font-weight:700;color:#4c1d95;font-size:0.88rem;margin-bottom:4px;">📱 Abre en tu móvil</p>
-                            <p style="color:#7c3aed;font-size:0.72rem;margin-bottom:10px;">Escanea este QR con la cámara</p>
-                            <div id="mob-qr-box" style="display:inline-block;background:white;border:3px solid #7c3aed;border-radius:12px;padding:6px;"></div>
-                            <p style="color:#9ca3af;font-size:0.68rem;margin-top:6px;">Apunta la cámara al código</p>
+                        <!-- FORMULARIO DE DATOS DEL CLIENTE -->
+                        <div id="mob-form-section">
+                            <div style="text-align:left;margin-bottom:14px;">
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:0.78rem;font-weight:600;color:#4c1d95;display:block;margin-bottom:4px;">👤 Nombre</label>
+                                    <input id="mob-nombre" type="text" placeholder="Tu nombre completo" style="width:100%;padding:10px 12px;border:2px solid #e5e7eb;border-radius:10px;font-size:0.88rem;font-family:'Inter',sans-serif;outline:none;transition:border 0.2s;" onfocus="this.style.border='2px solid #7c3aed'" onblur="this.style.border='2px solid #e5e7eb'">
+                                </div>
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:0.78rem;font-weight:600;color:#4c1d95;display:block;margin-bottom:4px;">📧 Email</label>
+                                    <input id="mob-email" type="email" placeholder="tu@email.com" style="width:100%;padding:10px 12px;border:2px solid #e5e7eb;border-radius:10px;font-size:0.88rem;font-family:'Inter',sans-serif;outline:none;transition:border 0.2s;" onfocus="this.style.border='2px solid #7c3aed'" onblur="this.style.border='2px solid #e5e7eb'">
+                                </div>
+                                <div style="margin-bottom:14px;">
+                                    <label style="font-size:0.78rem;font-weight:600;color:#4c1d95;display:block;margin-bottom:4px;">📱 Teléfono</label>
+                                    <input id="mob-telefono" type="tel" placeholder="600 000 000" style="width:100%;padding:10px 12px;border:2px solid #e5e7eb;border-radius:10px;font-size:0.88rem;font-family:'Inter',sans-serif;outline:none;transition:border 0.2s;" onfocus="this.style.border='2px solid #7c3aed'" onblur="this.style.border='2px solid #e5e7eb'">
+                                </div>
+                            </div>
+                            <p id="mob-form-error" style="color:#ef4444;font-size:0.78rem;margin-bottom:8px;display:none;">⚠️ Introduce al menos tu nombre y un medio de contacto (email o teléfono)</p>
+                            <button class="btn-upload" onclick="mostrarSeccionSubida()">
+                                <span>✅</span> Continuar
+                            </button>
                         </div>
 
-                        <div class="divider"><div></div><span>O SUBE DESDE AQUÍ</span><div></div></div>
+                        <!-- SECCIÓN DE SUBIDA (oculta hasta que rellene el form) -->
+                        <div id="mob-upload-section" style="display:none;">
+                            <!-- Datos confirmados -->
+                            <div id="mob-datos-confirmados" style="background:#f5f3ff;border:1px solid #c4b5fd;border-radius:12px;padding:10px 14px;margin-bottom:14px;text-align:left;font-size:0.78rem;color:#4c1d95;"></div>
 
-                        <input type="file" id="mob-file-input" accept="application/pdf" style="display:none;">
-                        <div class="drop-area" id="mob-drop-area">
-                            <div style="font-size:2.2rem;margin-bottom:6px">☁️</div>
-                            <p style="font-weight:700;color:#4c1d95;font-size:0.9rem">Arrastra tu factura aquí</p>
-                            <p style="color:#9ca3af;font-size:0.75rem;margin-top:3px">PDF, máx. 5 MB</p>
+                            <div style="background:#f5f3ff;border:2px solid #c4b5fd;border-radius:16px;padding:14px;margin-bottom:14px;text-align:center;">
+                                <p style="font-weight:700;color:#4c1d95;font-size:0.88rem;margin-bottom:4px;">📱 Abre en tu móvil</p>
+                                <p style="color:#7c3aed;font-size:0.72rem;margin-bottom:10px;">Escanea este QR con la cámara</p>
+                                <div id="mob-qr-box" style="display:inline-block;background:white;border:3px solid #7c3aed;border-radius:12px;padding:6px;"></div>
+                                <p style="color:#9ca3af;font-size:0.68rem;margin-top:6px;">Apunta la cámara al código</p>
+                            </div>
+
+                            <div class="divider"><div></div><span>O SUBE DESDE AQUÍ</span><div></div></div>
+
+                            <input type="file" id="mob-file-input" accept="application/pdf" style="display:none;">
+                            <div class="drop-area" id="mob-drop-area">
+                                <div style="font-size:2.2rem;margin-bottom:6px">☁️</div>
+                                <p style="font-weight:700;color:#4c1d95;font-size:0.9rem">Arrastra tu factura aquí</p>
+                                <p style="color:#9ca3af;font-size:0.75rem;margin-top:3px">PDF, máx. 5 MB</p>
+                            </div>
+                            <div class="divider"><div></div><span>O</span><div></div></div>
+                            <button class="btn-upload" onclick="document.getElementById('mob-file-input').click()">
+                                <span>📁</span> Seleccionar archivo PDF
+                            </button>
                         </div>
-                        <div class="divider"><div></div><span>O</span><div></div></div>
-                        <button class="btn-upload" onclick="document.getElementById('mob-file-input').click()">
-                            <span>📁</span> Seleccionar archivo PDF
-                        </button>
+
                         <div class="progress-bar" id="mob-progress-bar"><div class="progress-fill" id="mob-progress-fill"></div></div>
                         <p class="status-msg" id="mob-status-msg"></p>
                         <p class="error-msg" id="mob-error-msg"></p>
@@ -21006,21 +21047,31 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     </div>
                     `;
 
-                    // Generar QR con URL actual
-                    (function() {
+                    // Validar form y mostrar sección de subida
+                    window.mostrarSeccionSubida = function() {
+                        const nombre = document.getElementById('mob-nombre').value.trim();
+                        const email = document.getElementById('mob-email').value.trim();
+                        const tel = document.getElementById('mob-telefono').value.trim();
+                        if (!nombre || (!email && !tel)) {
+                            document.getElementById('mob-form-error').style.display = 'block';
+                            return;
+                        }
+                        document.getElementById('mob-form-error').style.display = 'none';
+                        document.getElementById('mob-form-section').style.display = 'none';
+                        document.getElementById('mob-upload-section').style.display = 'block';
+                        // Mostrar datos confirmados
+                        let html = '';
+                        if (nombre) html += '<b>👤</b> ' + nombre + '<br>';
+                        if (email) html += '<b>📧</b> ' + email + '<br>';
+                        if (tel) html += '<b>📱</b> ' + tel;
+                        document.getElementById('mob-datos-confirmados').innerHTML = html;
+                        // Generar QR con URL actual
                         const currentURL = window.location.href;
                         const qrBox = document.getElementById('mob-qr-box');
-                        function makeQR() {
-                            new QRCode(qrBox, { text: currentURL, width: 130, height: 130, colorDark: '#4c1d95', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
-                        }
+                        function makeQR() { new QRCode(qrBox, { text: currentURL, width: 130, height: 130, colorDark: '#4c1d95', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M }); }
                         if (typeof QRCode !== 'undefined') { makeQR(); }
-                        else {
-                            const s = document.createElement('script');
-                            s.src = 'https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js';
-                            s.onload = makeQR;
-                            document.head.appendChild(s);
-                        }
-                    })();
+                        else { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js'; s.onload = makeQR; document.head.appendChild(s); }
+                    };
 
                     function handleMobileFile(file) {
                         if (!file) return;
@@ -21039,7 +21090,16 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                                 const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt', { clientId, connectTimeout: 10000, reconnectPeriod: 0 });
                                 client.on('connect', function() {
                                     fill.style.width = '60%'; msg.textContent = 'Enviando PDF...';
-                                    const payload = JSON.stringify({ session: mobileSession, name: file.name, size: file.size, type: file.type, data: e.target.result, timestamp: Date.now() });
+                                    const payload = JSON.stringify({ 
+                                        session: mobileSession, 
+                                        name: file.name, size: file.size, type: file.type, 
+                                        data: e.target.result, timestamp: Date.now(),
+                                        cliente: {
+                                            nombre: document.getElementById('mob-nombre') ? document.getElementById('mob-nombre').value.trim() : '',
+                                            email: document.getElementById('mob-email') ? document.getElementById('mob-email').value.trim() : '',
+                                            telefono: document.getElementById('mob-telefono') ? document.getElementById('mob-telefono').value.trim() : ''
+                                        }
+                                    });
                                     client.publish('drk/pdf/' + mobileSession, payload, { qos: 1 }, function(err) {
                                         if (err) { showMobileError('❌ Error al enviar. Inténtalo de nuevo.'); }
                                         else { fill.style.width = '100%'; msg.textContent = ''; document.getElementById('mob-success-box').style.display = 'block'; document.getElementById('mob-progress-bar').style.display = 'none'; }
@@ -21122,11 +21182,29 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                 mobileReceivedData = data;
                 const badge = document.getElementById('mobile-status-badge');
                 badge.className = 'flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-green-50 border-green-200 text-green-600 mb-3';
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> ✅ PDF recibido del móvil';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> ✅ PDF recibido del cliente';
                 document.getElementById('mobile-file-name-display').textContent = '📄 ' + data.name;
                 document.getElementById('mobile-file-size-display').textContent = (data.size / 1024 / 1024).toFixed(2) + ' MB';
+                // Mostrar datos del cliente si existen
+                if (data.cliente && (data.cliente.nombre || data.cliente.email || data.cliente.telefono)) {
+                    const cd = document.getElementById('mobile-client-data');
+                    cd.classList.remove('hidden');
+                    if (data.cliente.nombre) document.getElementById('mobile-client-nombre').textContent = '👤 ' + data.cliente.nombre;
+                    if (data.cliente.email) document.getElementById('mobile-client-email').innerHTML = '📧 <a href="mailto:' + data.cliente.email + '" style="color:#059669;text-decoration:underline;">' + data.cliente.email + '</a>';
+                    if (data.cliente.telefono) document.getElementById('mobile-client-telefono').innerHTML = '📱 <a href="tel:' + data.cliente.telefono + '" style="color:#059669;text-decoration:underline;">' + data.cliente.telefono + '</a>';
+                }
                 document.getElementById('mobile-received-section').classList.remove('hidden');
             }
+
+            window.descargarPDFMovil = function() {
+                if (!mobileReceivedData || !mobileReceivedData.data) return;
+                const a = document.createElement('a');
+                a.href = mobileReceivedData.data;
+                a.download = mobileReceivedData.name || 'factura_cliente.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
 
             window.cerrarModalSubirMovil = function() {
                 document.getElementById('mobile-upload-modal').classList.add('hidden');
@@ -21135,6 +21213,10 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                 document.getElementById('mobile-status-badge').className = 'flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-amber-50 border-amber-200 text-amber-600 mb-3';
                 document.getElementById('mobile-status-badge').innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block"></span> Esperando PDF del móvil...';
                 document.getElementById('mobile-received-section').classList.add('hidden');
+                document.getElementById('mobile-client-data').classList.add('hidden');
+                document.getElementById('mobile-client-nombre').textContent = '';
+                document.getElementById('mobile-client-email').textContent = '';
+                document.getElementById('mobile-client-telefono').textContent = '';
             };
 
             window.procesarPDFMovil = function() {

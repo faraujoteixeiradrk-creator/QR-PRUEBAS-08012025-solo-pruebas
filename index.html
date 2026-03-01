@@ -21046,8 +21046,22 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     <div class="card">
                         <div class="logo">📄</div>
                         <h2>Subir Factura PDF</h2>
-                        <p class="subtitle">Selecciona o arrastra tu factura PDF<br>y se enviará automáticamente</p>
+                        <p class="subtitle">Elige cómo quieres enviar tu factura</p>
                         <div class="session-badge">Sesión: ${mobileSession}</div>
+
+                        <!-- OPCIÓN 1: QR para abrir en el móvil -->
+                        <div style="background:#f5f3ff;border:2px solid #c4b5fd;border-radius:16px;padding:16px;margin:16px 0;text-align:center;">
+                            <p style="font-weight:700;color:#4c1d95;font-size:0.9rem;margin-bottom:4px;">📱 Desde tu móvil</p>
+                            <p style="color:#7c3aed;font-size:0.75rem;margin-bottom:12px;">Escanea con la cámara para abrirlo en el móvil</p>
+                            <div id="mob-qr-box" style="display:inline-block;background:white;border:3px solid #7c3aed;border-radius:14px;padding:8px;"></div>
+                            <p style="color:#9ca3af;font-size:0.7rem;margin-top:8px;">Apunta la cámara al QR</p>
+                        </div>
+
+                        <div style="display:flex;align-items:center;gap:8px;margin:4px 0 12px;">
+                            <div style="flex:1;height:1px;background:#e5e7eb"></div>
+                            <span style="font-size:0.75rem;color:#9ca3af;font-weight:600">O SUBE DESDE AQUÍ</span>
+                            <div style="flex:1;height:1px;background:#e5e7eb"></div>
+                        </div>
 
                         <input type="file" id="mob-file-input" accept="application/pdf">
 
@@ -21192,6 +21206,32 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                     }
 
                     document.getElementById('mob-file-input').addEventListener('change', e => handleMobileFile(e.target.files[0]));
+
+                    // Generar QR con la URL actual para que el cliente lo escanee con su móvil
+                    (function() {
+                        const currentURL = window.location.href;
+                        const qrBox = document.getElementById('mob-qr-box');
+                        if (!qrBox) return;
+                        // Cargar QRCode.js si no está
+                        function makeQR() {
+                            new QRCode(qrBox, {
+                                text: currentURL,
+                                width: 140,
+                                height: 140,
+                                colorDark: '#4c1d95',
+                                colorLight: '#ffffff',
+                                correctLevel: QRCode.CorrectLevel.M
+                            });
+                        }
+                        if (typeof QRCode !== 'undefined') {
+                            makeQR();
+                        } else {
+                            const s = document.createElement('script');
+                            s.src = 'https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js';
+                            s.onload = makeQR;
+                            document.head.appendChild(s);
+                        }
+                    })();
 
                     const dropArea = document.getElementById('mob-drop-area');
                     dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.style.background = '#ede9fe'; });

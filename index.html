@@ -21198,12 +21198,22 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
 
             window.descargarPDFMovil = function() {
                 if (!mobileReceivedData || !mobileReceivedData.data) return;
-                const a = document.createElement('a');
-                a.href = mobileReceivedData.data;
-                a.download = mobileReceivedData.name || 'factura_cliente.pdf';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+                // iOS no soporta download attribute - abrir en nueva pestaña
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                if (isIOS) {
+                    // En iOS: abrir el PDF en nueva pestaña para que el usuario lo guarde
+                    const win = window.open();
+                    win.document.write('<html><head><title>' + (mobileReceivedData.name || 'factura.pdf') + '</title></head><body style="margin:0"><iframe src="' + mobileReceivedData.data + '" width="100%" height="100%" style="border:none;position:fixed;top:0;left:0;width:100%;height:100%;"></iframe></body></html>');
+                    win.document.close();
+                } else {
+                    // En Android y escritorio: descarga directa
+                    const a = document.createElement('a');
+                    a.href = mobileReceivedData.data;
+                    a.download = mobileReceivedData.name || 'factura_cliente.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
             };
 
             window.cerrarModalSubirMovil = function() {

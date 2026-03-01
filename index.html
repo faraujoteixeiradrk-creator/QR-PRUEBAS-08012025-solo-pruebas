@@ -422,6 +422,17 @@
   <div class="p-6">
   <h3 class="text-2xl font-black text-red-600 mb-2 text-center">Datos de la Factura de GAS</h3>
   <p class="text-sm text-slate-500 mb-4 text-center">Tarifa: <span id="gas-selected-tariff" class="font-bold text-red-600"></span></p>
+  <!-- ZONA IA GAS -->
+  <div class="mb-4 p-3 bg-orange-50 border-2 border-dashed border-orange-300 rounded-xl">
+  <p class="text-xs font-bold text-orange-700 mb-2 text-center">🤖 Leer factura con IA</p>
+  <input type="file" id="gas-ai-file-input" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaGasIA(this.files[0])">
+  <div id="gas-ai-drop-zone" onclick="document.getElementById('gas-ai-file-input').click()" style="border:2px dashed #f97316;border-radius:12px;padding:12px;text-align:center;cursor:pointer;background:#fff7ed;">
+  <div style="font-size:1.5rem;">📄</div>
+  <p class="text-xs font-bold text-orange-600">Subir PDF o foto de factura de gas</p>
+  <p class="text-xs text-slate-400 mt-1">La IA extraerá los datos automáticamente</p>
+  </div>
+  </div>
+  <p class="text-xs text-center text-slate-400 mb-3">— o rellena manualmente —</p>
   <div class="space-y-4">
   <div>
   <label class="block text-sm font-bold text-slate-700 mb-2">
@@ -27301,6 +27312,199 @@ Devuelve SOLO este JSON sin texto adicional ni markdown:
   }, 150);
   cerrarModalIA();
  };
+    })();
+    </script>
+
+    <!-- === MODAL IA GAS === -->
+    <div id="gas-ai-processing-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+     <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden">
+      <div class="p-5 flex items-center gap-3" style="background:linear-gradient(135deg,#f97316,#dc2626);">
+       <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl">🔥</div>
+       <div>
+        <h3 class="text-lg font-black text-white">Analizando Factura de Gas</h3>
+        <p class="text-xs text-white/80" id="gas-ai-modal-subtitle">Extrayendo datos...</p>
+       </div>
+      </div>
+      <div class="p-6">
+       <div class="bg-slate-100 rounded-full h-2 mb-4 overflow-hidden">
+        <div id="gas-ai-progress-bar" class="h-2 rounded-full transition-all duration-700" style="width:0%;background:linear-gradient(90deg,#f97316,#dc2626)"></div>
+       </div>
+       <div id="gas-ai-log" class="space-y-2 mb-4 max-h-48 overflow-y-auto"></div>
+       <div id="gas-ai-result-preview" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-sm"></div>
+       <div id="gas-ai-action-btns" class="hidden space-y-2">
+        <button onclick="confirmarDatosGasIA()" class="w-full text-white font-bold py-3 rounded-xl transition" style="background:linear-gradient(135deg,#f97316,#dc2626)">✅ Usar estos datos</button>
+        <button onclick="cerrarModalGasIA()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl text-sm transition">Cancelar</button>
+       </div>
+       <div id="gas-ai-error-section" class="hidden">
+        <div class="bg-red-50 border border-red-200 rounded-xl p-3 mb-3 text-sm text-red-700" id="gas-ai-error-msg"></div>
+        <button onclick="cerrarModalGasIA()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl text-sm transition">Cerrar</button>
+       </div>
+      </div>
+     </div>
+    </div>
+
+    <script>
+    (function() {
+     let gasAiData = null;
+
+     function addGasLog(texto, tipo) {
+      const log = document.getElementById('gas-ai-log');
+      const color = tipo === 'success' ? 'text-green-600' : tipo === 'error' ? 'text-red-500' : tipo === 'working' ? 'text-orange-500' : 'text-slate-500';
+      const icon = tipo === 'success' ? '✅' : tipo === 'error' ? '❌' : tipo === 'working' ? '⏳' : 'ℹ️';
+      log.innerHTML += `<div class="flex items-start gap-2 text-xs ${color}"><span>${icon}</span><span>${texto}</span></div>`;
+      log.scrollTop = log.scrollHeight;
+     }
+
+     function setGasProgress(pct, texto) {
+      document.getElementById('gas-ai-progress-bar').style.width = pct + '%';
+      if (texto) document.getElementById('gas-ai-modal-subtitle').textContent = texto;
+     }
+
+     function mostrarModalGasIA() {
+      const m = document.getElementById('gas-ai-processing-modal');
+      m.classList.remove('hidden');
+      document.getElementById('gas-ai-log').innerHTML = '';
+      document.getElementById('gas-ai-result-preview').classList.add('hidden');
+      document.getElementById('gas-ai-action-btns').classList.add('hidden');
+      document.getElementById('gas-ai-error-section').classList.add('hidden');
+      setGasProgress(0, 'Preparando...');
+     }
+
+     window.cerrarModalGasIA = function() {
+      document.getElementById('gas-ai-processing-modal').classList.add('hidden');
+      gasAiData = null;
+     };
+
+     async function imageToBase64Gas(file) {
+      return new Promise((resolve, reject) => {
+       const r = new FileReader();
+       r.onload = e => resolve(e.target.result.split(',')[1]);
+       r.onerror = reject;
+       r.readAsDataURL(file);
+      });
+     }
+
+     window.procesarFacturaGasIA = async function(file) {
+      if (!file) return;
+      mostrarModalGasIA();
+      addGasLog('Archivo: ' + file.name, 'info');
+      setGasProgress(10, 'Preparando archivo...');
+      try {
+       let messageContent = [];
+       if (file.type === 'application/pdf') {
+        addGasLog('PDF detectado...', 'working');
+        setGasProgress(25, 'Leyendo PDF...');
+        const base64 = await imageToBase64Gas(file);
+        messageContent = [
+         { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
+         { type: 'text', text: getPromptGasIA() }
+        ];
+       } else {
+        addGasLog('Imagen detectada...', 'working');
+        setGasProgress(25, 'Cargando imagen...');
+        const base64 = await imageToBase64Gas(file);
+        messageContent = [
+         { type: 'image', source: { type: 'base64', media_type: file.type, data: base64 } },
+         { type: 'text', text: getPromptGasIA() }
+        ];
+       }
+       setGasProgress(45, 'Enviando a Claude IA...');
+       addGasLog('Analizando factura de gas con Claude...', 'working');
+       const response = await fetch('https://drk-ai-proxy.f-araujo-teixeira-drk.workers.dev', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+         model: 'claude-sonnet-4-5',
+         max_tokens: 800,
+         messages: [{ role: 'user', content: messageContent }]
+        })
+       });
+       if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error?.message || 'Error API: ' + response.status);
+       }
+       setGasProgress(80, 'Procesando respuesta...');
+       const data = await response.json();
+       const rawText = data.content[0].text.trim();
+       addGasLog('Respuesta recibida', 'success');
+       let parsed;
+       try {
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        parsed = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
+       } catch(e) {
+        throw new Error('No se pudo leer la respuesta. Inténtalo de nuevo.');
+       }
+       gasAiData = {
+        cups: parsed.cups || '',
+        dias: parsed.dias || 0,
+        kwh: parsed.kwh || 0,
+        total_factura: parsed.total_factura || 0,
+        notas: parsed.notas || ''
+       };
+       setGasProgress(100, '¡Datos extraídos!');
+       addGasLog('Datos extraídos correctamente', 'success');
+       let preview = '<div class="space-y-1.5">';
+       if (gasAiData.cups) preview += '<div class="flex justify-between"><span class="text-slate-500">CUPS Gas</span><span class="font-mono text-xs font-bold">' + gasAiData.cups.substring(0,22) + '</span></div>';
+       if (gasAiData.dias) preview += '<div class="flex justify-between"><span class="text-slate-500">Días</span><span class="font-bold">' + gasAiData.dias + '</span></div>';
+       if (gasAiData.kwh) preview += '<div class="flex justify-between"><span class="text-slate-500">kWh consumidos</span><span class="font-bold text-orange-600">' + gasAiData.kwh + ' kWh</span></div>';
+       if (gasAiData.total_factura) preview += '<div class="flex justify-between border-t border-slate-200 pt-2 mt-2"><span class="font-bold text-slate-700">Total factura</span><span class="font-black text-green-600">' + gasAiData.total_factura + '€</span></div>';
+       if (gasAiData.notas) preview += '<div class="text-xs text-slate-400 mt-2 italic">' + gasAiData.notas + '</div>';
+       preview += '</div>';
+       document.getElementById('gas-ai-result-preview').innerHTML = preview;
+       document.getElementById('gas-ai-result-preview').classList.remove('hidden');
+       document.getElementById('gas-ai-action-btns').classList.remove('hidden');
+      } catch(err) {
+       setGasProgress(100, 'Error');
+       addGasLog('Error: ' + err.message, 'error');
+       document.getElementById('gas-ai-error-msg').textContent = '❌ ' + err.message;
+       document.getElementById('gas-ai-error-section').classList.remove('hidden');
+      }
+     };
+
+     function getPromptGasIA() {
+      return `Eres un experto en facturas de gas españolas. Analiza esta factura.
+INSTRUCCIONES:
+1. CUPS: Codigo que empieza por "ES" de 20-22 caracteres. En "Datos del contrato" o "Datos de suministro".
+2. DIAS: Dias del periodo de facturacion.
+3. KWH: kWh consumidos en el periodo (energia consumida en gas). Busca "consumo", "energia" o "kWh".
+4. TOTAL: Importe final a pagar.
+Devuelve SOLO este JSON sin texto adicional:
+{"cups":"ES...","dias":30,"kwh":250.0,"total_factura":45.50,"notas":""}`;
+     }
+
+     window.confirmarDatosGasIA = function() {
+      if (!gasAiData) return;
+      // Rellena el modal de gas con los datos extraídos
+      function sv(id, val) {
+       const el = document.getElementById(id);
+       if (el && val !== undefined && val !== 0 && val !== '') {
+        el.value = val;
+        el.style.borderColor = '#f97316';
+        el.style.background = '#fff7ed';
+        setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 3000);
+       }
+      }
+      sv('gas-cups', gasAiData.cups);
+      sv('gas-dias', gasAiData.dias);
+      sv('gas-kwh', gasAiData.kwh);
+      sv('gas-total-cliente', gasAiData.total_factura);
+      cerrarModalGasIA();
+     };
+
+     // Drag & drop zona gas
+     document.addEventListener('DOMContentLoaded', function() {
+      const zone = document.getElementById('gas-ai-drop-zone');
+      if (!zone) return;
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.background='#fed7aa'; zone.style.borderColor='#ea580c'; });
+      zone.addEventListener('dragleave', () => { zone.style.background='#fff7ed'; zone.style.borderColor='#f97316'; });
+      zone.addEventListener('drop', e => {
+       e.preventDefault();
+       zone.style.background='#fff7ed'; zone.style.borderColor='#f97316';
+       const file = e.dataTransfer.files[0];
+       if (file) window.procesarFacturaGasIA(file);
+      });
+     });
+
     })();
     </script>
 </body></html>

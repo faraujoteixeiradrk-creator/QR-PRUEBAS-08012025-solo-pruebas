@@ -21076,7 +21076,16 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
 
                             // Conectar al peer del escritorio (cuyo ID es la session)
                             loadPeerJS(function() {
-                                const mobilePeer = new Peer();
+                                const peerConfig = {
+                                    config: {
+                                        iceServers: [
+                                            { urls: 'stun:stun.l.google.com:19302' },
+                                            { urls: 'stun:stun1.l.google.com:19302' },
+                                            { urls: 'stun:stun2.l.google.com:19302' }
+                                        ]
+                                    }
+                                };
+                                const mobilePeer = new Peer(undefined, peerConfig);
                                 mobilePeer.on('open', function() {
                                     fill.style.width = '60%';
                                     const conn = mobilePeer.connect('drk-' + mobileSession.toLowerCase());
@@ -21094,15 +21103,17 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
                                         }, 800);
                                     });
                                     conn.on('error', function(err) {
-                                        showMobileError('❌ Error de conexión. Asegúrate de que el ordenador tiene el modal abierto e inténtalo de nuevo.');
+                                        showMobileError('❌ Error de conexión. Cierra el modal en el ordenador, ábrelo de nuevo y vuelve a intentarlo.');
                                         mobilePeer.destroy();
                                     });
                                 });
                                 mobilePeer.on('error', function(err) {
                                     if (err.type === 'peer-unavailable') {
-                                        showMobileError('❌ El ordenador no está listo. Abre el modal en el ordenador y vuelve a intentarlo.');
+                                        showMobileError('❌ El ordenador no está listo. Cierra el modal, ábrelo de nuevo y escanea el QR otra vez.');
+                                    } else if (err.type === 'network' || err.type === 'server-error') {
+                                        showMobileError('❌ Error de red temporal. Espera 10 segundos y vuelve a seleccionar el PDF.');
                                     } else {
-                                        showMobileError('❌ Error de red: ' + err.type + '. Inténtalo de nuevo.');
+                                        showMobileError('❌ Error (' + err.type + '). Cierra esta página, escanea el QR de nuevo e inténtalo.');
                                     }
                                     mobilePeer.destroy();
                                 });
@@ -21180,7 +21191,16 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
             function iniciarEsperaMovil() {
                 loadPeerJS(function() {
                     const peerId = 'drk-' + mobileSessionId.toLowerCase();
-                    desktopPeer = new Peer(peerId);
+                    const peerConfig = {
+                        config: {
+                            iceServers: [
+                                { urls: 'stun:stun.l.google.com:19302' },
+                                { urls: 'stun:stun1.l.google.com:19302' },
+                                { urls: 'stun:stun2.l.google.com:19302' }
+                            ]
+                        }
+                    };
+                    desktopPeer = new Peer(peerId, peerConfig);
 
                     desktopPeer.on('open', function(id) {
                         console.log('DRK móvil: esperando en peer', id);

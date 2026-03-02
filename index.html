@@ -13437,6 +13437,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   if (isMultiCupsMode && !tariffToConfigure) return window.showErrorModal("Error interno: Seleccione primero 2.0 TD o 3.0 TD en la pantalla anterior.");
   // Limpiar flags de IA para que no interfieran con entrada manual
   window.aiExtractedData = null;
+  window.elecUsedIA = false;
   window.gasUsedIA = false;
   // 1. Limpiar inputs
   clearManualInputs('input');
@@ -22170,17 +22171,20 @@ ${clientName}
  // FIN FUNCIONES MÓDULO DUAL
  // ===== AUTO-RELLENO DE DATOS DEL CLIENTE DESDE IA =====
  function autoFillClientDataFromIA() {
-  // Recoger datos de cualquier fuente disponible (electricidad o gas)
-  const nombre = (window.aiExtractedData && window.aiExtractedData.nombre_cliente) ||
-  (window.gasAiData && window.gasAiData.nombre_cliente) || '';
-  const direccion = (window.aiExtractedData && window.aiExtractedData.direccion_suministro) ||
-  (window.gasAiData && window.gasAiData.direccion_suministro) || '';
-  const cups = (window.aiExtractedData && window.aiExtractedData.cups) ||
-  (window.gasAiData && window.gasAiData.cups) || '';
+  // Solo rellenar si la sesión actual usó IA
+  const elecIA = window.elecUsedIA && window.aiExtractedData;
+  const gasIA = window.gasUsedIA && window.gasAiData;
+  if (!elecIA && !gasIA) return; // Entrada manual — no rellenar nada
+  const nombre = (elecIA && window.aiExtractedData.nombre_cliente) ||
+  (gasIA && window.gasAiData.nombre_cliente) || '';
+  const direccion = (elecIA && window.aiExtractedData.direccion_suministro) ||
+  (gasIA && window.gasAiData.direccion_suministro) || '';
+  const cups = (elecIA && window.aiExtractedData.cups) ||
+  (gasIA && window.gasAiData.cups) || '';
   function sv(id, val) {
   if (!val) return;
   const el = document.getElementById(id);
-  if (el && !el.value) { // Solo rellenar si está vacío
+  if (el && !el.value) {
   el.value = val;
   el.style.borderColor = '#06b6d4';
   el.style.background = '#ecfeff';
@@ -22394,6 +22398,7 @@ ${clientName}
  function selectGasTariff(tariff) {
   currentGasTariff = tariff;
   window.gasUsedIA = false; // Resetear flag IA al abrir manualmente
+  window.elecUsedIA = false;
   // Mostrar con formato correcto (Rl1 en lugar de RL1)
   const displayTariff = tariff.charAt(0).toUpperCase() + tariff.charAt(1).toLowerCase() + tariff.slice(2);
   document.getElementById('gas-selected-tariff').textContent = displayTariff;
@@ -27893,6 +27898,7 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
  // ===== FIN DRAG & DROP =====
  window.confirmarDatosIA = function() {
   if (!aiExtractedData) return;
+  window.elecUsedIA = true; // Marcar que esta sesión usó IA
   const d = aiExtractedData;
   const tariff = d.tarifa || aiTargetTariff;
   document.getElementById('manual-input-modal').classList.remove('hidden');

@@ -18393,6 +18393,8 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   const modal = document.getElementById('mobile-upload-modal');
   console.log('🟣 modal element:', modal);
   if (!modal) { console.error('❌ mobile-upload-modal no encontrado'); return; }
+  // Usar style.display en vez de classList para evitar Tailwind !important
+  modal.style.display = 'flex';
   modal.classList.remove('hidden');
   console.log('🟣 modal visible, mobileQRGenerated:', mobileQRGenerated);
   if (!mobileQRGenerated) {
@@ -18486,7 +18488,8 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   }
   };
   window.cerrarModalSubirMovil = function() {
-  document.getElementById('mobile-upload-modal').classList.add('hidden');
+  const modal = document.getElementById('mobile-upload-modal');
+  if (modal) { modal.style.display = 'none'; modal.classList.add('hidden'); }
   if (window._drkMqttClient) { try { window._drkMqttClient.end(true); } catch(e){} window._drkMqttClient = null; }
   mobileQRGenerated = false; mobileSessionId = null; mobileReceivedData = null;
   document.getElementById('mobile-status-badge').className = 'flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-amber-50 border-amber-200 text-amber-600 mb-3';

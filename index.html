@@ -27696,6 +27696,15 @@ ${clientName}
   // Normalizar datos
   const p = parsed.potencias_kw || {};
   const e = parsed.energia_kwh || {};
+  // FALLBACK: Si E1/E2/E3 son todos 0 pero hay consumo total visible, distribuir
+  const totalKwh = parsed.consumo_total_kwh || 0;
+  const sinEnergia = !e.e1 && !e.e2 && !e.e3;
+  if (sinEnergia && totalKwh > 0) {
+  e.e1 = Math.round(totalKwh * 0.25 * 100) / 100;
+  e.e2 = Math.round(totalKwh * 0.25 * 100) / 100;
+  e.e3 = Math.round(totalKwh * 0.50 * 100) / 100;
+  parsed.notas = (parsed.notas || '') + ' [Energía estimada: desglose por periodos no legible, distribuido 25/25/50% del total ' + totalKwh + ' kWh]';
+  }
   aiExtractedData = {
   cups: parsed.cups || '',
   tarifa: parsed.tarifa || tariffType,
@@ -27749,9 +27758,10 @@ INSTRUCCIONES:
  * "Sus consumos desagregados han sido punta: X kWh; llano: X kWh; valle X kWh" = consumo REAL del periodo. USAR ESTOS VALORES.
    - Si ves consumo TOTAL en la factura (ej: "Consumo Total 356,280 kWh") pero la tabla de desglose por periodos es ilegible o esta girada, calcula asi: busca en el detalle de factura los importes por periodo (ej: "Facturacion del Consumo 86,92 kWh x precio") para deducir los kWh reales. Si aun asi no puedes, distribuye: E1=25%, E2=25%, E3=50% del total. Indica en notas que es estimacion.
    - NUNCA pongas 0 en E1/E2/E3 si hay un consumo total visible mayor de 0. Siempre distribuye.
-6. TOTAL: El importe final a pagar ("TOTAL IMPORTE FACTURA" o "TOTAL").
+6. CONSUMO_TOTAL_KWH: El total de kWh consumidos en el periodo (ej: "Consumo Total 356,280 kWh"). Extraelo siempre aunque no puedas ver el desglose por periodos.
+7. TOTAL: El importe final a pagar ("TOTAL IMPORTE FACTURA" o "TOTAL").
 Devuelve SOLO este JSON sin texto adicional ni markdown:
-{"cups":"ES...","tarifa":"2.0TD","dias":30,"potencias_kw":{"p1":0.0,"p2":0.0,"p3":0.0,"p4":0.0,"p5":0.0,"p6":0.0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0.00,"notas":""}`;
+{"cups":"ES...","tarifa":"2.0TD","dias":30,"potencias_kw":{"p1":0.0,"p2":0.0,"p3":0.0,"p4":0.0,"p5":0.0,"p6":0.0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"consumo_total_kwh":0,"total_factura":0.00,"notas":""}`;
  }
   // ===== DRAG & DROP ZONES =====
  function setupDragZone(zoneId, tariff) {

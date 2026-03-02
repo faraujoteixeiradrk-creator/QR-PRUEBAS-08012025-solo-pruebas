@@ -422,6 +422,17 @@
   <div class="p-6">
   <h3 class="text-2xl font-black text-red-600 mb-2 text-center">Datos de la Factura de GAS</h3>
   <p class="text-sm text-slate-500 mb-4 text-center">Tarifa: <span id="gas-selected-tariff" class="font-bold text-red-600"></span></p>
+  <!-- ZONA IA GAS -->
+  <div class="mb-4 p-3 bg-orange-50 border-2 border-dashed border-orange-300 rounded-xl">
+  <p class="text-xs font-bold text-orange-700 mb-2 text-center">🤖 Leer factura con IA</p>
+  <input type="file" id="gas-ai-file-input" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaGasIA(this.files[0])">
+  <div id="gas-ai-drop-zone" onclick="document.getElementById('gas-ai-file-input').click()" style="border:2px dashed #f97316;border-radius:12px;padding:12px;text-align:center;cursor:pointer;background:#fff7ed;">
+  <div style="font-size:1.5rem;">📄</div>
+  <p class="text-xs font-bold text-orange-600">Subir PDF o foto de factura de gas</p>
+  <p class="text-xs text-slate-400 mt-1">La IA extraerá los datos automáticamente</p>
+  </div>
+  </div>
+  <p class="text-xs text-center text-slate-400 mb-3">— o rellena manualmente —</p>
   <div class="space-y-4">
   <div>
   <label class="block text-sm font-bold text-slate-700 mb-2">
@@ -1202,12 +1213,12 @@
   <p style="color:#67e8f9;font-size:0.72rem;">Arrastra aquí o pulsa para seleccionar</p>
   </div>
   </div>
-  <!-- BOTÓN IA MULTICUPS -->
-  <input type="file" id="ai-file-input-multicups" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaIA(this.files[0], currentTariffType === 'MULTICUPS' ? document.getElementById('multicups-tariff-select')?.value || '3.0TD' : currentTariffType)">
-  <div id="ai-drop-zone-multicups" style="display:none;border:2px dashed #06b6d4;border-radius:16px;padding:14px;margin-top:8px;margin-bottom:8px;text-align:center;cursor:pointer;transition:background 0.2s;background:#ecfeff;" onclick="document.getElementById('ai-file-input-multicups').click()">
+  <!-- BOTON IA MULTICUPS 3.0TD -->
+  <input type="file" id="ai-file-input-multicups" accept=".pdf,image/*" class="hidden">
+  <div id="ai-drop-zone-multicups" style="display:none;border:2px dashed #06b6d4;border-radius:16px;padding:14px;margin-top:8px;margin-bottom:8px;text-align:center;cursor:pointer;background:#ecfeff;" onclick="document.getElementById('ai-file-input-multicups').click()">
   <div style="font-size:1.6rem;margin-bottom:4px;">🤖</div>
   <p style="font-weight:700;color:#0e7490;font-size:0.88rem;margin-bottom:2px;">SUBIR POR IA (PDF o FOTO)</p>
-  <p style="color:#67e8f9;font-size:0.72rem;">Arrastra aquí o pulsa para seleccionar</p>
+  <p style="color:#67e8f9;font-size:0.72rem;">Arrastra aqui o pulsa para seleccionar</p>
   </div>
   <button id="manual-input-btn" class="w-full bg-drk-50 hover:bg-drk-100 text-drk-800 font-bold py-3 px-6 rounded-xl shadow-sm transform transition active:scale-95 flex items-center justify-center gap-3 mt-3">
   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -4218,19 +4229,19 @@
   qrButtonsContainer.classList.remove('hidden');
   manualInputBtn.classList.add('mt-3');
   scanInstructionText.textContent = "Escanea el código QR (2.0TD) o introduce datos manualmente.";
-  document.getElementById('scan-instruction-text').classList.remove('hidden'); // Ensure instruction is visible
-  const mcIA = document.getElementById('ai-drop-zone-multicups');
-  if (mcIA) mcIA.style.display = 'none'; // Ya tiene zona IA en qr-buttons-container
+  document.getElementById('scan-instruction-text').classList.remove('hidden');
+  var mcIA2 = document.getElementById('ai-drop-zone-multicups');
+  if (mcIA2) mcIA2.style.display = 'none';
   } else if (type === '3.0TD') {
   // 3.0TD: IA + Manual
   qrButtonsContainer.classList.add('hidden');
   manualInputBtn.classList.remove('mt-3');
   scanInstructionText.textContent = "Sube tu factura por IA o introduce los datos manualmente.";
-  document.getElementById('scan-instruction-text').classList.remove('hidden'); // Ensure instruction is visible
-  const mcIA = document.getElementById('ai-drop-zone-multicups');
+  document.getElementById('scan-instruction-text').classList.remove('hidden');
+  var mcIA = document.getElementById('ai-drop-zone-multicups');
   if (mcIA) mcIA.style.display = 'block';
-  const mcInput = document.getElementById('ai-file-input-multicups');
-  if (mcInput) mcInput.onchange = (e) => procesarFacturaIA(e.target.files[0], '3.0TD');
+  var mcInput = document.getElementById('ai-file-input-multicups');
+  if (mcInput) mcInput.onchange = function(e) { procesarFacturaIA(e.target.files[0], '3.0TD'); };
   }
   manualInputBtn.textContent = "AÑADIR SUMINISTRO MANUAL";
   // Asegurarse de aplicar los estilos correctos al botón manual
@@ -25602,40 +25613,40 @@ ${clientName}
   "平段": {},
   "谷段": {},
   // ============================================================
-  "Analizar Factura": {},
+  "Analizar Factura": { es: "Analizar Factura", en: "Analyze Bill", zh: "分析账单", de: "Rechnung analysieren", fr: "Analyser la facture" },
   "Escanea el código QR o introduce datos manualmente.": {},
-  "ESCANEAR QR AHORA": {},
-  "OTRAS OPCIONES DE CAPTURA": {},
-  "DATOS A MANO": {},
+  "ESCANEAR QR AHORA": { es: "ESCANEAR QR AHORA", en: "SCAN QR NOW", zh: "立即扫描二维码", de: "QR JETZT SCANNEN", fr: "SCANNER QR MAINTENANT" },
+  "OTRAS OPCIONES DE CAPTURA": { es: "OTRAS OPCIONES DE CAPTURA", en: "OTHER CAPTURE OPTIONS", zh: "其他捕获选项", de: "ANDERE ERFASSUNGSOPTIONEN", fr: "AUTRES OPTIONS DE CAPTURE" },
+  "DATOS A MANO": { es: "DATOS A MANO", en: "MANUAL DATA", zh: "手动数据", de: "MANUELLE DATEN", fr: "DONNÉES MANUELLES" },
   "Volver a selección": {},
   "Seleccione Opción QR": {},
   "Capturar Foto": {},
   "Subir Imagen": {},
   "Pegar Imagen (CTRL+V)": {},
-  "Cancelar": {},
+  "Cancelar": { es: "Cancelar", en: "Cancel", zh: "取消", de: "Abbrechen", fr: "Annuler" },
   "Selecciona la tarifa que deseas analizar.": {},
   "Gestor de múltiples contratos (2.0TD + 3.0TD)": {},
   "Hogar / Pequeño Negocio (Individual)": {},
   "Empresa / Negocio (Individual)": {},
   "Industria / Gran Consumo (Individual)": {},
   "ABRIR EN EL MÓVIL": {},
-  "Cálculo Completado": {},
-  "✅ Cálculo Completado": {},
+  "Cálculo Completado": { es: "Cálculo Completado", en: "Calculation Complete", zh: "计算完成", de: "Berechnung abgeschlossen", fr: "Calcul terminé" },
+  "✅ Cálculo Completado": { es: "✅ Cálculo Completado", en: "✅ Calculation Complete", zh: "✅ 计算完成", de: "✅ Berechnung abgeschlossen", fr: "✅ Calcul terminé" },
   "Hemos encontrado ofertas con ahorro. ¿Cómo quieres continuar?": {},
   "Comparar FIJO vs INDEXADO": {},
   "Genera comparativa dual: tarifa fija y tarifa indexada DRK INDEX (precio variable del mercado).": {},
-  "VER MEJOR OPCIÓN": {},
+  "VER MEJOR OPCIÓN": { es: "VER MEJOR OPCIÓN", en: "SEE BEST OPTION", zh: "查看最佳选项", de: "BESTE OPTION ANZEIGEN", fr: "VOIR LA MEILLEURE OPTION" },
   "Muestra automáticamente la oferta con mayor ahorro y genera la comparativa": {},
-  "ELEGIR ENTRE RESULTADOS": {},
+  "ELEGIR ENTRE RESULTADOS": { es: "ELEGIR ENTRE RESULTADOS", en: "CHOOSE FROM RESULTS", zh: "从结果中选择", de: "AUS ERGEBNISSEN WÄHLEN", fr: "CHOISIR PARMI LES RÉSULTATS" },
   "Revisa todas las ofertas con ahorro positivo y elige la que prefieras": {},
-  "Consejo:": {},
+  "Consejo:": { es: "Consejo:", en: "Tip:", zh: "提示：", de: "Tipp:", fr: "Conseil:" },
   "¿Qué tipo de tarifa DRK quieres ver?": {},
   "🎯 ¿Qué tipo de tarifa DRK quieres ver?": {},
-  "Tarifa FIJA": {},
-  "⚡ Tarifa FIJA": {},
+  "Tarifa FIJA": { es: "Tarifa FIJA", en: "FIXED Rate", zh: "固定费率", de: "FEST-Tarif", fr: "Tarif FIXE" },
+  "⚡ Tarifa FIJA": { es: "⚡ Tarifa FIJA", en: "⚡ FIXED Rate", zh: "⚡ 固定费率", de: "⚡ FEST-Tarif", fr: "⚡ Tarif FIXE" },
   "Precio fijo estable (excluye DRK INDEX)": {},
-  "Tarifa INDEXADA (DRK INDEX)": {},
-  "🌱 Tarifa INDEXADA (DRK INDEX)": {},
+  "Tarifa INDEXADA (DRK INDEX)": { es: "Tarifa INDEXADA (DRK INDEX)", en: "INDEXED Rate (DRK INDEX)", zh: "浮动费率 (DRK INDEX)", de: "INDEXIERTER Tarif (DRK INDEX)", fr: "Tarif INDEXÉ (DRK INDEX)" },
+  "🌱 Tarifa INDEXADA (DRK INDEX)": { es: "🌱 Tarifa INDEXADA (DRK INDEX)", en: "🌱 INDEXED Rate (DRK INDEX)", zh: "🌱 浮动费率 (DRK INDEX)", de: "🌱 INDEXIERTER Tarif (DRK INDEX)", fr: "🌱 Tarif INDEXÉ (DRK INDEX)" },
   "Solo muestra DRK INDEX del mercado": {},
   "Continuar con esta opción →": {},
   "DRK ENERGÍA": {},
@@ -25655,23 +25666,23 @@ ${clientName}
   "Nombre Cliente": {},
   "Teléfono": {},
   "NOTA PARA USUARIOS DE iPHONE:": {},
-  "COPIAR COMPARATIVO (HTML)": {},
-  "CREAR PDF COMPARATIVO": {},
-  "MODO DE COMPARACIÓN": {},
-  "DRK Únicamente": {},
-  "DRK Prioritario": {},
-  "Global": {},
+  "COPIAR COMPARATIVO (HTML)": { es: "COPIAR COMPARATIVO (HTML)", en: "COPY COMPARISON (HTML)", zh: "复制比较 (HTML)", de: "VERGLEICH KOPIEREN (HTML)", fr: "COPIER LA COMPARAISON (HTML)" },
+  "CREAR PDF COMPARATIVO": { es: "CREAR PDF COMPARATIVO", en: "CREATE COMPARISON PDF", zh: "创建比较PDF", de: "VERGLEICHS-PDF ERSTELLEN", fr: "CRÉER UN PDF COMPARATIF" },
+  "MODO DE COMPARACIÓN": { es: "MODO DE COMPARACIÓN", en: "COMPARISON MODE", zh: "比较模式", de: "VERGLEICHSMODUS", fr: "MODE DE COMPARAISON" },
+  "DRK Únicamente": { es: "DRK Únicamente", en: "DRK Only", zh: "仅DRK", de: "Nur DRK", fr: "DRK Uniquement" },
+  "DRK Prioritario": { es: "DRK Prioritario", en: "DRK Priority", zh: "DRK优先", de: "DRK Priorität", fr: "DRK Prioritaire" },
+  "Global": { es: "Global", en: "Global", zh: "全球", de: "Global", fr: "Global" },
   "DRK COMPARADOR": {},
   "Selecciona el tipo de suministro.": {},
   "TIPO DE SUMINISTRO": {},
-  "ELECTRICIDAD": {},
+  "ELECTRICIDAD": { es: "ELECTRICIDAD", en: "ELECTRICITY", zh: "电力", de: "STROM", fr: "ÉLECTRICITÉ" },
   "MULTICUPS · 2.0 TD · 3.0 TD": {},
   "RL1 · RL2 · RL3 · RL4 · RL5 · RL6": {},
-  "ELECTRICIDAD + GAS": {},
+  "ELECTRICIDAD + GAS": { es: "ELECTRICIDAD + GAS", en: "ELECTRICITY + GAS", zh: "电力 + 燃气", de: "STROM + GAS", fr: "ÉLECTRICITÉ + GAZ" },
   "Múltiples suministros · Comparativa global": {},
-  "Continuar": {},
-  "Volver": {},
-  "Calcular Ahorro": {},
+  "Continuar": { es: "Continuar", en: "Continue", zh: "继续", de: "Weiter", fr: "Continuer" },
+  "Volver": { es: "Volver", en: "Back", zh: "返回", de: "Zurück", fr: "Retour" },
+  "Calcular Ahorro": { es: "Calcular Ahorro", en: "Calculate Savings", zh: "计算节省", de: "Einsparungen berechnen", fr: "Calculer les économies" },
   // === TRADUCCIONES DE OPTIMIZACIÓN DE POTENCIAS ===
   "Activar Comparativo con Potencia Optimizada": {},
   "Permite comparar las potencias actuales vs. potencias optimizadas": {},
@@ -25784,22 +25795,22 @@ ${clientName}
   "总账单": { es: "Factura total", en: "Total bill", zh: "总账单", de: "Gesamtrechnung", fr: "Facture totale" },
   "估计年度总额": { es: "Total anual estimado", en: "Estimated annual total", zh: "估计年度总额", de: "Geschätzte Jahressumme", fr: "Total annuel estimé" },
   "所有文本均为中文 · 可直接使用": { es: "Todo el texto en idioma actual · Listo para usar", en: "All text in current language · Ready to use", zh: "所有文本均为中文 · 可直接使用", de: "Alle Texte in aktueller Sprache · Sofort einsatzbereit", fr: "Tout le texte dans la langue actuelle · Prêt à l'emploi" },
-  "Selector": {},
-  "MULTICUPS": {},
-  "GAS": {},
-  "DUAL": {},
-  "días": {},
+  "Selector": { es: "Selector", en: "Selector", zh: "选择器", de: "Auswahl", fr: "Sélecteur" },
+  "MULTICUPS": { es: "MULTICUPS", en: "MULTICUPS", zh: "多CUPS", de: "MULTICUPS", fr: "MULTICUPS" },
+  "GAS": { es: "GAS", en: "GAS", zh: "燃气", de: "GAS", fr: "GAZ" },
+  "DUAL": { es: "DUAL", en: "DUAL", zh: "双重", de: "DUAL", fr: "DUAL" },
+  "días": { es: "días", en: "days", zh: "天", de: "Tage", fr: "jours" },
   // Botones y acciones PDF/Copiar
   "Descargar PDF Global": {},
   "Copiar HTML": {},
   "COPIAR COMPARATIVO": {},
-  "📋 COPIAR COMPARATIVO (HTML)": {},
-  "📄 CREAR PDF COMPARATIVO": {},
+  "📋 COPIAR COMPARATIVO (HTML)": { es: "📋 COPIAR COMPARATIVO (HTML)", en: "📋 COPY COMPARISON (HTML)", zh: "📋 复制比较 (HTML)", de: "📋 VERGLEICH KOPIEREN (HTML)", fr: "📋 COPIER LA COMPARAISON (HTML)" },
+  "📄 CREAR PDF COMPARATIVO": { es: "📄 CREAR PDF COMPARATIVO", en: "📄 CREATE COMPARISON PDF", zh: "📄 创建比较PDF", de: "📄 VERGLEICHS-PDF ERSTELLEN", fr: "📄 CRÉER UN PDF COMPARATIF" },
   "📧 COPIAR COMPARATIVO (HTML)": {},
   // Modales y mensajes
-  "Entendido": {},
-  "Éxito": {},
-  "¡Atención!": {},
+  "Entendido": { es: "Entendido", en: "Understood", zh: "明白了", de: "Verstanden", fr: "Compris" },
+  "Éxito": { es: "Éxito", en: "Success", zh: "成功", de: "Erfolg", fr: "Succès" },
+  "¡Atención!": { es: "¡Atención!", en: "Attention!", zh: "注意！", de: "Achtung!", fr: "Attention!" },
   // Mensajes de error y validación
   "No se detectó ninguna imagen en el portapapeles.": {},
   "Añada al menos un suministro.": {},
@@ -26038,7 +26049,7 @@ ${clientName}
   "📄 Generar PDF": {},
   "Generar HTML para": {},
   "📧 Generar HTML para": {},
-  "Cancelar": {},
+  "Cancelar": { es: "Cancelar", en: "Cancel", zh: "取消", de: "Abbrechen", fr: "Annuler" },
   "Aceptar": {},
   "Cancelar Pegado": {},
   "TOTAL ENERGÍA": {},
@@ -26170,16 +26181,16 @@ ${clientName}
   "Asesoría Energética": { es: "Asesoría Energética", en: "Energy Consulting", zh: "能源咨询", de: "Energieberatung", fr: "Conseil en énergie" },
   "60d": {},
   // MULTICUPS - Interfaz completa
-  "Añadir Suministro": {},
+  "Añadir Suministro": { es: "Añadir Suministro", en: "Add Supply", zh: "添加供应", de: "Versorgung hinzufügen", fr: "Ajouter un approvisionnement" },
   "Datos Generales": {},
   "Número CUPS": {},
   "Días Facturados": {},
   "Potencias (kW)": {},
   "Energía (kWh)": {},
   "Total Factura (€)": {},
-  "AÑADIR SUMINISTRO MANUAL": {},
+  "AÑADIR SUMINISTRO MANUAL": { es: "AÑADIR SUMINISTRO MANUAL", en: "ADD MANUAL SUPPLY", zh: "手动添加供应", de: "MANUELLE VERSORGUNG HINZUFÜGEN", fr: "AJOUTER UN APPROVISIONNEMENT MANUEL" },
   "AÑADIR SUMINISTRO": {},
-  "Cancelar": {},
+  "Cancelar": { es: "Cancelar", en: "Cancel", zh: "取消", de: "Abbrechen", fr: "Annuler" },
   // Modal Request Improvement
   "Request Improvement from DRK": {},
   "Solicitar Mejora a DRK": {},
@@ -26202,8 +26213,8 @@ ${clientName}
   "Error: Los datos de ELECTRICIDAD no están completos. Por favor, realice el cálculo de nuevo.": {
   },
   // Modales de resultados
-  "Cálculo Completado": {},
-  "✅ Cálculo Completado": {},
+  "Cálculo Completado": { es: "Cálculo Completado", en: "Calculation Complete", zh: "计算完成", de: "Berechnung abgeschlossen", fr: "Calcul terminé" },
+  "✅ Cálculo Completado": { es: "✅ Cálculo Completado", en: "✅ Calculation Complete", zh: "✅ 计算完成", de: "✅ Berechnung abgeschlossen", fr: "✅ Calcul terminé" },
   "We found offers with savings. How do you want to continue?": {},
   "Comparar FIJO vs INDEXADO": {},
   "Generate dual comparison: fixed rate and DRK INDEX indexed rate (variable market price).": {},
@@ -26219,7 +26230,7 @@ ${clientName}
   "Understood": {},
   // Selección MULTICUPS
   "Volver a selección": {},
-  "MULTICUPS": {},
+  "MULTICUPS": { es: "MULTICUPS", en: "MULTICUPS", zh: "多CUPS", de: "MULTICUPS", fr: "MULTICUPS" },
   "Selecciona el tipo de contrato que deseas añadir.": {},
   "Total de suministros actuales:": {},
   "Permite Escáner QR, Imagen y Entrada Manual": {},
@@ -26303,22 +26314,22 @@ ${clientName}
   // Selector de tarifa DRK
   "¿Qué tipo de tarifa DRK quieres ver?": {},
   "🎯 ¿Qué tipo de tarifa DRK quieres ver?": {},
-  "Tarifa FIJA": {},
-  "⚡ Tarifa FIJA": {},
+  "Tarifa FIJA": { es: "Tarifa FIJA", en: "FIXED Rate", zh: "固定费率", de: "FEST-Tarif", fr: "Tarif FIXE" },
+  "⚡ Tarifa FIJA": { es: "⚡ Tarifa FIJA", en: "⚡ FIXED Rate", zh: "⚡ 固定费率", de: "⚡ FEST-Tarif", fr: "⚡ Tarif FIXE" },
   "Precio fijo estable (excluye DRK INDEX)": {},
-  "Tarifa INDEXADA (DRK INDEX)": {},
-  "🌱 Tarifa INDEXADA (DRK INDEX)": {},
+  "Tarifa INDEXADA (DRK INDEX)": { es: "Tarifa INDEXADA (DRK INDEX)", en: "INDEXED Rate (DRK INDEX)", zh: "浮动费率 (DRK INDEX)", de: "INDEXIERTER Tarif (DRK INDEX)", fr: "Tarif INDEXÉ (DRK INDEX)" },
+  "🌱 Tarifa INDEXADA (DRK INDEX)": { es: "🌱 Tarifa INDEXADA (DRK INDEX)", en: "🌱 INDEXED Rate (DRK INDEX)", zh: "🌱 浮动费率 (DRK INDEX)", de: "🌱 INDEXIERTER Tarif (DRK INDEX)", fr: "🌱 Tarif INDEXÉ (DRK INDEX)" },
   "Solo muestra DRK INDEX del mercado": {},
   "Continuar con esta opción →": {},
   // DUAL
   "Gestiona múltiples suministros de Electricidad y Gas": {},
-  "Suministros añadidos:": {},
-  "No hay suministros añadidos": {},
+  "Suministros añadidos:": { es: "Suministros añadidos:", en: "Added supplies:", zh: "已添加的供应：", de: "Hinzugefügte Versorgungen:", fr: "Approvisionnements ajoutés:" },
+  "No hay suministros añadidos": { es: "No hay suministros añadidos", en: "No supplies added", zh: "没有添加供应", de: "Keine Versorgungen hinzugefügt", fr: "Aucun approvisionnement ajouté" },
   "+ Añadir Suministro": {},
-  "Calcular Comparativa Global": {},
-  "Limpiar todo": {},
+  "Calcular Comparativa Global": { es: "Calcular Comparativa Global", en: "Calculate Global Comparison", zh: "计算全球比较", de: "Globalen Vergleich berechnen", fr: "Calculer la comparaison globale" },
+  "Limpiar todo": { es: "Limpiar todo", en: "Clear all", zh: "清除所有", de: "Alles löschen", fr: "Tout effacer" },
   // Textos del modal de decisión
-  "Consejo:": {},
+  "Consejo:": { es: "Consejo:", en: "Tip:", zh: "提示：", de: "Tipp:", fr: "Conseil:" },
   "Si quieres ver rápidamente la mejor oferta, elige la primera opción. Si necesitas comparar varias opciones o el cliente tiene preferencias específicas, elige la segunda.": {},
   "⚡ Comparar FIJO vs INDEXADO": {},
   "Genera comparativa dual: tarifa fija y tarifa indexada DRK INDEX (precio variable del mercado).": {},
@@ -26356,10 +26367,10 @@ ${clientName}
   "Continuar Pegando": {},
   "Cancelar Pegado": {},
   // Textos de tarjetas de resultados
-  "Ahorro anual": {},
+  "Ahorro anual": { es: "Ahorro anual", en: "Annual savings", zh: "年节省", de: "Jährliche Ersparnis", fr: "Économies annuelles" },
   "Resumen de suministros": {},
   "Término fijo": {},
-  "días": {},
+  "días": { es: "días", en: "days", zh: "天", de: "Tage", fr: "jours" },
   "Imp. hidrocarburos": {},
   "TOTAL MENSUAL": {},
   "Factura actual:": {},
@@ -26390,7 +26401,7 @@ ${clientName}
   "Generando...": {},
   // Datos Extraídos
   "Periodo": {},
-  "días": {},
+  "días": { es: "días", en: "days", zh: "天", de: "Tage", fr: "jours" },
   "día": {},
   "Día": {},
   "Fechas": {},
@@ -26474,7 +26485,7 @@ ${clientName}
   "Pegar Código Completo": {},
   "Sí, tengo paneles solares": {},
   "No, no tengo instalación fotovoltaica": {},
-  "Cancelar": {},
+  "Cancelar": { es: "Cancelar", en: "Cancel", zh: "取消", de: "Abbrechen", fr: "Annuler" },
   // NUEVAS TRADUCCIONES - Mensajes de error/validación DUAL
   "Falta añadir suministro": {},
   "Para hacer una comparativa DUAL necesitas añadir tanto ELECTRICIDAD como GAS. Actualmente solo tienes: ELECTRICIDAD Por favor, añade un suministro de GAS": {},
@@ -27315,6 +27326,166 @@ Devuelve SOLO este JSON sin texto adicional ni markdown:
   }, 150);
   cerrarModalIA();
  };
+    })();
+    </script>
+
+    <!-- === MODAL IA GAS === -->
+    <div id="gas-ai-processing-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+     <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden">
+      <div class="p-5 flex items-center gap-3" style="background:linear-gradient(135deg,#f97316,#dc2626);">
+       <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl">🔥</div>
+       <div>
+        <h3 class="text-lg font-black text-white">Analizando Factura de Gas</h3>
+        <p class="text-xs text-white/80" id="gas-ai-modal-subtitle">Extrayendo datos...</p>
+       </div>
+      </div>
+      <div class="p-6">
+       <div class="bg-slate-100 rounded-full h-2 mb-4 overflow-hidden">
+        <div id="gas-ai-progress-bar" class="h-2 rounded-full transition-all duration-700" style="width:0%;background:linear-gradient(90deg,#f97316,#dc2626)"></div>
+       </div>
+       <div id="gas-ai-log" class="space-y-2 mb-4 max-h-48 overflow-y-auto"></div>
+       <div id="gas-ai-result-preview" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-sm"></div>
+       <div id="gas-ai-action-btns" class="hidden space-y-2">
+        <button onclick="confirmarDatosGasIA()" class="w-full text-white font-bold py-3 rounded-xl transition" style="background:linear-gradient(135deg,#f97316,#dc2626)">&#x2705; Usar estos datos</button>
+        <button onclick="cerrarModalGasIA()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl text-sm transition">Cancelar</button>
+       </div>
+       <div id="gas-ai-error-section" class="hidden">
+        <div class="bg-red-50 border border-red-200 rounded-xl p-3 mb-3 text-sm text-red-700" id="gas-ai-error-msg"></div>
+        <button onclick="cerrarModalGasIA()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl text-sm transition">Cerrar</button>
+       </div>
+      </div>
+     </div>
+    </div>
+
+    <script>
+    (function() {
+     let gasAiData = null;
+     function addGasLog(texto, tipo) {
+      const log = document.getElementById('gas-ai-log');
+      const color = tipo==='success'?'text-green-600':tipo==='error'?'text-red-500':tipo==='working'?'text-orange-500':'text-slate-500';
+      const icon = tipo==='success'?'OK':tipo==='error'?'ERR':tipo==='working'?'...':'i';
+      log.innerHTML += '<div class="flex items-start gap-2 text-xs ' + color + '"><span>' + icon + '</span><span>' + texto + '</span></div>';
+      log.scrollTop = log.scrollHeight;
+     }
+     function setGasProgress(pct, texto) {
+      document.getElementById('gas-ai-progress-bar').style.width = pct + '%';
+      if (texto) document.getElementById('gas-ai-modal-subtitle').textContent = texto;
+     }
+     function mostrarModalGasIA() {
+      document.getElementById('gas-ai-processing-modal').classList.remove('hidden');
+      document.getElementById('gas-ai-log').innerHTML = '';
+      document.getElementById('gas-ai-result-preview').classList.add('hidden');
+      document.getElementById('gas-ai-action-btns').classList.add('hidden');
+      document.getElementById('gas-ai-error-section').classList.add('hidden');
+      setGasProgress(0, 'Preparando...');
+     }
+     window.cerrarModalGasIA = function() {
+      document.getElementById('gas-ai-processing-modal').classList.add('hidden');
+      gasAiData = null;
+     };
+     async function toBase64(file) {
+      return new Promise(function(res, rej) {
+       var r = new FileReader();
+       r.onload = function(e) { res(e.target.result.split(',')[1]); };
+       r.onerror = rej;
+       r.readAsDataURL(file);
+      });
+     }
+     window.procesarFacturaGasIA = async function(file) {
+      if (!file) return;
+      mostrarModalGasIA();
+      addGasLog('Archivo: ' + file.name, 'info');
+      setGasProgress(10, 'Preparando archivo...');
+      try {
+       var messageContent = [];
+       var b64 = await toBase64(file);
+       if (file.type === 'application/pdf') {
+        addGasLog('PDF detectado...', 'working');
+        setGasProgress(25, 'Leyendo PDF...');
+        messageContent = [{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},{type:'text',text:getPromptGasIA()}];
+       } else {
+        addGasLog('Imagen detectada...', 'working');
+        setGasProgress(25, 'Cargando imagen...');
+        messageContent = [{type:'image',source:{type:'base64',media_type:file.type,data:b64}},{type:'text',text:getPromptGasIA()}];
+       }
+       setGasProgress(45, 'Enviando a Claude IA...');
+       addGasLog('Analizando con Claude...', 'working');
+       var response = await fetch('https://drk-ai-proxy.f-araujo-teixeira-drk.workers.dev', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({model:'claude-sonnet-4-5',max_tokens:800,messages:[{role:'user',content:messageContent}]})
+       });
+       if (!response.ok) {
+        var e = await response.json();
+        throw new Error(e.error && e.error.message ? e.error.message : 'Error ' + response.status);
+       }
+       setGasProgress(80, 'Procesando respuesta...');
+       var data = await response.json();
+       var rawText = data.content[0].text.trim();
+       addGasLog('Respuesta recibida', 'success');
+       var parsed;
+       try {
+        var m = rawText.match(/\{[\s\S]*\}/);
+        parsed = JSON.parse(m ? m[0] : rawText);
+       } catch(e2) {
+        throw new Error('No se pudo leer la respuesta. Intentalo de nuevo.');
+       }
+       gasAiData = {
+        cups: parsed.cups || '',
+        dias: parsed.dias || 0,
+        kwh: parsed.kwh || 0,
+        total_factura: parsed.total_factura || 0,
+        notas: parsed.notas || ''
+       };
+       setGasProgress(100, 'Datos extraidos!');
+       addGasLog('Datos extraidos correctamente', 'success');
+       var preview = '<div class="space-y-1.5">';
+       if (gasAiData.cups) preview += '<div class="flex justify-between"><span class="text-slate-500">CUPS Gas</span><span class="font-mono text-xs font-bold">' + gasAiData.cups.substring(0,22) + '</span></div>';
+       if (gasAiData.dias) preview += '<div class="flex justify-between"><span class="text-slate-500">Dias</span><span class="font-bold">' + gasAiData.dias + '</span></div>';
+       if (gasAiData.kwh) preview += '<div class="flex justify-between"><span class="text-slate-500">kWh consumidos</span><span class="font-bold text-orange-600">' + gasAiData.kwh + ' kWh</span></div>';
+       if (gasAiData.total_factura) preview += '<div class="flex justify-between border-t pt-2 mt-2"><span class="font-bold">Total factura</span><span class="font-black text-green-600">' + gasAiData.total_factura + '</span></div>';
+       preview += '</div>';
+       document.getElementById('gas-ai-result-preview').innerHTML = preview;
+       document.getElementById('gas-ai-result-preview').classList.remove('hidden');
+       document.getElementById('gas-ai-action-btns').classList.remove('hidden');
+      } catch(err) {
+       setGasProgress(100, 'Error');
+       addGasLog('Error: ' + err.message, 'error');
+       document.getElementById('gas-ai-error-msg').textContent = 'Error: ' + err.message;
+       document.getElementById('gas-ai-error-section').classList.remove('hidden');
+      }
+     };
+     function getPromptGasIA() {
+      return 'Eres un experto en facturas de gas espanolas. Analiza esta factura.\nINSTRUCCIONES:\n1. CUPS: Codigo que empieza por ES de 20-22 caracteres.\n2. DIAS: Dias del periodo de facturacion.\n3. KWH: kWh consumidos en el periodo.\n4. TOTAL: Importe final a pagar.\nDevuelve SOLO este JSON sin texto adicional:\n{"cups":"ES...","dias":30,"kwh":250.0,"total_factura":45.50,"notas":""}';
+     }
+     window.confirmarDatosGasIA = function() {
+      if (!gasAiData) return;
+      function sv(id, val) {
+       var el = document.getElementById(id);
+       if (el && val !== undefined && val !== 0 && val !== '') {
+        el.value = val;
+        el.style.borderColor = '#f97316';
+        el.style.background = '#fff7ed';
+        setTimeout(function() { el.style.borderColor = ''; el.style.background = ''; }, 3000);
+       }
+      }
+      sv('gas-cups', gasAiData.cups);
+      sv('gas-dias', gasAiData.dias);
+      sv('gas-kwh', gasAiData.kwh);
+      sv('gas-total-cliente', gasAiData.total_factura);
+      cerrarModalGasIA();
+     };
+     document.addEventListener('DOMContentLoaded', function() {
+      var zone = document.getElementById('gas-ai-drop-zone');
+      if (!zone) return;
+      zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.style.background='#fed7aa'; });
+      zone.addEventListener('dragleave', function() { zone.style.background='#fff7ed'; });
+      zone.addEventListener('drop', function(e) {
+       e.preventDefault(); zone.style.background='#fff7ed';
+       var f = e.dataTransfer.files[0];
+       if (f) window.procesarFacturaGasIA(f);
+      });
+     });
     })();
     </script>
 </body></html>

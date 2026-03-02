@@ -27739,11 +27739,14 @@ ${clientName}
 === CAMPO 1: CUPS ===
 - Codigo de 18-22 caracteres que SIEMPRE empieza por "ES" seguido de numeros y letras.
 - Busca en: "Datos del suministro", "Datos del contrato", "Informacion del punto de suministro".
+- Formato tipico: ES + 4 digitos + 9-10 digitos + 2-4 letras/digitos. Ejemplo: ES0031804939F001UW
 - CRITICO - NO confundir con:
-  * Numero de contador (solo numeros, ej: "4000040502") → IGNORAR
-  * Numero de contrato (corto, ej: "1078930") → IGNORAR
-  * Cualquier otro codigo que NO empiece exactamente por "ES"
-- El CUPS correcto tiene formato ES + 16 a 20 caracteres alfanumericos. Si ves varios codigos que empiezan por ES, elige el mas largo.
+  * Numero de contador (solo numeros sin letras, ej: "4000040502") → IGNORAR
+  * Numero de contrato (corto de 6-8 digitos, ej: "1078930") → IGNORAR
+  * Numeros de referencia en pie de pagina o codigos QR → IGNORAR
+  * Codigos CIF/NIF del cliente o empresa → IGNORAR
+- REGLA CLAVE: El CUPS autentico aparece en la seccion "Datos del suministro" o similar, etiquetado explicitamente como "CUPS". Si la etiqueta dice "CUPS:" seguido de un codigo ES..., ESE es el correcto.
+- Si encuentras varios codigos que empiezan por ES, elige el que este explicitamente etiquetado como "CUPS".
 
 === CAMPO 2: TARIFA ===
 - Busca "Peaje de acceso", "ATR", "Tarifa de acceso".
@@ -27768,13 +27771,18 @@ ${clientName}
 
 === CAMPO 5: ENERGIA CONSUMIDA (kWh del periodo) ===
 - EXTRAE el CONSUMO del periodo, NO las lecturas acumuladas del contador.
-- Fuentes correctas (en orden de prioridad):
-  1. "Termino energia [fecha] - P1: X kWh - Precio: Y €/kWh" → USA este X
-  2. Columna "Consumo" en tabla de lecturas del contador (= Actual menos Anterior) → USA este valor
-  3. "Sus consumos desagregados han sido punta: X kWh; llano: X kWh; valle: X kWh" → USA estos
-- Fuentes INCORRECTAS → IGNORAR:
-  * Columna "Actual" o "Anterior" en tabla de lecturas (valores grandes como 65787, 21921 kWh)
-  * "Lecturas desagregadas acumuladas"
+- FUENTE PRIORITARIA (usa esta si existe):
+  * Seccion "Energia" o "Termino energia" en el detalle de factura:
+    "Termino energia [fecha] - P1: 235 kWh - Precio: 0.1136" → e1=235
+    "Termino energia [fecha] - P2: 90 kWh - Precio: 0.1136" → e2=90
+    "Termino energia [fecha] - P3: 69 kWh - Precio: 0.1136" → e3=69
+  * Estos valores son PEQUEÑOS (decenas o pocos cientos de kWh por periodo).
+- FUENTE SECUNDARIA (solo si no hay detalle de factura):
+  * Tabla "Lecturas del contador": usa SOLO la columna "Consumo", NUNCA "Actual" ni "Anterior".
+  * Ejemplo tabla: P1: Anterior=55602 / Actual=65787 / Consumo=235 → e1=235 (NO 65787, NO 55602)
+  * Ejemplo tabla: P2: Anterior=21733 / Actual=21921 / Consumo=90 → e2=90 (NO 293, NO 21921)
+- NUNCA hagas restas entre Actual y Anterior, usa directamente la columna Consumo.
+- Valores INCORRECTOS a ignorar: numeros grandes de 4-5 cifras como 55602, 21733, 13700, 65787.
 - Para 2.0TD: E1=punta, E2=llano, E3=valle. Para 3.0TD: E1 a E6.
 
 === CAMPO 6: TOTAL ===

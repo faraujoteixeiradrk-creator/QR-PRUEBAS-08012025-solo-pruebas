@@ -2532,6 +2532,14 @@
   dualSupplies.push(supply);
   console.log('Total suministros:', dualSupplies.length);
   console.log('Array completo:', dualSupplies);
+  // Limpiar flags de IA para el siguiente suministro
+  if (type === 'gas') {
+  window.gasUsedIA = false;
+  window.gasAiData = null;
+  } else {
+  window.elecUsedIA = false;
+  window.aiExtractedData = null;
+  }
   // Limpiar finalResult pendiente
   window.pendingDualFinalResult = null;
   // Volver al gestor DUAL

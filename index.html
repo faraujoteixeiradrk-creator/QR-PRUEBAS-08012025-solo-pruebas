@@ -2282,7 +2282,7 @@
   addressInput.value = '';
   if (type === 'electricidad' && window.elecUsedIA && window.aiExtractedData && window.aiExtractedData.direccion_suministro) {
   addressInput.value = window.aiExtractedData.direccion_suministro;
-  } else if (type === 'gas' && window.gasUsedIA && window.gasAiData && window.gasAiData.direccion_suministro) {
+  } else if (type === 'gas' && window.gasAiData && window.gasAiData.direccion_suministro && window.gasUsedIA) {
   addressInput.value = window.gasAiData.direccion_suministro;
   }
   console.log('🔵 Mostrando modal de dirección DUAL');
@@ -22164,7 +22164,11 @@ ${clientName}
   }
   const type = 'gas';
   const tariff = currentGasTariff;
-  const data = window.gasCalculationParams;
+  const data = Object.assign({}, window.gasCalculationParams);
+  // Añadir cups desde IA si disponible
+  if (!data.cups && window.gasUsedIA && window.gasAiData && window.gasAiData.cups) {
+  data.cups = window.gasAiData.cups;
+  }
   // Obtener resultados de gas desde las variables globales
   const results = {
   drk: window.lastGasDRKResult || { total: 0, total_anual: 0 },
@@ -22438,8 +22442,11 @@ ${clientName}
  // Función: Seleccionar tarifa de GAS y abrir modal
  function selectGasTariff(tariff) {
   currentGasTariff = tariff;
-  window.gasUsedIA = false; // Resetear flag IA al abrir manualmente
+  // Solo resetear flags si NO estamos en modo DUAL (en DUAL los flags se gestionan al añadir)
+  if (!window.dualMode) {
+  window.gasUsedIA = false;
   window.elecUsedIA = false;
+  }
   // Mostrar con formato correcto (Rl1 en lugar de RL1)
   const displayTariff = tariff.charAt(0).toUpperCase() + tariff.charAt(1).toLowerCase() + tariff.slice(2);
   document.getElementById('gas-selected-tariff').textContent = displayTariff;

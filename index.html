@@ -432,6 +432,11 @@
   <p class="text-xs text-slate-400 mt-1" data-i18n="La IA extraerá los datos automáticamente">La IA extraerá los datos automáticamente</p>
   </div>
   </div>
+  <!-- PEDIR FACTURA AL CLIENTE - GAS -->
+  <button onclick="abrirModalSubirMovilGas()" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-4">
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+  <span data-i18n="📲 PEDIR FACTURA AL CLIENTE">📲 PEDIR FACTURA AL CLIENTE</span>
+  </button>
   <p class="text-xs text-center text-slate-400 mb-3" data-i18n="— o rellena manualmente —">— o rellena manualmente —</p>
   <div class="space-y-4">
   <div>
@@ -1107,10 +1112,10 @@
   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
   Descargar PDF del cliente
   </button>
-  <button onclick="procesarPDFMovil()" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transition mb-2">
+  <button id="btn-procesar-movil" onclick="procesarPDFMovil()" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transition mb-2">
   Procesar este PDF →
   </button>
-  <button onclick="analizarConIAMovil()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2">
+  <button id="btn-ia-movil" onclick="analizarConIAMovil()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2">
   <span>🤖</span> Analizar con IA (extracción automática)
   </button>
   </div>
@@ -18353,6 +18358,14 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   // ── VISTA ESCRITORIO ──
   let mobileSessionId = null, mobileQRGenerated = false, mobileReceivedData = null;
   window.abrirModalSubirMovil = function() {
+  window._mobileContext = 'electricidad';
+  _abrirModalMovilInterno();
+  };
+  window.abrirModalSubirMovilGas = function() {
+  window._mobileContext = 'gas';
+  _abrirModalMovilInterno();
+  };
+  function _abrirModalMovilInterno() {
   document.getElementById('mobile-upload-modal').classList.remove('hidden');
   if (!mobileQRGenerated) {
   mobileSessionId = Math.random().toString(36).substr(2, 8).toUpperCase();
@@ -18371,7 +18384,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   mobileQRGenerated = true;
   iniciarEsperaMovil();
   }
-  };
+  }
   function iniciarEsperaMovil() {
   loadMQTT(function() {
   const clientId = 'drk_desk_' + Math.random().toString(36).substr(2, 6);
@@ -18408,6 +18421,14 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   if (data.cliente.email) document.getElementById('mobile-client-email').innerHTML = '📧 <a href="mailto:' + data.cliente.email + '" style="color:#059669;text-decoration:underline;">' + data.cliente.email + '</a>';
   if (data.cliente.telefono) document.getElementById('mobile-client-telefono').innerHTML = '📱 <a href="tel:' + data.cliente.telefono + '" style="color:#059669;text-decoration:underline;">' + data.cliente.telefono + '</a>';
   }
+  // Adaptar botones según contexto GAS/electricidad
+  const isGas = window._mobileContext === 'gas';
+  const btnProcesar = document.getElementById('btn-procesar-movil');
+  const btnIA = document.getElementById('btn-ia-movil');
+  if (btnProcesar) btnProcesar.textContent = isGas ? 'Rellenar campos de gas →' : 'Procesar este PDF →';
+  if (btnIA) btnIA.innerHTML = isGas
+  ? '<span>🤖</span> Analizar factura de gas con IA'
+  : '<span>🤖</span> Analizar con IA (extracción automática)';
   document.getElementById('mobile-received-section').classList.remove('hidden');
   }
   window.descargarPDFMovil = function() {
@@ -18450,14 +18471,26 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   window.analizarConIAMovil = function() {
   if (!mobileReceivedData) return;
   const savedData = mobileReceivedData;
+  const isGas = window._mobileContext === 'gas';
   cerrarModalSubirMovil();
   window._lastMobilePDFData = savedData;
   window._lastMobilePDFFile = null;
+  if (isGas) {
+  // Convertir a File y pasar por procesarFacturaGasIA
+  const base64 = savedData.data.split(',')[1];
+  const byteChars = atob(base64);
+  const byteArr = new Uint8Array(byteChars.length);
+  for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+  const file = new File([byteArr], savedData.name || 'factura_gas.pdf', { type: 'application/pdf' });
+  if (typeof procesarFacturaGasIA === 'function') { procesarFacturaGasIA(file); }
+  } else {
   window.analizarConIADesdeFile && window.analizarConIADesdeFile(null, savedData);
+  }
   };
   window.procesarPDFMovil = function() {
   if (!mobileReceivedData) return;
   const savedData = mobileReceivedData;
+  const isGas = window._mobileContext === 'gas';
   cerrarModalSubirMovil();
   const byteString = atob(savedData.data.split(',')[1]);
   const ab = new ArrayBuffer(byteString.length);
@@ -18465,36 +18498,30 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
   const blob = new Blob([ab], { type: 'application/pdf' });
   const file = new File([blob], savedData.name, { type: 'application/pdf' });
-  // Guardar referencia para posible fallback IA
   window._lastMobilePDFFile = file;
   window._lastMobilePDFData = savedData;
+  if (isGas) {
+  // Para GAS: pasar directamente por IA de gas (es el flujo más útil)
+  if (typeof procesarFacturaGasIA === 'function') {
+  procesarFacturaGasIA(file);
+  }
+  return;
+  }
+  // Para ELECTRICIDAD: flujo normal con fallback IA
   let processingOk = false;
   try {
-  if (typeof handleFile === 'function') {
-  handleFile(file);
-  processingOk = true;
-  } else {
+  if (typeof handleFile === 'function') { handleFile(file); processingOk = true; }
+  else {
   const inp = document.getElementById('file-upload-input');
-  if (inp) {
-  const dt = new DataTransfer(); dt.items.add(file); inp.files = dt.files;
-  inp.dispatchEvent(new Event('change', { bubbles: true }));
-  processingOk = true;
+  if (inp) { const dt = new DataTransfer(); dt.items.add(file); inp.files = dt.files; inp.dispatchEvent(new Event('change', { bubbles: true })); processingOk = true; }
   }
-  }
-  } catch(err) {
-  processingOk = false;
-  }
-  // Si no se pudo procesar, o como verificación diferida, ofrecer IA
-  if (!processingOk) {
-  _ofrecerAnalisisIA(file, savedData);
-  } else {
-  // Esperar 2.5s y verificar si se rellenaron campos — si no, ofrecer IA
+  } catch(err) { processingOk = false; }
+  if (!processingOk) { _ofrecerAnalisisIA(file, savedData); }
+  else {
   setTimeout(function() {
   const diasEl = document.getElementById('dias-facturacion') || document.getElementById('input-dias') || document.getElementById('dias');
   const tieneDatos = diasEl && diasEl.value && parseFloat(diasEl.value) > 0;
-  if (!tieneDatos && window._lastMobilePDFFile) {
-  _ofrecerAnalisisIA(window._lastMobilePDFFile, window._lastMobilePDFData);
-  }
+  if (!tieneDatos && window._lastMobilePDFFile) { _ofrecerAnalisisIA(window._lastMobilePDFFile, window._lastMobilePDFData); }
   }, 2500);
   }
   };

@@ -27673,8 +27673,8 @@ ${clientName}
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-  model: 'claude-sonnet-4-5',
-  max_tokens: 1500,
+  model: 'claude-sonnet-4-6',
+  max_tokens: 2000,
   messages: [{ role: 'user', content: messageContent }]
   })
   });
@@ -27785,6 +27785,13 @@ ${clientName}
 
 === CAMPO 6: TOTAL ===
 - Importe final con IVA incluido. Busca "TOTAL A PAGAR", "TOTAL FACTURA", "Total a pagar". Es el importe mas alto.
+
+=== VERIFICACION ANTES DE RESPONDER ===
+Antes de generar el JSON, verifica mentalmente:
+1. ¿El CUPS que voy a poner aparece LITERALMENTE en la factura con la etiqueta "CUPS:"? Si no estoy seguro al 100%, escribo "DESCONOCIDO".
+2. ¿Las potencias son las CONTRATADAS del detalle de facturacion, no las maximas demandadas?
+3. ¿La energia son los kWh del periodo (valores pequeños), no lecturas acumuladas del contador?
+4. ¿He interpretado correctamente los separadores? En España: 18.000 kWh = 18 kWh (punto = miles).
 
 === RESPUESTA ===
 Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:

@@ -22693,8 +22693,10 @@ ${clientName}
  }
  // Función: Cerrar modal
  function closeGasModal() {
-  document.getElementById('gas-manual-input-modal').classList.add('hidden');
-  document.getElementById('gas-manual-input-modal').classList.remove('flex');
+  const modal = document.getElementById('gas-manual-input-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+  modal.style.display = 'none';
  }
  // Función: Cargar datos del Google Sheets de GAS
  async function loadGasData() {

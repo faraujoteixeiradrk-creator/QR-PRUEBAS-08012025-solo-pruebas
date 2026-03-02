@@ -16452,9 +16452,9 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   // NUEVO: Event listeners para solicitar mejora a DRK
   document.getElementById('request-improvement-btn').onclick = () => {
   if (lastComparisonResult) {
+  clearClientModal();
   document.getElementById('request-improvement-modal').classList.remove('hidden');
   document.getElementById('request-improvement-modal').classList.add('flex');
-  // Auto-rellenar datos de la IA si están disponibles
   autoFillClientDataFromIA();
   } else {
   window.showErrorModal("Por favor, analice una factura primero.");
@@ -16465,6 +16465,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   if (gasImprovementBtn) {
   gasImprovementBtn.onclick = () => {
   if (window.lastGasComparisonResult) {
+  clearClientModal();
   document.getElementById('request-improvement-modal').classList.remove('hidden');
   document.getElementById('request-improvement-modal').classList.add('flex');
   autoFillClientDataFromIA();
@@ -16478,6 +16479,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   if (dualImprovementBtn) {
   dualImprovementBtn.onclick = () => {
   if (window.dualGlobalResults && dualSupplies.length >= 2) {
+  clearClientModal();
   document.getElementById('request-improvement-modal').classList.remove('hidden');
   document.getElementById('request-improvement-modal').classList.add('flex');
   autoFillClientDataFromIA();
@@ -20009,9 +20011,11 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   alert('Calcula la comparativa primero.');
   return;
   }
+  clearClientModal();
   // Mostrar el modal
   document.getElementById('client-data-modal').classList.remove('hidden');
   document.getElementById('client-data-modal').classList.add('flex');
+  autoFillClientDataFromIA();
  }
  // Función: Cerrar modal de datos del cliente
  function closeClientDataModal() {
@@ -22169,6 +22173,15 @@ ${clientName}
   }
  };
  // FIN FUNCIONES MÓDULO DUAL
+ // ===== LIMPIAR MODAL DE DATOS DEL CLIENTE =====
+ function clearClientModal() {
+  const fields = ['improvement-client-name', 'improvement-client-cups', 'improvement-client-phone', 'improvement-client-email', 'client-name', 'client-name-input', 'client-address', 'client-address-input'];
+  fields.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.value = '';
+  });
+ }
+
  // ===== AUTO-RELLENO DE DATOS DEL CLIENTE DESDE IA =====
  function autoFillClientDataFromIA() {
   // Solo rellenar si la sesión actual usó IA

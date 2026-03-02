@@ -433,9 +433,9 @@
   </div>
   </div>
   <!-- PEDIR FACTURA AL CLIENTE - GAS -->
-  <button onclick="abrirModalSubirMovilGas()" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-4">
+  <button onclick="console.log('GAS btn clicked', typeof window.abrirModalSubirMovilGas); if(typeof window.abrirModalSubirMovilGas==='function'){window.abrirModalSubirMovilGas();}else{alert('Función no disponible aún, recarga la página');}" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-4">
   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-  <span data-i18n="PEDIR FACTURA AL CLIENTE">PEDIR FACTURA AL CLIENTE</span>
+  <span>📲 PEDIR FACTURA AL CLIENTE</span>
   </button>
   <p class="text-xs text-center text-slate-400 mb-3" data-i18n="— o rellena manualmente —">— o rellena manualmente —</p>
   <div class="space-y-4">
@@ -18365,15 +18365,27 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   };
   window.abrirModalSubirMovilGas = function() {
   window._mobileContext = 'gas';
-  mobileQRGenerated = false; // forzar nueva sesión
+  mobileQRGenerated = false;
   if (window._drkMqttClient) { try { window._drkMqttClient.end(true); } catch(e){} window._drkMqttClient = null; }
-  // Resetear estado del modal
+  // Cerrar gas modal primero
+  const gasModal = document.getElementById('gas-manual-input-modal');
+  if (gasModal) { gasModal.classList.add('hidden'); gasModal.classList.remove('flex'); }
+  // Resetear estado
   document.getElementById('mobile-status-badge').className = 'flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-amber-50 border-amber-200 text-amber-600 mb-3';
   document.getElementById('mobile-status-badge').innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block"></span> Esperando PDF del móvil...';
   document.getElementById('mobile-received-section').classList.add('hidden');
   document.getElementById('mobile-client-data').classList.add('hidden');
   mobileReceivedData = null;
+  // Subir z-index del mobile modal para que salga por encima
+  const mobileModal = document.getElementById('mobile-upload-modal');
+  if (mobileModal) mobileModal.style.zIndex = '9999';
   _abrirModalMovilInterno();
+  // Al cerrar, volver a mostrar gas modal
+  window._onCerrarMovilGas = function() {
+  if (gasModal) { gasModal.classList.remove('hidden'); gasModal.classList.add('flex'); }
+  if (mobileModal) mobileModal.style.zIndex = '';
+  window._onCerrarMovilGas = null;
+  };
   };
   function _abrirModalMovilInterno() {
   document.getElementById('mobile-upload-modal').classList.remove('hidden');
@@ -18468,6 +18480,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   };
   window.cerrarModalSubirMovil = function() {
   document.getElementById('mobile-upload-modal').classList.add('hidden');
+  document.getElementById('mobile-upload-modal').style.zIndex = '';
   if (window._drkMqttClient) { try { window._drkMqttClient.end(true); } catch(e){} window._drkMqttClient = null; }
   mobileQRGenerated = false; mobileSessionId = null; mobileReceivedData = null;
   document.getElementById('mobile-status-badge').className = 'flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-amber-50 border-amber-200 text-amber-600 mb-3';
@@ -18477,6 +18490,8 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   document.getElementById('mobile-client-nombre').textContent = '';
   document.getElementById('mobile-client-email').textContent = '';
   document.getElementById('mobile-client-telefono').textContent = '';
+  // Si venía desde GAS, restaurar el modal de gas
+  if (window._onCerrarMovilGas) { window._onCerrarMovilGas(); }
   };
   window.analizarConIAMovil = function() {
   if (!mobileReceivedData) return;
@@ -18590,6 +18605,14 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   };
  })();
  // ===== FIN SUBIR PDF DESDE MÓVIL =====
+ // Función standalone para gas (fuera del IIFE para garantizar scope global)
+ window.abrirModalSubirMovilGasStandalone = function() {
+  if (typeof window.abrirModalSubirMovilGas === 'function') {
+  window.abrirModalSubirMovilGas();
+  } else {
+  console.error('abrirModalSubirMovilGas no está disponible aún');
+  }
+ };
  function handleQRRead(raw) {
   stopScanner();
   // CRÍTICO: Resetear variables de estado al analizar nueva factura

@@ -3566,13 +3566,15 @@
   if (config.requiresQR && type === '2.0TD') { // 2.0TD is the only single tariff with QR
   qrButtonsContainer.classList.remove('hidden');
   const ai30w = document.getElementById('ai-btn-30td-wrapper'); if(ai30w) ai30w.style.display='none';
+  const movilBtn30 = document.getElementById('movil-btn-30td'); if(movilBtn30) movilBtn30.style.display='none';
   document.getElementById('manual-input-btn').classList.add('mt-3');
   document.getElementById('scan-instruction-text').textContent = "Escanea el código QR o introduce datos manualmente.";
-  } else { // 3.0TD (Siempre manual)
+  } else { // 3.0TD (IA + PEDIR FACTURA + Manual)
   qrButtonsContainer.classList.add('hidden');
   const ai30show = document.getElementById('ai-btn-30td-wrapper'); if(ai30show) ai30show.style.display='';
+  const movilBtn = document.getElementById('movil-btn-30td'); if(movilBtn) movilBtn.style.display='flex';
   document.getElementById('manual-input-btn').classList.remove('mt-3');
-  document.getElementById('scan-instruction-text').textContent = "Introduce los datos de la factura manualmente.";
+  document.getElementById('scan-instruction-text').textContent = "Sube tu factura por IA o introduce los datos manualmente.";
   document.getElementById('qr-toggle-checkbox').checked = false;
   document.getElementById('qr-content-wrapper').classList.remove('active');
   }
@@ -18724,7 +18726,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   console.error(`Error al cargar ${tariffType}:`, e);
   currentTariffs[tariffType] = [];
   if (currentTariffType !== 'MULTICUPS' && tariffType === currentTariffType) {
-  document.getElementById('tariff-display-badge').textContent = 'Error';
+  document.getElementById('tariff-display-badge').textContent = '⚠️';
   }
   } finally {
   if (currentTariffType !== 'MULTICUPS' && tariffType === currentTariffType) {

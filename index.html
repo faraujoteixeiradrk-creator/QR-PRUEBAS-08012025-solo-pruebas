@@ -18393,6 +18393,10 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   const modal = document.getElementById('mobile-upload-modal');
   console.log('🟣 modal element:', modal);
   if (!modal) { console.error('❌ mobile-upload-modal no encontrado'); return; }
+  // Mover al body para escapar cualquier stacking context padre
+  if (modal.parentElement !== document.body) {
+  document.body.appendChild(modal);
+  }
   modal.style.display = 'flex';
   console.log('🟣 modal visible, mobileQRGenerated:', mobileQRGenerated);
   if (!mobileQRGenerated) {

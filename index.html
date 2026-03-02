@@ -27801,6 +27801,16 @@ ${clientName}
 === CAMPO 6: TOTAL ===
 - Importe final con IVA incluido. Busca "TOTAL A PAGAR", "TOTAL FACTURA", "Total a pagar". Es el importe mas alto.
 
+=== CAMPO 7: NOMBRE DEL TITULAR ===
+- Busca en "Datos del titular", "Datos del cliente", "Nombre:" o similar.
+- Es el nombre completo de la persona o empresa titular del contrato.
+- Ejemplo: "SEGMACAR AUTOMOVILES S.L" o "TAVOLA DIGITAL S.L."
+
+=== CAMPO 8: DIRECCIÓN DE SUMINISTRO ===
+- Busca en "Datos del suministro" o "Datos del punto de suministro".
+- Es la dirección donde está el punto de consumo (NO la dirección fiscal del titular).
+- Ejemplo: "Carretera Jaen 0 Km 9 6, 23440, Baeza, Jaén"
+
 === VERIFICACION ANTES DE RESPONDER ===
 Antes de generar el JSON, verifica mentalmente:
 1. ¿El CUPS que voy a poner aparece LITERALMENTE en la factura con la etiqueta "CUPS:"? Si no estoy seguro al 100%, escribo "DESCONOCIDO".
@@ -27810,7 +27820,7 @@ Antes de generar el JSON, verifica mentalmente:
 
 === RESPUESTA ===
 Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
-{"cups":"ES...","tarifa":"2.0TD","dias":30,"potencias_kw":{"p1":0.0,"p2":0.0,"p3":0.0,"p4":0.0,"p5":0.0,"p6":0.0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0.00,"notas":""}`;
+{"cups":"ES...","tarifa":"2.0TD","dias":30,"potencias_kw":{"p1":0.0,"p2":0.0,"p3":0.0,"p4":0.0,"p5":0.0,"p6":0.0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0.00,"nombre_cliente":"","direccion_suministro":"","notas":""}`;
  }
   // ===== DRAG & DROP ZONES =====
  function setupDragZone(zoneId, tariff) {
@@ -27841,11 +27851,38 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
   document.getElementById('manual-input-modal').classList.remove('hidden');
   document.getElementById('manual-input-modal').classList.add('flex');
   setTimeout(() => {
-  function sv(id, val) { const el = document.getElementById(id); if (el && val) { el.value = val; el.style.borderColor = '#06b6d4'; el.style.background = '#ecfeff'; setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 3000); } }
-  sv('input-cups', d.cups); sv('input-billing-days', d.dias); sv('input-total-bill', d.total_factura);
+  // Helper: rellenar campo con animación visual
+  function sv(id, val) {
+  const el = document.getElementById(id);
+  if (el && val !== undefined && val !== null && val !== '' && val !== 0) {
+  el.value = val;
+  el.style.borderColor = '#06b6d4';
+  el.style.background = '#ecfeff';
+  setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 3000);
+  }
+  }
+  // Campos principales de factura
+  sv('input-cups', d.cups);
+  sv('input-billing-days', d.dias);
+  sv('input-total-bill', d.total_factura);
   if (d.potencias_kw) { const p = d.potencias_kw; sv('input-p1-kw',p.p1); sv('input-p2-kw',p.p2); sv('input-p3-kw',p.p3); sv('input-p4-kw',p.p4); sv('input-p5-kw',p.p5); sv('input-p6-kw',p.p6); }
   if (d.energia_kwh) { const e = d.energia_kwh; sv('input-e1-kwh',e.e1); sv('input-e2-kwh',e.e2); sv('input-e3-kwh',e.e3); sv('input-e4-kwh',e.e4); sv('input-e5-kwh',e.e5); sv('input-e6-kwh',e.e6); }
   if (typeof toggleMultiCupsInputPeriods === 'function') toggleMultiCupsInputPeriods(tariff, 'input');
+  // Rellenar nombre y dirección en modal de datos del comercial
+  if (d.nombre_cliente) {
+  sv('client-name', d.nombre_cliente);
+  sv('client-name-input', d.nombre_cliente);
+  sv('improvement-client-name', d.nombre_cliente);
+  }
+  if (d.direccion_suministro) {
+  sv('client-address', d.direccion_suministro);
+  sv('client-address-input', d.direccion_suministro);
+  sv('multicups-supply-address', d.direccion_suministro);
+  }
+  // Rellenar CUPS en modal de mejora
+  if (d.cups) {
+  sv('improvement-client-cups', d.cups);
+  }
   }, 150);
   cerrarModalIA();
  };
@@ -27958,6 +27995,8 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
         dias: parsed.dias || 0,
         kwh: parsed.kwh || 0,
         total_factura: parsed.total_factura || 0,
+        nombre_cliente: parsed.nombre_cliente || '',
+        direccion_suministro: parsed.direccion_suministro || '',
         notas: parsed.notas || ''
        };
        setGasProgress(100, 'Datos extraidos!');
@@ -27979,7 +28018,7 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       }
      };
      function getPromptGasIA() {
-      return 'Eres un experto en facturas de gas espanolas. Analiza esta factura.\nINSTRUCCIONES:\n1. CUPS: Codigo que empieza por ES de 20-22 caracteres.\n2. DIAS: Dias del periodo de facturacion.\n3. KWH: kWh consumidos en el periodo.\n4. TOTAL: Importe final a pagar.\nDevuelve SOLO este JSON sin texto adicional:\n{"cups":"ES...","dias":30,"kwh":250.0,"total_factura":45.50,"notas":""}';
+      return 'Eres un experto en facturas de gas espanolas. Analiza esta factura.\nINSTRUCCIONES:\n1. CUPS: Codigo que empieza por ES de 20-22 caracteres. Busca la etiqueta explicita "CUPS:" en datos del suministro.\n2. DIAS: Dias del periodo de facturacion.\n3. KWH: kWh consumidos en el periodo.\n4. TOTAL: Importe final a pagar con IVA.\n5. NOMBRE_CLIENTE: Nombre completo del titular (persona o empresa). Busca en "Datos del titular" o "Nombre:".\n6. DIRECCION: Direccion del punto de suministro (NO la fiscal). Busca en "Datos del suministro".\nDevuelve SOLO este JSON sin texto adicional:\n{"cups":"ES...","dias":30,"kwh":250.0,"total_factura":45.50,"nombre_cliente":"","direccion_suministro":"","notas":""}';
      }
      window.confirmarDatosGasIA = function() {
       if (!gasAiData) return;
@@ -27996,6 +28035,17 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       sv('gas-dias', gasAiData.dias);
       sv('gas-kwh', gasAiData.kwh);
       sv('gas-total-cliente', gasAiData.total_factura);
+      // Rellenar nombre y dirección en modales compartidos
+      if (gasAiData.nombre_cliente) {
+       sv('client-name', gasAiData.nombre_cliente);
+       sv('client-name-input', gasAiData.nombre_cliente);
+       sv('improvement-client-name', gasAiData.nombre_cliente);
+      }
+      if (gasAiData.direccion_suministro) {
+       sv('client-address', gasAiData.direccion_suministro);
+       sv('client-address-input', gasAiData.direccion_suministro);
+       sv('multicups-supply-address', gasAiData.direccion_suministro);
+      }
       cerrarModalGasIA();
      };
      document.addEventListener('DOMContentLoaded', function() {

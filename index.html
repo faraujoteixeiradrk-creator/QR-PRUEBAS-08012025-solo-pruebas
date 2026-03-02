@@ -23360,8 +23360,15 @@ ${clientName}
   alert(window.tr('El código comercial es obligatorio'));
   return;
   }
-  const clientName = prompt(window.tr('NOMBRE DEL CLIENTE:'), window.tr('[NOMBRE COMPLETO CLIENTE]')) || window.tr('[NOMBRE COMPLETO CLIENTE]');
-  const clientAddress = prompt(window.tr('DIRECCIÓN DE SUMINISTRO:'), '') || '';
+  // Auto-rellenar nombre y dirección desde IA si están disponibles
+  const iaName = (window.gasAiData && window.gasAiData.nombre_cliente) ||
+  (window.aiExtractedData && window.aiExtractedData.nombre_cliente) ||
+  document.getElementById('improvement-client-name')?.value.trim() || '';
+  const iaAddress = (window.gasAiData && window.gasAiData.direccion_suministro) ||
+  (window.aiExtractedData && window.aiExtractedData.direccion_suministro) ||
+  document.getElementById('client-address-input')?.value.trim() || '';
+  const clientName = iaName || prompt(window.tr('NOMBRE DEL CLIENTE:'), window.tr('[NOMBRE COMPLETO CLIENTE]')) || window.tr('[NOMBRE COMPLETO CLIENTE]');
+  const clientAddress = iaAddress || prompt(window.tr('DIRECCIÓN DE SUMINISTRO:'), '') || '';
   // AHORA SÍ: Si está en chino, cambiar temporalmente a inglés para el PDF
   if (wasChineseMode) {
   console.log('🇨🇳 Idioma chino detectado - cambiando a inglés para PDF');

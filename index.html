@@ -22295,6 +22295,10 @@ ${clientName}
   alert('Los valores deben ser mayores a 0');
   return;
   }
+  // Si no vino de IA, limpiar datos IA
+  if (!window.gasUsedIA) {
+  window.gasAiData = null;
+  }
   // Guardar parámetros (CRÍTICO: también en window para modo DUAL)
   gasCalculationParams = { cups, dias, kwh, totalCliente, type, mode: 'best' };
   window.gasCalculationParams = gasCalculationParams;
@@ -22310,6 +22314,18 @@ ${clientName}
   const dias = parseFloat(document.getElementById('gas-dias').value);
   const kwh = parseFloat(document.getElementById('gas-kwh').value);
   const totalCliente = parseFloat(document.getElementById('gas-total-cliente').value);
+  if (!dias || !kwh || !totalCliente) {
+  alert(tr('Por favor, completa todos los campos'));
+  return;
+  }
+  if (dias <= 0 || kwh <= 0 || totalCliente <= 0) {
+  alert('Los valores deben ser mayores a 0');
+  return;
+  }
+  // Si no vino de IA, limpiar datos IA para que no contaminen el modal de dirección
+  if (!window.gasUsedIA) {
+  window.gasAiData = null;
+  }
   if (!dias || !kwh || !totalCliente) {
   alert(tr('Por favor, completa todos los campos'));
   return;

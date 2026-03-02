@@ -13435,6 +13435,9 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   const isDualMode = window.dualMode === true;
   const tariffToConfigure = isMultiCupsMode ? multiCupsAddType : currentTariffType;
   if (isMultiCupsMode && !tariffToConfigure) return window.showErrorModal("Error interno: Seleccione primero 2.0 TD o 3.0 TD en la pantalla anterior.");
+  // Limpiar flags de IA para que no interfieran con entrada manual
+  window.aiExtractedData = null;
+  window.gasUsedIA = false;
   // 1. Limpiar inputs
   clearManualInputs('input');
   // 2. Configurar el modal para modo Individual, Multi o DUAL
@@ -22390,6 +22393,7 @@ ${clientName}
  // Función: Seleccionar tarifa de GAS y abrir modal
  function selectGasTariff(tariff) {
   currentGasTariff = tariff;
+  window.gasUsedIA = false; // Resetear flag IA al abrir manualmente
   // Mostrar con formato correcto (Rl1 en lugar de RL1)
   const displayTariff = tariff.charAt(0).toUpperCase() + tariff.charAt(1).toLowerCase() + tariff.slice(2);
   document.getElementById('gas-selected-tariff').textContent = displayTariff;
@@ -23360,13 +23364,17 @@ ${clientName}
   alert(window.tr('El código comercial es obligatorio'));
   return;
   }
-  // Auto-rellenar nombre y dirección desde IA si están disponibles
-  const iaName = (window.gasAiData && window.gasAiData.nombre_cliente) ||
+  // Auto-rellenar nombre y dirección desde IA SOLO si esta sesión usó IA
+  const iaName = window.gasUsedIA ? (
+  (window.gasAiData && window.gasAiData.nombre_cliente) ||
   (window.aiExtractedData && window.aiExtractedData.nombre_cliente) ||
-  document.getElementById('improvement-client-name')?.value.trim() || '';
-  const iaAddress = (window.gasAiData && window.gasAiData.direccion_suministro) ||
+  document.getElementById('improvement-client-name')?.value.trim() || ''
+  ) : '';
+  const iaAddress = window.gasUsedIA ? (
+  (window.gasAiData && window.gasAiData.direccion_suministro) ||
   (window.aiExtractedData && window.aiExtractedData.direccion_suministro) ||
-  document.getElementById('client-address-input')?.value.trim() || '';
+  document.getElementById('client-address-input')?.value.trim() || ''
+  ) : '';
   const clientName = iaName || prompt(window.tr('NOMBRE DEL CLIENTE:'), window.tr('[NOMBRE COMPLETO CLIENTE]')) || window.tr('[NOMBRE COMPLETO CLIENTE]');
   const clientAddress = iaAddress || prompt(window.tr('DIRECCIÓN DE SUMINISTRO:'), '') || '';
   // AHORA SÍ: Si está en chino, cambiar temporalmente a inglés para el PDF
@@ -28061,6 +28069,7 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
      }
      window.confirmarDatosGasIA = function() {
       if (!gasAiData) return;
+      window.gasUsedIA = true; // Marcar que esta sesión usó IA
       function sv(id, val) {
        var el = document.getElementById(id);
        if (el && val !== undefined && val !== 0 && val !== '') {

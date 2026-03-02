@@ -1107,8 +1107,11 @@
   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
   Descargar PDF del cliente
   </button>
-  <button onclick="procesarPDFMovil()" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transition">
+  <button onclick="procesarPDFMovil()" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transition mb-2">
   Procesar este PDF →
+  </button>
+  <button onclick="analizarConIAMovil()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl transition flex items-center justify-center gap-2">
+  <span>🤖</span> Analizar con IA (extracción automática)
   </button>
   </div>
   <p class="text-xs text-slate-400 mt-3 text-center">⚠️ Solo se admiten archivos PDF · Máx. 5 MB</p>
@@ -17906,6 +17909,14 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   .drop-area { border: 2px dashed #c4b5fd; border-radius: 14px; padding: 28px 16px; color: #7c3aed; cursor: pointer; margin-bottom: 10px; transition: all 0.2s; background: #faf5ff; }
   .drop-area:hover { background: #ede9fe; }
   .drop-area p { font-size: 0.85rem; color: #6b7280; margin-top: 6px; }
+  .photo-slot { border: 2px dashed #c4b5fd; border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; background: #faf5ff; transition: all 0.2s; position: relative; min-height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .photo-slot:hover { background: #ede9fe; border-color: #7c3aed; }
+  .photo-slot.filled { border-color: #7c3aed; background: #ede9fe; }
+  .photo-slot img { width: 100%; height: 70px; object-fit: cover; border-radius: 8px; }
+  .photo-slot .remove-btn { position: absolute; top: 4px; right: 4px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 14px; background: #f5f3ff; padding: 4px; border-radius: 12px; }
+  .tab { flex: 1; padding: 8px 4px; border: none; border-radius: 9px; font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; background: transparent; color: #7c3aed; transition: all 0.2s; }
+  .tab.active { background: white; color: #4c1d95; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
   .progress-bar { display: none; height: 8px; background: #e5e7eb; border-radius: 99px; overflow: hidden; margin: 14px 0 6px; }
   .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 99px; width: 0; transition: width 0.5s ease; }
   .status-msg { font-size: 0.82rem; color: #6b7280; margin-bottom: 4px; }
@@ -17918,10 +17929,12 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   .divider { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
   .divider div { flex: 1; height: 1px; background: #e5e7eb; }
   .divider span { font-size: 0.72rem; color: #9ca3af; font-weight: 600; }
+  .photos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+  .photo-count-badge { background: #7c3aed; color: white; border-radius: 99px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700; display: inline-block; margin-left: 6px; }
   </style>
   <div class="card">
   <div class="logo">📄</div>
-  <h2>Subir Factura PDF</h2>
+  <h2>Subir Factura</h2>
   <p class="subtitle">Introduce tus datos y sube tu factura</p>
   <div class="session-badge">Sesión: ${mobileSession}</div>
   <div id="mob-form-section">
@@ -17946,6 +17959,13 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   </div>
   <div id="mob-upload-section" style="display:none;">
   <div id="mob-datos-confirmados" style="background:#f5f3ff;border:1px solid #c4b5fd;border-radius:12px;padding:10px 14px;margin-bottom:14px;text-align:left;font-size:0.78rem;color:#4c1d95;"></div>
+  <!-- TABS: PDF o FOTOS -->
+  <div class="tabs">
+  <button class="tab active" id="tab-pdf" onclick="switchTab('pdf')">📄 PDF</button>
+  <button class="tab" id="tab-fotos" onclick="switchTab('fotos')">📷 Fotos <span class="photo-count-badge" id="photo-count-badge" style="display:none;">0</span></button>
+  </div>
+  <!-- TAB PDF -->
+  <div id="tab-content-pdf">
   <div style="background:#f5f3ff;border:2px solid #c4b5fd;border-radius:16px;padding:14px;margin-bottom:14px;text-align:center;">
   <p style="font-weight:700;color:#4c1d95;font-size:0.88rem;margin-bottom:4px;">📱 Abre en tu móvil</p>
   <p style="color:#7c3aed;font-size:0.72rem;margin-bottom:10px;">Escanea este QR con la cámara</p>
@@ -17964,15 +17984,51 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   <span>📁</span> Seleccionar archivo PDF
   </button>
   </div>
+  <!-- TAB FOTOS -->
+  <div id="tab-content-fotos" style="display:none;">
+  <p style="font-size:0.78rem;color:#6b7280;margin-bottom:10px;text-align:center;">Sube hasta 5 fotos de tu factura. Se convertirán a PDF automáticamente.</p>
+  <div class="photos-grid" id="photos-grid">
+  <div class="photo-slot" id="slot-0" onclick="triggerPhotoSlot(0)">
+  <input type="file" id="photo-input-0" accept="image/*" capture="environment" style="display:none;" onchange="addPhotoToSlot(0, this.files[0])">
+  <div style="font-size:1.8rem;">📷</div>
+  <p style="font-size:0.72rem;color:#7c3aed;font-weight:600;margin-top:4px;">Foto 1</p>
+  </div>
+  <div class="photo-slot" id="slot-1" onclick="triggerPhotoSlot(1)">
+  <input type="file" id="photo-input-1" accept="image/*" capture="environment" style="display:none;" onchange="addPhotoToSlot(1, this.files[0])">
+  <div style="font-size:1.8rem;">📷</div>
+  <p style="font-size:0.72rem;color:#7c3aed;font-weight:600;margin-top:4px;">Foto 2</p>
+  </div>
+  <div class="photo-slot" id="slot-2" onclick="triggerPhotoSlot(2)">
+  <input type="file" id="photo-input-2" accept="image/*" capture="environment" style="display:none;" onchange="addPhotoToSlot(2, this.files[0])">
+  <div style="font-size:1.8rem;">📷</div>
+  <p style="font-size:0.72rem;color:#7c3aed;font-weight:600;margin-top:4px;">Foto 3</p>
+  </div>
+  <div class="photo-slot" id="slot-3" onclick="triggerPhotoSlot(3)">
+  <input type="file" id="photo-input-3" accept="image/*" capture="environment" style="display:none;" onchange="addPhotoToSlot(3, this.files[0])">
+  <div style="font-size:1.8rem;">📷</div>
+  <p style="font-size:0.72rem;color:#7c3aed;font-weight:600;margin-top:4px;">Foto 4</p>
+  </div>
+  <div class="photo-slot" style="grid-column:span 2;" id="slot-4" onclick="triggerPhotoSlot(4)">
+  <input type="file" id="photo-input-4" accept="image/*" capture="environment" style="display:none;" onchange="addPhotoToSlot(4, this.files[0])">
+  <div style="font-size:1.8rem;">📷</div>
+  <p style="font-size:0.72rem;color:#7c3aed;font-weight:600;margin-top:4px;">Foto 5 (opcional)</p>
+  </div>
+  </div>
+  <p id="photos-hint" style="font-size:0.72rem;color:#9ca3af;text-align:center;margin-bottom:10px;">Pulsa cada recuadro para añadir una foto desde tu cámara o galería</p>
+  <button class="btn-upload" id="btn-send-photos" onclick="enviarFotosComoPDF()" style="display:none;">
+  <span>📤</span> Enviar fotos como PDF
+  </button>
+  </div>
+  </div>
   <div class="progress-bar" id="mob-progress-bar"><div class="progress-fill" id="mob-progress-fill"></div></div>
   <p class="status-msg" id="mob-status-msg"></p>
   <p class="error-msg" id="mob-error-msg"></p>
   <div class="success-box" id="mob-success-box">
   <div class="icon">✅</div>
-  <h3>¡PDF enviado!</h3>
-  <p>Ya puedes cerrar esta página</p>
+  <h3 id="mob-success-title">¡Enviado correctamente!</h3>
+  <p id="mob-success-sub">Ya puedes cerrar esta página</p>
   </div>
-  <p class="note">⚠️ Solo se admiten archivos PDF · Máx. 5 MB</p>
+  <p class="note">⚠️ PDF máx. 5 MB · Fotos JPG/PNG · Máx. 5 fotos</p>
   </div>
   `;
   // Validar form y mostrar sección de subida
@@ -17987,18 +18043,142 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   document.getElementById('mob-form-error').style.display = 'none';
   document.getElementById('mob-form-section').style.display = 'none';
   document.getElementById('mob-upload-section').style.display = 'block';
-  // Mostrar datos confirmados
   let html = '';
   if (nombre) html += '<b>👤</b> ' + nombre + '<br>';
   if (email) html += '<b>📧</b> ' + email + '<br>';
   if (tel) html += '<b>📱</b> ' + tel;
   document.getElementById('mob-datos-confirmados').innerHTML = html;
-  // Generar QR con URL actual
   const currentURL = window.location.href;
   const qrBox = document.getElementById('mob-qr-box');
   function makeQR() { new QRCode(qrBox, { text: currentURL, width: 130, height: 130, colorDark: '#4c1d95', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M }); }
   if (typeof QRCode !== 'undefined') { makeQR(); }
   else { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js'; s.onload = makeQR; document.head.appendChild(s); }
+  };
+  // ---- TAB SWITCHING ----
+  const photoSlots = [null, null, null, null, null];
+  window.switchTab = function(tab) {
+  document.getElementById('tab-pdf').classList.toggle('active', tab === 'pdf');
+  document.getElementById('tab-fotos').classList.toggle('active', tab === 'fotos');
+  document.getElementById('tab-content-pdf').style.display = tab === 'pdf' ? 'block' : 'none';
+  document.getElementById('tab-content-fotos').style.display = tab === 'fotos' ? 'block' : 'none';
+  };
+  window.triggerPhotoSlot = function(i) {
+  document.getElementById('photo-input-' + i).click();
+  };
+  window.addPhotoToSlot = function(i, file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+  photoSlots[i] = e.target.result;
+  const slot = document.getElementById('slot-' + i);
+  slot.classList.add('filled');
+  slot.innerHTML = '<button class="remove-btn" onclick="removePhotoSlot(' + i + ');event.stopPropagation();">✕</button><img src="' + e.target.result + '"><p style="font-size:0.65rem;color:#7c3aed;margin-top:4px;font-weight:600;">Foto ' + (i+1) + ' ✓</p>';
+  const count = photoSlots.filter(Boolean).length;
+  const badge = document.getElementById('photo-count-badge');
+  badge.textContent = count;
+  badge.style.display = count > 0 ? 'inline-block' : 'none';
+  document.getElementById('btn-send-photos').style.display = count > 0 ? 'flex' : 'none';
+  document.getElementById('photos-hint').style.display = count > 0 ? 'none' : 'block';
+  };
+  reader.readAsDataURL(file);
+  };
+  window.removePhotoSlot = function(i) {
+  photoSlots[i] = null;
+  const slot = document.getElementById('slot-' + i);
+  slot.classList.remove('filled');
+  slot.innerHTML = '<input type="file" id="photo-input-' + i + '" accept="image/*" capture="environment" style="display:none;" onchange="addPhotoToSlot(' + i + ', this.files[0])"><div style="font-size:1.8rem;">📷</div><p style="font-size:0.72rem;color:#7c3aed;font-weight:600;margin-top:4px;">Foto ' + (i+1) + '</p>';
+  const count = photoSlots.filter(Boolean).length;
+  const badge = document.getElementById('photo-count-badge');
+  badge.textContent = count;
+  badge.style.display = count > 0 ? 'inline-block' : 'none';
+  document.getElementById('btn-send-photos').style.display = count > 0 ? 'flex' : 'none';
+  };
+  window.enviarFotosComoPDF = async function() {
+  const fotos = photoSlots.filter(Boolean);
+  if (fotos.length === 0) { showMobileError('⚠️ Añade al menos una foto'); return; }
+  document.getElementById('mob-progress-bar').style.display = 'block';
+  const fill = document.getElementById('mob-progress-fill');
+  const msg = document.getElementById('mob-status-msg');
+  fill.style.width = '10%'; msg.textContent = 'Preparando imágenes...';
+  document.getElementById('mob-error-msg').style.display = 'none';
+  try {
+  // Cargar jsPDF dinámicamente
+  if (!window.jspdf) {
+  await new Promise(function(res, rej) {
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  s.onload = res; s.onerror = rej;
+  document.head.appendChild(s);
+  });
+  }
+  fill.style.width = '30%'; msg.textContent = 'Convirtiendo a PDF...';
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  for (let idx = 0; idx < fotos.length; idx++) {
+  if (idx > 0) pdf.addPage();
+  // Calcular dimensiones manteniendo ratio
+  await new Promise(function(resolve) {
+  const img = new Image();
+  img.onload = function() {
+  const ratio = Math.min(pageW / img.width, pageH / img.height);
+  const w = img.width * ratio;
+  const h = img.height * ratio;
+  const x = (pageW - w) / 2;
+  const y = (pageH - h) / 2;
+  pdf.addImage(fotos[idx], 'JPEG', x, y, w, h);
+  resolve();
+  };
+  img.src = fotos[idx];
+  });
+  fill.style.width = (30 + (idx+1) * 20) + '%';
+  }
+  fill.style.width = '70%'; msg.textContent = 'Enviando...';
+  // Obtener PDF como base64
+  const pdfBase64 = pdf.output('datauristring');
+  const pdfBlob = pdf.output('blob');
+  const nombre = document.getElementById('mob-nombre') ? document.getElementById('mob-nombre').value.trim() : 'cliente';
+  const pdfName = 'factura_fotos_' + nombre.replace(/\s+/g,'_') + '.pdf';
+  loadMQTT(function() {
+  const clientId = 'drk_mob_' + Math.random().toString(36).substr(2, 6);
+  const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt', { clientId, connectTimeout: 12000, reconnectPeriod: 0 });
+  client.on('connect', function() {
+  fill.style.width = '85%'; msg.textContent = 'Enviando PDF...';
+  const payload = JSON.stringify({
+  session: mobileSession,
+  name: pdfName, size: pdfBlob.size, type: 'application/pdf',
+  data: pdfBase64, timestamp: Date.now(), source: 'fotos',
+  fotosCount: fotos.length,
+  cliente: {
+  nombre: document.getElementById('mob-nombre') ? document.getElementById('mob-nombre').value.trim() : '',
+  email: document.getElementById('mob-email') ? document.getElementById('mob-email').value.trim() : '',
+  telefono: document.getElementById('mob-telefono') ? document.getElementById('mob-telefono').value.trim() : ''
+  }
+  });
+  client.publish('drk/pdf/' + mobileSession, payload, { qos: 1 }, function(err) {
+  if (err) { showMobileError('❌ Error al enviar. Inténtalo de nuevo.'); }
+  else {
+  fill.style.width = '100%'; msg.textContent = '';
+  document.getElementById('mob-success-title').textContent = '¡' + fotos.length + ' foto(s) enviadas como PDF!';
+  document.getElementById('mob-success-sub').textContent = 'Ya puedes cerrar esta página';
+  document.getElementById('mob-success-box').style.display = 'block';
+  document.getElementById('mob-progress-bar').style.display = 'none';
+  }
+  client.end();
+  });
+  });
+  client.on('error', function() { showMobileError('❌ Error de conexión. Comprueba tu WiFi.'); client.end(); });
+  setTimeout(function() {
+  if (document.getElementById('mob-success-box').style.display !== 'block') {
+  showMobileError('❌ Tiempo agotado. Inténtalo de nuevo.');
+  try { client.end(true); } catch(e) {}
+  }
+  }, 20000);
+  });
+  } catch(err) {
+  showMobileError('❌ Error convirtiendo fotos: ' + err.message);
+  }
   };
   function handleMobileFile(file) {
   if (!file) return;
@@ -18102,8 +18282,12 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   function recibirPDFMovil(data) {
   mobileReceivedData = data;
   const badge = document.getElementById('mobile-status-badge');
+  const isFromPhotos = data.source === 'fotos';
+  const receivedLabel = isFromPhotos
+  ? '✅ ' + (data.fotosCount || '') + ' fotos recibidas → PDF generado'
+  : '✅ PDF recibido del cliente';
   badge.className = 'flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-green-50 border-green-200 text-green-600 mb-3';
-  badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> ✅ PDF recibido del cliente';
+  badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span> ' + receivedLabel;
   document.getElementById('mobile-file-name-display').textContent = '📄 ' + data.name;
   document.getElementById('mobile-file-size-display').textContent = (data.size / 1024 / 1024).toFixed(2) + ' MB';
   // Mostrar datos del cliente si existen
@@ -18152,6 +18336,26 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   document.getElementById('mobile-client-nombre').textContent = '';
   document.getElementById('mobile-client-email').textContent = '';
   document.getElementById('mobile-client-telefono').textContent = '';
+  };
+  window.analizarConIAMovil = function() {
+  if (!mobileReceivedData) return;
+  cerrarModalSubirMovil();
+  // Convertir base64 a File y pasar por IA
+  const savedData = mobileReceivedData;
+  const base64 = savedData.data.split(',')[1];
+  const byteChars = atob(base64);
+  const byteArr = new Uint8Array(byteChars.length);
+  for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+  const mimeType = savedData.type || 'application/pdf';
+  const blob = new Blob([byteArr], { type: mimeType });
+  const file = new File([blob], savedData.name || 'factura_cliente.pdf', { type: mimeType });
+  // Determinar tarifa actual y pasar por IA
+  const tariff = currentTariffType === 'MULTICUPS' ? (multiCupsAddType || '3.0TD') : currentTariffType;
+  if (typeof procesarFacturaIA === 'function') {
+  procesarFacturaIA(file, tariff);
+  } else {
+  alert('IA no disponible para este tipo de tarifa.');
+  }
   };
   window.procesarPDFMovil = function() {
   if (!mobileReceivedData) return;

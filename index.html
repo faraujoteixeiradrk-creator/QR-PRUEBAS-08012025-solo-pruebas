@@ -1022,7 +1022,7 @@
   <p style="color:#67e8f9;font-size:0.72rem;">Arrastra aquí o pulsa para seleccionar</p>
   </div>
   </div>
-  <div id="mobile-upload-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div id="mobile-upload-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="z-index:9999">
   <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden" style="max-height:95vh;overflow-y:auto;">
   <div class="bg-gradient-to-r from-violet-500 to-purple-600 p-5 flex items-center justify-between">
   <div class="flex items-center gap-3">
@@ -18367,25 +18367,12 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   window._mobileContext = 'gas';
   mobileQRGenerated = false;
   if (window._drkMqttClient) { try { window._drkMqttClient.end(true); } catch(e){} window._drkMqttClient = null; }
-  // Cerrar gas modal primero
-  const gasModal = document.getElementById('gas-manual-input-modal');
-  if (gasModal) { gasModal.classList.add('hidden'); gasModal.classList.remove('flex'); }
-  // Resetear estado
   document.getElementById('mobile-status-badge').className = 'flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-amber-50 border-amber-200 text-amber-600 mb-3';
   document.getElementById('mobile-status-badge').innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block"></span> Esperando PDF del móvil...';
   document.getElementById('mobile-received-section').classList.add('hidden');
   document.getElementById('mobile-client-data').classList.add('hidden');
   mobileReceivedData = null;
-  // Subir z-index del mobile modal para que salga por encima
-  const mobileModal = document.getElementById('mobile-upload-modal');
-  if (mobileModal) mobileModal.style.zIndex = '9999';
   _abrirModalMovilInterno();
-  // Al cerrar, volver a mostrar gas modal
-  window._onCerrarMovilGas = function() {
-  if (gasModal) { gasModal.classList.remove('hidden'); gasModal.classList.add('flex'); }
-  if (mobileModal) mobileModal.style.zIndex = '';
-  window._onCerrarMovilGas = null;
-  };
   };
   function _abrirModalMovilInterno() {
   document.getElementById('mobile-upload-modal').classList.remove('hidden');
@@ -18480,7 +18467,6 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   };
   window.cerrarModalSubirMovil = function() {
   document.getElementById('mobile-upload-modal').classList.add('hidden');
-  document.getElementById('mobile-upload-modal').style.zIndex = '';
   if (window._drkMqttClient) { try { window._drkMqttClient.end(true); } catch(e){} window._drkMqttClient = null; }
   mobileQRGenerated = false; mobileSessionId = null; mobileReceivedData = null;
   document.getElementById('mobile-status-badge').className = 'flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-amber-50 border-amber-200 text-amber-600 mb-3';
@@ -18490,8 +18476,6 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   document.getElementById('mobile-client-nombre').textContent = '';
   document.getElementById('mobile-client-email').textContent = '';
   document.getElementById('mobile-client-telefono').textContent = '';
-  // Si venía desde GAS, restaurar el modal de gas
-  if (window._onCerrarMovilGas) { window._onCerrarMovilGas(); }
   };
   window.analizarConIAMovil = function() {
   if (!mobileReceivedData) return;

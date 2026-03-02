@@ -4710,8 +4710,10 @@
   if (sendOfferBtn) {
   sendOfferBtn.style.display = 'flex'; // Asegurar que esté visible
   sendOfferBtn.onclick = () => {
+  clearClientModal();
   document.getElementById('send-offer-modal').classList.remove('hidden');
   document.getElementById('send-offer-modal').classList.add('flex');
+  autoFillClientDataFromIA();
   document.querySelectorAll('#send-offer-modal input').forEach(input => {
   input.classList.remove('focus:ring-drk-500', 'focus:ring-powercup-500');
   input.classList.add(activeBrand.NAME.includes('DRK') ? 'focus:ring-drk-500' : 'focus:ring-powercup-500');
@@ -5438,8 +5440,10 @@
   if (sendOfferBtn) {
   sendOfferBtn.style.display = 'flex'; // Asegurar que esté visible
   sendOfferBtn.onclick = () => {
+  clearClientModal();
   document.getElementById('send-offer-modal').classList.remove('hidden');
   document.getElementById('send-offer-modal').classList.add('flex');
+  autoFillClientDataFromIA();
   document.querySelectorAll('#send-offer-modal input').forEach(input => {
   input.classList.remove('focus:ring-drk-500', 'focus:ring-powercup-500');
   input.classList.add(activeBrand.NAME.includes('DRK') ? 'focus:ring-drk-500' : 'focus:ring-powercup-500');
@@ -16331,8 +16335,10 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   // === FIN Event listeners Pegar Código Completo ===
   document.getElementById('send-offer-btn').onclick = () => {
   if (lastComparisonResult) {
+  clearClientModal();
   document.getElementById('send-offer-modal').classList.remove('hidden');
   document.getElementById('send-offer-modal').classList.add('flex');
+  autoFillClientDataFromIA();
   // Aplicar focus ring de la marca a los inputs
   document.querySelectorAll('#send-offer-modal input').forEach(input => {
   input.classList.remove('focus:ring-drk-500', 'focus:ring-powercup-500');
@@ -22175,7 +22181,15 @@ ${clientName}
  // FIN FUNCIONES MÓDULO DUAL
  // ===== LIMPIAR MODAL DE DATOS DEL CLIENTE =====
  function clearClientModal() {
-  const fields = ['improvement-client-name', 'improvement-client-cups', 'improvement-client-phone', 'improvement-client-email', 'client-name', 'client-name-input', 'client-address', 'client-address-input'];
+  // Limpia todos los campos de los 3 modales de datos del cliente
+  const fields = [
+  // send-offer-modal
+  'comercial-code-input', 'client-name-input', 'client-phone-input', 'client-address-input', 'client-email-input',
+  // request-improvement-modal
+  'improvement-comercial-code', 'improvement-client-name', 'improvement-client-cups', 'improvement-client-phone', 'improvement-client-email', 'improvement-observations',
+  // client-data-modal (DUAL)
+  'comercial-code', 'client-name', 'client-phone', 'client-address', 'client-email'
+  ];
   fields.forEach(id => {
   const el = document.getElementById(id);
   if (el) el.value = '';

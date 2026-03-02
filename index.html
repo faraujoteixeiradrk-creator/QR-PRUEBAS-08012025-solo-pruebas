@@ -22245,6 +22245,7 @@ ${clientName}
   dias,
   kwh,
   totalCliente,
+  tariff: currentGasTariff,
   mode: selectionMode,
   compareIndexedVsFixed: compareChecked
   };
@@ -22267,8 +22268,14 @@ ${clientName}
  function performGasCalculation() {
   const { dias, kwh, totalCliente, type, mode, compareIndexedVsFixed } = gasCalculationParams;
   const comparisonMode = document.querySelector('input[name="comparison_mode"]:checked').value;
+  // FIX: usar tarifa guardada en params si currentGasTariff está vacío
+  const activeTariff = currentGasTariff || gasCalculationParams.tariff || '';
+  if (!activeTariff) {
+  alert('Error: no se pudo determinar la tarifa de gas. Por favor, selecciona la tarifa de nuevo.');
+  return;
+  }
   // Convertir RL1 → RL.1 para buscar en el Excel
-  const searchTariff = currentGasTariff.replace(/RL(\d)/, 'RL.$1');
+  const searchTariff = activeTariff.replace(/RL(\d)/, 'RL.$1');
   console.log(`🔍 Buscando tarifa: ${currentGasTariff} → ${searchTariff}`);
   console.log(`📋 Modo: ${mode}, Tipo: ${type || 'auto'}, Comparar: ${compareIndexedVsFixed}`);
   // Buscar en la columna "Tarifa"
@@ -22398,7 +22405,13 @@ ${clientName}
  function showGasTariffSelector() {
   const { dias, kwh, totalCliente, compareIndexedVsFixed } = gasCalculationParams;
   const comparisonMode = document.querySelector('input[name="comparison_mode"]:checked').value;
-  const searchTariff = currentGasTariff.replace(/RL(\d)/, 'RL.$1');
+  // FIX: usar tarifa guardada en params si currentGasTariff está vacío
+  const activeTariff = currentGasTariff || gasCalculationParams.tariff || '';
+  if (!activeTariff) {
+  alert('Error: no se pudo determinar la tarifa de gas. Por favor, selecciona la tarifa de nuevo.');
+  return;
+  }
+  const searchTariff = activeTariff.replace(/RL(\d)/, 'RL.$1');
   // Filtrar tarifas disponibles
   let filteredTariffs = gasTariffsData.filter(t => {
   const tariffValue = (t.Tarifa || '').trim().toUpperCase();

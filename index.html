@@ -2277,8 +2277,14 @@
   const typeLabel = type === 'electricidad' ? 'Electricidad' : 'Gas';
   document.getElementById('supply-number-label').textContent = `#${supplyNumber} (${typeLabel})`;
   document.getElementById('supply-cups-display').textContent = data.cups || 'N/A';
-  // Limpiar el input
-  document.getElementById('multicups-supply-address').value = '';
+  // Pre-rellenar dirección desde IA si disponible para este tipo
+  const addressInput = document.getElementById('multicups-supply-address');
+  addressInput.value = '';
+  if (type === 'electricidad' && window.elecUsedIA && window.aiExtractedData && window.aiExtractedData.direccion_suministro) {
+  addressInput.value = window.aiExtractedData.direccion_suministro;
+  } else if (type === 'gas' && window.gasUsedIA && window.gasAiData && window.gasAiData.direccion_suministro) {
+  addressInput.value = window.gasAiData.direccion_suministro;
+  }
   console.log('🔵 Mostrando modal de dirección DUAL');
   // Mostrar modal
   const modal = document.getElementById('supply-address-modal');
@@ -2782,6 +2788,10 @@
   dualSupplies = window.dualSupplies; // Mantener referencia
   window.dualGlobalResults = null;
   dualTempSupply = null;
+  // Limpiar flags de IA
+  window.elecUsedIA = false;
+  window.gasUsedIA = false;
+  window.aiExtractedData = null;
   console.log('✅ Variables DUAL limpiadas');
   // Resetear checkbox de comparación indexada
   const checkboxIndexed = document.getElementById('compare-indexed-checkbox');
@@ -19514,6 +19524,9 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   if (confirm('¿Estás seguro de que quieres eliminar todos los suministros?')) {
   window.dualSupplies = [];
   dualSupplies = window.dualSupplies; // Mantener referencia
+  window.elecUsedIA = false;
+  window.gasUsedIA = false;
+  window.aiExtractedData = null;
   updateDualSuppliesList();
   }
  }
@@ -22064,6 +22077,7 @@ ${clientName}
   // Construir data desde lastComparisonResult
   data = {
   tariff: tariff,
+  cups: (window.elecUsedIA && window.aiExtractedData && window.aiExtractedData.cups) || '',
   kwh_p1: parseFloat(result.kwh_p1) || 0,
   kwh_p2: parseFloat(result.kwh_p2) || 0,
   kwh_p3: parseFloat(result.kwh_p3) || 0,

@@ -435,7 +435,7 @@
   <!-- PEDIR FACTURA AL CLIENTE - GAS -->
   <button onclick="abrirModalSubirMovilGas()" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-4">
   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-  <span data-i18n="📲 PEDIR FACTURA AL CLIENTE">📲 PEDIR FACTURA AL CLIENTE</span>
+  <span data-i18n="PEDIR FACTURA AL CLIENTE">PEDIR FACTURA AL CLIENTE</span>
   </button>
   <p class="text-xs text-center text-slate-400 mb-3" data-i18n="— o rellena manualmente —">— o rellena manualmente —</p>
   <div class="space-y-4">
@@ -18359,10 +18359,20 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   let mobileSessionId = null, mobileQRGenerated = false, mobileReceivedData = null;
   window.abrirModalSubirMovil = function() {
   window._mobileContext = 'electricidad';
+  mobileQRGenerated = false; // forzar nueva sesión
+  if (window._drkMqttClient) { try { window._drkMqttClient.end(true); } catch(e){} window._drkMqttClient = null; }
   _abrirModalMovilInterno();
   };
   window.abrirModalSubirMovilGas = function() {
   window._mobileContext = 'gas';
+  mobileQRGenerated = false; // forzar nueva sesión
+  if (window._drkMqttClient) { try { window._drkMqttClient.end(true); } catch(e){} window._drkMqttClient = null; }
+  // Resetear estado del modal
+  document.getElementById('mobile-status-badge').className = 'flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-amber-50 border-amber-200 text-amber-600 mb-3';
+  document.getElementById('mobile-status-badge').innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block"></span> Esperando PDF del móvil...';
+  document.getElementById('mobile-received-section').classList.add('hidden');
+  document.getElementById('mobile-client-data').classList.add('hidden');
+  mobileReceivedData = null;
   _abrirModalMovilInterno();
   };
   function _abrirModalMovilInterno() {
@@ -26070,6 +26080,7 @@ ${clientName}
   "COPIAR COMPARATIVO (HTML)": { es: "COPIAR COMPARATIVO (HTML)", en: "COPY COMPARISON (HTML)", zh: "复制比较 (HTML)", de: "VERGLEICH KOPIEREN (HTML)", fr: "COPIER LA COMPARAISON (HTML)" },
   "CREAR PDF COMPARATIVO": { es: "CREAR PDF COMPARATIVO", en: "CREATE COMPARISON PDF", zh: "创建比较PDF", de: "VERGLEICHS-PDF ERSTELLEN", fr: "CRÉER UN PDF COMPARATIF" },
   "MODO DE COMPARACIÓN": { es: "MODO DE COMPARACIÓN", en: "COMPARISON MODE", zh: "比较模式", de: "VERGLEICHSMODUS", fr: "MODE DE COMPARAISON" },
+  "PEDIR FACTURA AL CLIENTE": { es: "PEDIR FACTURA AL CLIENTE", en: "REQUEST BILL FROM CLIENT", zh: "向客户索取账单", de: "RECHNUNG VOM KUNDEN ANFORDERN", fr: "DEMANDER LA FACTURE AU CLIENT" },
   "📲 PEDIR FACTURA AL CLIENTE": { es: "📲 PEDIR FACTURA AL CLIENTE", en: "📲 REQUEST BILL FROM CLIENT", zh: "📲 向客户索取账单", de: "📲 RECHNUNG VOM KUNDEN ANFORDERN", fr: "📲 DEMANDER LA FACTURE AU CLIENT" },
   "SUBIR POR IA (PDF o FOTO)": { es: "SUBIR POR IA (PDF o FOTO)", en: "UPLOAD VIA AI (PDF or PHOTO)", zh: "通过AI上传 (PDF或照片)", de: "PER KI HOCHLADEN (PDF oder FOTO)", fr: "TÉLÉCHARGER VIA IA (PDF ou PHOTO)" },
   "Arrastra aqui o pulsa para seleccionar": { es: "Arrastra aquí o pulsa para seleccionar", en: "Drag here or click to select", zh: "拖到此处或点击选择", de: "Hierher ziehen oder klicken zum Auswählen", fr: "Déposez ici ou cliquez pour sélectionner" },

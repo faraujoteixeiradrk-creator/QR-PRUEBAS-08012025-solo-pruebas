@@ -18378,6 +18378,9 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   if (receivedSection) receivedSection.classList.add('hidden');
   if (clientData) clientData.classList.add('hidden');
   mobileReceivedData = null;
+  // Ocultar gas modal con display:none para que no tape el mobile modal
+  const gasModal = document.getElementById('gas-manual-input-modal');
+  if (gasModal) { gasModal.style.display = 'none'; window._gasModalWasOpen = true; }
   console.log('🟣 GAS: llamando _abrirModalMovilInterno');
   _abrirModalMovilInterno();
   console.log('🟣 GAS: _abrirModalMovilInterno ejecutado');
@@ -18493,6 +18496,12 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   document.getElementById('mobile-client-nombre').textContent = '';
   document.getElementById('mobile-client-email').textContent = '';
   document.getElementById('mobile-client-telefono').textContent = '';
+  // Restaurar gas modal si estaba abierto
+  if (window._gasModalWasOpen) {
+  const gasModal = document.getElementById('gas-manual-input-modal');
+  if (gasModal) gasModal.style.display = '';
+  window._gasModalWasOpen = false;
+  }
   };
   window.analizarConIAMovil = function() {
   if (!mobileReceivedData) return;

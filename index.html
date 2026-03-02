@@ -18364,18 +18364,34 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   _abrirModalMovilInterno();
   };
   window.abrirModalSubirMovilGas = function() {
+  try {
   window._mobileContext = 'gas';
   mobileQRGenerated = false;
   if (window._drkMqttClient) { try { window._drkMqttClient.end(true); } catch(e){} window._drkMqttClient = null; }
-  document.getElementById('mobile-status-badge').className = 'flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-amber-50 border-amber-200 text-amber-600 mb-3';
-  document.getElementById('mobile-status-badge').innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block"></span> Esperando PDF del móvil...';
-  document.getElementById('mobile-received-section').classList.add('hidden');
-  document.getElementById('mobile-client-data').classList.add('hidden');
+  const badge = document.getElementById('mobile-status-badge');
+  const receivedSection = document.getElementById('mobile-received-section');
+  const clientData = document.getElementById('mobile-client-data');
+  if (badge) {
+  badge.className = 'flex items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-medium bg-amber-50 border-amber-200 text-amber-600 mb-3';
+  badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block"></span> Esperando PDF del móvil...';
+  }
+  if (receivedSection) receivedSection.classList.add('hidden');
+  if (clientData) clientData.classList.add('hidden');
   mobileReceivedData = null;
+  console.log('🟣 GAS: llamando _abrirModalMovilInterno');
   _abrirModalMovilInterno();
+  console.log('🟣 GAS: _abrirModalMovilInterno ejecutado');
+  } catch(err) {
+  console.error('❌ Error en abrirModalSubirMovilGas:', err);
+  }
   };
   function _abrirModalMovilInterno() {
-  document.getElementById('mobile-upload-modal').classList.remove('hidden');
+  try {
+  const modal = document.getElementById('mobile-upload-modal');
+  console.log('🟣 modal element:', modal);
+  if (!modal) { console.error('❌ mobile-upload-modal no encontrado'); return; }
+  modal.classList.remove('hidden');
+  console.log('🟣 modal visible, mobileQRGenerated:', mobileQRGenerated);
   if (!mobileQRGenerated) {
   mobileSessionId = Math.random().toString(36).substr(2, 8).toUpperCase();
   document.getElementById('mobile-session-display').textContent = mobileSessionId;
@@ -18393,6 +18409,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   mobileQRGenerated = true;
   iniciarEsperaMovil();
   }
+  } catch(err) { console.error('❌ Error en _abrirModalMovilInterno:', err); }
   }
   function iniciarEsperaMovil() {
   loadMQTT(function() {

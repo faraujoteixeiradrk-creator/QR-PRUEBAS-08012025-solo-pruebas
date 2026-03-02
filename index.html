@@ -27696,15 +27696,6 @@ ${clientName}
   // Normalizar datos
   const p = parsed.potencias_kw || {};
   const e = parsed.energia_kwh || {};
-  // FALLBACK: Si E1/E2/E3 son todos 0 pero hay consumo total visible, distribuir
-  const totalKwh = parsed.consumo_total_kwh || 0;
-  const sinEnergia = !e.e1 && !e.e2 && !e.e3;
-  if (sinEnergia && totalKwh > 0) {
-  e.e1 = Math.round(totalKwh * 0.25 * 100) / 100;
-  e.e2 = Math.round(totalKwh * 0.25 * 100) / 100;
-  e.e3 = Math.round(totalKwh * 0.50 * 100) / 100;
-  parsed.notas = (parsed.notas || '') + ' [Energía estimada: desglose por periodos no legible, distribuido 25/25/50% del total ' + totalKwh + ' kWh]';
-  }
   aiExtractedData = {
   cups: parsed.cups || '',
   tarifa: parsed.tarifa || tariffType,
@@ -27744,24 +27735,54 @@ ${clientName}
  };
  function getPromptIA() {
   return `Eres un experto en facturas de electricidad españolas. Analiza esta factura con maxima precision.
-INSTRUCCIONES:
-1. CUPS: Codigo de 20-22 caracteres que SIEMPRE empieza por "ES". Esta en "Datos del contrato", "Datos de suministro" o "Informacion adicional". NO confundir con referencias de contrato ni numeros de contador.
-2. TARIFA: Busca "Peaje de acceso", "ATR" o "Tarifa". Sera "2.0TD" (menos de 15kW, 2 potencias) o "3.0TD" (empresa, 6 potencias).
-3. DIAS: Del periodo de facturacion o deducelo de la formula kW * precio * dias.
-4. POTENCIAS (kW contratados): En "Detalle de factura" o "Facturacion por potencia". Para 2.0TD: P1 punta y P2 valle. Para 3.0TD: P1 a P6. Son los kW CONTRATADOS, NO el importe en euros.
-5. ENERGIA (kWh consumidos en el periodo):
-   - Busca en "Facturacion por energia consumida" o "Detalle de factura".
-   - Para 2.0TD: E1 punta, E2 llano, E3 valle.
-   - Para 3.0TD: E1 a E6.
-   - CRITICO para facturas IBERDROLA: La factura muestra DOS tipos de datos que NO debes confundir:
- * "Lecturas desagregadas" (punta/llano/valle en kWh) = lecturas ACUMULADAS del contador. NO usar estos valores.
- * "Sus consumos desagregados han sido punta: X kWh; llano: X kWh; valle X kWh" = consumo REAL del periodo. USAR ESTOS VALORES.
-   - Si ves consumo TOTAL en la factura (ej: "Consumo Total 356,280 kWh") pero la tabla de desglose por periodos es ilegible o esta girada, calcula asi: busca en el detalle de factura los importes por periodo (ej: "Facturacion del Consumo 86,92 kWh x precio") para deducir los kWh reales. Si aun asi no puedes, distribuye: E1=25%, E2=25%, E3=50% del total. Indica en notas que es estimacion.
-   - NUNCA pongas 0 en E1/E2/E3 si hay un consumo total visible mayor de 0. Siempre distribuye.
-6. CONSUMO_TOTAL_KWH: El total de kWh consumidos en el periodo (ej: "Consumo Total 356,280 kWh"). Extraelo siempre aunque no puedas ver el desglose por periodos.
-7. TOTAL: El importe final a pagar ("TOTAL IMPORTE FACTURA" o "TOTAL").
-Devuelve SOLO este JSON sin texto adicional ni markdown:
-{"cups":"ES...","tarifa":"2.0TD","dias":30,"potencias_kw":{"p1":0.0,"p2":0.0,"p3":0.0,"p4":0.0,"p5":0.0,"p6":0.0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"consumo_total_kwh":0,"total_factura":0.00,"notas":""}`;
+
+=== CAMPO 1: CUPS ===
+- Codigo de 18-22 caracteres que SIEMPRE empieza por "ES" seguido de numeros y letras.
+- Busca en: "Datos del suministro", "Datos del contrato", "Informacion del punto de suministro".
+- CRITICO - NO confundir con:
+  * Numero de contador (solo numeros, ej: "4000040502") → IGNORAR
+  * Numero de contrato (corto, ej: "1078930") → IGNORAR
+  * Cualquier otro codigo que NO empiece exactamente por "ES"
+- El CUPS correcto tiene formato ES + 16 a 20 caracteres alfanumericos. Si ves varios codigos que empiezan por ES, elige el mas largo.
+
+=== CAMPO 2: TARIFA ===
+- Busca "Peaje de acceso", "ATR", "Tarifa de acceso".
+- "2.0TD" = domestico/pequeño negocio, menos de 15kW, 2 periodos de potencia.
+- "3.0TD" = empresa, 6 periodos de potencia y energia.
+
+=== CAMPO 3: DIAS ===
+- Del periodo de facturacion. Calcula diferencia entre fecha inicio y fin si no aparece explicito.
+
+=== CAMPO 4: POTENCIAS CONTRATADAS (kW) ===
+- EXTRAE las potencias CONTRATADAS, NO las maximas demandadas.
+- Potencias CONTRATADAS estan en frases como:
+  * "Termino potencia [fecha] - P1: X kW - Precio: Y €/kW" → USA este X
+  * "Potencia contratada P1: X kW"
+  * "Datos suministro: Potencia P1: X kW, P2: X kW"
+- Potencias MAXIMAS DEMANDADAS → IGNORAR COMPLETAMENTE. Se reconocen por:
+  * "Las potencias maximas demandadas en el ultimo año han sido..."
+  * "Potencias maximas demandadas durante el ciclo"
+  * Suelen ser valores pequeños como 2.5, 3.8, 4.86 kW
+- REGLA: Si el mismo valor kW aparece tanto en el detalle de facturacion como en "maximas demandadas", USA el del detalle de facturacion (el contratado).
+- Para 2.0TD: extrae P1 y P2 (P3-P6 = 0). Para 3.0TD: extrae P1 a P6.
+
+=== CAMPO 5: ENERGIA CONSUMIDA (kWh del periodo) ===
+- EXTRAE el CONSUMO del periodo, NO las lecturas acumuladas del contador.
+- Fuentes correctas (en orden de prioridad):
+  1. "Termino energia [fecha] - P1: X kWh - Precio: Y €/kWh" → USA este X
+  2. Columna "Consumo" en tabla de lecturas del contador (= Actual menos Anterior) → USA este valor
+  3. "Sus consumos desagregados han sido punta: X kWh; llano: X kWh; valle: X kWh" → USA estos
+- Fuentes INCORRECTAS → IGNORAR:
+  * Columna "Actual" o "Anterior" en tabla de lecturas (valores grandes como 65787, 21921 kWh)
+  * "Lecturas desagregadas acumuladas"
+- Para 2.0TD: E1=punta, E2=llano, E3=valle. Para 3.0TD: E1 a E6.
+
+=== CAMPO 6: TOTAL ===
+- Importe final con IVA. Busca "TOTAL A PAGAR", "TOTAL IMPORTE FACTURA", "Total a pagar".
+
+=== RESPUESTA ===
+Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
+{"cups":"ES...","tarifa":"2.0TD","dias":30,"potencias_kw":{"p1":0.0,"p2":0.0,"p3":0.0,"p4":0.0,"p5":0.0,"p6":0.0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0.00,"notas":""}`;
  }
   // ===== DRAG & DROP ZONES =====
  function setupDragZone(zoneId, tariff) {

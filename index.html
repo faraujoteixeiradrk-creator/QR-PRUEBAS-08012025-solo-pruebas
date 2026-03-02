@@ -17369,18 +17369,33 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   updateStrategyStatus(3, 'Sin resultados', 'red');
   addProcessingLog('✗ No se detectó código QR válido en ninguna página', 'error');
   updateProcessingProgress(100);
-  // No se encontró nada válido
+  // No se encontró nada válido — ofrecer IA
   setTimeout(() => {
   hideProcessingModal();
-  window.showErrorModal(
-  "❌ No se detectó código QR de CNMC\n\n" +
-  "💡 Sugerencias:\n" +
-  "• Verifica que el PDF contenga el QR de la CNMC\n" +
-  "• El QR debe ser visible y legible\n" +
-  "• Asegúrate de que el QR tenga datos válidos\n" +
-  "• Intenta con una imagen clara del QR\n" +
-  "• Usa la opción 'Pegar Código Completo' si tienes la URL"
-  );
+  // Si hay un archivo de fotos reciente del móvil, ofrecer IA directamente
+  const fileForIA = window._lastMobilePDFFile || file;
+  const overlay = document.createElement('div');
+  overlay.id = 'ia-fallback-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.innerHTML = '<div style="background:white;border-radius:24px;padding:28px 24px;max-width:360px;width:100%;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,0.3);">' +
+  '<div style="font-size:2.5rem;margin-bottom:12px;">🤖</div>' +
+  '<h3 style="font-size:1.1rem;font-weight:800;color:#1e293b;margin-bottom:8px;">No se encontró QR</h3>' +
+  '<p style="font-size:0.82rem;color:#64748b;margin-bottom:20px;line-height:1.5;">El PDF no contiene un código QR legible de la CNMC.<br><br>¿Quieres que la <strong>IA extraiga los datos</strong> automáticamente analizando el contenido de la factura?</p>' +
+  '<button onclick="document.getElementById(\'ia-fallback-modal\').remove(); _analizarFileConIA(window._lastMobilePDFFile || null, null);" ' +
+  'style="width:100%;background:linear-gradient(135deg,#06b6d4,#3b82f6);color:white;font-weight:700;padding:14px;border:none;border-radius:14px;font-size:0.95rem;cursor:pointer;margin-bottom:10px;font-family:inherit;">🤖 Sí, analizar con IA</button>' +
+  '<button onclick="document.getElementById(\'ia-fallback-modal\').remove();" ' +
+  'style="width:100%;background:#f1f5f9;color:#64748b;font-weight:600;padding:12px;border:none;border-radius:14px;font-size:0.88rem;cursor:pointer;font-family:inherit;">Introducir datos manualmente</button>' +
+  '</div>';
+  // Guardar file para la función IA
+  window._pendingFileForIA = fileForIA;
+  overlay.querySelector('button').onclick = function() {
+  overlay.remove();
+  const tariff = currentTariffType === 'MULTICUPS' ? (multiCupsAddType || '3.0TD') : currentTariffType;
+  if (typeof procesarFacturaIA === 'function' && window._pendingFileForIA) {
+  procesarFacturaIA(window._pendingFileForIA, tariff);
+  }
+  };
+  document.body.appendChild(overlay);
   }, 1500);
  }
  // Procesar archivos de imagen
@@ -17454,14 +17469,26 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   updateProcessingProgress(100);
   setTimeout(() => {
   hideProcessingModal();
-  window.showErrorModal(
-  "❌ No se detectó el código QR\n\n" +
-  "💡 Sugerencias:\n" +
-  "• Asegúrate de que el QR sea visible y legible\n" +
-  "• Intenta con mejor iluminación\n" +
-  "• Haz una foto más cercana del QR\n" +
-  "• Usa el escáner en vivo para mejores resultados"
-  );
+  const overlay = document.createElement('div');
+  overlay.id = 'ia-fallback-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.innerHTML = '<div style="background:white;border-radius:24px;padding:28px 24px;max-width:360px;width:100%;text-align:center;box-shadow:0 25px 50px rgba(0,0,0,0.3);">' +
+  '<div style="font-size:2.5rem;margin-bottom:12px;">🤖</div>' +
+  '<h3 style="font-size:1.1rem;font-weight:800;color:#1e293b;margin-bottom:8px;">No se encontró QR</h3>' +
+  '<p style="font-size:0.82rem;color:#64748b;margin-bottom:20px;line-height:1.5;">No se detectó el código QR en la imagen.<br><br>¿Quieres que la <strong>IA extraiga los datos</strong> automáticamente?</p>' +
+  '<button style="width:100%;background:linear-gradient(135deg,#06b6d4,#3b82f6);color:white;font-weight:700;padding:14px;border:none;border-radius:14px;font-size:0.95rem;cursor:pointer;margin-bottom:10px;font-family:inherit;">🤖 Sí, analizar con IA</button>' +
+  '<button onclick="document.getElementById(\'ia-fallback-modal\').remove();" ' +
+  'style="width:100%;background:#f1f5f9;color:#64748b;font-weight:600;padding:12px;border:none;border-radius:14px;font-size:0.88rem;cursor:pointer;font-family:inherit;">Introducir datos manualmente</button>' +
+  '</div>';
+  window._pendingFileForIA = file;
+  overlay.querySelectorAll('button')[0].onclick = function() {
+  overlay.remove();
+  const tariff = currentTariffType === 'MULTICUPS' ? (multiCupsAddType || '3.0TD') : currentTariffType;
+  if (typeof procesarFacturaIA === 'function' && window._pendingFileForIA) {
+  procesarFacturaIA(window._pendingFileForIA, tariff);
+  }
+  };
+  document.body.appendChild(overlay);
   }, 1500);
  }
  // Escanear página de PDF en busca de QR
@@ -18113,48 +18140,49 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   }
   fill.style.width = '30%'; msg.textContent = 'Convirtiendo a PDF...';
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
+  const pageW = 210; // A4 mm
+  const pageH = 297;
+  const margin = 8;
 
-  // Helper: leer orientación EXIF de una imagen base64
+  // Helper: leer orientación EXIF
   function getExifOrientation(base64) {
   try {
   const bin = atob(base64.split(',')[1]);
   const arr = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
   const view = new DataView(arr.buffer);
-  if (view.getUint16(0, false) !== 0xFFD8) return 1;
+  if (view.getUint16(0, false) !== 0xFFD8) return -1;
   let offset = 2;
-  while (offset < view.byteLength) {
-  if (view.getUint16(offset, false) === 0xFFE1) {
-  const exifLen = view.getUint16(offset + 2, false);
-  const exif = new DataView(arr.buffer, offset + 4, exifLen - 2);
-  if (exif.getUint32(0, false) !== 0x45786966) return 1;
-  const little = exif.getUint16(6) === 0x4949;
-  const tags = exif.getUint16(14, little);
+  while (offset < view.byteLength - 4) {
+  const marker = view.getUint16(offset, false);
+  const segLen = view.getUint16(offset + 2, false);
+  if (marker === 0xFFE1) {
+  if (view.getUint32(offset + 4, false) !== 0x45786966) return -1;
+  const little = view.getUint16(offset + 10) === 0x4949;
+  const ifdOffset = view.getUint32(offset + 14, little);
+  const tags = view.getUint16(offset + 10 + ifdOffset, little);
   for (let t = 0; t < tags; t++) {
-  if (exif.getUint16(16 + t * 12, little) === 0x0112)
-  return exif.getUint16(16 + t * 12 + 8, little);
+  const tagOff = offset + 10 + ifdOffset + 2 + t * 12;
+  if (view.getUint16(tagOff, little) === 0x0112)
+  return view.getUint16(tagOff + 8, little);
   }
-  return 1;
+  return -1;
   }
-  offset += 2 + view.getUint16(offset + 2, false);
+  offset += 2 + segLen;
   }
   } catch(e) {}
-  return 1;
+  return -1;
   }
 
-  // Helper: dibujar imagen corregida en canvas respetando EXIF
-  function drawCorrectOrientation(img, orientation) {
+  // Helper: dibujar imagen en canvas con orientación correcta
+  function fixOrientation(img, orientation) {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   const w = img.naturalWidth, h = img.naturalHeight;
-  if ([5,6,7,8].indexOf(orientation) > -1) {
-  canvas.width = h; canvas.height = w;
-  } else {
-  canvas.width = w; canvas.height = h;
-  }
+  // Orientaciones 5,6,7,8 necesitan rotar (intercambian w/h)
+  const rotate90 = [5,6,7,8].indexOf(orientation) > -1;
+  if (rotate90) { canvas.width = h; canvas.height = w; }
+  else { canvas.width = w; canvas.height = h; }
   ctx.save();
   switch(orientation) {
   case 2: ctx.transform(-1,0,0,1,w,0); break;
@@ -18171,27 +18199,47 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   return canvas;
   }
 
+  // Helper: si imagen es landscape, rotarla a portrait en canvas
+  function ensurePortrait(canvas) {
+  if (canvas.width <= canvas.height) return canvas; // ya portrait
+  // Rotar 90° en sentido antihorario para poner portrait
+  const rotated = document.createElement('canvas');
+  rotated.width = canvas.height;
+  rotated.height = canvas.width;
+  const ctx = rotated.getContext('2d');
+  ctx.save();
+  ctx.translate(0, canvas.width);
+  ctx.rotate(-Math.PI / 2);
+  ctx.drawImage(canvas, 0, 0);
+  ctx.restore();
+  return rotated;
+  }
+
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
   for (let idx = 0; idx < fotos.length; idx++) {
   if (idx > 0) pdf.addPage();
   await new Promise(function(resolve) {
   const img = new Image();
   img.onload = function() {
-  const orientation = getExifOrientation(fotos[idx]);
-  const canvas = drawCorrectOrientation(img, orientation);
+  // 1. Corregir EXIF
+  const exif = getExifOrientation(fotos[idx]);
+  let canvas = fixOrientation(img, exif);
+  // 2. Forzar portrait si sigue landscape
+  canvas = ensurePortrait(canvas);
+  // 3. Calcular dimensiones con margen
   const correctedData = canvas.toDataURL('image/jpeg', 0.92);
-  const cw = canvas.width, ch = canvas.height;
-  // Ajustar a página con margen de 5mm
-  const margin = 5;
   const maxW = pageW - margin * 2;
   const maxH = pageH - margin * 2;
-  const ratio = Math.min(maxW / cw, maxH / ch);
-  const w = cw * ratio;
-  const h = ch * ratio;
+  const ratio = Math.min(maxW / canvas.width, maxH / canvas.height);
+  const w = canvas.width * ratio;
+  const h = canvas.height * ratio;
   const x = (pageW - w) / 2;
   const y = (pageH - h) / 2;
   pdf.addImage(correctedData, 'JPEG', x, y, w, h);
   resolve();
   };
+  img.onerror = resolve;
   img.src = fotos[idx];
   });
   fill.style.width = (30 + (idx+1) * 20) + '%';

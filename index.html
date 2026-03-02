@@ -16450,6 +16450,8 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   if (lastComparisonResult) {
   document.getElementById('request-improvement-modal').classList.remove('hidden');
   document.getElementById('request-improvement-modal').classList.add('flex');
+  // Auto-rellenar datos de la IA si están disponibles
+  autoFillClientDataFromIA();
   } else {
   window.showErrorModal("Por favor, analice una factura primero.");
   }
@@ -16461,6 +16463,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   if (window.lastGasComparisonResult) {
   document.getElementById('request-improvement-modal').classList.remove('hidden');
   document.getElementById('request-improvement-modal').classList.add('flex');
+  autoFillClientDataFromIA();
   } else {
   window.showErrorModal("Por favor, analice una factura primero.");
   }
@@ -16473,6 +16476,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   if (window.dualGlobalResults && dualSupplies.length >= 2) {
   document.getElementById('request-improvement-modal').classList.remove('hidden');
   document.getElementById('request-improvement-modal').classList.add('flex');
+  autoFillClientDataFromIA();
   } else {
   window.showErrorModal("Por favor, realice una comparación DUAL primero.");
   }
@@ -22161,7 +22165,32 @@ ${clientName}
   }
  };
  // FIN FUNCIONES MÓDULO DUAL
- // ===== CALCULADOR DE GAS =====
+ // ===== AUTO-RELLENO DE DATOS DEL CLIENTE DESDE IA =====
+ function autoFillClientDataFromIA() {
+  // Recoger datos de cualquier fuente disponible (electricidad o gas)
+  const nombre = (window.aiExtractedData && window.aiExtractedData.nombre_cliente) ||
+  (window.gasAiData && window.gasAiData.nombre_cliente) || '';
+  const direccion = (window.aiExtractedData && window.aiExtractedData.direccion_suministro) ||
+  (window.gasAiData && window.gasAiData.direccion_suministro) || '';
+  const cups = (window.aiExtractedData && window.aiExtractedData.cups) ||
+  (window.gasAiData && window.gasAiData.cups) || '';
+  function sv(id, val) {
+  if (!val) return;
+  const el = document.getElementById(id);
+  if (el && !el.value) { // Solo rellenar si está vacío
+  el.value = val;
+  el.style.borderColor = '#06b6d4';
+  el.style.background = '#ecfeff';
+  setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 3000);
+  }
+  }
+  sv('improvement-client-name', nombre);
+  sv('improvement-client-cups', cups);
+  sv('client-name', nombre);
+  sv('client-name-input', nombre);
+  sv('client-address', direccion);
+  sv('client-address-input', direccion);
+ }
  // Variables globales para GAS
  let currentGasTariff = '';
  let gasTariffsData = [];
@@ -27717,8 +27746,11 @@ ${clientName}
   dias: parsed.dias || 0,
   potencias_kw: p,
   energia_kwh: e,
-  total_factura: parsed.total_factura || 0
+  total_factura: parsed.total_factura || 0,
+  nombre_cliente: parsed.nombre_cliente || '',
+  direccion_suministro: parsed.direccion_suministro || ''
   };
+  window.aiExtractedData = aiExtractedData; // Exponer globalmente
   setAIProgress(100, 'Datos extraidos!');
   addAILog('Datos extraidos correctamente', 'success');
   const tarifa = aiExtractedData.tarifa;

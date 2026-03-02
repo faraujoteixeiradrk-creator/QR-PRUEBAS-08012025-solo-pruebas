@@ -27747,7 +27747,8 @@ INSTRUCCIONES:
    - CRITICO para facturas IBERDROLA: La factura muestra DOS tipos de datos que NO debes confundir:
  * "Lecturas desagregadas" (punta/llano/valle en kWh) = lecturas ACUMULADAS del contador. NO usar estos valores.
  * "Sus consumos desagregados han sido punta: X kWh; llano: X kWh; valle X kWh" = consumo REAL del periodo. USAR ESTOS VALORES.
-   - Si los consumos del periodo son 0 kWh, pon 0. Es correcto si la factura no muestra energia consumida.
+   - Si ves consumo TOTAL en la factura (ej: "Consumo Total 356,280 kWh") pero la tabla de desglose por periodos es ilegible o esta girada, calcula asi: busca en el detalle de factura los importes por periodo (ej: "Facturacion del Consumo 86,92 kWh x precio") para deducir los kWh reales. Si aun asi no puedes, distribuye: E1=25%, E2=25%, E3=50% del total. Indica en notas que es estimacion.
+   - NUNCA pongas 0 en E1/E2/E3 si hay un consumo total visible mayor de 0. Siempre distribuye.
 6. TOTAL: El importe final a pagar ("TOTAL IMPORTE FACTURA" o "TOTAL").
 Devuelve SOLO este JSON sin texto adicional ni markdown:
 {"cups":"ES...","tarifa":"2.0TD","dias":30,"potencias_kw":{"p1":0.0,"p2":0.0,"p3":0.0,"p4":0.0,"p5":0.0,"p6":0.0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0.00,"notas":""}`;

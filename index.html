@@ -433,7 +433,7 @@
   </div>
   </div>
   <!-- PEDIR FACTURA AL CLIENTE - GAS -->
-  <button onclick="console.log('GAS btn clicked', typeof window.abrirModalSubirMovilGas); if(typeof window.abrirModalSubirMovilGas==='function'){window.abrirModalSubirMovilGas();}else{alert('Función no disponible aún, recarga la página');}" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-4">
+  <button onclick="event.stopPropagation(); console.log('GAS btn clicked', typeof window.abrirModalSubirMovilGas); if(typeof window.abrirModalSubirMovilGas==='function'){window.abrirModalSubirMovilGas();}else{alert('Función no disponible aún, recarga la página');}" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mb-4">
   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
   <span>📲 PEDIR FACTURA AL CLIENTE</span>
   </button>
@@ -18502,7 +18502,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   // Restaurar gas modal si estaba abierto
   if (window._gasModalWasOpen) {
   const gasModal = document.getElementById('gas-manual-input-modal');
-  if (gasModal) gasModal.style.display = '';
+  if (gasModal) { gasModal.style.display = 'flex'; }
   window._gasModalWasOpen = false;
   }
   };
@@ -22379,8 +22379,11 @@ ${clientName}
   // Mostrar la sección si NO es modo DUAL
   gasIndexedSection.classList.remove('hidden');
   }
-  // Mostrar modal
+  // Mostrar modal — pero no si el mobile modal está activo
+  const mobileActive = document.getElementById('mobile-upload-modal');
+  if (mobileActive && mobileActive.style.display === 'flex') return;
   document.getElementById('gas-manual-input-modal').classList.remove('hidden');
+  document.getElementById('gas-manual-input-modal').style.display = 'flex';
   document.getElementById('gas-manual-input-modal').classList.add('flex');
   // Cargar datos si no están cargados
   if (gasTariffsData.length === 0) {

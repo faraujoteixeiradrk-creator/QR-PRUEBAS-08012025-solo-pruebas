@@ -420,22 +420,22 @@
  <div id="gas-manual-input-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
   <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md border-t-4 border-red-500 max-h-[90vh] overflow-y-auto">
   <div class="p-6">
-  <h3 class="text-2xl font-black text-red-600 mb-2 text-center">Datos de la Factura de GAS</h3>
-  <p class="text-sm text-slate-500 mb-4 text-center">Tarifa: <span id="gas-selected-tariff" class="font-bold text-red-600"></span></p>
+  <h3 class="text-2xl font-black text-red-600 mb-2 text-center" data-i18n="Datos de la Factura de GAS">Datos de la Factura de GAS</h3>
+  <p class="text-sm text-slate-500 mb-4 text-center"><span data-i18n="Tarifa:">Tarifa:</span> <span id="gas-selected-tariff" class="font-bold text-red-600"></span></p>
   <!-- ZONA IA GAS -->
   <div class="mb-4 p-3 bg-orange-50 border-2 border-dashed border-orange-300 rounded-xl">
-  <p class="text-xs font-bold text-orange-700 mb-2 text-center">🤖 Leer factura con IA</p>
+  <p class="text-xs font-bold text-orange-700 mb-2 text-center" data-i18n="🤖 Leer factura con IA">🤖 Leer factura con IA</p>
   <input type="file" id="gas-ai-file-input" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaGasIA(this.files[0])">
   <div id="gas-ai-drop-zone" onclick="document.getElementById('gas-ai-file-input').click()" style="border:2px dashed #f97316;border-radius:12px;padding:12px;text-align:center;cursor:pointer;background:#fff7ed;">
   <div style="font-size:1.5rem;">📄</div>
-  <p class="text-xs font-bold text-orange-600">Subir PDF o foto de factura de gas</p>
-  <p class="text-xs text-slate-400 mt-1">La IA extraerá los datos automáticamente</p>
+  <p class="text-xs font-bold text-orange-600" data-i18n="Subir PDF o foto de factura de gas">Subir PDF o foto de factura de gas</p>
+  <p class="text-xs text-slate-400 mt-1" data-i18n="La IA extraerá los datos automáticamente">La IA extraerá los datos automáticamente</p>
   </div>
   </div>
-  <p class="text-xs text-center text-slate-400 mb-3">— o rellena manualmente —</p>
+  <p class="text-xs text-center text-slate-400 mb-3" data-i18n="— o rellena manualmente —">— o rellena manualmente —</p>
   <div class="space-y-4">
   <div>
-  <label class="block text-sm font-bold text-slate-700 mb-2">
+  <label class="block text-sm font-bold text-slate-700 mb-2" data-i18n="CUPS (Opcional)">
   CUPS (Opcional)
   </label>
   <input
@@ -444,10 +444,10 @@
   placeholder="Ej: ES0021000020679723GY"
   class="w-full px-4 py-3 border-2 border-slate-300 rounded-lg focus:border-red-500 focus:outline-none text-sm"
   >
-  <p class="text-xs text-slate-500 mt-1">Se incluirá en el PDF si lo proporcionas</p>
+  <p class="text-xs text-slate-500 mt-1" data-i18n="Se incluirá en el PDF si lo proporcionas">Se incluirá en el PDF si lo proporcionas</p>
   </div>
   <div>
-  <label class="block text-sm font-bold text-slate-700 mb-2">
+  <label class="block text-sm font-bold text-slate-700 mb-2" data-i18n="Días de facturación">
   Días de facturación
   </label>
   <input
@@ -460,7 +460,7 @@
   >
   </div>
   <div>
-  <label class="block text-sm font-bold text-slate-700 mb-2">
+  <label class="block text-sm font-bold text-slate-700 mb-2" data-i18n="kWh consumidos">
   kWh consumidos
   </label>
   <input
@@ -473,7 +473,7 @@
   >
   </div>
   <div>
-  <label class="block text-sm font-bold text-slate-700 mb-2">
+  <label class="block text-sm font-bold text-slate-700 mb-2" data-i18n="Total factura actual (€)">
   Total factura actual (€)
   </label>
   <input
@@ -493,14 +493,14 @@
   class="w-5 h-5 text-red-600 rounded focus:ring-red-500"
   onchange="toggleGasComparisonMode()"
   >
-  <span class="text-sm font-bold text-slate-700">Comparar Indexada vs Fija</span>
+  <span class="text-sm font-bold text-slate-700" data-i18n="Comparar Indexada vs Fija">Comparar Indexada vs Fija</span>
   </label>
-  <p class="text-xs text-slate-500 mt-1 ml-8">
+  <p class="text-xs text-slate-500 mt-1 ml-8" data-i18n="Activa para comparar automáticamente tarifa indexada DRK contra tarifas fijas.">
   Activa para comparar automáticamente tarifa indexada DRK contra tarifas fijas.
   </p>
   </div>
   <div class="pt-4 border-t border-slate-200">
-  <p class="text-sm font-bold text-slate-700 mb-3">Modo de selección:</p>
+  <p class="text-sm font-bold text-slate-700 mb-3" data-i18n="Modo de selección:">Modo de selección:</p>
   <label class="flex items-start gap-3 mb-3 cursor-pointer p-3 border-2 border-slate-200 rounded-lg hover:border-red-300 transition">
   <input
   type="radio"
@@ -511,8 +511,8 @@
   onchange="updateGasSelectionUI()"
   >
   <div>
-  <span class="font-bold text-slate-800">Mejores tarifas</span>
-  <p class="text-xs text-slate-500" id="gas-best-description">
+  <span class="font-bold text-slate-800" data-i18n="Mejores tarifas">Mejores tarifas</span>
+  <p class="text-xs text-slate-500" id="gas-best-description" data-i18n="El sistema calculará automáticamente las mejores opciones.">
   El sistema calculará automáticamente las mejores opciones.
   </p>
   </div>
@@ -526,24 +526,26 @@
   onchange="updateGasSelectionUI()"
   >
   <div>
-  <span class="font-bold text-slate-800">Elegir entre resultados</span>
-  <p class="text-xs text-slate-500">
+  <span class="font-bold text-slate-800" data-i18n="Elegir entre resultados">Elegir entre resultados</span>
+  <p class="text-xs text-slate-500" data-i18n="Selecciona manualmente las tarifas que deseas comparar.">
   Selecciona manualmente las tarifas que deseas comparar.
   </p>
   </div>
   </label>
   </div>
   <div id="gas-type-buttons" class="pt-4 border-t border-slate-200 space-y-2">
-  <p class="text-sm font-bold text-slate-700 mb-2">Tipo de tarifa:</p>
+  <p class="text-sm font-bold text-slate-700 mb-2" data-i18n="Tipo de tarifa:">Tipo de tarifa:</p>
   <button
   onclick="calculateGasWithType('fija')"
   class="w-full px-6 py-3 bg-blue-500 text-white rounded-lg font-bold hover:bg-blue-600 transition"
+  data-i18n="🔵 Tarifa Fija"
   >
   🔵 Tarifa Fija
   </button>
   <button
   onclick="calculateGasWithType('indexada')"
   class="w-full px-6 py-3 bg-orange-500 text-white rounded-lg font-bold hover:bg-orange-600 transition"
+  data-i18n="🟠 Tarifa Indexada"
   >
   🟠 Tarifa Indexada
   </button>
@@ -25669,6 +25671,13 @@ ${clientName}
   "COPIAR COMPARATIVO (HTML)": { es: "COPIAR COMPARATIVO (HTML)", en: "COPY COMPARISON (HTML)", zh: "复制比较 (HTML)", de: "VERGLEICH KOPIEREN (HTML)", fr: "COPIER LA COMPARAISON (HTML)" },
   "CREAR PDF COMPARATIVO": { es: "CREAR PDF COMPARATIVO", en: "CREATE COMPARISON PDF", zh: "创建比较PDF", de: "VERGLEICHS-PDF ERSTELLEN", fr: "CRÉER UN PDF COMPARATIF" },
   "MODO DE COMPARACIÓN": { es: "MODO DE COMPARACIÓN", en: "COMPARISON MODE", zh: "比较模式", de: "VERGLEICHSMODUS", fr: "MODE DE COMPARAISON" },
+  "🤖 Leer factura con IA": { es: "🤖 Leer factura con IA", en: "🤖 Read bill with AI", zh: "🤖 用AI读取账单", de: "🤖 Rechnung mit KI lesen", fr: "🤖 Lire la facture avec l'IA" },
+  "Subir PDF o foto de factura de gas": { es: "Subir PDF o foto de factura de gas", en: "Upload PDF or photo of gas bill", zh: "上传燃气账单PDF或照片", de: "PDF oder Foto der Gasrechnung hochladen", fr: "Télécharger PDF ou photo de la facture gaz" },
+  "La IA extraerá los datos automáticamente": { es: "La IA extraerá los datos automáticamente", en: "AI will extract the data automatically", zh: "AI将自动提取数据", de: "Die KI extrahiert die Daten automatisch", fr: "L'IA extraira les données automatiquement" },
+  "— o rellena manualmente —": { es: "— o rellena manualmente —", en: "— or fill in manually —", zh: "— 或手动填写 —", de: "— oder manuell ausfüllen —", fr: "— ou remplir manuellement —" },
+  "Tipo de tarifa:": { es: "Tipo de tarifa:", en: "Rate type:", zh: "费率类型：", de: "Tariftyp:", fr: "Type de tarif:" },
+  "🔵 Tarifa Fija": { es: "🔵 Tarifa Fija", en: "🔵 Fixed Rate", zh: "🔵 固定费率", de: "🔵 Festtarif", fr: "🔵 Tarif fixe" },
+  "🟠 Tarifa Indexada": { es: "🟠 Tarifa Indexada", en: "🟠 Indexed Rate", zh: "🟠 浮动费率", de: "🟠 Indexierter Tarif", fr: "🟠 Tarif indexé" },
   "DRK Únicamente": { es: "DRK Únicamente", en: "DRK Only", zh: "仅DRK", de: "Nur DRK", fr: "DRK Uniquement" },
   "DRK Prioritario": { es: "DRK Prioritario", en: "DRK Priority", zh: "DRK优先", de: "DRK Priorität", fr: "DRK Prioritaire" },
   "Global": { es: "Global", en: "Global", zh: "全球", de: "Global", fr: "Global" },
@@ -26003,17 +26012,17 @@ ${clientName}
   "Adjunto la siguiente documentación para cada CUPS:": {},
   "✓ 3. Email de contacto": {},
   // Formulario de GAS
-  "Datos de la Factura de GAS": {},
-  "Tarifa:": {},
-  "CUPS (Opcional)": {},
-  "Se incluirá en el PDF si lo proporcionas": {},
-  "Días de facturación": {},
-  "kWh consumidos": {},
-  "Total factura actual (€)": {},
-  "Comparar Indexada vs Fija": {},
-  "Activa para comparar automáticamente tarifa indexada DRK contra tarifas fijas.": {},
-  "Modo de selección:": {},
-  "Mejores tarifas": {},
+  "Datos de la Factura de GAS": { es: "Datos de la Factura de GAS", en: "GAS Bill Data", zh: "燃气账单数据", de: "GAS-Rechnungsdaten", fr: "Données de la Facture de GAZ" },
+  "Tarifa:": { es: "Tarifa:", en: "Rate:", zh: "费率：", de: "Tarif:", fr: "Tarif:" },
+  "CUPS (Opcional)": { es: "CUPS (Opcional)", en: "CUPS (Optional)", zh: "CUPS（可选）", de: "CUPS (Optional)", fr: "CUPS (Optionnel)" },
+  "Se incluirá en el PDF si lo proporcionas": { es: "Se incluirá en el PDF si lo proporcionas", en: "Will be included in the PDF if provided", zh: "如果提供将包含在PDF中", de: "Wird in die PDF aufgenommen, wenn angegeben", fr: "Sera inclus dans le PDF si fourni" },
+  "Días de facturación": { es: "Días de facturación", en: "Billing days", zh: "计费天数", de: "Abrechnungstage", fr: "Jours de facturation" },
+  "kWh consumidos": { es: "kWh consumidos", en: "kWh consumed", zh: "消耗kWh", de: "Verbrauchte kWh", fr: "kWh consommés" },
+  "Total factura actual (€)": { es: "Total factura actual (€)", en: "Current bill total (€)", zh: "当前账单总额（€）", de: "Aktuelle Rechnungssumme (€)", fr: "Total facture actuelle (€)" },
+  "Comparar Indexada vs Fija": { es: "Comparar Indexada vs Fija", en: "Compare Indexed vs Fixed", zh: "比较浮动与固定", de: "Indexiert vs. Fest vergleichen", fr: "Comparer Indexé vs Fixe" },
+  "Activa para comparar automáticamente tarifa indexada DRK contra tarifas fijas.": { es: "Activa para comparar automáticamente tarifa indexada DRK contra tarifas fijas.", en: "Enable to automatically compare DRK indexed rate against fixed rates.", zh: "启用以自动比较DRK浮动费率与固定费率。", de: "Aktivieren um DRK-Indexpreis automatisch mit Festpreisen zu vergleichen.", fr: "Activer pour comparer automatiquement le tarif indexé DRK aux tarifs fixes." },
+  "Modo de selección:": { es: "Modo de selección:", en: "Selection mode:", zh: "选择模式：", de: "Auswahlmodus:", fr: "Mode de sélection:" },
+  "Mejores tarifas": { es: "Mejores tarifas", en: "Best rates", zh: "最佳费率", de: "Beste Tarife", fr: "Meilleures offres" },
   "Elige si quieres ver la mejor tarifa fija o indexada.": {},
   // Modal de resultados "Tu Tarifa Actual"
   "Tu Tarifa Actual": {},
@@ -26027,9 +26036,9 @@ ${clientName}
   "Estimación anual:": {},
   "📊 TU COSTE ACTUAL CONSOLIDADO": {},
   // Textos de GAS y resultados
-  "Tipo de tarifa:": {},
-  "🔵 Tarifa Fija": {},
-  "🟠 Tarifa Indexada": {},
+  "Tipo de tarifa:": { es: "Tipo de tarifa:", en: "Rate type:", zh: "费率类型：", de: "Tariftyp:", fr: "Type de tarif:" },
+  "🔵 Tarifa Fija": { es: "🔵 Tarifa Fija", en: "🔵 Fixed Rate", zh: "🔵 固定费率", de: "🔵 Festtarif", fr: "🔵 Tarif fixe" },
+  "🟠 Tarifa Indexada": { es: "🟠 Tarifa Indexada", en: "🟠 Indexed Rate", zh: "🟠 浮动费率", de: "🟠 Indexierter Tarif", fr: "🟠 Tarif indexé" },
   "Resultados GAS": {},
   "Comparativa de tarifas": {},
   "Término fijo": {},
@@ -26133,8 +26142,8 @@ ${clientName}
   "Selection mode:": {},
   "Best rates": {},
   "Choose if you want to see the best fixed or indexed rate.": {},
-  "Elegir entre resultados": {},
-  "Selecciona manualmente las tarifas que deseas comparar.": {},
+  "Elegir entre resultados": { es: "Elegir entre resultados", en: "Choose from results", zh: "从结果中选择", de: "Aus Ergebnissen wählen", fr: "Choisir parmi les résultats" },
+  "Selecciona manualmente las tarifas que deseas comparar.": { es: "Selecciona manualmente las tarifas que deseas comparar.", en: "Manually select the rates you want to compare.", zh: "手动选择您想比较的费率。", de: "Wählen Sie manuell die Tarife aus, die Sie vergleichen möchten.", fr: "Sélectionnez manuellement les tarifs que vous souhaitez comparer." },
   "Cancel": {},
   "Ver tarifas disponibles": {},
   "Selecciona las tarifas a comparar:": {},
@@ -26388,7 +26397,7 @@ ${clientName}
   "TOTAL PERIODO": {},
   // Botones y acciones
   "Cerrar": {},
-  "Comparar Indexada vs Fija": {},
+  "Comparar Indexada vs Fija": { es: "Comparar Indexada vs Fija", en: "Compare Indexed vs Fixed", zh: "比较浮动与固定", de: "Indexiert vs. Fest vergleichen", fr: "Comparer Indexé vs Fixe" },
   "Generar PDF": {},
   "Enviar Propuesta": {},
   "Ver Detalles": {},

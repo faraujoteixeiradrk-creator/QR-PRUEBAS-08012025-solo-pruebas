@@ -1008,7 +1008,7 @@
   </button>
   <button onclick="abrirModalSubirMovil()" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mt-3">
   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-  <span>📱 SUBIR PDF DESDE MÓVIL</span>
+  <span data-i18n="📲 PEDIR FACTURA AL CLIENTE">📲 PEDIR FACTURA AL CLIENTE</span>
   </button>
   <input type="file" id="ai-file-input-20td" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaIA(this.files[0], '2.0TD')">
   <div id="ai-drop-zone-20td" style="border:2px dashed #06b6d4;border-radius:16px;padding:14px;margin-top:12px;text-align:center;cursor:pointer;transition:background 0.2s;background:#ecfeff;" onclick="document.getElementById('ai-file-input-20td').click()">
@@ -1222,6 +1222,11 @@
   <p style="font-weight:700;color:#0e7490;font-size:0.88rem;margin-bottom:2px;">SUBIR POR IA (PDF o FOTO)</p>
   <p style="color:#67e8f9;font-size:0.72rem;">Arrastra aqui o pulsa para seleccionar</p>
   </div>
+  <!-- BOTON PEDIR FACTURA AL CLIENTE (3.0TD) -->
+  <button id="movil-btn-30td" style="display:none;" onclick="abrirModalSubirMovil()" class="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mt-2 mb-1">
+  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+  <span data-i18n="📲 PEDIR FACTURA AL CLIENTE">📲 PEDIR FACTURA AL CLIENTE</span>
+  </button>
   <button id="manual-input-btn" class="w-full bg-drk-50 hover:bg-drk-100 text-drk-800 font-bold py-3 px-6 rounded-xl shadow-sm transform transition active:scale-95 flex items-center justify-center gap-3 mt-3">
   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
   <span>DATOS A MANO</span>
@@ -4234,14 +4239,18 @@
   document.getElementById('scan-instruction-text').classList.remove('hidden');
   var mcIA2 = document.getElementById('ai-drop-zone-multicups');
   if (mcIA2) mcIA2.style.display = 'none';
+  var mcMovil = document.getElementById('movil-btn-30td');
+  if (mcMovil) mcMovil.style.display = 'none';
   } else if (type === '3.0TD') {
-  // 3.0TD: IA + Manual
+  // 3.0TD: IA + PEDIR FACTURA + Manual
   qrButtonsContainer.classList.add('hidden');
   manualInputBtn.classList.remove('mt-3');
   scanInstructionText.textContent = "Sube tu factura por IA o introduce los datos manualmente.";
   document.getElementById('scan-instruction-text').classList.remove('hidden');
   var mcIA = document.getElementById('ai-drop-zone-multicups');
   if (mcIA) mcIA.style.display = 'block';
+  var mcMovil2 = document.getElementById('movil-btn-30td');
+  if (mcMovil2) mcMovil2.style.display = 'flex';
   var mcInput = document.getElementById('ai-file-input-multicups');
   if (mcInput) mcInput.onchange = function(e) { procesarFacturaIA(e.target.files[0], '3.0TD'); };
   }
@@ -25671,6 +25680,9 @@ ${clientName}
   "COPIAR COMPARATIVO (HTML)": { es: "COPIAR COMPARATIVO (HTML)", en: "COPY COMPARISON (HTML)", zh: "复制比较 (HTML)", de: "VERGLEICH KOPIEREN (HTML)", fr: "COPIER LA COMPARAISON (HTML)" },
   "CREAR PDF COMPARATIVO": { es: "CREAR PDF COMPARATIVO", en: "CREATE COMPARISON PDF", zh: "创建比较PDF", de: "VERGLEICHS-PDF ERSTELLEN", fr: "CRÉER UN PDF COMPARATIF" },
   "MODO DE COMPARACIÓN": { es: "MODO DE COMPARACIÓN", en: "COMPARISON MODE", zh: "比较模式", de: "VERGLEICHSMODUS", fr: "MODE DE COMPARAISON" },
+  "📲 PEDIR FACTURA AL CLIENTE": { es: "📲 PEDIR FACTURA AL CLIENTE", en: "📲 REQUEST BILL FROM CLIENT", zh: "📲 向客户索取账单", de: "📲 RECHNUNG VOM KUNDEN ANFORDERN", fr: "📲 DEMANDER LA FACTURE AU CLIENT" },
+  "SUBIR POR IA (PDF o FOTO)": { es: "SUBIR POR IA (PDF o FOTO)", en: "UPLOAD VIA AI (PDF or PHOTO)", zh: "通过AI上传 (PDF或照片)", de: "PER KI HOCHLADEN (PDF oder FOTO)", fr: "TÉLÉCHARGER VIA IA (PDF ou PHOTO)" },
+  "Arrastra aqui o pulsa para seleccionar": { es: "Arrastra aquí o pulsa para seleccionar", en: "Drag here or click to select", zh: "拖到此处或点击选择", de: "Hierher ziehen oder klicken zum Auswählen", fr: "Déposez ici ou cliquez pour sélectionner" },
   "🤖 Leer factura con IA": { es: "🤖 Leer factura con IA", en: "🤖 Read bill with AI", zh: "🤖 用AI读取账单", de: "🤖 Rechnung mit KI lesen", fr: "🤖 Lire la facture avec l'IA" },
   "Subir PDF o foto de factura de gas": { es: "Subir PDF o foto de factura de gas", en: "Upload PDF or photo of gas bill", zh: "上传燃气账单PDF或照片", de: "PDF oder Foto der Gasrechnung hochladen", fr: "Télécharger PDF ou photo de la facture gaz" },
   "La IA extraerá los datos automáticamente": { es: "La IA extraerá los datos automáticamente", en: "AI will extract the data automatically", zh: "AI将自动提取数据", de: "Die KI extrahiert die Daten automatisch", fr: "L'IA extraira les données automatiquement" },

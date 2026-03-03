@@ -28559,10 +28559,21 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
 
     if (!base64) throw new Error('Archivo vacío o inválido');
 
-    // Usar getPromptIA si existe, si no usar prompt propio
-    const promptText = (typeof getPromptIA === 'function') ? getPromptIA() : `Eres un experto en facturas de electricidad españolas. Analiza esta factura y devuelve SOLO el siguiente JSON sin texto adicional:
-{"cups":"","tarifa":"2.0TD","dias":0,"potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0,"nombre_cliente":"","direccion_suministro":""}
-REGLAS: tarifa solo puede ser "2.0TD" o "3.0TD". cups empieza por ES. Pon 0 o "" si no encuentras el dato.`;
+    // Usar prompt adaptado según modo (DUAL = electricidad+gas, MULTICUPS = solo electricidad)
+    const isDualMode = window._cmModoDual;
+    let promptText;
+    if (isDualMode) {
+      promptText = `Eres un experto en facturas de energía españolas (electricidad y gas). Analiza esta factura y devuelve SOLO el siguiente JSON sin texto adicional, markdown ni explicaciones:
+{"tipo_suministro":"electricidad","cups":"","tarifa":"2.0TD","dias":0,"nombre_cliente":"","direccion_suministro":"","potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"consumo_gas_kwh":0,"total_factura":0}
+REGLAS CRÍTICAS:
+- tipo_suministro: pon "gas" si es factura de gas natural (detecta por: título FACTURA DE GAS, palabra gas natural, m³, tarifa RL.X, CUPS tipo gas). Pon "electricidad" en cualquier otro caso.
+- Si es GAS: tarifa debe ser exactamente "RL1","RL2","RL3","RL4" o "RL5" según tarifa acceso (RL.1→RL1, RL.2→RL2, etc.). Rellena consumo_gas_kwh con kWh totales de gas.
+- Si es ELECTRICIDAD: tarifa debe ser "2.0TD" o "3.0TD". Rellena potencias_kw y energia_kwh por periodo.
+- cups: CUPS completo incluyendo letras finales (ej: ES0217010240175738JV).
+- Pon 0 o "" si no encuentras el dato. Devuelve SOLO el JSON sin nada más.`;
+    } else {
+      promptText = (typeof getPromptIA === 'function') ? getPromptIA() : `Eres un experto en facturas de electricidad españolas. Analiza esta factura y devuelve SOLO el siguiente JSON sin texto adicional:\n{"cups":"","tarifa":"2.0TD","dias":0,"potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0,"nombre_cliente":"","direccion_suministro":""}\nREGLAS: tarifa solo puede ser "2.0TD" o "3.0TD". cups empieza por ES. Pon 0 o "" si no encuentras el dato.`;
+    }
 
     setStatus('📤 Enviando a IA...');
 
@@ -28615,29 +28626,32 @@ REGLAS: tarifa solo puede ser "2.0TD" o "3.0TD". cups empieza por ES. Pon 0 o ""
     try { parsed = JSON.parse(match[0]); }
     catch(e) { throw new Error('JSON malformado: ' + raw.substring(0,50)); }
 
-    // Normalizar tarifa
-    let tarifa = (parsed.tarifa || '').toString().toUpperCase().replace(/\s/g,'');
+    // Normalizar tarifa — quitar puntos y espacios (RL.2 → RL2)
+    let tarifa = (parsed.tarifa || '').toString().toUpperCase().replace(/[\s\.]/g,'');
     if (tarifa.includes('20') || tarifa === '2TD') tarifa = '2.0TD';
     else if (tarifa.includes('30') || tarifa === '3TD') tarifa = '3.0TD';
-    else if (tarifa === 'RL1'||tarifa === 'RL2'||tarifa === 'RL3'||tarifa === 'RL4'||tarifa === 'RL5') { /* gas, mantener */ }
+    // RL1-RL5 quedan tal cual
 
     const p = parsed.potencias_kw || {};
     const e = parsed.energia_kwh || {};
 
-    // Detectar si es factura de gas
-    const cupsStr = (parsed.cups || '').toString().toUpperCase();
+    // Detectar gas: primero campo tipo_suministro de la IA, luego heurística
+    const tipoIA = (parsed.tipo_suministro || '').toLowerCase().trim();
     const rawLower = raw.toLowerCase();
-    const esGas = cupsStr.startsWith('ES') === false ||
-      rawLower.includes('gas natural') || rawLower.includes('factura de gas') ||
-      rawLower.includes('kwh de gas') || rawLower.includes('consumo de gas') ||
-      ['RL1','RL2','RL3','RL4','RL5'].includes(tarifa);
+    const validRL = ['RL1','RL2','RL3','RL4','RL5'];
+    const esGas = tipoIA === 'gas' ||
+      validRL.includes(tarifa) ||
+      rawLower.includes('"tipo_suministro":"gas"') ||
+      rawLower.includes('"gas"');
 
-    // Deducir por periodos si no se detectó (solo electricidad)
+    // Ajustar tarifa según tipo
+    if (esGas && !validRL.includes(tarifa)) tarifa = 'RL1';
     if (!esGas && tarifa !== '2.0TD' && tarifa !== '3.0TD') {
-      if ((p.p3 && p.p3 > 0) || (e.e4 && e.e4 > 0)) tarifa = '3.0TD';
-      else tarifa = '2.0TD';
+      tarifa = ((p.p3 && p.p3 > 0) || (e.e4 && e.e4 > 0)) ? '3.0TD' : '2.0TD';
     }
-    if (esGas && !['RL1','RL2','RL3','RL4','RL5'].includes(tarifa)) tarifa = 'RL1';
+
+    // Consumo gas en kWh (puede venir en campo consumo_gas_kwh o energia e1)
+    const consumoGasKwh = parsed.consumo_gas_kwh || (esGas ? (e.e1 || 0) : 0);
 
     return {
       ok: true, tarifa,
@@ -28645,7 +28659,9 @@ REGLAS: tarifa solo puede ser "2.0TD" o "3.0TD". cups empieza por ES. Pon 0 o ""
       cups: parsed.cups || '',
       dias: parsed.dias || 0,
       p1: p.p1||0, p2: p.p2||0, p3: p.p3||0, p4: p.p4||0, p5: p.p5||0, p6: p.p6||0,
-      e1: e.e1||0, e2: e.e2||0, e3: e.e3||0, e4: e.e4||0, e5: e.e5||0, e6: e.e6||0,
+      e1: esGas ? consumoGasKwh : (e.e1||0),
+      e2: e.e2||0, e3: e.e3||0, e4: e.e4||0, e5: e.e5||0, e6: e.e6||0,
+      consumoGasKwh,
       total: parsed.total_factura || 0,
       nombre: parsed.nombre_cliente || '',
       direccion: parsed.direccion_suministro || '',
@@ -28949,7 +28965,7 @@ REGLAS:
           cups: data.cups,
           nombre_cliente: data.nombre_cliente,
           direccion_suministro: data.direccion_suministro,
-          consumo_kwh: r.e1 || 0,
+          consumo_kwh: r.consumoGasKwh || r.e1 || 0,
           total_factura: r.total || 0,
           dias: r.dias || 30
         };

@@ -22500,15 +22500,20 @@ ${clientName}
   results.push(bestFixed);
   }
   } else if (mode === 'best' && type) {
-  // MODO: Mejores tarifas - Usuario eligió Fija o Indexada
+  // MODO: Mejores tarifas
   let targetTariffs;
-  if (type === 'fija') {
+  if (type === 'all') {
+  // Gas: usar todas las DRK disponibles sin filtrar fija/indexada
+  targetTariffs = filteredTariffs;
+  } else if (type === 'fija') {
   // Buscar FIJAS: name NO contiene INDEX, o description contiene FIJO
   targetTariffs = filteredTariffs.filter(t => {
   const name = (t.name || t.Name || '').toUpperCase();
   const desc = (t.description || t.Description || '').toUpperCase();
   return !name.includes('INDEX') || desc.includes('FIJO') || desc.includes('FIJA');
   });
+  // Si no hay fijas (ej: gas donde todo es INDEX), usar todas
+  if (targetTariffs.length === 0) targetTariffs = filteredTariffs;
   } else {
   // Buscar INDEXADAS: name contiene INDEX
   targetTariffs = filteredTariffs.filter(t => {
@@ -29005,8 +29010,8 @@ REGLAS:
             bestRadio.checked = true;
             if (typeof updateGasSelectionUI === 'function') updateGasSelectionUI();
           }
-          // calculateGasWithType lee directamente los inputs del DOM y actualiza gasCalculationParams correctamente
-          if (typeof calculateGasWithType === 'function') calculateGasWithType('fija');
+          // En gas no hay distinción fija/indexada — mostrar todas las DRK disponibles
+          if (typeof calculateGasWithType === 'function') calculateGasWithType('all');
         };
         // Esperar hasta 5s a que gasTariffsData cargue
         let gasWaitAttempts = 0;

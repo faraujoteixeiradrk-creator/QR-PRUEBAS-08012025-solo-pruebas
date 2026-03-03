@@ -28324,9 +28324,13 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
             <th style="padding:8px;text-align:left;color:#0369a1;">Días</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">P1 kW</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">P2 kW</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;background:#dbeafe;">P3-6 kW</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">E1 kWh</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">E2 kWh</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">E3 kWh</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;background:#dbeafe;">E4 kWh</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;background:#dbeafe;">E5 kWh</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;background:#dbeafe;">E6 kWh</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">Total €</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">Acciones</th>
           </tr>
@@ -28620,24 +28624,30 @@ REGLAS:
     tbody.innerHTML = _cmResultados.map((r, i) => {
       const bg = r.ok ? 'white' : '#fef9c3';
       const est = r.ok ? `<span style="color:#059669;font-weight:700;">✅</span>` : `<span style="color:#d97706;font-weight:700;">⚠️</span>`;
+      const is30 = r.tarifa === '3.0TD';
+      const bgBlue = 'background:#eff6ff;';
       return `<tr style="background:${bg};border-bottom:1px solid #e2e8f0;" id="cm-row-${i}">
         <td style="padding:6px;"><input type="checkbox" ${r.seleccionado?'checked':''} onchange="_cmResultados[${i}].seleccionado=this.checked"></td>
         <td style="padding:6px;">${est}</td>
-        <td style="padding:6px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;" title="${r.file.name}">${r.file.name}</td>
+        <td style="padding:6px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;" title="${r.file.name}">${r.file.name}</td>
         <td style="padding:6px;">
-          <select onchange="_cmResultados[${i}].tarifa=this.value" style="padding:2px 4px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.75rem;font-weight:700;">
+          <select onchange="_cmResultados[${i}].tarifa=this.value;cmRenderTabla()" style="padding:2px 4px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.75rem;font-weight:700;">
             <option value="2.0TD" ${r.tarifa==='2.0TD'?'selected':''}>2.0TD</option>
             <option value="3.0TD" ${r.tarifa==='3.0TD'?'selected':''}>3.0TD</option>
           </select>
         </td>
         <td style="padding:6px;"><input value="${r.cups||''}" onchange="_cmResultados[${i}].cups=this.value" style="width:130px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
-        <td style="padding:6px;"><input value="${r.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:110px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.72rem;"></td>
-        <td style="padding:6px;"><input type="number" value="${r.dias||''}" onchange="_cmResultados[${i}].dias=+this.value" style="width:45px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
-        <td style="padding:6px;"><input type="number" value="${r.p1||''}" onchange="_cmResultados[${i}].p1=+this.value" style="width:45px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
-        <td style="padding:6px;"><input type="number" value="${r.p2||''}" onchange="_cmResultados[${i}].p2=+this.value" style="width:45px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
-        <td style="padding:6px;"><input type="number" value="${r.e1||''}" onchange="_cmResultados[${i}].e1=+this.value" style="width:55px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
-        <td style="padding:6px;"><input type="number" value="${r.e2||''}" onchange="_cmResultados[${i}].e2=+this.value" style="width:55px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
-        <td style="padding:6px;"><input type="number" value="${r.e3||''}" onchange="_cmResultados[${i}].e3=+this.value" style="width:55px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;"><input value="${r.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:100px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.72rem;"></td>
+        <td style="padding:6px;"><input type="number" value="${r.dias||''}" onchange="_cmResultados[${i}].dias=+this.value" style="width:42px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;"><input type="number" value="${r.p1||''}" onchange="_cmResultados[${i}].p1=+this.value" style="width:42px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;"><input type="number" value="${r.p2||''}" onchange="_cmResultados[${i}].p2=+this.value" style="width:42px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;${bgBlue}"><input type="number" value="${is30?(r.p3||''):''}" onchange="_cmResultados[${i}].p3=+this.value" ${!is30?'disabled':''} style="width:42px;padding:2px 4px;border:1px solid #bfdbfe;border-radius:4px;font-size:0.75rem;text-align:center;${!is30?'opacity:0.3;':''}"></td>
+        <td style="padding:6px;"><input type="number" value="${r.e1||''}" onchange="_cmResultados[${i}].e1=+this.value" style="width:52px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;"><input type="number" value="${r.e2||''}" onchange="_cmResultados[${i}].e2=+this.value" style="width:52px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;"><input type="number" value="${r.e3||''}" onchange="_cmResultados[${i}].e3=+this.value" style="width:52px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;${bgBlue}"><input type="number" value="${is30?(r.e4||''):''}" onchange="_cmResultados[${i}].e4=+this.value" ${!is30?'disabled':''} style="width:52px;padding:2px 4px;border:1px solid #bfdbfe;border-radius:4px;font-size:0.75rem;text-align:center;${!is30?'opacity:0.3;':''}"></td>
+        <td style="padding:6px;${bgBlue}"><input type="number" value="${is30?(r.e5||''):''}" onchange="_cmResultados[${i}].e5=+this.value" ${!is30?'disabled':''} style="width:52px;padding:2px 4px;border:1px solid #bfdbfe;border-radius:4px;font-size:0.75rem;text-align:center;${!is30?'opacity:0.3;':''}"></td>
+        <td style="padding:6px;${bgBlue}"><input type="number" value="${is30?(r.e6||''):''}" onchange="_cmResultados[${i}].e6=+this.value" ${!is30?'disabled':''} style="width:52px;padding:2px 4px;border:1px solid #bfdbfe;border-radius:4px;font-size:0.75rem;text-align:center;${!is30?'opacity:0.3;':''}"></td>
         <td style="padding:6px;"><input type="number" value="${r.total||''}" onchange="_cmResultados[${i}].total=+this.value" style="width:55px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
         <td style="padding:6px;white-space:nowrap;">
           <button onclick="cmReprocesar(${i})" title="Reprocesar" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:0.72rem;">🔄</button>
@@ -28684,7 +28694,7 @@ REGLAS:
       const chk = document.querySelector(`#cm-row-${i} input[type="checkbox"]`);
       if (chk) r.seleccionado = chk.checked;
       const inputs = document.querySelectorAll(`#cm-row-${i} input[type="number"]`);
-      const fields = ['dias','p1','p2','p3','p4','p5','p6','e1','e2','e3','e4','e5','e6','total'];
+      const fields = ['dias','p1','p2','p3','e1','e2','e3','e4','e5','e6','total'];
       inputs.forEach((inp, idx) => { if (fields[idx] !== undefined) r[fields[idx]] = parseFloat(inp.value)||0; });
       const texts = document.querySelectorAll(`#cm-row-${i} input:not([type="number"]):not([type="checkbox"])`);
       if (texts[0]) r.cups = texts[0].value;

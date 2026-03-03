@@ -28765,29 +28765,27 @@ Reglas:
     if (!_iaVozDatosInterpretados) return;
     const d = _iaVozDatosInterpretados;
 
-    // Cerrar modal IA
+    // Cerrar modal IA primero
     cerrarModalIAUpload();
 
-    // Abrir el modal de entrada manual (igual que "DATOS A MANO")
-    // para que los campos sean visibles y editables
+    // Abrir el modal de entrada manual sin limpiar campos (lo hace startManualInputFlow)
+    // Llamamos startManualInputFlow y esperamos suficiente para que termine el clear
     if (typeof startManualInputFlow === 'function') {
       startManualInputFlow();
     }
 
-    // Rellenar campos con delay para asegurar que el modal está abierto
+    // Delay generoso para que clearManualInputs termine antes de rellenar
     setTimeout(function() {
       function sv(id, val) {
-        if (!val && val !== 0) return;
-        if (val === 0 || val === '') return;
+        if (val === null || val === undefined || val === '' || val === 0) return;
         const el = document.getElementById(id);
         if (!el) return;
         el.value = val;
-        // Disparar evento input para que el formulario detecte el cambio
         el.dispatchEvent(new Event('input', { bubbles: true }));
         el.dispatchEvent(new Event('change', { bubbles: true }));
         el.style.borderColor = '#7c3aed';
         el.style.background = '#f5f3ff';
-        setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 3000);
+        setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 2500);
       }
 
       if (d.tipo === 'gas') {
@@ -28796,40 +28794,42 @@ Reglas:
         sv('gas-kwh', d.kwh_gas);
         sv('gas-total-cliente', d.total_factura);
       } else {
-        sv('input-cups', d.cups);
-        sv('input-billing-days', d.dias);
-        sv('input-p1-kw', d.p1_kw);
-        sv('input-p2-kw', d.p2_kw);
-        sv('input-p3-kw', d.p3_kw);
-        sv('input-p4-kw', d.p4_kw);
-        sv('input-p5-kw', d.p5_kw);
-        sv('input-p6-kw', d.p6_kw);
-        sv('input-e1-kwh', d.e1_kwh);
-        sv('input-e2-kwh', d.e2_kwh);
-        sv('input-e3-kwh', d.e3_kwh);
-        sv('input-e4-kwh', d.e4_kwh);
-        sv('input-e5-kwh', d.e5_kwh);
-        sv('input-e6-kwh', d.e6_kwh);
-        sv('input-total-bill', d.total_factura);
+        if (d.cups)           sv('input-cups', d.cups);
+        if (d.dias)           sv('input-billing-days', d.dias);
+        if (d.p1_kw)          sv('input-p1-kw', d.p1_kw);
+        if (d.p2_kw)          sv('input-p2-kw', d.p2_kw);
+        if (d.p3_kw)          sv('input-p3-kw', d.p3_kw);
+        if (d.p4_kw)          sv('input-p4-kw', d.p4_kw);
+        if (d.p5_kw)          sv('input-p5-kw', d.p5_kw);
+        if (d.p6_kw)          sv('input-p6-kw', d.p6_kw);
+        if (d.e1_kwh)         sv('input-e1-kwh', d.e1_kwh);
+        if (d.e2_kwh)         sv('input-e2-kwh', d.e2_kwh);
+        if (d.e3_kwh)         sv('input-e3-kwh', d.e3_kwh);
+        if (d.e4_kwh)         sv('input-e4-kwh', d.e4_kwh);
+        if (d.e5_kwh)         sv('input-e5-kwh', d.e5_kwh);
+        if (d.e6_kwh)         sv('input-e6-kwh', d.e6_kwh);
+        if (d.total_factura)  sv('input-total-bill', d.total_factura);
       }
-      // Nombre y dirección del cliente
+
+      // Nombre y dirección
       if (d.nombre_cliente) {
         sv('client-name', d.nombre_cliente);
         sv('client-name-input', d.nombre_cliente);
         sv('improvement-client-name', d.nombre_cliente);
-        // Guardar para que el modal comercial lo use
         window.elecUsedIA = true;
-        if (!window.aiExtractedData) window.aiExtractedData = {};
+        window.aiExtractedData = window.aiExtractedData || {};
         window.aiExtractedData.nombre_cliente = d.nombre_cliente;
       }
       if (d.direccion_suministro) {
         sv('client-address', d.direccion_suministro);
         sv('client-address-input', d.direccion_suministro);
         sv('multicups-supply-address', d.direccion_suministro);
-        if (!window.aiExtractedData) window.aiExtractedData = {};
+        window.aiExtractedData = window.aiExtractedData || {};
         window.aiExtractedData.direccion_suministro = d.direccion_suministro;
       }
-    }, 200);
+
+      console.log('✅ Voz: campos rellenados', d);
+    }, 500); // 500ms — clearManualInputs ya habrá terminado
   };
 
   // Cerrar al pulsar fuera

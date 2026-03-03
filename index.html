@@ -28980,7 +28980,8 @@ REGLAS:
         // Navegar a la pantalla de gas en DUAL con la tarifa detectada
         dualSelectTariff('gas', r.tarifa || 'RL1');
         // Auto-rellenar los inputs del modal de gas y disparar el cálculo
-        setTimeout(() => {
+        // Esperamos a que gasTariffsData esté cargado antes de calcular
+        const fillAndCalculateGas = () => {
           const gCups  = document.getElementById('gas-cups');
           const gDias  = document.getElementById('gas-dias');
           const gKwh   = document.getElementById('gas-kwh');
@@ -28989,9 +28990,21 @@ REGLAS:
           if (gDias)  gDias.value  = r.dias || 30;
           if (gKwh)   gKwh.value   = r.consumoGasKwh || r.e1 || '';
           if (gTotal) gTotal.value = r.total || '';
-          // Lanzar cálculo directamente — el usuario verá el modal de selección de oferta
           if (typeof calculateGas === 'function') calculateGas();
-        }, 350);
+        };
+        // Esperar hasta 5s a que gasTariffsData cargue
+        let gasWaitAttempts = 0;
+        const waitForGasData = setInterval(() => {
+          gasWaitAttempts++;
+          if (typeof gasTariffsData !== 'undefined' && gasTariffsData.length > 0) {
+            clearInterval(waitForGasData);
+            setTimeout(fillAndCalculateGas, 150);
+          } else if (gasWaitAttempts > 50) {
+            clearInterval(waitForGasData);
+            // Si tras 5s no hay datos, rellenar de todas formas y dejar al usuario
+            setTimeout(fillAndCalculateGas, 150);
+          }
+        }, 100);
       } else {
         saveSupply(data, r.tarifa || '2.0TD');
       }

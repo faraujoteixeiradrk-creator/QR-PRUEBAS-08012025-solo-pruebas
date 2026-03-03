@@ -28248,6 +28248,11 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
         <div><div style="font-weight:800;color:#065f46;font-size:0.95rem;">Varios archivos del mismo cliente</div><div style="font-size:0.75rem;color:#64748b;margin-top:2px;">Hasta 5 PDF o fotos — la IA las junta y analiza</div></div>
         <div style="margin-left:auto;color:#94a3b8;font-size:1.2rem;">›</div>
       </button>
+      <button onclick="iaUploadOpcion('voz')" style="display:flex;align-items:center;gap:14px;padding:16px;border:2px solid #ede9fe;border-radius:16px;background:#f5f3ff;cursor:pointer;text-align:left;" onmouseover="this.style.borderColor='#7c3aed'" onmouseout="this.style.borderColor='#ede9fe'">
+        <div style="width:48px;height:48px;background:linear-gradient(135deg,#7c3aed,#6d28d9);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">🎤</div>
+        <div><div style="font-weight:800;color:#5b21b6;font-size:0.95rem;">Dictar por Voz</div><div style="font-size:0.75rem;color:#64748b;margin-top:2px;">Di los datos de la factura y la IA los rellena</div></div>
+        <div style="margin-left:auto;color:#94a3b8;font-size:1.2rem;">›</div>
+      </button>
       <div style="text-align:center;font-size:0.7rem;color:#94a3b8;">La IA analiza automáticamente y rellena los datos de la factura</div>
     </div>
 
@@ -28282,8 +28287,30 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       <div id="ia-fotos-status" style="display:none;text-align:center;padding:10px;font-size:0.8rem;color:#0891b2;font-weight:600;"></div>
     </div>
 
-    <!-- Vista: Múltiples archivos -->
-    <div id="ia-vista-multi" style="display:none;padding:20px;">
+    <!-- Vista: Voz -->
+    <div id="ia-vista-voz" style="display:none;padding:20px;">
+      <button onclick="iaVolverOpciones()" style="background:none;border:none;color:#0891b2;font-size:0.85rem;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:4px;">‹ Volver</button>
+      <p style="font-size:0.78rem;color:#6b7280;margin-bottom:16px;text-align:center;">Di los datos de la factura en voz alta. Por ejemplo:<br><em style="color:#7c3aed;">"Potencia uno 4.6, potencia dos 4.6, energía uno 120, energía dos 80, energía tres 60, días 30, total 85 euros, nombre Juan García, dirección Calle Mayor 5 Madrid"</em></p>
+
+      <!-- Botón micrófono -->
+      <div style="text-align:center;margin-bottom:16px;">
+        <button id="ia-voz-btn" onclick="iaVozToggle()" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#6d28d9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:2.2rem;margin:0 auto;box-shadow:0 4px 20px rgba(124,58,237,0.4);transition:all 0.2s;">🎤</button>
+        <p id="ia-voz-estado" style="font-size:0.8rem;color:#7c3aed;font-weight:700;margin-top:10px;">Pulsa para hablar</p>
+      </div>
+
+      <!-- Transcripción en vivo -->
+      <div id="ia-voz-transcripcion" style="display:none;background:#f5f3ff;border:2px solid #ede9fe;border-radius:12px;padding:12px;margin-bottom:12px;min-height:60px;font-size:0.82rem;color:#4c1d95;font-style:italic;"></div>
+
+      <!-- Datos interpretados por IA -->
+      <div id="ia-voz-datos" style="display:none;background:#f0fdf4;border:2px solid #bbf7d0;border-radius:12px;padding:12px;margin-bottom:12px;font-size:0.8rem;"></div>
+
+      <!-- Botones acción -->
+      <div id="ia-voz-acciones" style="display:none;display:flex;gap:8px;">
+        <button onclick="iaVozReintentar()" style="flex:1;padding:10px;border:2px solid #e2e8f0;border-radius:10px;background:white;color:#64748b;font-weight:700;cursor:pointer;font-size:0.82rem;">🔄 Repetir</button>
+        <button onclick="iaVozConfirmar()" id="ia-voz-confirmar-btn" style="flex:2;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:white;font-weight:800;cursor:pointer;font-size:0.82rem;">✅ Confirmar y rellenar</button>
+      </div>
+      <div id="ia-voz-error" style="display:none;background:#fef2f2;border:2px solid #fecaca;border-radius:10px;padding:10px;font-size:0.78rem;color:#dc2626;text-align:center;margin-top:8px;"></div>
+    </div>
       <button onclick="iaVolverOpciones()" style="background:none;border:none;color:#0891b2;font-size:0.85rem;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:4px;">‹ Volver</button>
       <p style="font-size:0.78rem;color:#6b7280;margin-bottom:12px;text-align:center;">Sube hasta 5 archivos (PDF o imágenes). La IA los junta y analiza como una sola factura.</p>
       <div id="ia-multi-slots" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
@@ -28316,6 +28343,7 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
     document.getElementById('ia-vista-opciones').style.display = 'flex';
     document.getElementById('ia-vista-fotos').style.display = 'none';
     document.getElementById('ia-vista-multi').style.display = 'none';
+    document.getElementById('ia-vista-voz').style.display = 'none';
     document.getElementById('ia-modal-subtitle').textContent = 'Elige cómo quieres subir la factura';
     // Reset fotos
     _iaFotos = [null,null,null,null,null];
@@ -28332,7 +28360,11 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
     iaMultiAddSlot(); // primer slot
   };
 
-  // ─── Opciones ───────────────────────────────────────────────
+  // ─── VOZ ────────────────────────────────────────────────────
+  let _iaRecognition = null;
+  let _iaVozEscuchando = false;
+  let _iaVozDatosInterpretados = null;
+
   window.iaUploadOpcion = function(opcion) {
     if (opcion === 'pdf') {
       const inputId = _iaZone === '20td' ? 'ai-file-input-20td' : _iaZone === '30td' ? 'ai-file-input-30td' : 'ai-file-input-multicups';
@@ -28346,6 +28378,11 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       document.getElementById('ia-vista-opciones').style.display = 'none';
       document.getElementById('ia-vista-multi').style.display = 'block';
       document.getElementById('ia-modal-subtitle').textContent = 'Varios archivos → IA';
+    } else if (opcion === 'voz') {
+      document.getElementById('ia-vista-opciones').style.display = 'none';
+      document.getElementById('ia-vista-voz').style.display = 'block';
+      document.getElementById('ia-modal-subtitle').textContent = 'Dictar datos por voz';
+      iaVozReset();
     }
   };
 
@@ -28528,6 +28565,239 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       }
     }
     return pdf.output('blob');
+  };
+
+  window.iaVozReset = function() {
+    _iaVozEscuchando = false;
+    _iaVozDatosInterpretados = null;
+    const btn = document.getElementById('ia-voz-btn');
+    if (btn) { btn.style.background = 'linear-gradient(135deg,#7c3aed,#6d28d9)'; btn.textContent = '🎤'; }
+    const estado = document.getElementById('ia-voz-estado');
+    if (estado) estado.textContent = 'Pulsa para hablar';
+    document.getElementById('ia-voz-transcripcion').style.display = 'none';
+    document.getElementById('ia-voz-transcripcion').textContent = '';
+    document.getElementById('ia-voz-datos').style.display = 'none';
+    document.getElementById('ia-voz-acciones').style.display = 'none';
+    document.getElementById('ia-voz-error').style.display = 'none';
+    if (_iaRecognition) { try { _iaRecognition.stop(); } catch(e){} _iaRecognition = null; }
+  };
+
+  window.iaVozToggle = function() {
+    if (_iaVozEscuchando) {
+      if (_iaRecognition) _iaRecognition.stop();
+      return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      document.getElementById('ia-voz-error').style.display = 'block';
+      document.getElementById('ia-voz-error').textContent = '⚠️ Tu navegador no soporta reconocimiento de voz. Usa Chrome o Safari.';
+      return;
+    }
+    document.getElementById('ia-voz-error').style.display = 'none';
+    document.getElementById('ia-voz-acciones').style.display = 'none';
+    document.getElementById('ia-voz-datos').style.display = 'none';
+
+    _iaRecognition = new SpeechRecognition();
+    _iaRecognition.lang = 'es-ES';
+    _iaRecognition.continuous = true;
+    _iaRecognition.interimResults = true;
+    _iaRecognition.maxAlternatives = 1;
+
+    const btn = document.getElementById('ia-voz-btn');
+    const estado = document.getElementById('ia-voz-estado');
+    const transcEl = document.getElementById('ia-voz-transcripcion');
+    transcEl.style.display = 'block';
+    transcEl.textContent = '🎙️ Escuchando...';
+
+    _iaRecognition.onstart = function() {
+      _iaVozEscuchando = true;
+      btn.style.background = 'linear-gradient(135deg,#dc2626,#b91c1c)';
+      btn.textContent = '⏹️';
+      estado.textContent = 'Escuchando... pulsa para detener';
+    };
+
+    let finalTranscript = '';
+    _iaRecognition.onresult = function(event) {
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript + ' ';
+        else interim += event.results[i][0].transcript;
+      }
+      transcEl.textContent = (finalTranscript + interim) || '🎙️ Escuchando...';
+    };
+
+    _iaRecognition.onend = function() {
+      _iaVozEscuchando = false;
+      btn.style.background = 'linear-gradient(135deg,#7c3aed,#6d28d9)';
+      btn.textContent = '🎤';
+      if (finalTranscript.trim()) {
+        estado.textContent = '🤖 Interpretando con IA...';
+        iaVozInterpretarConIA(finalTranscript.trim());
+      } else {
+        estado.textContent = 'Pulsa para hablar';
+        transcEl.textContent = '';
+        transcEl.style.display = 'none';
+      }
+    };
+
+    _iaRecognition.onerror = function(e) {
+      _iaVozEscuchando = false;
+      btn.style.background = 'linear-gradient(135deg,#7c3aed,#6d28d9)';
+      btn.textContent = '🎤';
+      estado.textContent = 'Pulsa para hablar';
+      const errores = { 'not-allowed': 'Permiso de micrófono denegado. Permite el acceso en tu navegador.', 'no-speech': 'No se detectó voz. Inténtalo de nuevo.', 'network': 'Error de red. Comprueba la conexión.' };
+      document.getElementById('ia-voz-error').style.display = 'block';
+      document.getElementById('ia-voz-error').textContent = '⚠️ ' + (errores[e.error] || 'Error: ' + e.error);
+    };
+
+    finalTranscript = '';
+    _iaRecognition.start();
+  };
+
+  window.iaVozInterpretarConIA = async function(texto) {
+    const estado = document.getElementById('ia-voz-estado');
+    const datosEl = document.getElementById('ia-voz-datos');
+    const accionesEl = document.getElementById('ia-voz-acciones');
+    const errorEl = document.getElementById('ia-voz-error');
+    const tariffType = iaGetTariff();
+    const es3TD = tariffType === '3.0TD';
+
+    const prompt = `Eres un experto en facturas de electricidad y gas españolas. El usuario ha dictado estos datos de voz:
+
+"${texto}"
+
+Extrae los datos y devuelve SOLO este JSON sin texto adicional ni comillas de código:
+{
+  "cups": "",
+  "dias": 0,
+  "p1_kw": 0,
+  "p2_kw": 0,
+  "p3_kw": 0,
+  "p4_kw": 0,
+  "p5_kw": 0,
+  "p6_kw": 0,
+  "e1_kwh": 0,
+  "e2_kwh": 0,
+  "e3_kwh": 0,
+  "e4_kwh": 0,
+  "e5_kwh": 0,
+  "e6_kwh": 0,
+  "total_factura": 0,
+  "kwh_gas": 0,
+  "nombre_cliente": "",
+  "direccion_suministro": "",
+  "tipo": "electricidad"
+}
+
+Reglas:
+- "potencia uno/1/P1" → p1_kw. "potencia dos/2/P2" → p2_kw. Igual para P3-P6.
+- "energía/energia uno/punta" → e1_kwh. "llano" → e2_kwh. "valle" → e3_kwh.
+- "días/dias" → dias. "total/factura" → total_factura.
+- Si menciona kWh de gas → kwh_gas y tipo="gas".
+- Si es electricidad → tipo="electricidad".
+- Números en palabras: "cuatro coma seis" → 4.6, "ciento veinte" → 120.
+- Si no se menciona un dato déjalo en 0 o "".`;
+
+    try {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 500,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      const data = await resp.json();
+      const raw = data.content?.[0]?.text || '';
+      const match = raw.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error('No se pudo interpretar la respuesta');
+      const parsed = JSON.parse(match[0]);
+      _iaVozDatosInterpretados = parsed;
+
+      // Mostrar resumen de datos
+      let resumen = '<div style="font-weight:800;color:#065f46;margin-bottom:8px;">✅ Datos interpretados:</div>';
+      const campos = [
+        ['CUPS', parsed.cups], ['Días', parsed.dias],
+        ['P1 kW', parsed.p1_kw], ['P2 kW', parsed.p2_kw],
+        ['P3 kW', parsed.p3_kw || null], ['P4 kW', parsed.p4_kw || null],
+        ['P5 kW', parsed.p5_kw || null], ['P6 kW', parsed.p6_kw || null],
+        ['E1 kWh', parsed.e1_kwh], ['E2 kWh', parsed.e2_kwh], ['E3 kWh', parsed.e3_kwh],
+        ['E4 kWh', parsed.e4_kwh || null], ['E5 kWh', parsed.e5_kwh || null], ['E6 kWh', parsed.e6_kwh || null],
+        ['kWh Gas', parsed.kwh_gas || null],
+        ['Total €', parsed.total_factura],
+        ['Cliente', parsed.nombre_cliente], ['Dirección', parsed.direccion_suministro]
+      ];
+      resumen += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">';
+      campos.forEach(([label, val]) => {
+        if (val && val !== 0 && val !== '') {
+          resumen += `<div style="background:white;border-radius:6px;padding:4px 6px;"><span style="color:#64748b;font-size:0.72rem;">${label}</span><br><span style="font-weight:700;color:#0f172a;font-size:0.82rem;">${val}</span></div>`;
+        }
+      });
+      resumen += '</div>';
+
+      datosEl.innerHTML = resumen;
+      datosEl.style.display = 'block';
+      accionesEl.style.display = 'flex';
+      estado.textContent = '✅ Datos listos — revisa y confirma';
+    } catch(e) {
+      errorEl.style.display = 'block';
+      errorEl.textContent = '❌ Error interpretando: ' + e.message;
+      estado.textContent = 'Pulsa para hablar';
+    }
+  };
+
+  window.iaVozReintentar = function() {
+    iaVozReset();
+  };
+
+  window.iaVozConfirmar = function() {
+    if (!_iaVozDatosInterpretados) return;
+    const d = _iaVozDatosInterpretados;
+
+    function sv(id, val) {
+      if (!val && val !== 0) return;
+      if (val === 0 || val === '') return;
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.value = val;
+      el.style.borderColor = '#7c3aed';
+      el.style.background = '#f5f3ff';
+      setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 3000);
+    }
+
+    if (d.tipo === 'gas') {
+      sv('gas-cups', d.cups);
+      sv('gas-dias', d.dias);
+      sv('gas-kwh', d.kwh_gas);
+      sv('gas-total-cliente', d.total_factura);
+    } else {
+      sv('input-cups', d.cups);
+      sv('input-billing-days', d.dias);
+      sv('input-p1-kw', d.p1_kw);
+      sv('input-p2-kw', d.p2_kw);
+      sv('input-p3-kw', d.p3_kw);
+      sv('input-p4-kw', d.p4_kw);
+      sv('input-p5-kw', d.p5_kw);
+      sv('input-p6-kw', d.p6_kw);
+      sv('input-e1-kwh', d.e1_kwh);
+      sv('input-e2-kwh', d.e2_kwh);
+      sv('input-e3-kwh', d.e3_kwh);
+      sv('input-e4-kwh', d.e4_kwh);
+      sv('input-e5-kwh', d.e5_kwh);
+      sv('input-e6-kwh', d.e6_kwh);
+      sv('input-total-bill', d.total_factura);
+    }
+    // Datos del cliente en todos los modales
+    if (d.nombre_cliente) {
+      sv('client-name', d.nombre_cliente); sv('client-name-input', d.nombre_cliente);
+      sv('improvement-client-name', d.nombre_cliente);
+    }
+    if (d.direccion_suministro) {
+      sv('client-address', d.direccion_suministro); sv('client-address-input', d.direccion_suministro);
+    }
+
+    cerrarModalIAUpload();
   };
 
   // Cerrar al pulsar fuera

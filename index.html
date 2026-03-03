@@ -15548,7 +15548,12 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   document.getElementById('tariff-display-badge').textContent = multiCupsData.length;
   window.showMessageModal(`Suministro ${result.cups} (${result.offer.name}) añadido. Total: ${multiCupsData.length}`, "Suministro Añadido");
   document.getElementById('initial-view').classList.add('hidden');
-  showMultiCupsSagaView();
+  // Si estamos en modo DUAL cola masiva, volver a DUAL en lugar de MULTICUPS
+  if (window._cmModoDual && window.dualMode) {
+    backToDualManager();
+  } else {
+    showMultiCupsSagaView();
+  }
  }
  // Funciones para el modal de selección de ofertas
  function showOfferSelectionModal(cups) {
@@ -28642,14 +28647,20 @@ REGLAS CRÍTICAS:
     const p = parsed.potencias_kw || {};
     const e = parsed.energia_kwh || {};
 
-    // Detectar gas: SOLO por campo explícito tipo_suministro de la IA
-    // NO usar heurísticas débiles que causan falsos positivos en facturas de electricidad
+    // Detectar gas con alta precisión — evitar falsos positivos en electricidad
     const tipoIA = (parsed.tipo_suministro || '').toLowerCase().trim();
     const validRL = ['RL1','RL2','RL3','RL4','RL5'];
+    const rawLower = raw.toLowerCase();
 
-    // Es gas SOLO si la IA lo dice explícitamente O si la tarifa es claramente RL (y tipoIA no dice electricidad)
-    const esGas = tipoIA === 'gas' ||
-      (validRL.includes(tarifa) && tipoIA !== 'electricidad');
+    // Señales fuertes de electricidad (evitar clasificar como gas)
+    const tienePotencias = (p.p1 && p.p1 > 0) || (p.p2 && p.p2 > 0);
+    const tienePeriodosElec = (e.e1 > 0) || (e.e2 > 0); // electricidad tiene múltiples periodos
+    const cupsElec = (parsed.cups || '').toUpperCase().startsWith('ES') &&
+      !(rawLower.includes('gas natural') || rawLower.includes('factura de gas') || rawLower.includes('m³') || rawLower.includes('m3'));
+
+    // Es gas SOLO si la IA lo dice explícitamente Y no hay señales de electricidad
+    const esGas = (tipoIA === 'gas' && !tienePotencias) ||
+      (validRL.includes(tarifa) && tipoIA !== 'electricidad' && !tienePotencias);
 
     // Ajustar tarifa según tipo
     if (esGas && !validRL.includes(tarifa)) tarifa = 'RL1';

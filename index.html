@@ -28709,11 +28709,11 @@ Reglas:
 - Si no se menciona un dato déjalo en 0 o "".`;
 
     try {
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      const resp = await fetch('https://drk-ai-proxy.f-araujo-teixeira-drk.workers.dev', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-6',
           max_tokens: 500,
           messages: [{ role: 'user', content: prompt }]
         })

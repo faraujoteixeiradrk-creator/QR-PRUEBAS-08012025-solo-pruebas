@@ -982,6 +982,13 @@
   <button id="multicups-finalize-btn-saga" onclick="finalizeMultiCups()" class="w-full bg-cta-green-500 hover:bg-cta-green-600 text-white font-bold py-4 rounded-2xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-3 mt-8 hidden">
   <span id="finalize-btn-text">FINALIZAR Y COMPARAR</span> (<span id="saga-finalize-count">0</span> <span id="finalize-suministros-text">Suministros</span>)
   </button>
+  <button onclick="abrirCargaMasiva()" class="w-full mt-4 bg-white border-2 border-slate-300 hover:border-drk-500 hover:bg-drk-50 text-slate-700 font-bold py-4 rounded-2xl shadow transition flex items-center justify-center gap-3">
+  <span style="font-size:1.4rem;">📦</span>
+  <div class="text-left">
+    <div class="font-black text-drk-900">CARGA MASIVA DE FACTURAS</div>
+    <div class="text-xs text-slate-500 font-normal">Sube múltiples facturas · La IA las procesa todas</div>
+  </div>
+  </button>
   </div>
  </div>
  <div id="initial-view" class="fade-in hidden">
@@ -28207,7 +28214,481 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
      });
     })();
     </script>
-<!-- MODAL IA UPLOAD - NUEVO -->
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL CARGA MASIVA DE FACTURAS
+═══════════════════════════════════════════════════════════ -->
+<div id="modal-carga-masiva" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10001;overflow-y:auto;padding:16px;">
+<div style="max-width:900px;margin:0 auto;background:white;border-radius:24px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.5);">
+
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#1e3a8a,#0ea5e9);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:44px;height:44px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;">📦</div>
+      <div>
+        <div style="font-size:1.1rem;font-weight:900;color:white;">CARGA MASIVA DE FACTURAS</div>
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.8);">La IA procesa cada factura automáticamente</div>
+      </div>
+    </div>
+    <button onclick="cerrarCargaMasiva()" style="width:36px;height:36px;background:rgba(255,255,255,0.2);border:none;border-radius:50%;cursor:pointer;color:white;font-size:1.2rem;">✕</button>
+  </div>
+
+  <!-- Paso 1: Subir archivos -->
+  <div id="cm-paso1" style="padding:24px;">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:0.9rem;font-weight:700;color:#1e3a8a;margin-bottom:4px;">PASO 1 — Sube las facturas</div>
+      <div style="font-size:0.78rem;color:#64748b;">PDF o imágenes · Sin límite de cantidad · La IA detecta 2.0TD / 3.0TD automáticamente</div>
+    </div>
+    <!-- Drop Zone -->
+    <div id="cm-dropzone" onclick="document.getElementById('cm-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='#0ea5e9';this.style.background='#e0f2fe'" ondragleave="this.style.borderColor='#cbd5e1';this.style.background='#f8fafc'" ondrop="cmHandleDrop(event)" style="border:3px dashed #cbd5e1;border-radius:16px;padding:32px;text-align:center;cursor:pointer;background:#f8fafc;transition:all 0.2s;margin-bottom:16px;">
+      <div style="font-size:2.5rem;margin-bottom:8px;">📁</div>
+      <div style="font-weight:800;color:#1e3a8a;font-size:1rem;">Arrastra aquí las facturas o pulsa para seleccionar</div>
+      <div style="font-size:0.75rem;color:#94a3b8;margin-top:4px;">PDF, JPG, PNG · Múltiples archivos a la vez</div>
+    </div>
+    <input type="file" id="cm-file-input" multiple accept=".pdf,image/*" style="display:none;" onchange="cmAddFiles(this.files)">
+
+    <!-- Lista de archivos -->
+    <div id="cm-file-list" style="display:none;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-weight:700;color:#1e3a8a;font-size:0.85rem;" id="cm-file-count">0 facturas seleccionadas</span>
+        <button onclick="cmClearFiles()" style="font-size:0.75rem;color:#94a3b8;background:none;border:none;cursor:pointer;">✕ Limpiar</button>
+      </div>
+      <div id="cm-file-items" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;"></div>
+    </div>
+
+    <!-- Opciones de procesamiento -->
+    <div style="background:#f0f9ff;border:2px solid #bae6fd;border-radius:12px;padding:14px;margin-bottom:16px;">
+      <div style="font-weight:700;color:#0369a1;font-size:0.82rem;margin-bottom:8px;">⚙️ Modo de procesamiento</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.82rem;">
+          <input type="radio" name="cm-modo" value="auto" checked style="accent-color:#0ea5e9;">
+          <span><strong>Automático</strong> — La IA procesa todo y añade directamente</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.82rem;">
+          <input type="radio" name="cm-modo" value="asistido" style="accent-color:#0ea5e9;">
+          <span><strong>Asistido</strong> — La IA pregunta cuando hay dudas sobre la tarifa</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.82rem;">
+          <input type="radio" name="cm-modo" value="revision" style="accent-color:#0ea5e9;">
+          <span><strong>Revisión manual</strong> — Revisa y edita cada factura antes de añadir</span>
+        </label>
+      </div>
+    </div>
+
+    <button id="cm-btn-procesar" onclick="cmIniciarProcesamiento()" style="display:none;width:100%;background:linear-gradient(135deg,#1e3a8a,#0ea5e9);color:white;font-weight:900;padding:16px;border:none;border-radius:14px;font-size:1rem;cursor:pointer;">
+      🤖 PROCESAR CON IA (<span id="cm-btn-count">0</span> facturas)
+    </button>
+  </div>
+
+  <!-- Paso 2: Procesando -->
+  <div id="cm-paso2" style="display:none;padding:24px;">
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:0.9rem;font-weight:700;color:#1e3a8a;margin-bottom:4px;">PASO 2 — Procesando con IA</div>
+      <div id="cm-progreso-texto" style="font-size:0.78rem;color:#64748b;">Iniciando...</div>
+    </div>
+    <!-- Barra de progreso global -->
+    <div style="background:#e2e8f0;border-radius:99px;height:12px;margin-bottom:20px;overflow:hidden;">
+      <div id="cm-progreso-barra" style="height:100%;background:linear-gradient(90deg,#1e3a8a,#0ea5e9);border-radius:99px;width:0%;transition:width 0.4s;"></div>
+    </div>
+    <!-- Log de facturas -->
+    <div id="cm-log" style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+  </div>
+
+  <!-- Paso 3: Tabla de revisión -->
+  <div id="cm-paso3" style="display:none;padding:24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div style="font-size:0.9rem;font-weight:700;color:#1e3a8a;">PASO 3 — Revisión y confirmación</div>
+        <div style="font-size:0.75rem;color:#64748b;" id="cm-resumen-texto"></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="cmAnadirTodos()" style="background:#059669;color:white;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.82rem;">✅ Añadir todos</button>
+        <button onclick="cmAnadirSeleccionados()" style="background:#0ea5e9;color:white;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.82rem;">➕ Añadir seleccionados</button>
+      </div>
+    </div>
+
+    <!-- Tabla responsive -->
+    <div style="overflow-x:auto;margin-bottom:16px;">
+      <table id="cm-tabla" style="width:100%;border-collapse:collapse;font-size:0.78rem;">
+        <thead>
+          <tr style="background:#f0f9ff;border-bottom:2px solid #bae6fd;">
+            <th style="padding:8px;text-align:left;font-weight:700;color:#0369a1;white-space:nowrap;"><input type="checkbox" id="cm-check-all" onchange="cmToggleAll(this.checked)"> #</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;">Estado</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;">Archivo</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;">Tarifa</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;">CUPS</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;">Cliente</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;">Días</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;">P1 kW</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;">P2 kW</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;">E1 kWh</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;">E2 kWh</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;">E3 kWh</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;">Total €</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="cm-tabla-body"></tbody>
+      </table>
+    </div>
+
+    <div id="cm-dudas" style="display:none;background:#fef3c7;border:2px solid #fcd34d;border-radius:12px;padding:14px;margin-bottom:16px;">
+      <div style="font-weight:700;color:#92400e;margin-bottom:8px;">⚠️ Facturas con tarifa dudosa — selecciona manualmente:</div>
+      <div id="cm-dudas-lista"></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+(function() {
+  let _cmFiles = [];       // File objects
+  let _cmResultados = [];  // Datos extraídos por IA
+  let _cmProcesando = false;
+
+  window.abrirCargaMasiva = function() {
+    _cmFiles = [];
+    _cmResultados = [];
+    cmMostrarPaso(1);
+    document.getElementById('modal-carga-masiva').style.display = 'block';
+    document.getElementById('cm-file-list').style.display = 'none';
+    document.getElementById('cm-btn-procesar').style.display = 'none';
+    document.getElementById('cm-file-items').innerHTML = '';
+  };
+
+  window.cerrarCargaMasiva = function() {
+    if (_cmProcesando) {
+      if (!confirm('¿Cancelar el procesamiento en curso?')) return;
+      _cmProcesando = false;
+    }
+    document.getElementById('modal-carga-masiva').style.display = 'none';
+  };
+
+  function cmMostrarPaso(n) {
+    document.getElementById('cm-paso1').style.display = n===1 ? 'block' : 'none';
+    document.getElementById('cm-paso2').style.display = n===2 ? 'block' : 'none';
+    document.getElementById('cm-paso3').style.display = n===3 ? 'block' : 'none';
+  }
+
+  window.cmHandleDrop = function(e) {
+    e.preventDefault();
+    document.getElementById('cm-dropzone').style.borderColor = '#cbd5e1';
+    document.getElementById('cm-dropzone').style.background = '#f8fafc';
+    cmAddFiles(e.dataTransfer.files);
+  };
+
+  window.cmAddFiles = function(fileList) {
+    const allowed = Array.from(fileList).filter(f => f.type === 'application/pdf' || f.type.startsWith('image/'));
+    allowed.forEach(f => {
+      if (!_cmFiles.find(x => x.name === f.name && x.size === f.size)) _cmFiles.push(f);
+    });
+    cmRenderFileList();
+  };
+
+  window.cmClearFiles = function() {
+    _cmFiles = [];
+    cmRenderFileList();
+  };
+
+  function cmRenderFileList() {
+    const listEl = document.getElementById('cm-file-list');
+    const itemsEl = document.getElementById('cm-file-items');
+    const btnEl = document.getElementById('cm-btn-procesar');
+    const countEl = document.getElementById('cm-file-count');
+    const btnCount = document.getElementById('cm-btn-count');
+
+    if (_cmFiles.length === 0) {
+      listEl.style.display = 'none';
+      btnEl.style.display = 'none';
+      return;
+    }
+    listEl.style.display = 'block';
+    btnEl.style.display = 'block';
+    countEl.textContent = `${_cmFiles.length} factura${_cmFiles.length !== 1 ? 's' : ''} seleccionada${_cmFiles.length !== 1 ? 's' : ''}`;
+    btnCount.textContent = _cmFiles.length;
+    itemsEl.innerHTML = _cmFiles.map((f, i) => `
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+        <span style="font-size:1rem;">${f.type==='application/pdf'?'📄':'🖼️'}</span>
+        <span style="flex:1;font-size:0.75rem;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.name}</span>
+        <span style="font-size:0.7rem;color:#94a3b8;">${(f.size/1024).toFixed(0)}KB</span>
+        <button onclick="cmRemoveFile(${i})" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.85rem;">✕</button>
+      </div>`).join('');
+  }
+
+  window.cmRemoveFile = function(idx) {
+    _cmFiles.splice(idx, 1);
+    cmRenderFileList();
+  };
+
+  window.cmIniciarProcesamiento = async function() {
+    if (_cmFiles.length === 0 || _cmProcesando) return;
+    _cmProcesando = true;
+    _cmResultados = [];
+    cmMostrarPaso(2);
+    const logEl = document.getElementById('cm-log');
+    const barraEl = document.getElementById('cm-progreso-barra');
+    const textoEl = document.getElementById('cm-progreso-texto');
+    logEl.innerHTML = '';
+
+    for (let i = 0; i < _cmFiles.length; i++) {
+      if (!_cmProcesando) break;
+      const file = _cmFiles[i];
+      const pct = Math.round(((i) / _cmFiles.length) * 100);
+      barraEl.style.width = pct + '%';
+      textoEl.textContent = `Procesando ${i+1} de ${_cmFiles.length}: ${file.name}`;
+
+      // Log entry
+      const logId = 'cm-log-' + i;
+      logEl.innerHTML += `<div id="${logId}" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+        <span id="${logId}-icon" style="font-size:1rem;">⏳</span>
+        <span style="flex:1;font-size:0.75rem;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${file.name}</span>
+        <span id="${logId}-status" style="font-size:0.72rem;color:#64748b;white-space:nowrap;">Procesando...</span>
+      </div>`;
+      logEl.scrollTop = logEl.scrollHeight;
+
+      try {
+        const resultado = await cmProcesarFactura(file);
+        _cmResultados.push({ file, ...resultado, seleccionado: resultado.ok });
+        document.getElementById(logId+'-icon').textContent = resultado.ok ? '✅' : '⚠️';
+        document.getElementById(logId+'-status').textContent = resultado.ok
+          ? `${resultado.tarifa || '?'} · ${resultado.cups ? resultado.cups.substring(0,10)+'...' : 'Sin CUPS'}`
+          : '⚠️ ' + (resultado.error || 'Tarifa no detectada');
+      } catch(e) {
+        _cmResultados.push({ file, ok: false, error: e.message, seleccionado: false });
+        document.getElementById(logId+'-icon').textContent = '❌';
+        document.getElementById(logId+'-status').textContent = '❌ ' + e.message;
+      }
+    }
+
+    barraEl.style.width = '100%';
+    textoEl.textContent = `✅ Completado: ${_cmResultados.filter(r=>r.ok).length} OK · ${_cmResultados.filter(r=>!r.ok).length} con avisos`;
+    _cmProcesando = false;
+
+    // Pasar a revisión
+    setTimeout(() => cmMostrarRevision(), 800);
+  };
+
+  async function cmProcesarFactura(file) {
+    // Convertir a base64
+    const base64 = await new Promise((res, rej) => {
+      const fr = new FileReader();
+      fr.onload = e => res(e.target.result);
+      fr.onerror = () => rej(new Error('Error leyendo archivo'));
+      fr.readAsDataURL(file);
+    });
+
+    // Si es imagen, convertir a PDF primero via canvas
+    let finalBase64 = base64;
+    let mediaType = file.type;
+
+    if (file.type.startsWith('image/')) {
+      // Convertir imagen a PDF usando jsPDF
+      const pdfBlob = await iaFotosAPDF([base64], null);
+      finalBase64 = await new Promise(res => {
+        const fr = new FileReader();
+        fr.onload = e => res(e.target.result);
+        fr.readAsDataURL(pdfBlob);
+      });
+      mediaType = 'application/pdf';
+    }
+
+    const prompt = getPromptIA ? getPromptIA() : `Analiza esta factura eléctrica española y devuelve JSON con: cups, tarifa (2.0TD o 3.0TD), dias, potencias_kw {p1,p2,p3,p4,p5,p6}, energia_kwh {e1,e2,e3,e4,e5,e6}, total_factura, nombre_cliente, direccion_suministro`;
+
+    const content = [
+      { type: 'document', source: { type: 'base64', media_type: mediaType, data: finalBase64.split(',')[1] } },
+      { type: 'text', text: prompt }
+    ];
+
+    const resp = await fetch('https://drk-ai-proxy.f-araujo-teixeira-drk.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1500, messages: [{ role: 'user', content }] })
+    });
+
+    if (!resp.ok) throw new Error('Error API: ' + resp.status);
+    const data = await resp.json();
+    const raw = data.content?.[0]?.text || '';
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Sin respuesta JSON');
+    const parsed = JSON.parse(match[0]);
+
+    const tarifa = parsed.tarifa || '';
+    const ok = tarifa === '2.0TD' || tarifa === '3.0TD';
+    const p = parsed.potencias_kw || {};
+    const e = parsed.energia_kwh || {};
+
+    return {
+      ok,
+      tarifa,
+      cups: parsed.cups || '',
+      dias: parsed.dias || 0,
+      p1: p.p1||0, p2: p.p2||0, p3: p.p3||0, p4: p.p4||0, p5: p.p5||0, p6: p.p6||0,
+      e1: e.e1||0, e2: e.e2||0, e3: e.e3||0, e4: e.e4||0, e5: e.e5||0, e6: e.e6||0,
+      total: parsed.total_factura || 0,
+      nombre: parsed.nombre_cliente || '',
+      direccion: parsed.direccion_suministro || '',
+      error: ok ? '' : 'Tarifa no identificada: ' + tarifa
+    };
+  }
+
+  function cmMostrarRevision() {
+    cmMostrarPaso(3);
+    const tbody = document.getElementById('cm-tabla-body');
+    const resumen = document.getElementById('cm-resumen-texto');
+    const ok = _cmResultados.filter(r=>r.ok).length;
+    resumen.textContent = `${ok} procesadas correctamente · ${_cmResultados.length - ok} con avisos`;
+
+    const dudas = _cmResultados.filter(r => !r.ok && !r.error?.includes('Error'));
+    if (dudas.length > 0) {
+      document.getElementById('cm-dudas').style.display = 'block';
+      document.getElementById('cm-dudas-lista').innerHTML = dudas.map((r, i) => {
+        const idx = _cmResultados.indexOf(r);
+        return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:0.8rem;">
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.file.name}</span>
+          <select onchange="_cmResultados[${idx}].tarifa=this.value;_cmResultados[${idx}].ok=true;cmRenderTabla()" style="padding:4px 8px;border-radius:6px;border:2px solid #fcd34d;font-weight:700;">
+            <option value="">— Selecciona tarifa —</option>
+            <option value="2.0TD">2.0 TD</option>
+            <option value="3.0TD">3.0 TD</option>
+          </select>
+        </div>`;
+      }).join('');
+    }
+
+    cmRenderTabla();
+  }
+
+  function cmRenderTabla() {
+    const tbody = document.getElementById('cm-tabla-body');
+    tbody.innerHTML = _cmResultados.map((r, i) => {
+      const bg = r.ok ? 'white' : '#fef9c3';
+      const est = r.ok ? `<span style="color:#059669;font-weight:700;">✅</span>` : `<span style="color:#d97706;font-weight:700;">⚠️</span>`;
+      return `<tr style="background:${bg};border-bottom:1px solid #e2e8f0;" id="cm-row-${i}">
+        <td style="padding:6px;"><input type="checkbox" ${r.seleccionado?'checked':''} onchange="_cmResultados[${i}].seleccionado=this.checked"></td>
+        <td style="padding:6px;">${est}</td>
+        <td style="padding:6px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;" title="${r.file.name}">${r.file.name}</td>
+        <td style="padding:6px;">
+          <select onchange="_cmResultados[${i}].tarifa=this.value" style="padding:2px 4px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.75rem;font-weight:700;">
+            <option value="2.0TD" ${r.tarifa==='2.0TD'?'selected':''}>2.0TD</option>
+            <option value="3.0TD" ${r.tarifa==='3.0TD'?'selected':''}>3.0TD</option>
+          </select>
+        </td>
+        <td style="padding:6px;"><input value="${r.cups||''}" onchange="_cmResultados[${i}].cups=this.value" style="width:130px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
+        <td style="padding:6px;"><input value="${r.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:110px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.72rem;"></td>
+        <td style="padding:6px;"><input type="number" value="${r.dias||''}" onchange="_cmResultados[${i}].dias=+this.value" style="width:45px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;"><input type="number" value="${r.p1||''}" onchange="_cmResultados[${i}].p1=+this.value" style="width:45px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;"><input type="number" value="${r.p2||''}" onchange="_cmResultados[${i}].p2=+this.value" style="width:45px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;"><input type="number" value="${r.e1||''}" onchange="_cmResultados[${i}].e1=+this.value" style="width:55px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;"><input type="number" value="${r.e2||''}" onchange="_cmResultados[${i}].e2=+this.value" style="width:55px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;"><input type="number" value="${r.e3||''}" onchange="_cmResultados[${i}].e3=+this.value" style="width:55px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;"><input type="number" value="${r.total||''}" onchange="_cmResultados[${i}].total=+this.value" style="width:55px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;white-space:nowrap;">
+          <button onclick="cmReprocesar(${i})" title="Reprocesar" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:0.72rem;">🔄</button>
+          <button onclick="cmEliminarFila(${i})" title="Eliminar" style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:0.72rem;">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  window.cmToggleAll = function(checked) {
+    _cmResultados.forEach(r => r.seleccionado = checked);
+    cmRenderTabla();
+  };
+
+  window.cmEliminarFila = function(i) {
+    _cmResultados.splice(i, 1);
+    cmRenderTabla();
+  };
+
+  window.cmReprocesar = async function(i) {
+    const r = _cmResultados[i];
+    const row = document.getElementById('cm-row-' + i);
+    if (row) row.style.background = '#fef9c3';
+    try {
+      const nuevo = await cmProcesarFactura(r.file);
+      _cmResultados[i] = { ..._cmResultados[i], ...nuevo };
+      cmRenderTabla();
+    } catch(e) {
+      alert('Error reprocesando: ' + e.message);
+    }
+  };
+
+  // Añadir todos los seleccionados al sistema MULTICUPS
+  window.cmAnadirTodos = function() {
+    _cmResultados.forEach(r => r.seleccionado = true);
+    cmAnadirSeleccionados();
+  };
+
+  window.cmAnadirSeleccionados = async function() {
+    const seleccionados = _cmResultados.filter(r => r.seleccionado && r.tarifa);
+    if (seleccionados.length === 0) { alert('Selecciona al menos una factura con tarifa asignada'); return; }
+
+    cerrarCargaMasiva();
+
+    let añadidos = 0;
+    let errores = 0;
+
+    for (const r of seleccionados) {
+      try {
+        // Construir objeto de datos compatible con saveSupply
+        const data = {
+          cups: r.cups || '',
+          potencia_p1_kw: r.p1 || 0,
+          potencia_p2_kw: r.p2 || 0,
+          potencia_p3_kw: r.p3 || 0,
+          potencia_p4_kw: r.p4 || 0,
+          potencia_p5_kw: r.p5 || 0,
+          potencia_p6_kw: r.p6 || 0,
+          consumo_p1: r.e1 || 0,
+          consumo_p2: r.e2 || 0,
+          consumo_p3: r.e3 || 0,
+          consumo_p4: r.e4 || 0,
+          consumo_p5: r.e5 || 0,
+          consumo_p6: r.e6 || 0,
+          dias: r.dias || 30,
+          total_cliente: r.total || 0,
+          nombre_cliente: r.nombre || '',
+          direccion_suministro: r.direccion || ''
+        };
+
+        // Guardar datos IA para que el sistema los use
+        window.aiExtractedData = {
+          cups: data.cups,
+          nombre_cliente: data.nombre_cliente,
+          direccion_suministro: data.direccion_suministro
+        };
+        window.elecUsedIA = true;
+
+        // Llamar a saveSupply directamente
+        if (typeof saveSupply === 'function') {
+          await new Promise(resolve => {
+            // saveSupply es síncrono pero esperamos un tick
+            saveSupply(data, r.tarifa);
+            setTimeout(resolve, 100);
+          });
+          añadidos++;
+        }
+      } catch(e) {
+        errores++;
+        console.error('Error añadiendo suministro:', e);
+      }
+    }
+
+    // Reset flags
+    window.elecUsedIA = false;
+    window.aiExtractedData = null;
+
+    if (typeof window.showMessageModal === 'function') {
+      window.showMessageModal(
+        `✅ ${añadidos} suministro${añadidos!==1?'s':''} añadido${añadidos!==1?'s':''}${errores>0?' · '+errores+' errores':''}`,
+        'Carga Masiva Completada'
+      );
+    } else {
+      alert(`✅ ${añadidos} suministros añadidos${errores>0?' ('+errores+' errores)':''}`);
+    }
+  };
+
+})();
+</script>
 <div id="ia-upload-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;">
   <div style="background:white;border-radius:24px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.4);margin:auto;">
     <!-- Header -->

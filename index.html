@@ -425,9 +425,10 @@
   <!-- ZONA IA GAS -->
   <div class="mb-4 p-3 bg-orange-50 border-2 border-dashed border-orange-300 rounded-xl">
   <p class="text-xs font-bold text-orange-700 mb-2 text-center" data-i18n="🤖 Leer factura con IA">🤖 Leer factura con IA</p>
-  <input type="file" id="gas-ai-file-input" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaGasIA(this.files[0])">
-  <div id="gas-ai-drop-zone" onclick="document.getElementById('gas-ai-file-input').click()" style="border:2px dashed #f97316;border-radius:12px;padding:12px;text-align:center;cursor:pointer;background:#fff7ed;">
-  <div style="font-size:1.5rem;">📄</div>
+  <input type="file" id="gas-ai-file-input" accept=".pdf,image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="procesarFacturaGasIA(this.files[0])">
+  <input type="file" id="gas-ai-file-input-multi" accept=".pdf,image/*" multiple style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="procesarGasMultiFilesIA(this)">
+  <div id="gas-ai-drop-zone" onclick="abrirModalIAUpload('gas')" style="border:2px dashed #f97316;border-radius:12px;padding:12px;text-align:center;cursor:pointer;background:#fff7ed;">
+  <div style="font-size:1.5rem;">🤖</div>
   <p class="text-xs font-bold text-orange-600" data-i18n="Subir PDF o foto de factura de gas">Subir PDF o foto de factura de gas</p>
   <p class="text-xs text-slate-400 mt-1" data-i18n="La IA extraerá los datos automáticamente">La IA extraerá los datos automáticamente</p>
   </div>
@@ -28367,7 +28368,11 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
 
   window.iaUploadOpcion = function(opcion) {
     if (opcion === 'pdf') {
-      const inputId = _iaZone === '20td' ? 'ai-file-input-20td' : _iaZone === '30td' ? 'ai-file-input-30td' : 'ai-file-input-multicups';
+      let inputId;
+      if (_iaZone === '20td') inputId = 'ai-file-input-20td';
+      else if (_iaZone === '30td') inputId = 'ai-file-input-30td';
+      else if (_iaZone === 'multicups') inputId = 'ai-file-input-multicups';
+      else if (_iaZone === 'gas') inputId = 'gas-ai-file-input';
       const input = document.getElementById(inputId);
       if (input) { input.click(); cerrarModalIAUpload(); }
     } else if (opcion === 'foto') {
@@ -28417,10 +28422,8 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       const pdfBlob = await iaFotosAPDF(fotos, statusEl);
       statusEl.textContent = '🤖 Enviando a IA...';
       cerrarModalIAUpload();
-      // Crear File object y enviar al procesador original
       const pdfFile = new File([pdfBlob], 'factura_fotos.pdf', { type: 'application/pdf' });
-      const tariff = iaGetTariff();
-      if (typeof procesarFacturaIA === 'function') procesarFacturaIA(pdfFile, tariff);
+      iaEnviarArchivo(pdfFile);
     } catch(e) {
       statusEl.textContent = '❌ Error: ' + e.message;
     }
@@ -28464,20 +28467,17 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
     if (files.length === 1) {
       statusEl.textContent = '🤖 Enviando a IA...';
       cerrarModalIAUpload();
-      const tariff = iaGetTariff();
-      if (typeof procesarFacturaIA === 'function') procesarFacturaIA(files[0], tariff);
+      iaEnviarArchivo(files[0]);
       return;
     }
-
-    // Varios: convertir imágenes a base64 y juntar en 1 PDF
+    // Varios: juntar en 1 PDF
     statusEl.textContent = '⏳ Juntando archivos...';
     try {
       const pdfBlob = await iaJuntarArchivos(files, statusEl);
       statusEl.textContent = '🤖 Enviando a IA...';
       cerrarModalIAUpload();
       const pdfFile = new File([pdfBlob], 'factura_multi.pdf', { type: 'application/pdf' });
-      const tariff = iaGetTariff();
-      if (typeof procesarFacturaIA === 'function') procesarFacturaIA(pdfFile, tariff);
+      iaEnviarArchivo(pdfFile);
     } catch(e) {
       statusEl.textContent = '❌ Error: ' + e.message;
     }
@@ -28487,11 +28487,30 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
   window.iaGetTariff = function() {
     if (_iaZone === '20td') return '2.0TD';
     if (_iaZone === '30td') return '3.0TD';
+    if (_iaZone === 'gas') return 'gas';
     if (_iaZone === 'multicups') {
       const checked = document.querySelector('input[name="multicups-tariff-type"]:checked');
       return checked ? checked.value : '3.0TD';
     }
     return '2.0TD';
+  };
+
+  // Helper: enviar archivo a procesador según zona
+  function iaEnviarArchivo(file) {
+    const tariff = iaGetTariff();
+    if (tariff === 'gas') {
+      if (typeof procesarFacturaGasIA === 'function') procesarFacturaGasIA(file);
+    } else {
+      if (typeof procesarFacturaIA === 'function') procesarFacturaIA(file, tariff);
+    }
+  }
+
+  // Multi archivos gas
+  window.procesarGasMultiFilesIA = function(inputEl) {
+    const files = Array.from(inputEl.files);
+    if (!files.length) return;
+    if (typeof procesarFacturaGasIA === 'function') procesarFacturaGasIA(files[0]);
+    inputEl.value = '';
   };
 
   // Convierte array de base64 fotos → PDF Blob (misma lógica que enviarFotosComoPDF)
@@ -28758,9 +28777,9 @@ Reglas:
     // Cerrar modal IA primero
     cerrarModalIAUpload();
 
-    // Abrir el modal de entrada manual sin limpiar campos (lo hace startManualInputFlow)
-    // Llamamos startManualInputFlow y esperamos suficiente para que termine el clear
-    if (typeof startManualInputFlow === 'function') {
+    // Para gas no hay modal manual — los campos están directamente visibles
+    // Para electricidad abrir el modal de entrada manual
+    if (d.tipo !== 'gas' && typeof startManualInputFlow === 'function') {
       startManualInputFlow();
     }
 

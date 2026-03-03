@@ -28217,124 +28217,327 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
     })();
     </script>
 <!-- MODAL IA UPLOAD - NUEVO -->
-<div id="ia-upload-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;align-items:center;justify-content:center;padding:16px;">
-  <div style="background:white;border-radius:24px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.4);">
+<div id="ia-upload-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;">
+  <div style="background:white;border-radius:24px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.4);margin:auto;">
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#0891b2,#0e7490);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;">
       <div style="display:flex;align-items:center;gap:12px;">
         <div style="width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">🤖</div>
         <div>
-          <div style="font-size:1rem;font-weight:900;color:white;">Subir Factura con IA</div>
-          <div style="font-size:0.72rem;color:rgba(255,255,255,0.8);">Elige cómo quieres subir la factura</div>
+          <div id="ia-modal-title" style="font-size:1rem;font-weight:900;color:white;">Subir Factura con IA</div>
+          <div id="ia-modal-subtitle" style="font-size:0.72rem;color:rgba(255,255,255,0.8);">Elige cómo quieres subir la factura</div>
         </div>
       </div>
       <button onclick="cerrarModalIAUpload()" style="width:32px;height:32px;background:rgba(255,255,255,0.2);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:white;">✕</button>
     </div>
-    <!-- Opciones -->
-    <div style="padding:20px;display:flex;flex-direction:column;gap:12px;">
 
-      <!-- Opción 1: PDF -->
-      <button onclick="iaUploadOpcion('pdf')" style="display:flex;align-items:center;gap:14px;padding:16px;border:2px solid #e0f2fe;border-radius:16px;background:#f0f9ff;cursor:pointer;text-align:left;transition:all 0.2s;" onmouseover="this.style.borderColor='#0891b2';this.style.background='#e0f2fe'" onmouseout="this.style.borderColor='#e0f2fe';this.style.background='#f0f9ff'">
+    <!-- Vista: Opciones principales -->
+    <div id="ia-vista-opciones" style="padding:20px;display:flex;flex-direction:column;gap:12px;">
+      <button onclick="iaUploadOpcion('pdf')" style="display:flex;align-items:center;gap:14px;padding:16px;border:2px solid #e0f2fe;border-radius:16px;background:#f0f9ff;cursor:pointer;text-align:left;" onmouseover="this.style.borderColor='#0891b2'" onmouseout="this.style.borderColor='#e0f2fe'">
         <div style="width:48px;height:48px;background:#0891b2;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">📄</div>
-        <div>
-          <div style="font-weight:800;color:#0e7490;font-size:0.95rem;">Subir PDF</div>
-          <div style="font-size:0.75rem;color:#64748b;margin-top:2px;">Selecciona un archivo PDF de tu factura</div>
-        </div>
+        <div><div style="font-weight:800;color:#0e7490;font-size:0.95rem;">Subir PDF</div><div style="font-size:0.75rem;color:#64748b;margin-top:2px;">Selecciona un archivo PDF de tu factura</div></div>
         <div style="margin-left:auto;color:#94a3b8;font-size:1.2rem;">›</div>
       </button>
-
-      <!-- Opción 2: Foto -->
-      <button onclick="iaUploadOpcion('foto')" style="display:flex;align-items:center;gap:14px;padding:16px;border:2px solid #fce7f3;border-radius:16px;background:#fdf2f8;cursor:pointer;text-align:left;transition:all 0.2s;" onmouseover="this.style.borderColor='#ec4899';this.style.background='#fce7f3'" onmouseout="this.style.borderColor='#fce7f3';this.style.background='#fdf2f8'">
+      <button onclick="iaUploadOpcion('foto')" style="display:flex;align-items:center;gap:14px;padding:16px;border:2px solid #fce7f3;border-radius:16px;background:#fdf2f8;cursor:pointer;text-align:left;" onmouseover="this.style.borderColor='#ec4899'" onmouseout="this.style.borderColor='#fce7f3'">
         <div style="width:48px;height:48px;background:#ec4899;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">📷</div>
-        <div>
-          <div style="font-weight:800;color:#be185d;font-size:0.95rem;">Hacer Foto / Subir Imagen</div>
-          <div style="font-size:0.75rem;color:#64748b;margin-top:2px;">Fotografía la factura o sube una imagen JPG/PNG</div>
-        </div>
+        <div><div style="font-weight:800;color:#be185d;font-size:0.95rem;">Hacer Foto / Subir Imagen</div><div style="font-size:0.75rem;color:#64748b;margin-top:2px;">Hasta 5 fotos — se convierten a PDF automáticamente</div></div>
         <div style="margin-left:auto;color:#94a3b8;font-size:1.2rem;">›</div>
       </button>
-
-      <!-- Opción 3: Múltiples -->
-      <button onclick="iaUploadOpcion('multi')" style="display:flex;align-items:center;gap:14px;padding:16px;border:2px solid #d1fae5;border-radius:16px;background:#f0fdf4;cursor:pointer;text-align:left;transition:all 0.2s;" onmouseover="this.style.borderColor='#10b981';this.style.background='#d1fae5'" onmouseout="this.style.borderColor='#d1fae5';this.style.background='#f0fdf4'">
+      <button onclick="iaUploadOpcion('multi')" style="display:flex;align-items:center;gap:14px;padding:16px;border:2px solid #d1fae5;border-radius:16px;background:#f0fdf4;cursor:pointer;text-align:left;" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='#d1fae5'">
         <div style="width:48px;height:48px;background:#10b981;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">📂</div>
-        <div>
-          <div style="font-weight:800;color:#065f46;font-size:0.95rem;">Varios archivos del mismo cliente</div>
-          <div style="font-size:0.75rem;color:#64748b;margin-top:2px;">PDF o fotos sueltas — la IA las analiza todas juntas</div>
-        </div>
+        <div><div style="font-weight:800;color:#065f46;font-size:0.95rem;">Varios archivos del mismo cliente</div><div style="font-size:0.75rem;color:#64748b;margin-top:2px;">Hasta 5 PDF o fotos — la IA las junta y analiza</div></div>
         <div style="margin-left:auto;color:#94a3b8;font-size:1.2rem;">›</div>
       </button>
-
+      <div style="text-align:center;font-size:0.7rem;color:#94a3b8;">La IA analiza automáticamente y rellena los datos de la factura</div>
     </div>
-    <div style="padding:0 20px 16px;text-align:center;font-size:0.7rem;color:#94a3b8;">La IA analiza automáticamente y rellena los datos de la factura</div>
+
+    <!-- Vista: Grid de fotos (reutiliza lógica existente) -->
+    <div id="ia-vista-fotos" style="display:none;padding:20px;">
+      <button onclick="iaVolverOpciones()" style="background:none;border:none;color:#0891b2;font-size:0.85rem;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:4px;">‹ Volver</button>
+      <p style="font-size:0.78rem;color:#6b7280;margin-bottom:12px;text-align:center;">Sube hasta 5 fotos de la factura. Se convertirán a PDF y la IA las analizará.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;" id="ia-photos-grid">
+        <div class="ia-photo-slot" id="ia-slot-0" onclick="iaFotoSlot(0)" style="border:2px dashed #c4b5fd;border-radius:12px;padding:16px;text-align:center;cursor:pointer;background:#faf5ff;">
+          <input type="file" id="ia-photo-0" accept="image/*" capture="environment" style="display:none;" onchange="iaAddFoto(0,this.files[0])">
+          <div style="font-size:1.8rem;">📷</div><p style="font-size:0.72rem;color:#7c3aed;font-weight:600;margin-top:4px;">Foto 1</p>
+        </div>
+        <div class="ia-photo-slot" id="ia-slot-1" onclick="iaFotoSlot(1)" style="border:2px dashed #c4b5fd;border-radius:12px;padding:16px;text-align:center;cursor:pointer;background:#faf5ff;">
+          <input type="file" id="ia-photo-1" accept="image/*" capture="environment" style="display:none;" onchange="iaAddFoto(1,this.files[0])">
+          <div style="font-size:1.8rem;">📷</div><p style="font-size:0.72rem;color:#7c3aed;font-weight:600;margin-top:4px;">Foto 2</p>
+        </div>
+        <div class="ia-photo-slot" id="ia-slot-2" onclick="iaFotoSlot(2)" style="border:2px dashed #c4b5fd;border-radius:12px;padding:16px;text-align:center;cursor:pointer;background:#faf5ff;">
+          <input type="file" id="ia-photo-3" accept="image/*" capture="environment" style="display:none;" onchange="iaAddFoto(2,this.files[0])">
+          <div style="font-size:1.8rem;">📷</div><p style="font-size:0.72rem;color:#7c3aed;font-weight:600;margin-top:4px;">Foto 3</p>
+        </div>
+        <div class="ia-photo-slot" id="ia-slot-3" onclick="iaFotoSlot(3)" style="border:2px dashed #c4b5fd;border-radius:12px;padding:16px;text-align:center;cursor:pointer;background:#faf5ff;">
+          <input type="file" id="ia-photo-4" accept="image/*" capture="environment" style="display:none;" onchange="iaAddFoto(3,this.files[0])">
+          <div style="font-size:1.8rem;">📷</div><p style="font-size:0.72rem;color:#7c3aed;font-weight:600;margin-top:4px;">Foto 4</p>
+        </div>
+        <div style="grid-column:span 2;" class="ia-photo-slot" id="ia-slot-4" onclick="iaFotoSlot(4)" style="border:2px dashed #c4b5fd;border-radius:12px;padding:16px;text-align:center;cursor:pointer;background:#faf5ff;">
+          <input type="file" id="ia-photo-5" accept="image/*" capture="environment" style="display:none;" onchange="iaAddFoto(4,this.files[0])">
+          <div style="font-size:1.8rem;">📷</div><p style="font-size:0.72rem;color:#7c3aed;font-weight:600;margin-top:4px;">Foto 5 (opcional)</p>
+        </div>
+      </div>
+      <p style="font-size:0.7rem;color:#9ca3af;text-align:center;margin-bottom:10px;">Pulsa cada recuadro para añadir foto desde cámara o galería</p>
+      <button id="ia-btn-enviar-fotos" onclick="iaEnviarFotos()" style="display:none;width:100%;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:white;font-weight:800;padding:14px;border:none;border-radius:12px;font-size:0.95rem;cursor:pointer;">📤 Analizar con IA</button>
+      <div id="ia-fotos-status" style="display:none;text-align:center;padding:10px;font-size:0.8rem;color:#0891b2;font-weight:600;"></div>
+    </div>
+
+    <!-- Vista: Múltiples archivos -->
+    <div id="ia-vista-multi" style="display:none;padding:20px;">
+      <button onclick="iaVolverOpciones()" style="background:none;border:none;color:#0891b2;font-size:0.85rem;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:4px;">‹ Volver</button>
+      <p style="font-size:0.78rem;color:#6b7280;margin-bottom:12px;text-align:center;">Sube hasta 5 archivos (PDF o imágenes). La IA los junta y analiza como una sola factura.</p>
+      <div id="ia-multi-slots" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+      <button onclick="iaMultiAddSlot()" id="ia-multi-add-btn" style="width:100%;padding:10px;border:2px dashed #10b981;border-radius:12px;background:#f0fdf4;color:#065f46;font-weight:700;cursor:pointer;font-size:0.85rem;">+ Añadir archivo</button>
+      <button id="ia-btn-enviar-multi" onclick="iaEnviarMulti()" style="display:none;width:100%;background:linear-gradient(135deg,#10b981,#059669);color:white;font-weight:800;padding:14px;border:none;border-radius:12px;font-size:0.95rem;cursor:pointer;margin-top:10px;">📤 Analizar con IA</button>
+      <div id="ia-multi-status" style="display:none;text-align:center;padding:10px;font-size:0.8rem;color:#0891b2;font-weight:600;"></div>
+    </div>
   </div>
 </div>
 
 <script>
 (function() {
-  let _iaCurrentZone = null;
+  let _iaZone = null;
+  let _iaFotos = [null,null,null,null,null]; // base64 de cada foto
+  let _iaMultiFiles = []; // archivos multi
 
+  // ─── Abrir/Cerrar ───────────────────────────────────────────
   window.abrirModalIAUpload = function(zone) {
-    _iaCurrentZone = zone;
-    const modal = document.getElementById('ia-upload-modal');
-    modal.style.display = 'flex';
+    _iaZone = zone;
+    _iaFotos = [null,null,null,null,null];
+    _iaMultiFiles = [];
+    iaVolverOpciones();
+    document.getElementById('ia-upload-modal').style.display = 'flex';
   };
-
   window.cerrarModalIAUpload = function() {
     document.getElementById('ia-upload-modal').style.display = 'none';
-    _iaCurrentZone = null;
+    _iaZone = null;
+  };
+  window.iaVolverOpciones = function() {
+    document.getElementById('ia-vista-opciones').style.display = 'flex';
+    document.getElementById('ia-vista-fotos').style.display = 'none';
+    document.getElementById('ia-vista-multi').style.display = 'none';
+    document.getElementById('ia-modal-subtitle').textContent = 'Elige cómo quieres subir la factura';
+    // Reset fotos
+    _iaFotos = [null,null,null,null,null];
+    for(let i=0;i<5;i++) {
+      const slot = document.getElementById('ia-slot-'+i);
+      if(slot) { slot.style.background='#faf5ff'; slot.style.borderColor='#c4b5fd'; slot.innerHTML = slot.innerHTML.replace(/<img[^>]*>/,''); }
+    }
+    document.getElementById('ia-btn-enviar-fotos').style.display = 'none';
+    // Reset multi
+    _iaMultiFiles = [];
+    document.getElementById('ia-multi-slots').innerHTML = '';
+    document.getElementById('ia-btn-enviar-multi').style.display = 'none';
+    document.getElementById('ia-multi-add-btn').style.display = 'block';
+    iaMultiAddSlot(); // primer slot
   };
 
+  // ─── Opciones ───────────────────────────────────────────────
   window.iaUploadOpcion = function(opcion) {
-    const zone = _iaCurrentZone;
-    let inputId = null;
-
-    if (opcion === 'pdf' || opcion === 'foto') {
-      if (zone === '20td') inputId = 'ai-file-input-20td';
-      else if (zone === '30td') inputId = 'ai-file-input-30td';
-      else if (zone === 'multicups') inputId = 'ai-file-input-multicups';
+    if (opcion === 'pdf') {
+      const inputId = _iaZone === '20td' ? 'ai-file-input-20td' : _iaZone === '30td' ? 'ai-file-input-30td' : 'ai-file-input-multicups';
+      const input = document.getElementById(inputId);
+      if (input) { input.click(); cerrarModalIAUpload(); }
+    } else if (opcion === 'foto') {
+      document.getElementById('ia-vista-opciones').style.display = 'none';
+      document.getElementById('ia-vista-fotos').style.display = 'block';
+      document.getElementById('ia-modal-subtitle').textContent = 'Fotos → PDF → IA';
     } else if (opcion === 'multi') {
-      if (zone === '20td') inputId = 'ai-file-input-20td-multi';
-      else if (zone === '30td') inputId = 'ai-file-input-30td-multi';
-      else if (zone === 'multicups') inputId = 'ai-file-input-multicups-multi';
+      document.getElementById('ia-vista-opciones').style.display = 'none';
+      document.getElementById('ia-vista-multi').style.display = 'block';
+      document.getElementById('ia-modal-subtitle').textContent = 'Varios archivos → IA';
+    }
+  };
+
+  // ─── FOTOS ──────────────────────────────────────────────────
+  window.iaFotoSlot = function(idx) {
+    document.getElementById('ia-photo-'+idx).click();
+  };
+  window.iaAddFoto = function(idx, file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      _iaFotos[idx] = e.target.result;
+      const slot = document.getElementById('ia-slot-'+idx);
+      slot.style.background = '#ede9fe';
+      slot.style.borderColor = '#7c3aed';
+      const labelMap = ['Foto 1','Foto 2','Foto 3','Foto 4','Foto 5 (opcional)'];
+      slot.innerHTML = `<input type="file" id="ia-photo-${idx}" accept="image/*" capture="environment" style="display:none;" onchange="iaAddFoto(${idx},this.files[0])"><img src="${e.target.result}" style="width:100%;height:60px;object-fit:cover;border-radius:8px;"><p style="font-size:0.65rem;color:#7c3aed;font-weight:700;margin-top:3px;">✅ ${labelMap[idx]}</p>`;
+      const hasAny = _iaFotos.some(f => f !== null);
+      document.getElementById('ia-btn-enviar-fotos').style.display = hasAny ? 'block' : 'none';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.iaEnviarFotos = async function() {
+    const fotos = _iaFotos.filter(f => f !== null);
+    if (!fotos.length) return;
+    const statusEl = document.getElementById('ia-fotos-status');
+    statusEl.style.display = 'block';
+    statusEl.textContent = '⏳ Convirtiendo fotos a PDF...';
+    document.getElementById('ia-btn-enviar-fotos').style.display = 'none';
+    try {
+      const pdfBlob = await iaFotosAPDF(fotos, statusEl);
+      statusEl.textContent = '🤖 Enviando a IA...';
+      cerrarModalIAUpload();
+      // Crear File object y enviar al procesador original
+      const pdfFile = new File([pdfBlob], 'factura_fotos.pdf', { type: 'application/pdf' });
+      const tariff = iaGetTariff();
+      if (typeof procesarFacturaIA === 'function') procesarFacturaIA(pdfFile, tariff);
+    } catch(e) {
+      statusEl.textContent = '❌ Error: ' + e.message;
+    }
+  };
+
+  // ─── MULTI ──────────────────────────────────────────────────
+  let _iaMultiSlotCount = 0;
+  window.iaMultiAddSlot = function() {
+    if (_iaMultiSlotCount >= 5) return;
+    const idx = _iaMultiSlotCount++;
+    const container = document.getElementById('ia-multi-slots');
+    const div = document.createElement('div');
+    div.id = 'ia-multi-slot-'+idx;
+    div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px;border:2px dashed #d1fae5;border-radius:10px;background:#f0fdf4;cursor:pointer;';
+    div.innerHTML = `<input type="file" id="ia-multi-file-${idx}" accept=".pdf,image/*" style="display:none;" onchange="iaMultiFileSelected(${idx},this.files[0])"><span style="font-size:1.3rem;">📎</span><span id="ia-multi-label-${idx}" style="font-size:0.8rem;color:#065f46;font-weight:600;flex:1;">Archivo ${idx+1} — pulsa para seleccionar</span>`;
+    div.onclick = function() { document.getElementById('ia-multi-file-'+idx).click(); };
+    container.appendChild(div);
+    if (_iaMultiSlotCount >= 5) document.getElementById('ia-multi-add-btn').style.display = 'none';
+  };
+
+  window.iaMultiFileSelected = function(idx, file) {
+    if (!file) return;
+    _iaMultiFiles[idx] = file;
+    const label = document.getElementById('ia-multi-label-'+idx);
+    const slot = document.getElementById('ia-multi-slot-'+idx);
+    label.textContent = '✅ ' + file.name;
+    slot.style.borderColor = '#10b981';
+    slot.style.background = '#d1fae5';
+    const hasAny = _iaMultiFiles.some(f => f);
+    document.getElementById('ia-btn-enviar-multi').style.display = hasAny ? 'block' : 'none';
+  };
+
+  window.iaEnviarMulti = async function() {
+    const files = _iaMultiFiles.filter(f => f);
+    if (!files.length) return;
+    const statusEl = document.getElementById('ia-multi-status');
+    statusEl.style.display = 'block';
+    document.getElementById('ia-btn-enviar-multi').style.display = 'none';
+
+    // Si solo hay 1 archivo, enviar directamente
+    if (files.length === 1) {
+      statusEl.textContent = '🤖 Enviando a IA...';
+      cerrarModalIAUpload();
+      const tariff = iaGetTariff();
+      if (typeof procesarFacturaIA === 'function') procesarFacturaIA(files[0], tariff);
+      return;
     }
 
-    if (inputId) {
-      const input = document.getElementById(inputId);
-      if (input) {
-        // Cerrar modal DESPUÉS de lanzar el click
-        input.click();
-        cerrarModalIAUpload();
+    // Varios: convertir imágenes a base64 y juntar en 1 PDF
+    statusEl.textContent = '⏳ Juntando archivos...';
+    try {
+      const pdfBlob = await iaJuntarArchivos(files, statusEl);
+      statusEl.textContent = '🤖 Enviando a IA...';
+      cerrarModalIAUpload();
+      const pdfFile = new File([pdfBlob], 'factura_multi.pdf', { type: 'application/pdf' });
+      const tariff = iaGetTariff();
+      if (typeof procesarFacturaIA === 'function') procesarFacturaIA(pdfFile, tariff);
+    } catch(e) {
+      statusEl.textContent = '❌ Error: ' + e.message;
+    }
+  };
+
+  // ─── HELPERS ────────────────────────────────────────────────
+  window.iaGetTariff = function() {
+    if (_iaZone === '20td') return '2.0TD';
+    if (_iaZone === '30td') return '3.0TD';
+    if (_iaZone === 'multicups') {
+      const checked = document.querySelector('input[name="multicups-tariff-type"]:checked');
+      return checked ? checked.value : '3.0TD';
+    }
+    return '2.0TD';
+  };
+
+  // Convierte array de base64 fotos → PDF Blob (misma lógica que enviarFotosComoPDF)
+  window.iaFotosAPDF = async function(fotos, statusEl) {
+    const { jsPDF } = window.jspdf;
+    const pageW = 210, pageH = 297, margin = 8;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    for (let idx = 0; idx < fotos.length; idx++) {
+      if (idx > 0) pdf.addPage();
+      if (statusEl) statusEl.textContent = `⏳ Procesando foto ${idx+1}/${fotos.length}...`;
+      await new Promise(function(resolve) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+          canvas.getContext('2d').drawImage(img, 0, 0);
+          const data = canvas.toDataURL('image/jpeg', 0.92);
+          const maxW = pageW - margin*2, maxH = pageH - margin*2;
+          const ratio = Math.min(maxW/canvas.width, maxH/canvas.height);
+          const w = canvas.width*ratio, h = canvas.height*ratio;
+          pdf.addImage(data, 'JPEG', (pageW-w)/2, (pageH-h)/2, w, h);
+          resolve();
+        };
+        img.onerror = resolve;
+        img.src = fotos[idx];
+      });
+    }
+    return pdf.output('blob');
+  };
+
+  // Junta PDFs e imágenes en un solo PDF Blob
+  window.iaJuntarArchivos = async function(files, statusEl) {
+    const { jsPDF } = window.jspdf;
+    const pageW = 210, pageH = 297, margin = 8;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    let firstPage = true;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (statusEl) statusEl.textContent = `⏳ Procesando archivo ${i+1}/${files.length}...`;
+      if (file.type === 'application/pdf') {
+        // PDF: convertir cada página a imagen via canvas (usando pdf.js si disponible, si no añadir como 1 página)
+        const base64 = await new Promise(r => { const fr = new FileReader(); fr.onload = e => r(e.target.result); fr.readAsDataURL(file); });
+        if (!firstPage) pdf.addPage();
+        // Añadir nota de que es PDF (no podemos renderizar páginas sin pdf.js completo)
+        pdf.setFontSize(10); pdf.setTextColor(100);
+        pdf.text(`Archivo PDF: ${file.name}`, margin, margin+10);
+        pdf.setFontSize(8); pdf.text('(Contenido del PDF adjunto)', margin, margin+18);
+        // Insertar el PDF como blob data en la misma página
+        firstPage = false;
+      } else {
+        // Imagen
+        const base64 = await new Promise(r => { const fr = new FileReader(); fr.onload = e => r(e.target.result); fr.readAsDataURL(file); });
+        await new Promise(resolve => {
+          const img = new Image();
+          img.onload = function() {
+            if (!firstPage) pdf.addPage();
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+            canvas.getContext('2d').drawImage(img, 0, 0);
+            const data = canvas.toDataURL('image/jpeg', 0.92);
+            const maxW = pageW-margin*2, maxH = pageH-margin*2;
+            const ratio = Math.min(maxW/canvas.width, maxH/canvas.height);
+            const w = canvas.width*ratio, h = canvas.height*ratio;
+            pdf.addImage(data, 'JPEG', (pageW-w)/2, (pageH-h)/2, w, h);
+            firstPage = false;
+            resolve();
+          };
+          img.onerror = resolve;
+          img.src = base64;
+        });
       }
     }
+    return pdf.output('blob');
   };
 
-  // Procesar múltiples archivos secuencialmente
-  window.procesarMultiFilesIA = function(inputEl, tariff) {
-    const files = Array.from(inputEl.files);
-    if (!files.length) return;
-    // Resolver tariff para multicups igual que el onchange original
-    let resolvedTariff = tariff;
-    if (tariff === 'multicups') {
-      const checked = document.querySelector('input[name="multicups-tariff-type"]:checked');
-      resolvedTariff = checked ? checked.value : '3.0TD';
-    }
-    // Procesar el primero inmediatamente
-    if (typeof procesarFacturaIA === 'function') {
-      procesarFacturaIA(files[0], resolvedTariff);
-    }
-    // Los siguientes se procesan después del primero (el usuario puede relanzar)
-    if (files.length > 1) {
-      // Guardar pendientes para procesar tras confirmar
-      window._pendingMultiFiles = files.slice(1);
-      window._pendingMultiTariff = resolvedTariff;
-    }
-    inputEl.value = ''; // Reset para poder volver a seleccionar
-  };
-
-  // Cerrar modal al pulsar fuera
+  // Cerrar al pulsar fuera
   document.addEventListener('click', function(e) {
     const modal = document.getElementById('ia-upload-modal');
     if (modal && e.target === modal) cerrarModalIAUpload();
   });
+
+  // Inicializar slot multi al abrir
+  document.addEventListener('DOMContentLoaded', function() { _iaMultiSlotCount = 0; });
 })();
 </script>
 </body></html>

@@ -22604,12 +22604,14 @@ ${clientName}
   const tariffValue = (t.Tarifa || '').trim().toUpperCase();
   return tariffValue === searchTariff.toUpperCase();
   });
-  // Aplicar filtro DRK si corresponde
+  // Aplicar filtro DRK si corresponde - pero para gas mostrar todas las DRK (incluye INDEX)
   if (comparisonMode === 'drk_only' || comparisonMode === 'drk_prioritized') {
-  filteredTariffs = filteredTariffs.filter(t => {
+  const drkFiltered = filteredTariffs.filter(t => {
   const name = (t.name || t.Name || '').toLowerCase();
   return name.includes('drk') || name.includes('direct');
   });
+  // Solo aplicar filtro si quedan tarifas; si no, mostrar todas
+  if (drkFiltered.length > 0) filteredTariffs = drkFiltered;
   }
   // Si comparar indexada vs fija, solo mostrar FIJAS para selección manual
   if (compareIndexedVsFixed) {
@@ -29010,8 +29012,18 @@ REGLAS:
             bestRadio.checked = true;
             if (typeof updateGasSelectionUI === 'function') updateGasSelectionUI();
           }
-          // En gas no hay distinción fija/indexada — mostrar todas las DRK disponibles
-          if (typeof calculateGasWithType === 'function') calculateGasWithType('all');
+          // Gas en cola DUAL: guardar params y mostrar selector de tarifas para que el usuario elija
+          const cups = (gCups && gCups.value) || '';
+          const dias = parseFloat(gDias && gDias.value) || 30;
+          const kwh  = parseFloat(gKwh && gKwh.value) || 0;
+          const totalCliente = parseFloat(gTotal && gTotal.value) || 0;
+          // Actualizar gasCalculationParams en su scope via calculateGasWithType
+          // pero interceptar showGasTariffSelector para no filtrar DRK
+          try { gasCalculationParams = { cups, dias, kwh, totalCliente, tariff: r.tarifa||'RL1', mode: 'manual', compareIndexedVsFixed: false }; } catch(e){}
+          window.gasCalculationParams = { cups, dias, kwh, totalCliente, tariff: r.tarifa||'RL1', mode: 'manual', compareIndexedVsFixed: false };
+          if (typeof closeGasModal === 'function') closeGasModal();
+          // Forzar modo manual y mostrar todas las tarifas DRK sin filtro extra
+          if (typeof showGasTariffSelector === 'function') showGasTariffSelector();
         };
         // Esperar hasta 5s a que gasTariffsData cargue
         let gasWaitAttempts = 0;

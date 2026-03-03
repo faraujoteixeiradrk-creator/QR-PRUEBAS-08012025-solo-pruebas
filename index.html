@@ -29039,7 +29039,27 @@ REGLAS:
           }
         }, 100);
       } else {
-        saveSupply(data, r.tarifa || '2.0TD');
+        // Electricidad: esperar a que las tarifas estén cargadas antes de saveSupply
+        const tarifa = r.tarifa || '2.0TD';
+        const doSaveSupply = () => saveSupply(data, tarifa);
+        if (typeof currentTariffs !== 'undefined' && currentTariffs[tarifa] && currentTariffs[tarifa].length > 0) {
+          doSaveSupply();
+        } else {
+          // Tarifas no cargadas — cargarlas primero
+          if (typeof fetchTariffsFromSheet === 'function') {
+            fetchTariffsFromSheet(tarifa).then(() => doSaveSupply()).catch(() => doSaveSupply());
+          } else {
+            // Esperar polling hasta 8s
+            let elecWait = 0;
+            const waitElec = setInterval(() => {
+              elecWait++;
+              if ((typeof currentTariffs !== 'undefined' && currentTariffs[tarifa] && currentTariffs[tarifa].length > 0) || elecWait > 80) {
+                clearInterval(waitElec);
+                doSaveSupply();
+              }
+            }, 100);
+          }
+        }
       }
     }
   };

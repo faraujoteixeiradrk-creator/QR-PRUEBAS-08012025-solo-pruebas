@@ -28838,7 +28838,16 @@ REGLAS:
     // Leer valores actuales del DOM
     _cmResultados.forEach((r, i) => {
       const sel = document.querySelector(`#cm-row-${i} select`);
-      if (sel) r.tarifa = sel.value;
+      if (sel) {
+        const v = sel.value;
+        if (v.startsWith('gas-')) {
+          r.tipoSuministro = 'gas';
+          r.tarifa = v.replace('gas-', '');
+        } else {
+          r.tipoSuministro = 'electricidad';
+          r.tarifa = v;
+        }
+      }
       const chk = document.querySelector(`#cm-row-${i} input[type="checkbox"]`);
       if (chk) r.seleccionado = chk.checked;
       const inputs = document.querySelectorAll(`#cm-row-${i} input[type="number"]`);

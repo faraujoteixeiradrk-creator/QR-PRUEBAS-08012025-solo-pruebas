@@ -28990,7 +28990,14 @@ REGLAS:
           if (gDias)  gDias.value  = r.dias || 30;
           if (gKwh)   gKwh.value   = r.consumoGasKwh || r.e1 || '';
           if (gTotal) gTotal.value = r.total || '';
-          if (typeof calculateGas === 'function') calculateGas();
+          // Forzar modo "best" para evitar el selector manual que falla
+          const bestRadio = document.querySelector('input[name="gas-selection-mode"][value="best"]');
+          if (bestRadio) {
+            bestRadio.checked = true;
+            if (typeof updateGasSelectionUI === 'function') updateGasSelectionUI();
+          }
+          // calculateGasWithType lee directamente los inputs del DOM y actualiza gasCalculationParams correctamente
+          if (typeof calculateGasWithType === 'function') calculateGasWithType('fija');
         };
         // Esperar hasta 5s a que gasTariffsData cargue
         let gasWaitAttempts = 0;

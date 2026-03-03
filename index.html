@@ -1015,8 +1015,8 @@
   <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
   <span data-i18n="📲 PEDIR FACTURA AL CLIENTE">📲 PEDIR FACTURA AL CLIENTE</span>
   </button>
-  <input type="file" id="ai-file-input-20td" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaIA(this.files[0], '2.0TD')">
-  <input type="file" id="ai-file-input-20td-multi" accept=".pdf,image/*" multiple class="hidden" onchange="procesarMultiFilesIA(this, '2.0TD')">
+  <input type="file" id="ai-file-input-20td" accept=".pdf,image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="procesarFacturaIA(this.files[0], '2.0TD')">
+  <input type="file" id="ai-file-input-20td-multi" accept=".pdf,image/*" multiple style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="procesarMultiFilesIA(this, '2.0TD')">
   <div id="ai-drop-zone-20td" style="border:2px dashed #06b6d4;border-radius:16px;padding:14px;margin-top:12px;text-align:center;cursor:pointer;transition:background 0.2s;background:#ecfeff;" onclick="abrirModalIAUpload('20td')">
   <div style="font-size:1.6rem;margin-bottom:4px;">🤖</div>
   <p style="font-weight:700;color:#0e7490;font-size:0.88rem;margin-bottom:2px;">SUBIR POR IA (PDF o FOTO)</p>
@@ -1215,10 +1215,10 @@
   </div>
   </div>
   </div>
-  <input type="file" id="ai-file-input-30td" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaIA(this.files[0], '3.0TD')">
+  <input type="file" id="ai-file-input-30td" accept=".pdf,image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="procesarFacturaIA(this.files[0], '3.0TD')">
   <div id="ai-btn-30td-wrapper" style="display:none;">
-  <input type="file" id="ai-file-input-30td-drop" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaIA(this.files[0], '3.0TD')">
-  <input type="file" id="ai-file-input-30td-multi" accept=".pdf,image/*" multiple class="hidden" onchange="procesarMultiFilesIA(this, '3.0TD')">
+  <input type="file" id="ai-file-input-30td-drop" accept=".pdf,image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="procesarFacturaIA(this.files[0], '3.0TD')">
+  <input type="file" id="ai-file-input-30td-multi" accept=".pdf,image/*" multiple style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="procesarMultiFilesIA(this, '3.0TD')">
   <div id="ai-drop-zone-30td" style="border:2px dashed #06b6d4;border-radius:16px;padding:14px;margin-top:12px;margin-bottom:12px;text-align:center;cursor:pointer;transition:background 0.2s;background:#ecfeff;" onclick="abrirModalIAUpload('30td')">
   <div style="font-size:1.6rem;margin-bottom:4px;">🤖</div>
   <p style="font-weight:700;color:#0e7490;font-size:0.88rem;margin-bottom:2px;">SUBIR POR IA (PDF o FOTO)</p>
@@ -1226,8 +1226,8 @@
   </div>
   </div>
   <!-- BOTON IA MULTICUPS 3.0TD -->
-  <input type="file" id="ai-file-input-multicups" accept=".pdf,image/*" class="hidden">
-  <input type="file" id="ai-file-input-multicups-multi" accept=".pdf,image/*" multiple class="hidden" onchange="procesarMultiFilesIA(this, 'multicups')">
+  <input type="file" id="ai-file-input-multicups" accept=".pdf,image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;">
+  <input type="file" id="ai-file-input-multicups-multi" accept=".pdf,image/*" multiple style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="procesarMultiFilesIA(this, 'multicups')">
   <div id="ai-drop-zone-multicups" style="display:none;border:2px dashed #06b6d4;border-radius:16px;padding:14px;margin-top:8px;margin-bottom:8px;text-align:center;cursor:pointer;background:#ecfeff;" onclick="abrirModalIAUpload('multicups')">
   <div style="font-size:1.6rem;margin-bottom:4px;">🤖</div>
   <p style="font-weight:700;color:#0e7490;font-size:0.88rem;margin-bottom:2px;">SUBIR POR IA (PDF o FOTO)</p>
@@ -28284,26 +28284,27 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
   };
 
   window.iaUploadOpcion = function(opcion) {
-    cerrarModalIAUpload();
     const zone = _iaCurrentZone;
-    setTimeout(() => {
-      if (opcion === 'pdf') {
-        // PDF único — usar input original
-        if (zone === '20td') document.getElementById('ai-file-input-20td').click();
-        else if (zone === '30td') document.getElementById('ai-file-input-30td').click();
-        else if (zone === 'multicups') document.getElementById('ai-file-input-multicups').click();
-      } else if (opcion === 'foto') {
-        // Foto/imagen — mismo input original (acepta image/*)
-        if (zone === '20td') document.getElementById('ai-file-input-20td').click();
-        else if (zone === '30td') document.getElementById('ai-file-input-30td').click();
-        else if (zone === 'multicups') document.getElementById('ai-file-input-multicups').click();
-      } else if (opcion === 'multi') {
-        // Múltiples archivos — input múltiple nuevo
-        if (zone === '20td') document.getElementById('ai-file-input-20td-multi').click();
-        else if (zone === '30td') document.getElementById('ai-file-input-30td-multi').click();
-        else if (zone === 'multicups') document.getElementById('ai-file-input-multicups-multi').click();
+    let inputId = null;
+
+    if (opcion === 'pdf' || opcion === 'foto') {
+      if (zone === '20td') inputId = 'ai-file-input-20td';
+      else if (zone === '30td') inputId = 'ai-file-input-30td';
+      else if (zone === 'multicups') inputId = 'ai-file-input-multicups';
+    } else if (opcion === 'multi') {
+      if (zone === '20td') inputId = 'ai-file-input-20td-multi';
+      else if (zone === '30td') inputId = 'ai-file-input-30td-multi';
+      else if (zone === 'multicups') inputId = 'ai-file-input-multicups-multi';
+    }
+
+    if (inputId) {
+      const input = document.getElementById(inputId);
+      if (input) {
+        // Cerrar modal DESPUÉS de lanzar el click
+        input.click();
+        cerrarModalIAUpload();
       }
-    }, 50);
+    }
   };
 
   // Procesar múltiples archivos secuencialmente

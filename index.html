@@ -28287,6 +28287,16 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       <div id="ia-fotos-status" style="display:none;text-align:center;padding:10px;font-size:0.8rem;color:#0891b2;font-weight:600;"></div>
     </div>
 
+    <!-- Vista: Múltiples archivos -->
+    <div id="ia-vista-multi" style="display:none;padding:20px;">
+      <button onclick="iaVolverOpciones()" style="background:none;border:none;color:#0891b2;font-size:0.85rem;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:4px;">‹ Volver</button>
+      <p style="font-size:0.78rem;color:#6b7280;margin-bottom:12px;text-align:center;">Sube hasta 5 archivos (PDF o imágenes). La IA los junta y analiza como una sola factura.</p>
+      <div id="ia-multi-slots" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+      <button onclick="iaMultiAddSlot()" id="ia-multi-add-btn" style="width:100%;padding:10px;border:2px dashed #10b981;border-radius:12px;background:#f0fdf4;color:#065f46;font-weight:700;cursor:pointer;font-size:0.85rem;">+ Añadir archivo</button>
+      <button id="ia-btn-enviar-multi" onclick="iaEnviarMulti()" style="display:none;width:100%;background:linear-gradient(135deg,#10b981,#059669);color:white;font-weight:800;padding:14px;border:none;border-radius:12px;font-size:0.95rem;cursor:pointer;margin-top:10px;">📤 Analizar con IA</button>
+      <div id="ia-multi-status" style="display:none;text-align:center;padding:10px;font-size:0.8rem;color:#0891b2;font-weight:600;"></div>
+    </div>
+
     <!-- Vista: Voz -->
     <div id="ia-vista-voz" style="display:none;padding:20px;">
       <button onclick="iaVolverOpciones()" style="background:none;border:none;color:#0891b2;font-size:0.85rem;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;gap:4px;">‹ Volver</button>

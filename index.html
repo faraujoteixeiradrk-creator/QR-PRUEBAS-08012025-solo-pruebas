@@ -223,7 +223,7 @@
  </div>
     </div>
     <div id="app" class="w-full max-w-lg mx-auto p-4 md:p-6 flex-grow">
- <div id="modo-comparacion-section" class="fade-in mb-6">
+ <div id="modo-comparacion-section" class="fade-in mb-6" style="display:none;">
   <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
   <p class="text-sm font-bold text-drk-800 mb-3 text-center uppercase tracking-wider">MODO DE COMPARACIÓN</p>
   <div class="flex flex-wrap justify-center gap-2 text-sm">
@@ -231,11 +231,11 @@
   <input type="radio" name="comparison_mode" value="drk_only" class="hidden" checked>
   <span class="font-semibold flex items-center justify-between w-full">DRK Únicamente<svg class="w-4 h-4 ml-1 checkmark-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
   </label>
-  <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400">
+  <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-drk-300 text-drk-700 bg-white hover:bg-drk-100 hover:border-drk-400" style="display:none;">
   <input type="radio" name="comparison_mode" value="drk_prioritized" class="hidden">
   <span class="font-semibold flex items-center justify-between w-full">DRK Prioritario<svg class="w-4 h-4 ml-1 checkmark-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></span>
   </label>
-  <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400">
+  <label class="mode-selector flex-1 px-2 py-2 rounded-lg cursor-pointer transition border-2 border-powercup-300 text-powercup-700 bg-white hover:bg-powercup-100 hover:border-powercup-400" style="display:none;">
   <input type="radio" name="comparison_mode" value="overall_best" class="hidden">
   <span class="font-black flex flex-col items-center justify-center w-full leading-tight">
   <span class="text-base">POWER CUP</span><span class="text-xs font-semibold -mt-0.5">Global</span>
@@ -1016,7 +1016,8 @@
   <span data-i18n="📲 PEDIR FACTURA AL CLIENTE">📲 PEDIR FACTURA AL CLIENTE</span>
   </button>
   <input type="file" id="ai-file-input-20td" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaIA(this.files[0], '2.0TD')">
-  <div id="ai-drop-zone-20td" style="border:2px dashed #06b6d4;border-radius:16px;padding:14px;margin-top:12px;text-align:center;cursor:pointer;transition:background 0.2s;background:#ecfeff;" onclick="document.getElementById('ai-file-input-20td').click()">
+  <input type="file" id="ai-file-input-20td-multi" accept=".pdf,image/*" multiple class="hidden" onchange="procesarMultiFilesIA(this, '2.0TD')">
+  <div id="ai-drop-zone-20td" style="border:2px dashed #06b6d4;border-radius:16px;padding:14px;margin-top:12px;text-align:center;cursor:pointer;transition:background 0.2s;background:#ecfeff;" onclick="abrirModalIAUpload('20td')">
   <div style="font-size:1.6rem;margin-bottom:4px;">🤖</div>
   <p style="font-weight:700;color:#0e7490;font-size:0.88rem;margin-bottom:2px;">SUBIR POR IA (PDF o FOTO)</p>
   <p style="color:#67e8f9;font-size:0.72rem;">Arrastra aquí o pulsa para seleccionar</p>
@@ -1217,7 +1218,8 @@
   <input type="file" id="ai-file-input-30td" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaIA(this.files[0], '3.0TD')">
   <div id="ai-btn-30td-wrapper" style="display:none;">
   <input type="file" id="ai-file-input-30td-drop" accept=".pdf,image/*" class="hidden" onchange="procesarFacturaIA(this.files[0], '3.0TD')">
-  <div id="ai-drop-zone-30td" style="border:2px dashed #06b6d4;border-radius:16px;padding:14px;margin-top:12px;margin-bottom:12px;text-align:center;cursor:pointer;transition:background 0.2s;background:#ecfeff;" onclick="document.getElementById('ai-file-input-30td').click()">
+  <input type="file" id="ai-file-input-30td-multi" accept=".pdf,image/*" multiple class="hidden" onchange="procesarMultiFilesIA(this, '3.0TD')">
+  <div id="ai-drop-zone-30td" style="border:2px dashed #06b6d4;border-radius:16px;padding:14px;margin-top:12px;margin-bottom:12px;text-align:center;cursor:pointer;transition:background 0.2s;background:#ecfeff;" onclick="abrirModalIAUpload('30td')">
   <div style="font-size:1.6rem;margin-bottom:4px;">🤖</div>
   <p style="font-weight:700;color:#0e7490;font-size:0.88rem;margin-bottom:2px;">SUBIR POR IA (PDF o FOTO)</p>
   <p style="color:#67e8f9;font-size:0.72rem;">Arrastra aquí o pulsa para seleccionar</p>
@@ -1225,7 +1227,8 @@
   </div>
   <!-- BOTON IA MULTICUPS 3.0TD -->
   <input type="file" id="ai-file-input-multicups" accept=".pdf,image/*" class="hidden">
-  <div id="ai-drop-zone-multicups" style="display:none;border:2px dashed #06b6d4;border-radius:16px;padding:14px;margin-top:8px;margin-bottom:8px;text-align:center;cursor:pointer;background:#ecfeff;" onclick="document.getElementById('ai-file-input-multicups').click()">
+  <input type="file" id="ai-file-input-multicups-multi" accept=".pdf,image/*" multiple class="hidden" onchange="procesarMultiFilesIA(this, 'multicups')">
+  <div id="ai-drop-zone-multicups" style="display:none;border:2px dashed #06b6d4;border-radius:16px;padding:14px;margin-top:8px;margin-bottom:8px;text-align:center;cursor:pointer;background:#ecfeff;" onclick="abrirModalIAUpload('multicups')">
   <div style="font-size:1.6rem;margin-bottom:4px;">🤖</div>
   <p style="font-weight:700;color:#0e7490;font-size:0.88rem;margin-bottom:2px;">SUBIR POR IA (PDF o FOTO)</p>
   <p style="color:#67e8f9;font-size:0.72rem;">Arrastra aqui o pulsa para seleccionar</p>
@@ -2837,13 +2840,17 @@
   document.getElementById('landing-view')?.classList.remove('hidden');
   document.querySelectorAll('.hidden-period').forEach(el => el.style.display = 'none');
   document.getElementById('tariff-display-badge').textContent = '0';
-  // FINALMENTE: Mostrar pantalla inicial y selector de modo
+  // FINALMENTE: Mostrar pantalla inicial — siempre DRK únicamente, sin selector
   document.getElementById('screen-inicio')?.classList.add('active');
   const modoComparacionSection = document.getElementById('modo-comparacion-section');
   if (modoComparacionSection) {
-  modoComparacionSection.style.display = 'block';
+  modoComparacionSection.style.display = 'none';
   }
-  console.log('✅ resetToLanding completada - screen-inicio activa');
+  // Forzar siempre DRK únicamente
+  const drkInput = document.querySelector('input[name="comparison_mode"][value="drk_only"]');
+  if (drkInput) { drkInput.checked = true; updateComparisonMode('drk_only'); }
+  applyBrandStyles(BRANDS.DRK);
+  console.log('✅ resetToLanding completada - screen-inicio activa, modo DRK únicamente');
  };
  // NUEVA FUNCIÓN: Volver desde initial-view SIN hacer reset completo
  window.goBackFromInitialView = function() {
@@ -19291,10 +19298,21 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
  function goToInicio() {
   // Limpiar flag de modo DUAL
   window.dualMode = false;
+  // Limpiar flags de IA
+  window.elecUsedIA = false;
+  window.gasUsedIA = false;
+  window.aiExtractedData = null;
+  window.gasAiData = null;
+  // Forzar siempre DRK únicamente
+  const drkOnlyInput = document.querySelector('input[name="comparison_mode"][value="drk_only"]');
+  if (drkOnlyInput) {
+  drkOnlyInput.checked = true;
+  drkOnlyInput.dispatchEvent(new Event('change'));
+  }
   hideAllScreens();
   document.getElementById('screen-inicio').classList.add('active');
-  // Mostrar el modo de comparación
-  document.getElementById('modo-comparacion-section').style.display = 'block';
+  // Mantener el selector de modo oculto siempre
+  document.getElementById('modo-comparacion-section').style.display = 'none';
  }
  function goToElectricidad() {
   console.log('🔵 Iniciando nuevo estudio de ELECTRICIDAD');
@@ -28198,4 +28216,124 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
      });
     })();
     </script>
+<!-- MODAL IA UPLOAD - NUEVO -->
+<div id="ia-upload-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:white;border-radius:24px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.4);">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#0891b2,#0e7490);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">🤖</div>
+        <div>
+          <div style="font-size:1rem;font-weight:900;color:white;">Subir Factura con IA</div>
+          <div style="font-size:0.72rem;color:rgba(255,255,255,0.8);">Elige cómo quieres subir la factura</div>
+        </div>
+      </div>
+      <button onclick="cerrarModalIAUpload()" style="width:32px;height:32px;background:rgba(255,255,255,0.2);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:white;">✕</button>
+    </div>
+    <!-- Opciones -->
+    <div style="padding:20px;display:flex;flex-direction:column;gap:12px;">
+
+      <!-- Opción 1: PDF -->
+      <button onclick="iaUploadOpcion('pdf')" style="display:flex;align-items:center;gap:14px;padding:16px;border:2px solid #e0f2fe;border-radius:16px;background:#f0f9ff;cursor:pointer;text-align:left;transition:all 0.2s;" onmouseover="this.style.borderColor='#0891b2';this.style.background='#e0f2fe'" onmouseout="this.style.borderColor='#e0f2fe';this.style.background='#f0f9ff'">
+        <div style="width:48px;height:48px;background:#0891b2;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">📄</div>
+        <div>
+          <div style="font-weight:800;color:#0e7490;font-size:0.95rem;">Subir PDF</div>
+          <div style="font-size:0.75rem;color:#64748b;margin-top:2px;">Selecciona un archivo PDF de tu factura</div>
+        </div>
+        <div style="margin-left:auto;color:#94a3b8;font-size:1.2rem;">›</div>
+      </button>
+
+      <!-- Opción 2: Foto -->
+      <button onclick="iaUploadOpcion('foto')" style="display:flex;align-items:center;gap:14px;padding:16px;border:2px solid #fce7f3;border-radius:16px;background:#fdf2f8;cursor:pointer;text-align:left;transition:all 0.2s;" onmouseover="this.style.borderColor='#ec4899';this.style.background='#fce7f3'" onmouseout="this.style.borderColor='#fce7f3';this.style.background='#fdf2f8'">
+        <div style="width:48px;height:48px;background:#ec4899;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">📷</div>
+        <div>
+          <div style="font-weight:800;color:#be185d;font-size:0.95rem;">Hacer Foto / Subir Imagen</div>
+          <div style="font-size:0.75rem;color:#64748b;margin-top:2px;">Fotografía la factura o sube una imagen JPG/PNG</div>
+        </div>
+        <div style="margin-left:auto;color:#94a3b8;font-size:1.2rem;">›</div>
+      </button>
+
+      <!-- Opción 3: Múltiples -->
+      <button onclick="iaUploadOpcion('multi')" style="display:flex;align-items:center;gap:14px;padding:16px;border:2px solid #d1fae5;border-radius:16px;background:#f0fdf4;cursor:pointer;text-align:left;transition:all 0.2s;" onmouseover="this.style.borderColor='#10b981';this.style.background='#d1fae5'" onmouseout="this.style.borderColor='#d1fae5';this.style.background='#f0fdf4'">
+        <div style="width:48px;height:48px;background:#10b981;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">📂</div>
+        <div>
+          <div style="font-weight:800;color:#065f46;font-size:0.95rem;">Varios archivos del mismo cliente</div>
+          <div style="font-size:0.75rem;color:#64748b;margin-top:2px;">PDF o fotos sueltas — la IA las analiza todas juntas</div>
+        </div>
+        <div style="margin-left:auto;color:#94a3b8;font-size:1.2rem;">›</div>
+      </button>
+
+    </div>
+    <div style="padding:0 20px 16px;text-align:center;font-size:0.7rem;color:#94a3b8;">La IA analiza automáticamente y rellena los datos de la factura</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  let _iaCurrentZone = null;
+
+  window.abrirModalIAUpload = function(zone) {
+    _iaCurrentZone = zone;
+    const modal = document.getElementById('ia-upload-modal');
+    modal.style.display = 'flex';
+  };
+
+  window.cerrarModalIAUpload = function() {
+    document.getElementById('ia-upload-modal').style.display = 'none';
+    _iaCurrentZone = null;
+  };
+
+  window.iaUploadOpcion = function(opcion) {
+    cerrarModalIAUpload();
+    const zone = _iaCurrentZone;
+    setTimeout(() => {
+      if (opcion === 'pdf') {
+        // PDF único — usar input original
+        if (zone === '20td') document.getElementById('ai-file-input-20td').click();
+        else if (zone === '30td') document.getElementById('ai-file-input-30td').click();
+        else if (zone === 'multicups') document.getElementById('ai-file-input-multicups').click();
+      } else if (opcion === 'foto') {
+        // Foto/imagen — mismo input original (acepta image/*)
+        if (zone === '20td') document.getElementById('ai-file-input-20td').click();
+        else if (zone === '30td') document.getElementById('ai-file-input-30td').click();
+        else if (zone === 'multicups') document.getElementById('ai-file-input-multicups').click();
+      } else if (opcion === 'multi') {
+        // Múltiples archivos — input múltiple nuevo
+        if (zone === '20td') document.getElementById('ai-file-input-20td-multi').click();
+        else if (zone === '30td') document.getElementById('ai-file-input-30td-multi').click();
+        else if (zone === 'multicups') document.getElementById('ai-file-input-multicups-multi').click();
+      }
+    }, 50);
+  };
+
+  // Procesar múltiples archivos secuencialmente
+  window.procesarMultiFilesIA = function(inputEl, tariff) {
+    const files = Array.from(inputEl.files);
+    if (!files.length) return;
+    // Resolver tariff para multicups igual que el onchange original
+    let resolvedTariff = tariff;
+    if (tariff === 'multicups') {
+      const checked = document.querySelector('input[name="multicups-tariff-type"]:checked');
+      resolvedTariff = checked ? checked.value : '3.0TD';
+    }
+    // Procesar el primero inmediatamente
+    if (typeof procesarFacturaIA === 'function') {
+      procesarFacturaIA(files[0], resolvedTariff);
+    }
+    // Los siguientes se procesan después del primero (el usuario puede relanzar)
+    if (files.length > 1) {
+      // Guardar pendientes para procesar tras confirmar
+      window._pendingMultiFiles = files.slice(1);
+      window._pendingMultiTariff = resolvedTariff;
+    }
+    inputEl.value = ''; // Reset para poder volver a seleccionar
+  };
+
+  // Cerrar modal al pulsar fuera
+  document.addEventListener('click', function(e) {
+    const modal = document.getElementById('ia-upload-modal');
+    if (modal && e.target === modal) cerrarModalIAUpload();
+  });
+})();
+</script>
 </body></html>

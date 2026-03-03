@@ -28648,9 +28648,24 @@ REGLAS:
     cmAnadirSeleccionados();
   };
 
-  window.cmAnadirSeleccionados = async function() {
-    const seleccionados = _cmResultados.filter(r => r.seleccionado && r.tarifa);
-    if (seleccionados.length === 0) { alert('Selecciona al menos una factura con tarifa asignada'); return; }
+  window.cmAnadirSeleccionados = function() {
+    // Leer valores actuales de los inputs de la tabla antes de filtrar
+    _cmResultados.forEach((r, i) => {
+      const sel = document.querySelector(`#cm-row-${i} select`);
+      if (sel) r.tarifa = sel.value;
+      const chk = document.querySelector(`#cm-row-${i} input[type="checkbox"]`);
+      if (chk) r.seleccionado = chk.checked;
+      // Leer todos los inputs numéricos y texto de la fila
+      const inputs = document.querySelectorAll(`#cm-row-${i} input[type="number"]`);
+      const fields = ['dias','p1','p2','p3','p4','p5','p6','e1','e2','e3','e4','e5','e6','total'];
+      inputs.forEach((inp, idx) => { if (fields[idx] !== undefined) r[fields[idx]] = parseFloat(inp.value)||0; });
+      const texts = document.querySelectorAll(`#cm-row-${i} input:not([type="number"]):not([type="checkbox"])`);
+      if (texts[0]) r.cups = texts[0].value;
+      if (texts[1]) r.nombre = texts[1].value;
+    });
+
+    const seleccionados = _cmResultados.filter(r => r.seleccionado);
+    if (seleccionados.length === 0) { alert('Marca al menos una factura con el checkbox'); return; }
 
     cerrarCargaMasiva();
 
@@ -28659,28 +28674,35 @@ REGLAS:
 
     for (const r of seleccionados) {
       try {
-        // Construir objeto de datos compatible con saveSupply
+        const tarifa = r.tarifa || '2.0TD';
+        // Construir objeto exactamente como lo hace el flujo IA individual
         const data = {
           cups: r.cups || '',
+          dias: r.dias || 30,
+          total_cliente: r.total || 0,
+          nombre_cliente: r.nombre || '',
+          direccion_suministro: r.direccion || '',
+          // Potencias
           potencia_p1_kw: r.p1 || 0,
           potencia_p2_kw: r.p2 || 0,
           potencia_p3_kw: r.p3 || 0,
           potencia_p4_kw: r.p4 || 0,
           potencia_p5_kw: r.p5 || 0,
           potencia_p6_kw: r.p6 || 0,
+          // Consumos — usar nombres que saveSupply entiende
           consumo_p1: r.e1 || 0,
           consumo_p2: r.e2 || 0,
           consumo_p3: r.e3 || 0,
           consumo_p4: r.e4 || 0,
           consumo_p5: r.e5 || 0,
           consumo_p6: r.e6 || 0,
-          dias: r.dias || 30,
-          total_cliente: r.total || 0,
-          nombre_cliente: r.nombre || '',
-          direccion_suministro: r.direccion || ''
+          // Alias para 2.0TD (punta/llano/valle)
+          consumo_punta: r.e1 || 0,
+          consumo_llano: r.e2 || 0,
+          consumo_valle: r.e3 || 0,
         };
 
-        // Guardar datos IA para que el sistema los use
+        // Establecer flags IA para que saveSupply use nombre/dirección
         window.aiExtractedData = {
           cups: data.cups,
           nombre_cliente: data.nombre_cliente,
@@ -28688,32 +28710,26 @@ REGLAS:
         };
         window.elecUsedIA = true;
 
-        // Llamar a saveSupply directamente
         if (typeof saveSupply === 'function') {
-          await new Promise(resolve => {
-            // saveSupply es síncrono pero esperamos un tick
-            saveSupply(data, r.tarifa);
-            setTimeout(resolve, 100);
-          });
+          saveSupply(data, tarifa);
           añadidos++;
+        } else {
+          throw new Error('saveSupply no disponible');
         }
       } catch(e) {
         errores++;
-        console.error('Error añadiendo suministro:', e);
+        console.error('Error añadiendo suministro:', r.file?.name, e);
       }
     }
 
-    // Reset flags
     window.elecUsedIA = false;
     window.aiExtractedData = null;
 
-    if (typeof window.showMessageModal === 'function') {
-      window.showMessageModal(
-        `✅ ${añadidos} suministro${añadidos!==1?'s':''} añadido${añadidos!==1?'s':''}${errores>0?' · '+errores+' errores':''}`,
-        'Carga Masiva Completada'
-      );
+    const msg = `✅ ${añadidos} suministro${añadidos!==1?'s':''} añadido${añadidos!==1?'s':''}${errores>0?' · '+errores+' con error':''}`;
+    if (typeof window.showErrorModal === 'function' && errores > 0) {
+      alert(msg);
     } else {
-      alert(`✅ ${añadidos} suministros añadidos${errores>0?' ('+errores+' errores)':''}`);
+      alert(msg);
     }
   };
 

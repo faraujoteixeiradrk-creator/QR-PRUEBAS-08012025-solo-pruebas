@@ -28428,7 +28428,14 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
     const logEl = document.getElementById('cm-log');
     const barraEl = document.getElementById('cm-progreso-barra');
     const textoEl = document.getElementById('cm-progreso-texto');
-    logEl.innerHTML = '';
+
+    // Pre-renderizar todos los slots del log
+    logEl.innerHTML = _cmFiles.map((f, i) => `
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:4px;">
+        <span id="cm-icon-${i}" style="font-size:1rem;">⏳</span>
+        <span style="flex:1;font-size:0.75rem;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.name}</span>
+        <span id="cm-status-${i}" style="font-size:0.72rem;color:#64748b;white-space:nowrap;">En cola...</span>
+      </div>`).join('');
 
     for (let i = 0; i < _cmFiles.length; i++) {
       if (!_cmProcesando) break;
@@ -28436,46 +28443,49 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       const pct = Math.round(((i) / _cmFiles.length) * 100);
       barraEl.style.width = pct + '%';
       textoEl.textContent = `Procesando ${i+1} de ${_cmFiles.length}: ${file.name}`;
-
-      // Log entry
-      const logId = 'cm-log-' + i;
-      logEl.innerHTML += `<div id="${logId}" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
-        <span id="${logId}-icon" style="font-size:1rem;">⏳</span>
-        <span style="flex:1;font-size:0.75rem;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${file.name}</span>
-        <span id="${logId}-status" style="font-size:0.72rem;color:#64748b;white-space:nowrap;">Procesando...</span>
-      </div>`;
+      document.getElementById('cm-status-'+i).textContent = '🔄 Enviando a IA...';
+      document.getElementById('cm-status-'+i).style.color = '#0ea5e9';
       logEl.scrollTop = logEl.scrollHeight;
 
       try {
-        const resultado = await cmProcesarFactura(file);
-        _cmResultados.push({ file, ...resultado, seleccionado: resultado.ok });
-        document.getElementById(logId+'-icon').textContent = resultado.ok ? '✅' : '⚠️';
-        document.getElementById(logId+'-status').textContent = resultado.ok
-          ? `${resultado.tarifa || '?'} · ${resultado.cups ? resultado.cups.substring(0,10)+'...' : 'Sin CUPS'}`
-          : '⚠️ ' + (resultado.error || 'Tarifa no detectada');
+        const resultado = await cmProcesarFactura(file, i);
+        _cmResultados.push({ file, ...resultado, seleccionado: true });
+        document.getElementById('cm-icon-'+i).textContent = resultado.ok ? '✅' : '⚠️';
+        document.getElementById('cm-status-'+i).textContent = resultado.ok
+          ? `${resultado.tarifa} · ${resultado.cups ? resultado.cups.substring(0,12) : 'Sin CUPS'} · ${resultado.nombre||''}`
+          : '⚠️ ' + (resultado.error || 'Revisar tarifa');
+        document.getElementById('cm-status-'+i).style.color = resultado.ok ? '#059669' : '#d97706';
       } catch(e) {
-        _cmResultados.push({ file, ok: false, error: e.message, seleccionado: false });
-        document.getElementById(logId+'-icon').textContent = '❌';
-        document.getElementById(logId+'-status').textContent = '❌ ' + e.message;
+        _cmResultados.push({ file, ok: false, tarifa:'2.0TD', error: e.message, seleccionado: false,
+          cups:'', dias:0, p1:0,p2:0,p3:0,p4:0,p5:0,p6:0, e1:0,e2:0,e3:0,e4:0,e5:0,e6:0, total:0, nombre:'', direccion:'' });
+        document.getElementById('cm-icon-'+i).textContent = '❌';
+        document.getElementById('cm-status-'+i).textContent = '❌ ' + e.message;
+        document.getElementById('cm-status-'+i).style.color = '#dc2626';
       }
     }
 
     barraEl.style.width = '100%';
-    textoEl.textContent = `✅ Completado: ${_cmResultados.filter(r=>r.ok).length} OK · ${_cmResultados.filter(r=>!r.ok).length} con avisos`;
+    const ok = _cmResultados.filter(r=>r.ok).length;
+    textoEl.textContent = `✅ Completado: ${ok} OK · ${_cmResultados.length - ok} con avisos`;
     _cmProcesando = false;
-
-    // Pasar a revisión
-    setTimeout(() => cmMostrarRevision(), 800);
+    setTimeout(() => cmMostrarRevision(), 1000);
   };
 
-  async function cmProcesarFactura(file) {
+  async function cmProcesarFactura(file, idx) {
+    function setStatus(txt) {
+      const el = document.getElementById('cm-status-'+idx);
+      if (el) el.textContent = txt;
+    }
+
+    setStatus('📖 Leyendo archivo...');
     const base64 = await new Promise((res, rej) => {
       const reader = new FileReader();
       reader.onload = e => res(e.target.result.split(',')[1]);
-      reader.onerror = rej;
+      reader.onerror = () => rej(new Error('Error leyendo archivo'));
       reader.readAsDataURL(file);
     });
 
+    setStatus('📤 Enviando a IA...');
     let messageContent;
     if (file.type === 'application/pdf') {
       messageContent = [
@@ -28501,39 +28511,38 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
 
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
-      throw new Error(err.error?.message || 'Error API: ' + resp.status);
+      throw new Error('API ' + resp.status + ': ' + (err.error?.message || 'Error'));
     }
+
+    setStatus('🧠 Analizando respuesta...');
     const data = await resp.json();
     const raw = data.content?.[0]?.text || '';
-    const match = raw.match(/\{[\s\S]*\}/);  // greedy — captura todo el JSON incluyendo objetos anidados
-    if (!match) throw new Error('IA sin respuesta JSON');
-    
+
+    if (!raw) throw new Error('IA sin respuesta');
+
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Sin JSON en respuesta');
+
     let parsed;
     try { parsed = JSON.parse(match[0]); }
-    catch(e) { throw new Error('JSON inválido de IA'); }
+    catch(e) { throw new Error('JSON inválido'); }
 
-    // Normalizar tarifa — la IA puede devolver "2.0 TD", "2TD", "20TD", "2.0td" etc.
-    let tarifa = (parsed.tarifa || '').toString().toUpperCase().replace(/\s/g,'').replace('TD','').replace('.','');
-    if (tarifa === '20') tarifa = '2.0TD';
-    else if (tarifa === '30') tarifa = '3.0TD';
-    else if (parsed.tarifa && parsed.tarifa.toString().includes('2')) tarifa = '2.0TD';
-    else if (parsed.tarifa && parsed.tarifa.toString().includes('3')) tarifa = '3.0TD';
-    else tarifa = parsed.tarifa || '';
+    // Normalizar tarifa
+    let tarifa = (parsed.tarifa || '').toString().toUpperCase().replace(/\s/g,'');
+    if (tarifa.includes('20') || tarifa.startsWith('2')) tarifa = '2.0TD';
+    else if (tarifa.includes('30') || tarifa.startsWith('3')) tarifa = '3.0TD';
 
-    // También intentar deducir por número de periodos de potencia
     const p = parsed.potencias_kw || {};
     const e = parsed.energia_kwh || {};
-    if (!tarifa || (tarifa !== '2.0TD' && tarifa !== '3.0TD')) {
-      const tieneP3 = p.p3 && p.p3 > 0;
-      const tieneE4 = e.e4 && e.e4 > 0;
-      if (tieneP3 || tieneE4) tarifa = '3.0TD';
-      else if (p.p1 || p.p2 || e.e1) tarifa = '2.0TD';
+
+    // Deducir tarifa por periodos si no se detectó
+    if (tarifa !== '2.0TD' && tarifa !== '3.0TD') {
+      if ((p.p3 && p.p3 > 0) || (e.e4 && e.e4 > 0)) tarifa = '3.0TD';
+      else tarifa = '2.0TD';
     }
 
-    const ok = tarifa === '2.0TD' || tarifa === '3.0TD';
-
     return {
-      ok,
+      ok: true,
       tarifa,
       cups: parsed.cups || '',
       dias: parsed.dias || 0,
@@ -28542,7 +28551,7 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       total: parsed.total_factura || 0,
       nombre: parsed.nombre_cliente || '',
       direccion: parsed.direccion_suministro || '',
-      error: ok ? '' : 'Tarifa no identificada'
+      error: ''
     };
   }
 

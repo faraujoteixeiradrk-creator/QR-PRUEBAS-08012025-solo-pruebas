@@ -28760,8 +28760,13 @@ REGLAS:
           <td style="padding:6px;"><input value="${r.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:100px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
           <td style="padding:6px;"><input value="${r.direccion||''}" onchange="_cmResultados[${i}].direccion=this.value" style="width:120px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
           <td style="padding:6px;">${inp('dias',r.dias,'42px',bGray)}</td>
-          <td colspan="6" style="padding:6px;font-size:0.72rem;color:#92400e;text-align:center;">
-            kWh consumo: ${inp('e1',r.e1,'65px',bGray)} &nbsp; Total €: ${inp('total',r.total,'65px',bGray)}
+          <td colspan="6" style="padding:6px;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;">
+              <span style="font-size:0.7rem;color:#92400e;white-space:nowrap;">kWh:</span>
+              ${inp('e1',r.e1,'65px',bGray)}
+              <span style="font-size:0.7rem;color:#92400e;white-space:nowrap;">Total €:</span>
+              ${inp('total',r.total,'70px',bGray)}
+            </div>
           </td>
           <td style="padding:6px;white-space:nowrap;">
             <button onclick="cmReprocesar(${i})" title="Reprocesar" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:0.72rem;">🔄</button>
@@ -28974,6 +28979,19 @@ REGLAS:
         if (addrInputGas && data.direccion_suministro) addrInputGas.value = data.direccion_suministro;
         // Navegar a la pantalla de gas en DUAL con la tarifa detectada
         dualSelectTariff('gas', r.tarifa || 'RL1');
+        // Auto-rellenar los inputs del modal de gas y disparar el cálculo
+        setTimeout(() => {
+          const gCups  = document.getElementById('gas-cups');
+          const gDias  = document.getElementById('gas-dias');
+          const gKwh   = document.getElementById('gas-kwh');
+          const gTotal = document.getElementById('gas-total-cliente');
+          if (gCups)  gCups.value  = r.cups || data.cups || '';
+          if (gDias)  gDias.value  = r.dias || 30;
+          if (gKwh)   gKwh.value   = r.consumoGasKwh || r.e1 || '';
+          if (gTotal) gTotal.value = r.total || '';
+          // Lanzar cálculo directamente — el usuario verá el modal de selección de oferta
+          if (typeof calculateGas === 'function') calculateGas();
+        }, 350);
       } else {
         saveSupply(data, r.tarifa || '2.0TD');
       }

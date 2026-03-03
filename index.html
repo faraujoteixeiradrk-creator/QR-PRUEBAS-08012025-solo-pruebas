@@ -28721,15 +28721,15 @@ REGLAS:
     const tbody = document.getElementById('cm-tabla-body');
     const isDual = window._cmModoDual;
     tbody.innerHTML = _cmResultados.map((r, i) => {
+      const isGas = r.tipoSuministro === 'gas';
+      const is30 = r.tarifa === '3.0TD';
       const bg = r.ok ? 'white' : '#fef9c3';
-      // Warning si el tipo parece inconsistente (ej: tarifa RL pero marcado como electricidad)
+      // Warning si el tipo parece inconsistente
       const tipoWarning = (isGas && !['RL1','RL2','RL3','RL4','RL5'].includes(r.tarifa)) ||
         (!isGas && ['RL1','RL2','RL3','RL4','RL5'].includes(r.tarifa));
       const est = r.ok
         ? (tipoWarning ? `<span title="Verifica el tipo" style="color:#d97706;font-weight:700;">⚠️</span>` : `<span style="color:#059669;font-weight:700;">✅</span>`)
         : `<span style="color:#d97706;font-weight:700;">⚠️</span>`;
-      const isGas = r.tipoSuministro === 'gas';
-      const is30 = r.tarifa === '3.0TD';
       const bBlue = 'border:1px solid #bfdbfe;background:#eff6ff;';
       const bGray = 'border:1px solid #cbd5e1;';
       const inp = (field, val, w='42px', extra='') => `<input type="number" value="${val||''}" onchange="_cmResultados[${i}].${field}=+this.value" style="width:${w};padding:2px 4px;${extra}border-radius:4px;font-size:0.75rem;text-align:center;">`;
@@ -29044,7 +29044,12 @@ REGLAS:
           }
         }, 100);
       } else {
-        // Electricidad: esperar a que las tarifas estén cargadas antes de saveSupply
+        // Electricidad: asegurar dualCurrentType correcto antes de saveSupply
+        if (window._cmModoDual) {
+          window.dualCurrentType = 'electricidad';
+          if (typeof dualCurrentType !== 'undefined') dualCurrentType = 'electricidad';
+        }
+        // Esperar a que las tarifas estén cargadas antes de saveSupply
         const tarifa = r.tarifa || '2.0TD';
         const doSaveSupply = () => saveSupply(data, tarifa);
         if (typeof currentTariffs !== 'undefined' && currentTariffs[tarifa] && currentTariffs[tarifa].length > 0) {

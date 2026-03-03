@@ -4230,6 +4230,10 @@
   document.getElementById('app-subtitle').textContent = TARIFF_CONFIG.MULTICUPS.label;
   // Mostrar sección de tipo de selección de oferta
   updateMultiCupsSagaView();
+  // COLA MASIVA: Si hay pendientes, arrancar el siguiente automáticamente
+  if (window._cmCola && window._cmCola.length > 0 && window._cmColaIdx < window._cmCola.length) {
+    setTimeout(() => window.cmProcesarSiguienteDeCola(), 400);
+  }
  }
  /**
   * Actualiza el contador y el botón de finalizar en la vista SAGA.
@@ -28673,13 +28677,12 @@ REGLAS:
   };
 
   window.cmAnadirSeleccionados = function() {
-    // Leer valores actuales de los inputs de la tabla antes de filtrar
+    // Leer valores actuales del DOM
     _cmResultados.forEach((r, i) => {
       const sel = document.querySelector(`#cm-row-${i} select`);
       if (sel) r.tarifa = sel.value;
       const chk = document.querySelector(`#cm-row-${i} input[type="checkbox"]`);
       if (chk) r.seleccionado = chk.checked;
-      // Leer todos los inputs numéricos y texto de la fila
       const inputs = document.querySelectorAll(`#cm-row-${i} input[type="number"]`);
       const fields = ['dias','p1','p2','p3','p4','p5','p6','e1','e2','e3','e4','e5','e6','total'];
       inputs.forEach((inp, idx) => { if (fields[idx] !== undefined) r[fields[idx]] = parseFloat(inp.value)||0; });
@@ -28688,74 +28691,99 @@ REGLAS:
       if (texts[1]) r.nombre = texts[1].value;
     });
 
-    const seleccionados = _cmResultados.filter(r => r.seleccionado);
-    if (seleccionados.length === 0) { alert('Marca al menos una factura con el checkbox'); return; }
+    const cola = _cmResultados.filter(r => r.seleccionado);
+    if (cola.length === 0) { alert('Marca al menos una factura con el checkbox'); return; }
 
+    // Cerrar modal masiva y arrancar cola
     cerrarCargaMasiva();
+    window._cmCola = cola;
+    window._cmColaIdx = 0;
+    window._cmColaTotal = cola.length;
 
-    let añadidos = 0;
-    let errores = 0;
+    // Mostrar banner de progreso de cola
+    cmMostrarBannerCola();
+    cmProcesarSiguienteDeCola();
+  };
 
-    for (const r of seleccionados) {
-      try {
-        const tarifa = r.tarifa || '2.0TD';
-        // Construir objeto exactamente como lo hace el flujo IA individual
-        const data = {
-          cups: r.cups || '',
-          dias: r.dias || 30,
-          dias_facturados: r.dias || 30,
-          importe_total: r.total || 0,
-          total_cliente: r.total || 0,
-          nombre_cliente: r.nombre || '',
-          direccion_suministro: r.direccion || '',
-          // Potencias
-          potencia_p1_kw: r.p1 || 0,
-          potencia_p2_kw: r.p2 || 0,
-          potencia_p3_kw: r.p3 || 0,
-          potencia_p4_kw: r.p4 || 0,
-          potencia_p5_kw: r.p5 || 0,
-          potencia_p6_kw: r.p6 || 0,
-          // Consumos — usar nombres que saveSupply entiende
-          consumo_p1: r.e1 || 0,
-          consumo_p2: r.e2 || 0,
-          consumo_p3: r.e3 || 0,
-          consumo_p4: r.e4 || 0,
-          consumo_p5: r.e5 || 0,
-          consumo_p6: r.e6 || 0,
-          // Alias para 2.0TD (punta/llano/valle)
-          consumo_punta: r.e1 || 0,
-          consumo_llano: r.e2 || 0,
-          consumo_valle: r.e3 || 0,
-        };
+  function cmMostrarBannerCola() {
+    let banner = document.getElementById('cm-cola-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'cm-cola-banner';
+      banner.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#1e3a8a,#0ea5e9);color:white;padding:12px 24px;border-radius:99px;font-size:0.82rem;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.3);text-align:center;';
+      document.body.appendChild(banner);
+    }
+    cmActualizarBannerCola();
+  }
 
-        // Establecer flags IA para que saveSupply use nombre/dirección
-        window.aiExtractedData = {
-          cups: data.cups,
-          nombre_cliente: data.nombre_cliente,
-          direccion_suministro: data.direccion_suministro
-        };
-        window.elecUsedIA = true;
+  function cmActualizarBannerCola() {
+    const banner = document.getElementById('cm-cola-banner');
+    if (!banner) return;
+    const idx = window._cmColaIdx || 0;
+    const total = window._cmColaTotal || 0;
+    if (idx >= total) {
+      banner.textContent = `✅ ${total} suministros añadidos — pulsa FINALIZAR Y COMPARAR`;
+      setTimeout(() => banner.remove(), 5000);
+    } else {
+      banner.textContent = `📋 Suministro ${idx + 1} de ${total} — elige tarifa y confirma`;
+    }
+  }
 
-        if (typeof saveSupply === 'function') {
-          saveSupply(data, tarifa);
-          añadidos++;
-        } else {
-          throw new Error('saveSupply no disponible');
-        }
-      } catch(e) {
-        errores++;
-        console.error('Error añadiendo suministro:', r.file?.name, e);
-      }
+  window.cmProcesarSiguienteDeCola = function() {
+    const cola = window._cmCola || [];
+    const idx = window._cmColaIdx || 0;
+
+    if (idx >= cola.length) {
+      // Cola terminada
+      window._cmCola = [];
+      window._cmColaIdx = 0;
+      cmActualizarBannerCola();
+      showMultiCupsSagaView();
+      return;
     }
 
-    window.elecUsedIA = false;
-    window.aiExtractedData = null;
+    const r = cola[idx];
+    window._cmColaIdx = idx + 1;
+    cmActualizarBannerCola();
 
-    const msg = `✅ ${añadidos} suministro${añadidos!==1?'s':''} añadido${añadidos!==1?'s':''}${errores>0?' · '+errores+' con error':''}`;
-    if (typeof window.showErrorModal === 'function' && errores > 0) {
-      alert(msg);
-    } else {
-      alert(msg);
+    // Construir data object para saveSupply
+    const data = {
+      cups: r.cups || '',
+      dias: r.dias || 30,
+      dias_facturados: r.dias || 30,
+      importe_total: r.total || 0,
+      total_cliente: r.total || 0,
+      nombre_cliente: r.nombre || '',
+      direccion_suministro: r.direccion || '',
+      potencia_p1_kw: r.p1 || 0,
+      potencia_p2_kw: r.p2 || 0,
+      potencia_p3_kw: r.p3 || 0,
+      potencia_p4_kw: r.p4 || 0,
+      potencia_p5_kw: r.p5 || 0,
+      potencia_p6_kw: r.p6 || 0,
+      consumo_p1: r.e1 || 0,
+      consumo_p2: r.e2 || 0,
+      consumo_p3: r.e3 || 0,
+      consumo_p4: r.e4 || 0,
+      consumo_p5: r.e5 || 0,
+      consumo_p6: r.e6 || 0,
+      consumo_punta: r.e1 || 0,
+      consumo_llano: r.e2 || 0,
+      consumo_valle: r.e3 || 0,
+    };
+
+    window.aiExtractedData = { cups: data.cups, nombre_cliente: data.nombre_cliente, direccion_suministro: data.direccion_suministro };
+    window.elecUsedIA = true;
+
+    // Indicador visual de qué factura se está procesando
+    const nombreCorto = r.file?.name?.substring(0, 30) || 'Factura';
+    const banner = document.getElementById('cm-cola-banner');
+    if (banner) banner.textContent = `📋 Suministro ${idx + 1}/${cola.length}: ${nombreCorto} — elige tarifa y confirma`;
+
+    // Llamar saveSupply — abrirá los modales normales (solar, selección oferta)
+    // Al confirmar, el sistema llama showMultiCupsSagaView() que triggerea el siguiente
+    if (typeof saveSupply === 'function') {
+      saveSupply(data, r.tarifa || '2.0TD');
     }
   };
 

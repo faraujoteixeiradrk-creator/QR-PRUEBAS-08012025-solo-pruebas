@@ -4705,6 +4705,8 @@
   <span class="font-mono text-slate-600">${supply.cups}</span>
   <span class="font-bold text-green-600">${eur(supply.savings)}</span>
   </div>
+  ${supply.nombre_cliente ? `<div class="text-xs text-slate-500 mb-1">👤 ${supply.nombre_cliente}</div>` : ''}
+  ${supply.supplyAddress && supply.supplyAddress !== 'No especificada' ? `<div class="text-xs text-slate-400 mb-1">📍 ${supply.supplyAddress}</div>` : ''}
   <div class="text-slate-700">
   <span class="font-semibold">${supply.offer.name}</span>
   </div>
@@ -5027,6 +5029,9 @@
   const addressHTML = resItem.supplyAddress && resItem.supplyAddress !== 'No especificada'
   ? `<div class="text-xs text-slate-500 mt-1">${resItem.supplyAddress}</div>`
   : '';
+  const nombreHTML = resItem.nombre_cliente
+  ? `<div class="text-xs text-slate-600 font-medium mt-0.5">👤 ${resItem.nombre_cliente}</div>`
+  : '';
   // Excedentes sobrantes que este CUPS aporta a la batería
   const excessHTML = (resItem.solarSurplus?.excessMonthly > 0)
   ? `<div class="text-xs text-orange-600 mt-0.5">☀️ Excedentes → batería: +${eur(resItem.solarSurplus.excessMonthly)}/mes</div>`
@@ -5045,6 +5050,7 @@
   <span class="text-xs text-drk-800 font-semibold">${resItem.originalTariffType}</span>
   <span class="text-xs ${resItem.isNegativeSavings ? (hasBatteryCompensation ? 'text-amber-600 font-medium' : 'text-slate-500') : 'text-cta-green-600 font-medium'}">${savingsText}</span>
   </div>
+  ${nombreHTML}
   ${addressHTML}
   ${excessHTML}
   ${batteryHTML}
@@ -12452,14 +12458,22 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   const ahorroIndexadoSupply = supply.indexedComparison ? supply.indexedComparison.savings : 0;
   resumenTablaFijoHtml += `
   <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f9fafb'};">
-  <td style="padding: 8px; font-size: 11px; border-bottom: 1px solid #e5e7eb;">${supply.cups}</td>
+  <td style="padding: 8px; font-size: 11px; border-bottom: 1px solid #e5e7eb;">
+    ${supply.cups}
+    ${supply.nombre_cliente ? `<div style="font-size:10px;color:#6b7280;margin-top:2px;">👤 ${supply.nombre_cliente}</div>` : ''}
+    ${supply.supplyAddress && supply.supplyAddress !== 'No especificada' ? `<div style="font-size:9px;color:#9ca3af;margin-top:1px;">📍 ${supply.supplyAddress}</div>` : ''}
+  </td>
   <td style="padding: 8px; font-size: 11px; border-bottom: 1px solid #e5e7eb;">${BRAND_DISPLAY}</td>
   <td style="padding: 8px; font-size: 12px; font-weight: bold; text-align: right; border-bottom: 1px solid #e5e7eb; color: ${GREEN_SAVE};">${eur(ahorroFijoSupply)}</td>
   </tr>
   `;
   resumenTablaIndexadoHtml += `
   <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f9fafb'};">
-  <td style="padding: 8px; font-size: 11px; border-bottom: 1px solid #e5e7eb;">${supply.cups}</td>
+  <td style="padding: 8px; font-size: 11px; border-bottom: 1px solid #e5e7eb;">
+    ${supply.cups}
+    ${supply.nombre_cliente ? `<div style="font-size:10px;color:#6b7280;margin-top:2px;">👤 ${supply.nombre_cliente}</div>` : ''}
+    ${supply.supplyAddress && supply.supplyAddress !== 'No especificada' ? `<div style="font-size:9px;color:#9ca3af;margin-top:1px;">📍 ${supply.supplyAddress}</div>` : ''}
+  </td>
   <td style="padding: 8px; font-size: 11px; border-bottom: 1px solid #e5e7eb;">${BRAND_DISPLAY} INDEX</td>
   <td style="padding: 8px; font-size: 12px; font-weight: bold; text-align: right; border-bottom: 1px solid #e5e7eb; color: ${GREEN_SAVE};">${eur(ahorroIndexadoSupply)}</td>
   </tr>
@@ -15486,6 +15500,10 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   }
   // Añadir a la lista
   multiCupsData.push(result);
+  // Guardar nombre_cliente desde IA si disponible
+  if (window.elecUsedIA && window.aiExtractedData && window.aiExtractedData.nombre_cliente) {
+    result.nombre_cliente = window.aiExtractedData.nombre_cliente;
+  }
   console.log('multiCupsData after push:', multiCupsData);
   // CRÍTICO: Resetear variables globales para el próximo suministro
   alreadyAskedAboutSolar = false;
@@ -28321,10 +28339,14 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
             <th style="padding:8px;text-align:left;color:#0369a1;">Tarifa</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">CUPS</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">Cliente</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;">Dirección</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">Días</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">P1 kW</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">P2 kW</th>
-            <th style="padding:8px;text-align:left;color:#0369a1;background:#dbeafe;">P3-6 kW</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;background:#dbeafe;">P3 kW</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;background:#dbeafe;">P4 kW</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;background:#dbeafe;">P5 kW</th>
+            <th style="padding:8px;text-align:left;color:#0369a1;background:#dbeafe;">P6 kW</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">E1 kWh</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">E2 kWh</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">E3 kWh</th>
@@ -28625,11 +28647,14 @@ REGLAS:
       const bg = r.ok ? 'white' : '#fef9c3';
       const est = r.ok ? `<span style="color:#059669;font-weight:700;">✅</span>` : `<span style="color:#d97706;font-weight:700;">⚠️</span>`;
       const is30 = r.tarifa === '3.0TD';
-      const bgBlue = 'background:#eff6ff;';
+      const bBlue = 'border:1px solid #bfdbfe;background:#eff6ff;';
+      const bGray = 'border:1px solid #cbd5e1;';
+      const inp = (field, val, w='42px', extra='') => `<input type="number" value="${val||''}" onchange="_cmResultados[${i}].${field}=+this.value" style="width:${w};padding:2px 4px;${extra}border-radius:4px;font-size:0.75rem;text-align:center;">`;
+      const inpDis = (field, val, w='42px') => `<input type="number" value="${is30?(val||''):''}" onchange="_cmResultados[${i}].${field}=+this.value" ${!is30?'disabled':''} style="width:${w};padding:2px 4px;${is30?bBlue:'border:1px solid #e2e8f0;opacity:0.3;'}border-radius:4px;font-size:0.75rem;text-align:center;">`;
       return `<tr style="background:${bg};border-bottom:1px solid #e2e8f0;" id="cm-row-${i}">
         <td style="padding:6px;"><input type="checkbox" ${r.seleccionado?'checked':''} onchange="_cmResultados[${i}].seleccionado=this.checked"></td>
         <td style="padding:6px;">${est}</td>
-        <td style="padding:6px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;" title="${r.file.name}">${r.file.name}</td>
+        <td style="padding:6px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;" title="${r.file.name}">${r.file.name}</td>
         <td style="padding:6px;">
           <select onchange="_cmResultados[${i}].tarifa=this.value;cmRenderTabla()" style="padding:2px 4px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.75rem;font-weight:700;">
             <option value="2.0TD" ${r.tarifa==='2.0TD'?'selected':''}>2.0TD</option>
@@ -28637,18 +28662,22 @@ REGLAS:
           </select>
         </td>
         <td style="padding:6px;"><input value="${r.cups||''}" onchange="_cmResultados[${i}].cups=this.value" style="width:130px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
-        <td style="padding:6px;"><input value="${r.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:100px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.72rem;"></td>
-        <td style="padding:6px;"><input type="number" value="${r.dias||''}" onchange="_cmResultados[${i}].dias=+this.value" style="width:42px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
-        <td style="padding:6px;"><input type="number" value="${r.p1||''}" onchange="_cmResultados[${i}].p1=+this.value" style="width:42px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
-        <td style="padding:6px;"><input type="number" value="${r.p2||''}" onchange="_cmResultados[${i}].p2=+this.value" style="width:42px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
-        <td style="padding:6px;${bgBlue}"><input type="number" value="${is30?(r.p3||''):''}" onchange="_cmResultados[${i}].p3=+this.value" ${!is30?'disabled':''} style="width:42px;padding:2px 4px;border:1px solid #bfdbfe;border-radius:4px;font-size:0.75rem;text-align:center;${!is30?'opacity:0.3;':''}"></td>
-        <td style="padding:6px;"><input type="number" value="${r.e1||''}" onchange="_cmResultados[${i}].e1=+this.value" style="width:52px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
-        <td style="padding:6px;"><input type="number" value="${r.e2||''}" onchange="_cmResultados[${i}].e2=+this.value" style="width:52px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
-        <td style="padding:6px;"><input type="number" value="${r.e3||''}" onchange="_cmResultados[${i}].e3=+this.value" style="width:52px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
-        <td style="padding:6px;${bgBlue}"><input type="number" value="${is30?(r.e4||''):''}" onchange="_cmResultados[${i}].e4=+this.value" ${!is30?'disabled':''} style="width:52px;padding:2px 4px;border:1px solid #bfdbfe;border-radius:4px;font-size:0.75rem;text-align:center;${!is30?'opacity:0.3;':''}"></td>
-        <td style="padding:6px;${bgBlue}"><input type="number" value="${is30?(r.e5||''):''}" onchange="_cmResultados[${i}].e5=+this.value" ${!is30?'disabled':''} style="width:52px;padding:2px 4px;border:1px solid #bfdbfe;border-radius:4px;font-size:0.75rem;text-align:center;${!is30?'opacity:0.3;':''}"></td>
-        <td style="padding:6px;${bgBlue}"><input type="number" value="${is30?(r.e6||''):''}" onchange="_cmResultados[${i}].e6=+this.value" ${!is30?'disabled':''} style="width:52px;padding:2px 4px;border:1px solid #bfdbfe;border-radius:4px;font-size:0.75rem;text-align:center;${!is30?'opacity:0.3;':''}"></td>
-        <td style="padding:6px;"><input type="number" value="${r.total||''}" onchange="_cmResultados[${i}].total=+this.value" style="width:55px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.75rem;text-align:center;"></td>
+        <td style="padding:6px;"><input value="${r.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:100px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
+        <td style="padding:6px;"><input value="${r.direccion||''}" onchange="_cmResultados[${i}].direccion=this.value" style="width:120px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
+        <td style="padding:6px;">${inp('dias',r.dias,'42px',bGray)}</td>
+        <td style="padding:6px;">${inp('p1',r.p1,'42px',bGray)}</td>
+        <td style="padding:6px;">${inp('p2',r.p2,'42px',bGray)}</td>
+        <td style="padding:6px;background:#eff6ff;">${inpDis('p3',r.p3)}</td>
+        <td style="padding:6px;background:#eff6ff;">${inpDis('p4',r.p4)}</td>
+        <td style="padding:6px;background:#eff6ff;">${inpDis('p5',r.p5)}</td>
+        <td style="padding:6px;background:#eff6ff;">${inpDis('p6',r.p6)}</td>
+        <td style="padding:6px;">${inp('e1',r.e1,'50px',bGray)}</td>
+        <td style="padding:6px;">${inp('e2',r.e2,'50px',bGray)}</td>
+        <td style="padding:6px;">${inp('e3',r.e3,'50px',bGray)}</td>
+        <td style="padding:6px;background:#eff6ff;">${inpDis('e4',r.e4,'50px')}</td>
+        <td style="padding:6px;background:#eff6ff;">${inpDis('e5',r.e5,'50px')}</td>
+        <td style="padding:6px;background:#eff6ff;">${inpDis('e6',r.e6,'50px')}</td>
+        <td style="padding:6px;">${inp('total',r.total,'55px',bGray)}</td>
         <td style="padding:6px;white-space:nowrap;">
           <button onclick="cmReprocesar(${i})" title="Reprocesar" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:0.72rem;">🔄</button>
           <button onclick="cmEliminarFila(${i})" title="Eliminar" style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:0.72rem;">🗑️</button>
@@ -28694,11 +28723,12 @@ REGLAS:
       const chk = document.querySelector(`#cm-row-${i} input[type="checkbox"]`);
       if (chk) r.seleccionado = chk.checked;
       const inputs = document.querySelectorAll(`#cm-row-${i} input[type="number"]`);
-      const fields = ['dias','p1','p2','p3','e1','e2','e3','e4','e5','e6','total'];
+      const fields = ['dias','p1','p2','p3','p4','p5','p6','e1','e2','e3','e4','e5','e6','total'];
       inputs.forEach((inp, idx) => { if (fields[idx] !== undefined) r[fields[idx]] = parseFloat(inp.value)||0; });
       const texts = document.querySelectorAll(`#cm-row-${i} input:not([type="number"]):not([type="checkbox"])`);
       if (texts[0]) r.cups = texts[0].value;
       if (texts[1]) r.nombre = texts[1].value;
+      if (texts[2]) r.direccion = texts[2].value;
     });
 
     const cola = _cmResultados.filter(r => r.seleccionado);
@@ -28784,6 +28814,10 @@ REGLAS:
 
     window.aiExtractedData = { cups: data.cups, nombre_cliente: data.nombre_cliente, direccion_suministro: data.direccion_suministro };
     window.elecUsedIA = true;
+
+    // Pre-rellenar dirección en el modal para que se recoja automáticamente
+    const addrInput = document.getElementById('multicups-supply-address');
+    if (addrInput && data.direccion_suministro) addrInput.value = data.direccion_suministro;
 
     // Indicador visual de qué factura se está procesando
     const nombreCorto = r.file?.name?.substring(0, 30) || 'Factura';

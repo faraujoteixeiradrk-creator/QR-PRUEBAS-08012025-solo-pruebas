@@ -28469,7 +28469,6 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
   };
 
   async function cmProcesarFactura(file) {
-    // Usar imageToBase64 igual que procesarFacturaIA
     const base64 = await new Promise((res, rej) => {
       const reader = new FileReader();
       reader.onload = e => res(e.target.result.split(',')[1]);
@@ -28477,17 +28476,16 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       reader.readAsDataURL(file);
     });
 
-    // Construir messageContent igual que procesarFacturaIA
     let messageContent;
     if (file.type === 'application/pdf') {
       messageContent = [
         { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
-        { type: 'text', text: getPromptIA() }
+        { type: 'text', text: cmGetPrompt() }
       ];
     } else {
       messageContent = [
         { type: 'image', source: { type: 'base64', media_type: file.type, data: base64 } },
-        { type: 'text', text: getPromptIA() }
+        { type: 'text', text: cmGetPrompt() }
       ];
     }
 
@@ -28496,7 +28494,7 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 2000,
+        max_tokens: 1000,
         messages: [{ role: 'user', content: messageContent }]
       })
     });
@@ -28507,14 +28505,32 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
     }
     const data = await resp.json();
     const raw = data.content?.[0]?.text || '';
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('Sin respuesta JSON');
-    const parsed = JSON.parse(match[0]);
+    const match = raw.match(/\{[\s\S]*?\}/);
+    if (!match) throw new Error('IA sin respuesta JSON');
+    
+    let parsed;
+    try { parsed = JSON.parse(match[0]); }
+    catch(e) { throw new Error('JSON inválido de IA'); }
 
-    const tarifa = parsed.tarifa || '';
-    const ok = tarifa === '2.0TD' || tarifa === '3.0TD';
+    // Normalizar tarifa — la IA puede devolver "2.0 TD", "2TD", "20TD", "2.0td" etc.
+    let tarifa = (parsed.tarifa || '').toString().toUpperCase().replace(/\s/g,'').replace('TD','').replace('.','');
+    if (tarifa === '20') tarifa = '2.0TD';
+    else if (tarifa === '30') tarifa = '3.0TD';
+    else if (parsed.tarifa && parsed.tarifa.toString().includes('2')) tarifa = '2.0TD';
+    else if (parsed.tarifa && parsed.tarifa.toString().includes('3')) tarifa = '3.0TD';
+    else tarifa = parsed.tarifa || '';
+
+    // También intentar deducir por número de periodos de potencia
     const p = parsed.potencias_kw || {};
     const e = parsed.energia_kwh || {};
+    if (!tarifa || (tarifa !== '2.0TD' && tarifa !== '3.0TD')) {
+      const tieneP3 = p.p3 && p.p3 > 0;
+      const tieneE4 = e.e4 && e.e4 > 0;
+      if (tieneP3 || tieneE4) tarifa = '3.0TD';
+      else if (p.p1 || p.p2 || e.e1) tarifa = '2.0TD';
+    }
+
+    const ok = tarifa === '2.0TD' || tarifa === '3.0TD';
 
     return {
       ok,
@@ -28526,8 +28542,23 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       total: parsed.total_factura || 0,
       nombre: parsed.nombre_cliente || '',
       direccion: parsed.direccion_suministro || '',
-      error: ok ? '' : 'Tarifa no identificada: ' + tarifa
+      error: ok ? '' : 'Tarifa no identificada'
     };
+  }
+
+  function cmGetPrompt() {
+    return `Eres un experto en facturas eléctricas españolas. Analiza esta factura y devuelve ÚNICAMENTE este JSON sin texto adicional ni bloques de código:
+
+{"tarifa":"2.0TD","cups":"ES0000000000000000AA","dias":30,"potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0,"nombre_cliente":"","direccion_suministro":""}
+
+REGLAS:
+- tarifa: SOLO "2.0TD" (doméstico, ≤15kW, 2-3 periodos) o "3.0TD" (empresa, 6 periodos). NUNCA otro valor.
+- cups: código 18-22 chars que empieza por "ES". Si no se ve claramente pon "".
+- potencias_kw: las contratadas en kW. 2.0TD tiene p1 y p2. 3.0TD tiene p1 a p6.
+- energia_kwh: consumo del periodo. 2.0TD tiene e1, e2, e3. 3.0TD tiene e1 a e6.
+- total_factura: importe total en euros (número sin símbolo €).
+- nombre_cliente y direccion_suministro: del punto de suministro.
+- Pon 0 en los campos numéricos que no aparezcan, "" en los de texto.`;
   }
 
   function cmMostrarRevision() {

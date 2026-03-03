@@ -28642,14 +28642,14 @@ REGLAS CRÍTICAS:
     const p = parsed.potencias_kw || {};
     const e = parsed.energia_kwh || {};
 
-    // Detectar gas: primero campo tipo_suministro de la IA, luego heurística
+    // Detectar gas: SOLO por campo explícito tipo_suministro de la IA
+    // NO usar heurísticas débiles que causan falsos positivos en facturas de electricidad
     const tipoIA = (parsed.tipo_suministro || '').toLowerCase().trim();
-    const rawLower = raw.toLowerCase();
     const validRL = ['RL1','RL2','RL3','RL4','RL5'];
+
+    // Es gas SOLO si la IA lo dice explícitamente O si la tarifa es claramente RL (y tipoIA no dice electricidad)
     const esGas = tipoIA === 'gas' ||
-      validRL.includes(tarifa) ||
-      rawLower.includes('"tipo_suministro":"gas"') ||
-      rawLower.includes('"gas"');
+      (validRL.includes(tarifa) && tipoIA !== 'electricidad');
 
     // Ajustar tarifa según tipo
     if (esGas && !validRL.includes(tarifa)) tarifa = 'RL1';
@@ -28722,7 +28722,12 @@ REGLAS:
     const isDual = window._cmModoDual;
     tbody.innerHTML = _cmResultados.map((r, i) => {
       const bg = r.ok ? 'white' : '#fef9c3';
-      const est = r.ok ? `<span style="color:#059669;font-weight:700;">✅</span>` : `<span style="color:#d97706;font-weight:700;">⚠️</span>`;
+      // Warning si el tipo parece inconsistente (ej: tarifa RL pero marcado como electricidad)
+      const tipoWarning = (isGas && !['RL1','RL2','RL3','RL4','RL5'].includes(r.tarifa)) ||
+        (!isGas && ['RL1','RL2','RL3','RL4','RL5'].includes(r.tarifa));
+      const est = r.ok
+        ? (tipoWarning ? `<span title="Verifica el tipo" style="color:#d97706;font-weight:700;">⚠️</span>` : `<span style="color:#059669;font-weight:700;">✅</span>`)
+        : `<span style="color:#d97706;font-weight:700;">⚠️</span>`;
       const isGas = r.tipoSuministro === 'gas';
       const is30 = r.tarifa === '3.0TD';
       const bBlue = 'border:1px solid #bfdbfe;background:#eff6ff;';

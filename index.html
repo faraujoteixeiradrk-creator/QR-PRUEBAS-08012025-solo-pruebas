@@ -28505,7 +28505,7 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
     }
     const data = await resp.json();
     const raw = data.content?.[0]?.text || '';
-    const match = raw.match(/\{[\s\S]*?\}/);
+    const match = raw.match(/\{[\s\S]*\}/);  // greedy — captura todo el JSON incluyendo objetos anidados
     if (!match) throw new Error('IA sin respuesta JSON');
     
     let parsed;

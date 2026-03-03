@@ -15386,6 +15386,30 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
  }
  // Nueva función para añadir suministro a MultiCups después de elegir
  function addSupplyToMultiCupsList(result, resultIndexed = null) {
+  // INTERCEPCIÓN DUAL COLA MASIVA: si estamos en carga masiva DUAL, usar flujo DUAL
+  if (window._cmModoDual && window.dualMode) {
+  console.log('🔀 DUAL cola masiva: redirigiendo addSupplyToMultiCupsList → dualAddFromResults');
+  const tariff = result.originalTariffType || result._multiCupsContext?.tariffType || currentTariffType || '2.0TD';
+  const cost = result.totalAnnual || result.totalPeriod || 0;
+  const dd = {
+    cups: result.cups || '',
+    tariff: tariff,
+    kwh_p1: result.kwh_p1||0, kwh_p2: result.kwh_p2||0, kwh_p3: result.kwh_p3||0,
+    kwh_p4: result.kwh_p4||0, kwh_p5: result.kwh_p5||0, kwh_p6: result.kwh_p6||0,
+    p1: result.potencia_p1_kw||0, p2: result.potencia_p2_kw||0, p3: result.potencia_p3_kw||0,
+    p4: result.potencia_p4_kw||0, p5: result.potencia_p5_kw||0, p6: result.potencia_p6_kw||0,
+    dias: result.dias||30,
+    originalBillAnnual: result.originalBillAnnual || (result.importe_total||0)*12,
+    nombre_cliente: result.nombre_cliente || '',
+    direccion_suministro: result.direccion_suministro || ''
+  };
+  const res = {
+    drk: { total: cost/12, total_anual: cost },
+    powercup: { total: cost/12, total_anual: cost }
+  };
+  window.dualAddFromResults('electricidad', tariff, dd, res, result);
+  return;
+  }
   console.log('addSupplyToMultiCupsList called with result:', result);
   console.log('Result offer:', result.offer);
   console.log('Result originalTariffType:', result.originalTariffType);

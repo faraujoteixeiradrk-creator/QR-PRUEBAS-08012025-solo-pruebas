@@ -28480,12 +28480,12 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
     if (file.type === 'application/pdf') {
       messageContent = [
         { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
-        { type: 'text', text: cmGetPrompt() }
+        { type: 'text', text: getPromptIA() }
       ];
     } else {
       messageContent = [
         { type: 'image', source: { type: 'base64', media_type: file.type, data: base64 } },
-        { type: 'text', text: cmGetPrompt() }
+        { type: 'text', text: getPromptIA() }
       ];
     }
 
@@ -28494,7 +28494,7 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
+        max_tokens: 2000,
         messages: [{ role: 'user', content: messageContent }]
       })
     });

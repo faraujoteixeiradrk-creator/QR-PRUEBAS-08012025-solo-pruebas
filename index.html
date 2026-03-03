@@ -28469,43 +28469,42 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
   };
 
   async function cmProcesarFactura(file) {
-    // Convertir a base64
+    // Usar imageToBase64 igual que procesarFacturaIA
     const base64 = await new Promise((res, rej) => {
-      const fr = new FileReader();
-      fr.onload = e => res(e.target.result);
-      fr.onerror = () => rej(new Error('Error leyendo archivo'));
-      fr.readAsDataURL(file);
+      const reader = new FileReader();
+      reader.onload = e => res(e.target.result.split(',')[1]);
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
     });
 
-    // Si es imagen, convertir a PDF primero via canvas
-    let finalBase64 = base64;
-    let mediaType = file.type;
-
-    if (file.type.startsWith('image/')) {
-      // Convertir imagen a PDF usando jsPDF
-      const pdfBlob = await iaFotosAPDF([base64], null);
-      finalBase64 = await new Promise(res => {
-        const fr = new FileReader();
-        fr.onload = e => res(e.target.result);
-        fr.readAsDataURL(pdfBlob);
-      });
-      mediaType = 'application/pdf';
+    // Construir messageContent igual que procesarFacturaIA
+    let messageContent;
+    if (file.type === 'application/pdf') {
+      messageContent = [
+        { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
+        { type: 'text', text: getPromptIA() }
+      ];
+    } else {
+      messageContent = [
+        { type: 'image', source: { type: 'base64', media_type: file.type, data: base64 } },
+        { type: 'text', text: getPromptIA() }
+      ];
     }
-
-    const prompt = getPromptIA ? getPromptIA() : `Analiza esta factura eléctrica española y devuelve JSON con: cups, tarifa (2.0TD o 3.0TD), dias, potencias_kw {p1,p2,p3,p4,p5,p6}, energia_kwh {e1,e2,e3,e4,e5,e6}, total_factura, nombre_cliente, direccion_suministro`;
-
-    const content = [
-      { type: 'document', source: { type: 'base64', media_type: mediaType, data: finalBase64.split(',')[1] } },
-      { type: 'text', text: prompt }
-    ];
 
     const resp = await fetch('https://drk-ai-proxy.f-araujo-teixeira-drk.workers.dev', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1500, messages: [{ role: 'user', content }] })
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: messageContent }]
+      })
     });
 
-    if (!resp.ok) throw new Error('Error API: ' + resp.status);
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || 'Error API: ' + resp.status);
+    }
     const data = await resp.json();
     const raw = data.content?.[0]?.text || '';
     const match = raw.match(/\{[\s\S]*\}/);

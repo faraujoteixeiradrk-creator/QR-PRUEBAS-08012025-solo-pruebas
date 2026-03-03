@@ -8044,9 +8044,11 @@
   doc.setFont('helvetica', 'normal');
   res.individualResults.forEach((supply, idx) => {
   // Calcular espacio necesario para este suministro
-  const rowHeight = supply.supplyAddress ? 11 : 7;
+  const hasNombre = !!supply.nombre_cliente;
+  const hasDir = supply.supplyAddress && supply.supplyAddress !== 'No especificada';
+  const rowHeight = 7 + (hasNombre ? 3.5 : 0) + (hasDir ? 3.5 : 0);
   const hasSurplus = supply.solarSurplus && supply.solarSurplus.total > 0;
-  const requiredSpace = rowHeight + (hasSurplus ? 3 : 0); // Extra por línea de excedentes
+  const requiredSpace = rowHeight + (hasSurplus ? 3 : 0);
   // Verificar espacio ANTES de añadir contenido
   yPos = checkPageSpace(doc, yPos, requiredSpace, 297, 15, 20);
   // Fondo alternado - altura aumentada para incluir dirección
@@ -8060,14 +8062,22 @@
   // CUPS (primera línea)
   doc.setFontSize(7);
   doc.text(supply.cups, margin + 12, yPos + 4.5);
-  // DIRECCIÓN (segunda línea, si existe)
+  let pdfExtraY = 4;
+  // NOMBRE CLIENTE (segunda línea, si existe)
+  if (supply.nombre_cliente) {
+  doc.setFontSize(6);
+  doc.setTextColor(30, 58, 138);
+  const nomCorto = supply.nombre_cliente.length > 40 ? supply.nombre_cliente.substring(0, 37) + '...' : supply.nombre_cliente;
+  doc.text(nomCorto, margin + 12, yPos + pdfExtraY + 4);
+  pdfExtraY += 3.5;
+  doc.setTextColor(0, 0, 0);
+  }
+  // DIRECCIÓN (siguiente línea, si existe)
   if (supply.supplyAddress && supply.supplyAddress !== 'No especificada') {
   doc.setFontSize(6);
-  doc.setTextColor(100, 116, 139); // Gris para la dirección
-  const direccionCorta = supply.supplyAddress.length > 35
-  ? supply.supplyAddress.substring(0, 32) + '...'
-  : supply.supplyAddress;
-  doc.text(direccionCorta, margin + 12, yPos + 8.5);
+  doc.setTextColor(100, 116, 139);
+  const direccionCorta = supply.supplyAddress.length > 35 ? supply.supplyAddress.substring(0, 32) + '...' : supply.supplyAddress;
+  doc.text(direccionCorta, margin + 12, yPos + pdfExtraY + 4);
   doc.setTextColor(0, 0, 0);
   }
   doc.setFontSize(8);
@@ -10342,27 +10352,37 @@ Destinatarios: F.araujo@drk.es, rguerra@drk.es, l.grande@drk.es
   // Filas (alternadas con borde sutil)
   doc.setFont('helvetica', 'normal');
   res.individualResults.forEach((supply, idx) => {
-  checkNewPage(12); // Aumentado para dar espacio a la dirección
-  // Fondo alternado - altura aumentada para incluir dirección
-  const rowHeight = supply.supplyAddress ? 11 : 7;
+  const hasNombre2 = !!supply.nombre_cliente;
+  const hasDir2 = supply.supplyAddress && supply.supplyAddress !== 'No especificada';
+  const rowHeight = 7 + (hasNombre2 ? 3.5 : 0) + (hasDir2 ? 3.5 : 0);
+  checkNewPage(rowHeight + 2);
+  // Fondo alternado
   if (idx % 2 === 0) {
-  doc.setFillColor(248, 250, 252); // Azul muy claro
+  doc.setFillColor(248, 250, 252);
   doc.rect(margin, yPos, contentWidth, rowHeight, 'F');
   }
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(8);
   doc.text(`[${idx + 1}]`, margin + 2, yPos + 4.5);
-  // CUPS (primera línea)
+  // CUPS
   doc.setFontSize(7);
   doc.text(supply.cups, margin + 12, yPos + 4.5);
-  // DIRECCIÓN (segunda línea, si existe)
+  let pdfExtraY2 = 4;
+  // NOMBRE CLIENTE
+  if (supply.nombre_cliente) {
+  doc.setFontSize(6);
+  doc.setTextColor(30, 58, 138);
+  const nomCorto2 = supply.nombre_cliente.length > 40 ? supply.nombre_cliente.substring(0, 37) + '...' : supply.nombre_cliente;
+  doc.text(nomCorto2, margin + 12, yPos + pdfExtraY2 + 4);
+  pdfExtraY2 += 3.5;
+  doc.setTextColor(0, 0, 0);
+  }
+  // DIRECCIÓN
   if (supply.supplyAddress && supply.supplyAddress !== 'No especificada') {
   doc.setFontSize(6);
-  doc.setTextColor(100, 116, 139); // Gris para la dirección
-  const direccionCorta = supply.supplyAddress.length > 35
-  ? supply.supplyAddress.substring(0, 32) + '...'
-  : supply.supplyAddress;
-  doc.text(direccionCorta, margin + 12, yPos + 8.5);
+  doc.setTextColor(100, 116, 139);
+  const direccionCorta = supply.supplyAddress.length > 35 ? supply.supplyAddress.substring(0, 32) + '...' : supply.supplyAddress;
+  doc.text(direccionCorta, margin + 12, yPos + pdfExtraY2 + 4);
   doc.setTextColor(0, 0, 0);
   }
   doc.setFontSize(8);

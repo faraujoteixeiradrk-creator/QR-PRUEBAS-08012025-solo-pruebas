@@ -28619,18 +28619,29 @@ REGLAS: tarifa solo puede ser "2.0TD" o "3.0TD". cups empieza por ES. Pon 0 o ""
     let tarifa = (parsed.tarifa || '').toString().toUpperCase().replace(/\s/g,'');
     if (tarifa.includes('20') || tarifa === '2TD') tarifa = '2.0TD';
     else if (tarifa.includes('30') || tarifa === '3TD') tarifa = '3.0TD';
+    else if (tarifa === 'RL1'||tarifa === 'RL2'||tarifa === 'RL3'||tarifa === 'RL4'||tarifa === 'RL5') { /* gas, mantener */ }
 
     const p = parsed.potencias_kw || {};
     const e = parsed.energia_kwh || {};
 
-    // Deducir por periodos si no se detectó
-    if (tarifa !== '2.0TD' && tarifa !== '3.0TD') {
+    // Detectar si es factura de gas
+    const cupsStr = (parsed.cups || '').toString().toUpperCase();
+    const rawLower = raw.toLowerCase();
+    const esGas = cupsStr.startsWith('ES') === false ||
+      rawLower.includes('gas natural') || rawLower.includes('factura de gas') ||
+      rawLower.includes('kwh de gas') || rawLower.includes('consumo de gas') ||
+      ['RL1','RL2','RL3','RL4','RL5'].includes(tarifa);
+
+    // Deducir por periodos si no se detectó (solo electricidad)
+    if (!esGas && tarifa !== '2.0TD' && tarifa !== '3.0TD') {
       if ((p.p3 && p.p3 > 0) || (e.e4 && e.e4 > 0)) tarifa = '3.0TD';
       else tarifa = '2.0TD';
     }
+    if (esGas && !['RL1','RL2','RL3','RL4','RL5'].includes(tarifa)) tarifa = 'RL1';
 
     return {
       ok: true, tarifa,
+      tipoSuministro: esGas ? 'gas' : 'electricidad',
       cups: parsed.cups || '',
       dias: parsed.dias || 0,
       p1: p.p1||0, p2: p.p2||0, p3: p.p3||0, p4: p.p4||0, p5: p.p5||0, p6: p.p6||0,
@@ -28685,40 +28696,85 @@ REGLAS:
 
   function cmRenderTabla() {
     const tbody = document.getElementById('cm-tabla-body');
+    const isDual = window._cmModoDual;
     tbody.innerHTML = _cmResultados.map((r, i) => {
       const bg = r.ok ? 'white' : '#fef9c3';
       const est = r.ok ? `<span style="color:#059669;font-weight:700;">✅</span>` : `<span style="color:#d97706;font-weight:700;">⚠️</span>`;
+      const isGas = r.tipoSuministro === 'gas';
       const is30 = r.tarifa === '3.0TD';
       const bBlue = 'border:1px solid #bfdbfe;background:#eff6ff;';
       const bGray = 'border:1px solid #cbd5e1;';
       const inp = (field, val, w='42px', extra='') => `<input type="number" value="${val||''}" onchange="_cmResultados[${i}].${field}=+this.value" style="width:${w};padding:2px 4px;${extra}border-radius:4px;font-size:0.75rem;text-align:center;">`;
-      const inpDis = (field, val, w='42px') => `<input type="number" value="${is30?(val||''):''}" onchange="_cmResultados[${i}].${field}=+this.value" ${!is30?'disabled':''} style="width:${w};padding:2px 4px;${is30?bBlue:'border:1px solid #e2e8f0;opacity:0.3;'}border-radius:4px;font-size:0.75rem;text-align:center;">`;
+      const inpDis = (field, val, w='42px', disabled=false) => `<input type="number" value="${(!disabled && val)||''}" onchange="_cmResultados[${i}].${field}=+this.value" ${disabled?'disabled':''} style="width:${w};padding:2px 4px;${disabled?'border:1px solid #e2e8f0;opacity:0.3;':bBlue}border-radius:4px;font-size:0.75rem;text-align:center;">`;
+
+      // Selector de tipo+tarifa según modo
+      let tarifaCell;
+      if (isDual) {
+        tarifaCell = `
+          <select onchange="(function(v){_cmResultados[${i}].tipoSuministro=v.startsWith('gas')?'gas':'electricidad';_cmResultados[${i}].tarifa=v.replace('gas-','');cmRenderTabla()})(this.value)"
+            style="padding:2px 4px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.72rem;font-weight:700;max-width:90px;">
+            <optgroup label="⚡ Electricidad">
+              <option value="2.0TD" ${!isGas&&r.tarifa==='2.0TD'?'selected':''}>2.0TD</option>
+              <option value="3.0TD" ${!isGas&&r.tarifa==='3.0TD'?'selected':''}>3.0TD</option>
+            </optgroup>
+            <optgroup label="🔥 Gas">
+              <option value="gas-RL1" ${isGas&&r.tarifa==='RL1'?'selected':''}>🔥 RL1</option>
+              <option value="gas-RL2" ${isGas&&r.tarifa==='RL2'?'selected':''}>🔥 RL2</option>
+              <option value="gas-RL3" ${isGas&&r.tarifa==='RL3'?'selected':''}>🔥 RL3</option>
+              <option value="gas-RL4" ${isGas&&r.tarifa==='RL4'?'selected':''}>🔥 RL4</option>
+              <option value="gas-RL5" ${isGas&&r.tarifa==='RL5'?'selected':''}>🔥 RL5</option>
+            </optgroup>
+          </select>`;
+      } else {
+        tarifaCell = `
+          <select onchange="_cmResultados[${i}].tarifa=this.value;cmRenderTabla()" style="padding:2px 4px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.75rem;font-weight:700;">
+            <option value="2.0TD" ${r.tarifa==='2.0TD'?'selected':''}>2.0TD</option>
+            <option value="3.0TD" ${r.tarifa==='3.0TD'?'selected':''}>3.0TD</option>
+          </select>`;
+      }
+
+      // Para gas: mostrar campos de gas (kWh consumo y coste)
+      if (isGas) {
+        return `<tr style="background:#fff7ed;border-bottom:1px solid #fed7aa;" id="cm-row-${i}">
+          <td style="padding:6px;"><input type="checkbox" ${r.seleccionado?'checked':''} onchange="_cmResultados[${i}].seleccionado=this.checked"></td>
+          <td style="padding:6px;">🔥</td>
+          <td style="padding:6px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;" title="${r.file.name}">${r.file.name}</td>
+          <td style="padding:6px;">${tarifaCell}</td>
+          <td style="padding:6px;"><input value="${r.cups||''}" onchange="_cmResultados[${i}].cups=this.value" style="width:130px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
+          <td style="padding:6px;"><input value="${r.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:100px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
+          <td style="padding:6px;"><input value="${r.direccion||''}" onchange="_cmResultados[${i}].direccion=this.value" style="width:120px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
+          <td style="padding:6px;">${inp('dias',r.dias,'42px',bGray)}</td>
+          <td colspan="6" style="padding:6px;font-size:0.72rem;color:#92400e;text-align:center;">
+            kWh consumo: ${inp('e1',r.e1,'65px',bGray)} &nbsp; Total €: ${inp('total',r.total,'65px',bGray)}
+          </td>
+          <td style="padding:6px;white-space:nowrap;">
+            <button onclick="cmReprocesar(${i})" title="Reprocesar" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:0.72rem;">🔄</button>
+            <button onclick="cmEliminarFila(${i})" title="Eliminar" style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:0.72rem;">🗑️</button>
+          </td>
+        </tr>`;
+      }
+
       return `<tr style="background:${bg};border-bottom:1px solid #e2e8f0;" id="cm-row-${i}">
         <td style="padding:6px;"><input type="checkbox" ${r.seleccionado?'checked':''} onchange="_cmResultados[${i}].seleccionado=this.checked"></td>
         <td style="padding:6px;">${est}</td>
         <td style="padding:6px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;" title="${r.file.name}">${r.file.name}</td>
-        <td style="padding:6px;">
-          <select onchange="_cmResultados[${i}].tarifa=this.value;cmRenderTabla()" style="padding:2px 4px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.75rem;font-weight:700;">
-            <option value="2.0TD" ${r.tarifa==='2.0TD'?'selected':''}>2.0TD</option>
-            <option value="3.0TD" ${r.tarifa==='3.0TD'?'selected':''}>3.0TD</option>
-          </select>
-        </td>
+        <td style="padding:6px;">${tarifaCell}</td>
         <td style="padding:6px;"><input value="${r.cups||''}" onchange="_cmResultados[${i}].cups=this.value" style="width:130px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
         <td style="padding:6px;"><input value="${r.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:100px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
         <td style="padding:6px;"><input value="${r.direccion||''}" onchange="_cmResultados[${i}].direccion=this.value" style="width:120px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
         <td style="padding:6px;">${inp('dias',r.dias,'42px',bGray)}</td>
         <td style="padding:6px;">${inp('p1',r.p1,'42px',bGray)}</td>
         <td style="padding:6px;">${inp('p2',r.p2,'42px',bGray)}</td>
-        <td style="padding:6px;background:#eff6ff;">${inpDis('p3',r.p3)}</td>
-        <td style="padding:6px;background:#eff6ff;">${inpDis('p4',r.p4)}</td>
-        <td style="padding:6px;background:#eff6ff;">${inpDis('p5',r.p5)}</td>
-        <td style="padding:6px;background:#eff6ff;">${inpDis('p6',r.p6)}</td>
+        <td style="padding:6px;background:#eff6ff;">${inpDis('p3',r.p3,'42px',!is30)}</td>
+        <td style="padding:6px;background:#eff6ff;">${inpDis('p4',r.p4,'42px',!is30)}</td>
+        <td style="padding:6px;background:#eff6ff;">${inpDis('p5',r.p5,'42px',!is30)}</td>
+        <td style="padding:6px;background:#eff6ff;">${inpDis('p6',r.p6,'42px',!is30)}</td>
         <td style="padding:6px;">${inp('e1',r.e1,'50px',bGray)}</td>
         <td style="padding:6px;">${inp('e2',r.e2,'50px',bGray)}</td>
         <td style="padding:6px;">${inp('e3',r.e3,'50px',bGray)}</td>
-        <td style="padding:6px;background:#eff6ff;">${inpDis('e4',r.e4,'50px')}</td>
-        <td style="padding:6px;background:#eff6ff;">${inpDis('e5',r.e5,'50px')}</td>
-        <td style="padding:6px;background:#eff6ff;">${inpDis('e6',r.e6,'50px')}</td>
+        <td style="padding:6px;background:#eff6ff;">${inpDis('e4',r.e4,'50px',!is30)}</td>
+        <td style="padding:6px;background:#eff6ff;">${inpDis('e5',r.e5,'50px',!is30)}</td>
+        <td style="padding:6px;background:#eff6ff;">${inpDis('e6',r.e6,'50px',!is30)}</td>
         <td style="padding:6px;">${inp('total',r.total,'55px',bGray)}</td>
         <td style="padding:6px;white-space:nowrap;">
           <button onclick="cmReprocesar(${i})" title="Reprocesar" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:0.72rem;">🔄</button>
@@ -28884,10 +28940,27 @@ REGLAS:
     const banner = document.getElementById('cm-cola-banner');
     if (banner) banner.textContent = `📋 Suministro ${idx + 1}/${cola.length}: ${nombreCorto} — elige tarifa y confirma`;
 
-    // Llamar saveSupply — abrirá los modales normales (solar, selección oferta)
-    // Al confirmar, el sistema llama showMultiCupsSagaView() que triggerea el siguiente
+    // Llamar saveSupply o dualSelectTariff según tipo
     if (typeof saveSupply === 'function') {
-      saveSupply(data, r.tarifa || '2.0TD');
+      if (window._cmModoDual && r.tipoSuministro === 'gas') {
+        // Gas en DUAL: usar el flujo de gas
+        window.gasUsedIA = true;
+        window.gasAiData = {
+          cups: data.cups,
+          nombre_cliente: data.nombre_cliente,
+          direccion_suministro: data.direccion_suministro,
+          consumo_kwh: r.e1 || 0,
+          total_factura: r.total || 0,
+          dias: r.dias || 30
+        };
+        // Pre-rellenar datos de gas en los inputs del formulario gas
+        const addrInputGas = document.getElementById('multicups-supply-address');
+        if (addrInputGas && data.direccion_suministro) addrInputGas.value = data.direccion_suministro;
+        // Navegar a la pantalla de gas en DUAL con la tarifa detectada
+        dualSelectTariff('gas', r.tarifa || 'RL1');
+      } else {
+        saveSupply(data, r.tarifa || '2.0TD');
+      }
     }
   };
 

@@ -28474,7 +28474,7 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
   async function cmProcesarFactura(file, idx) {
     function setStatus(txt) {
       const el = document.getElementById('cm-status-'+idx);
-      if (el) el.textContent = txt;
+      if (el) { el.textContent = txt; }
     }
 
     setStatus('📖 Leyendo archivo...');
@@ -28485,65 +28485,80 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       reader.readAsDataURL(file);
     });
 
+    if (!base64) throw new Error('Archivo vacío o inválido');
+
+    // Usar getPromptIA si existe, si no usar prompt propio
+    const promptText = (typeof getPromptIA === 'function') ? getPromptIA() : `Eres un experto en facturas de electricidad españolas. Analiza esta factura y devuelve SOLO el siguiente JSON sin texto adicional:
+{"cups":"","tarifa":"2.0TD","dias":0,"potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0,"nombre_cliente":"","direccion_suministro":""}
+REGLAS: tarifa solo puede ser "2.0TD" o "3.0TD". cups empieza por ES. Pon 0 o "" si no encuentras el dato.`;
+
     setStatus('📤 Enviando a IA...');
+
     let messageContent;
     if (file.type === 'application/pdf') {
       messageContent = [
         { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
-        { type: 'text', text: getPromptIA() }
+        { type: 'text', text: promptText }
       ];
     } else {
       messageContent = [
         { type: 'image', source: { type: 'base64', media_type: file.type, data: base64 } },
-        { type: 'text', text: getPromptIA() }
+        { type: 'text', text: promptText }
       ];
     }
 
-    const resp = await fetch('https://drk-ai-proxy.f-araujo-teixeira-drk.workers.dev', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: messageContent }]
-      })
-    });
-
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error('API ' + resp.status + ': ' + (err.error?.message || 'Error'));
+    let resp;
+    try {
+      resp = await fetch('https://drk-ai-proxy.f-araujo-teixeira-drk.workers.dev', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 2000,
+          messages: [{ role: 'user', content: messageContent }]
+        })
+      });
+    } catch(fetchErr) {
+      throw new Error('Sin conexión al proxy: ' + fetchErr.message);
     }
 
-    setStatus('🧠 Analizando respuesta...');
-    const data = await resp.json();
+    if (!resp.ok) {
+      let errMsg = 'Error HTTP ' + resp.status;
+      try { const e = await resp.json(); errMsg = e.error?.message || errMsg; } catch(e) {}
+      throw new Error(errMsg);
+    }
+
+    setStatus('🧠 Analizando...');
+    let data;
+    try { data = await resp.json(); } catch(e) { throw new Error('Respuesta no es JSON válido'); }
+
     const raw = data.content?.[0]?.text || '';
+    if (!raw) throw new Error('IA devolvió respuesta vacía');
 
-    if (!raw) throw new Error('IA sin respuesta');
-
+    setStatus('📊 Extrayendo datos...');
     const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('Sin JSON en respuesta');
+    if (!match) throw new Error('Sin JSON en respuesta IA');
 
     let parsed;
     try { parsed = JSON.parse(match[0]); }
-    catch(e) { throw new Error('JSON inválido'); }
+    catch(e) { throw new Error('JSON malformado: ' + raw.substring(0,50)); }
 
     // Normalizar tarifa
     let tarifa = (parsed.tarifa || '').toString().toUpperCase().replace(/\s/g,'');
-    if (tarifa.includes('20') || tarifa.startsWith('2')) tarifa = '2.0TD';
-    else if (tarifa.includes('30') || tarifa.startsWith('3')) tarifa = '3.0TD';
+    if (tarifa.includes('20') || tarifa === '2TD') tarifa = '2.0TD';
+    else if (tarifa.includes('30') || tarifa === '3TD') tarifa = '3.0TD';
 
     const p = parsed.potencias_kw || {};
     const e = parsed.energia_kwh || {};
 
-    // Deducir tarifa por periodos si no se detectó
+    // Deducir por periodos si no se detectó
     if (tarifa !== '2.0TD' && tarifa !== '3.0TD') {
       if ((p.p3 && p.p3 > 0) || (e.e4 && e.e4 > 0)) tarifa = '3.0TD';
       else tarifa = '2.0TD';
     }
 
     return {
-      ok: true,
-      tarifa,
+      ok: true, tarifa,
       cups: parsed.cups || '',
       dias: parsed.dias || 0,
       p1: p.p1||0, p2: p.p2||0, p3: p.p3||0, p4: p.p4||0, p5: p.p5||0, p6: p.p6||0,

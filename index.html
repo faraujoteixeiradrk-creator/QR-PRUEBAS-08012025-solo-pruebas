@@ -28052,15 +28052,19 @@ ${clientName}
 
 === CAMPO 4: POTENCIAS CONTRATADAS (kW) ===
 - EXTRAE las potencias CONTRATADAS, NO las maximas demandadas.
+- REGLA CRITICA: Conserva SIEMPRE los decimales exactos. Si la factura dice "13,856 kW" debes devolver 13.856, NO 13 ni 14. La coma española es decimal: "13,856" = 13.856 en JSON.
 - Potencias CONTRATADAS aparecen en:
-  * "Termino potencia [fecha] - P1: X kW - Precio: Y" → USA este X
+  * "Termino potencia [fecha] - P1: X kW - Precio: Y" → USA este X con todos sus decimales
   * "Potencia contratada (kW): P1: X / P2: X"
   * "Datos del contrato / suministro: Potencia P1: X kW"
+  * En la tabla de detalle de factura: "P1  13,856 kW x 35 Días x 0,08131900 €/kW día" → P1=13.856
 - Potencias MAXIMAS DEMANDADAS → IGNORAR SIEMPRE. Se reconocen por frases como:
   * "La potencia maxima demandada en el suministro desde... ha sido:"
   * "Potencias maximas demandadas durante el ciclo"
   * Aparecen en seccion "Informacion de su interes" o al pie de la factura
-- Para 2.0TD: extrae P1 y P2 (P3 a P6 = 0). Para 3.0TD: extrae P1 a P6.
+- Para 2.0TD: extrae P1 y P2. ATENCION: algunas comercializadoras (como DRK Energy) facturan la potencia como P1 y P3 en lugar de P1 y P2. En ese caso pon p1=valor_P1, p2=valor_P3, p3=0. Los otros campos p3 a p6 = 0.
+- Para 3.0TD: extrae P1 a P6.
+- VERIFICACION: Si P1 es un numero entero redondo (ej: 13, 15, 10) pero en la factura ves decimales (ej: 13,856), estas cometiendo un error. Revisa y corrige.
 
 === CAMPO 5: ENERGIA CONSUMIDA (kWh del periodo) ===
 - EXTRAE el CONSUMO real del periodo. ATENCION a los separadores numericos:
@@ -28765,7 +28769,8 @@ Si no encuentras → "".`;
       tipoSuministro: esGas ? 'gas' : 'electricidad',
       cups: parsed.cups || '',
       dias: parsed.dias || 0,
-      p1: p.p1||0, p2: p.p2||0, p3: p.p3||0, p4: p.p4||0, p5: p.p5||0, p6: p.p6||0,
+      // En 2.0TD facturas DRK: la potencia aparece como P1+P3 (no P1+P2). Si p2=0 y p3>0 → usamos p3 como p2
+      p1: p.p1||0, p2: (p.p2||0) > 0 ? (p.p2||0) : (tarifa==='2.0TD' ? (p.p3||0) : 0), p3: tarifa==='2.0TD' ? 0 : (p.p3||0), p4: p.p4||0, p5: p.p5||0, p6: p.p6||0,
       e1: esGas ? consumoGasKwh : (e.e1||0),
       e2: e.e2||0, e3: e.e3||0, e4: e.e4||0, e5: e.e5||0, e6: e.e6||0,
       consumoGasKwh,
@@ -29003,7 +29008,7 @@ REGLAS:${reglasExtra}
 REGLAS GENERALES:
 - tarifa: SOLO "2.0TD" (doméstico, ≤15kW, 2-3 periodos) o "3.0TD" (empresa, 6 periodos). NUNCA otro valor.
 - cups: código 18-22 chars que empieza por "ES". Si no se ve claramente pon "".
-- potencias_kw: las contratadas en kW. 2.0TD tiene p1 y p2. 3.0TD tiene p1 a p6.
+- potencias_kw: las contratadas en kW. 2.0TD tiene p1 y p2 (si la factura usa P1+P3 en lugar de P1+P2, pon p1=P1, p2=P3, p3=0). 3.0TD tiene p1 a p6.
 - energia_kwh: consumo del periodo. 2.0TD tiene e1, e2, e3. 3.0TD tiene e1 a e6.
 - total_factura: importe total en euros (número sin símbolo €).
 - nombre_cliente: nombre completo del titular del contrato (persona física o jurídica).
@@ -30221,7 +30226,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       y+=12;
 
       // Tabla mensual
-      const cws2=[20,26,12,22,20,32,32,28];
+      const cws2=[18,24,11,18,16,30,30,33];
       const hdrs2=['Mes','Fecha emisión','Días','kWh','P1 kW','Factura actual','Coste DRK','Ahorro periodo'];
       doc.setFillColor(...darkColor);
       doc.rect(m,y,cw,6.5,'F');

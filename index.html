@@ -28514,62 +28514,77 @@ Si no encuentras → "".`;
   // ── Helper: aplicar colores de marca al modal de Carga Masiva ──
   function _cmApplyBrandColors() {
     const isPC = (typeof comparisonMode !== 'undefined') && comparisonMode === 'overall_best';
-    const hdrBg   = isPC ? 'linear-gradient(135deg,#15803d,#16a34a)' : 'linear-gradient(135deg,#1e3a8a,#0ea5e9)';
-    const accentC = isPC ? '#16a34a' : '#1e3a8a';
-    const accentL = isPC ? '#dcfce7' : '#dbeafe';
-    const accentB = isPC ? '#16a34a' : '#2563eb';
-    const accentBg= isPC ? '#f0fdf4' : '#f0f9ff';
-    const accentBd= isPC ? '#86efac' : '#bae6fd';
-    const paso1C  = isPC ? '#15803d' : '#0369a1';
-    const dropHov = isPC ? '#dcfce7' : '#e0f2fe';
-    const dropBrd = isPC ? '#16a34a' : '#0ea5e9';
+    if (!isPC) return; // DRK: no cambiar nada
+    const hdrBg   = 'linear-gradient(135deg,#15803d,#16a34a)';
+    const accentC = '#16a34a';
+    const accentL = '#dcfce7';
+    const accentB = '#16a34a';
+    const accentBg= '#f0fdf4';
+    const accentBd= '#86efac';
+    const paso1C  = '#15803d';
+    const dropHov = '#dcfce7';
+    const dropBrd = '#16a34a';
+    const btnGrad = 'linear-gradient(135deg,#15803d,#16a34a)';
 
     // Header del modal
     const hdr = document.querySelector('#modal-carga-masiva > div > div:first-child');
     if (hdr) hdr.style.background = hdrBg;
 
-    // Textos de pasos
-    document.querySelectorAll('#cm-paso1 [style*="color:#1e3a8a"], #cm-paso3 [style*="color:#1e3a8a"]').forEach(el => {
+    // Todos los textos azul oscuro dentro del modal → verde
+    document.querySelectorAll('#modal-carga-masiva [style*="color:#1e3a8a"]').forEach(el => {
       el.style.color = accentC;
     });
+    document.querySelectorAll('#modal-carga-masiva [style*="color:#0369a1"]').forEach(el => {
+      el.style.color = paso1C;
+    });
+    document.querySelectorAll('#modal-carga-masiva [style*="color:#3b82f6"]').forEach(el => {
+      el.style.color = '#22c55e';
+    });
+
+    // Botón PROCESAR CON IA
+    const btnProcesar = document.getElementById('cm-btn-procesar');
+    if (btnProcesar) btnProcesar.style.background = btnGrad;
 
     // Caja de modo empresa
     const modoBox = document.querySelector('#cm-paso1 .cm-modo-empresa-box');
-    if (modoBox) {
-      modoBox.style.background = accentBg;
-      modoBox.style.borderColor = accentBd;
-      const title = modoBox.querySelector('[style*="color:#0369a1"]');
-      if (title) title.style.color = paso1C;
-    }
+    if (modoBox) { modoBox.style.background = accentBg; modoBox.style.borderColor = accentBd; }
 
-    // Radio misma empresa label
+    // Radio misma empresa label activo
     const mismaLabel = document.getElementById('cm-modo-misma-label');
-    if (mismaLabel) {
-      mismaLabel.style.background = accentL;
-      mismaLabel.style.borderColor = accentB;
-      const t = mismaLabel.querySelector('[style*="color:#1e3a8a"]');
-      if (t) t.style.color = accentC;
-    }
+    if (mismaLabel) { mismaLabel.style.background = accentL; mismaLabel.style.borderColor = accentB; }
 
-    // Dropzone hover colors via JS overrides
+    // Dropzone hover
     const dz = document.getElementById('cm-dropzone');
-    if (dz) {
-      dz.setAttribute('ondragover', `event.preventDefault();this.style.borderColor='${dropBrd}';this.style.background='${dropHov}'`);
-      const dzTxt = dz.querySelector('[style*="color:#1e3a8a"]');
-      if (dzTxt) dzTxt.style.color = accentC;
-    }
+    if (dz) dz.setAttribute('ondragover', `event.preventDefault();this.style.borderColor='${dropBrd}';this.style.background='${dropHov}'`);
 
-    // Botones "Añadir todos" y "Añadir seleccionados" (paso 3)
-    document.querySelectorAll('#cm-paso3 button').forEach(btn => {
-      if (btn.style.background && btn.style.background.includes('16a34a')) return; // ya verde
-      if (btn.textContent.includes('Añadir todos') || btn.textContent.includes('Añadir seleccionados')) {
-        btn.style.background = isPC ? 'linear-gradient(135deg,#16a34a,#15803d)' : btn.style.background;
+    // Todos los botones con gradiente azul → verde
+    document.querySelectorAll('#modal-carga-masiva button').forEach(btn => {
+      const bg = btn.style.background || '';
+      if (bg.includes('1e3a8a') || bg.includes('0ea5e9') || bg.includes('2563eb') || bg.includes('0284c7')) {
+        btn.style.background = btnGrad;
       }
     });
 
-    // PASO 3 header text
-    const paso3hdr = document.querySelector('#cm-paso3 [style*="color:#1e3a8a"]');
-    if (paso3hdr) paso3hdr.style.color = accentC;
+    // Textos con color azul inline en spans (ej: file-count)
+    const fileCount = document.getElementById('cm-file-count');
+    if (fileCount) fileCount.style.color = accentC;
+
+    // Cabeceras de tabla (paso 3) - th con fondo azul
+    document.querySelectorAll('#modal-carga-masiva th').forEach(th => {
+      if ((th.style.background||'').includes('1e3a8a') || (th.style.background||'').includes('0ea5e9') || (th.style.color||'').includes('1e3a8a')) {
+        th.style.color = accentC;
+      }
+    });
+
+    // Textos "Mes" azul en la tabla (color:#2563eb o similar)
+    document.querySelectorAll('#modal-carga-masiva [style*="color:#2563eb"]').forEach(el => {
+      el.style.color = accentC;
+    });
+
+    // Bordes azules → verde
+    document.querySelectorAll('#modal-carga-masiva [style*="border-color:#2563eb"], #modal-carga-masiva [style*="borderColor: rgb(37"]').forEach(el => {
+      el.style.borderColor = accentB;
+    });
   }
 
   window.abrirCargaMasiva = function() {
@@ -28667,6 +28682,9 @@ Si no encuentras → "".`;
     }
     listEl.style.display = 'block';
     btnEl.style.display = 'block';
+    if ((typeof comparisonMode !== 'undefined') && comparisonMode === 'overall_best') {
+      btnEl.style.background = 'linear-gradient(135deg,#15803d,#16a34a)';
+    }
     countEl.textContent = `${_cmFiles.length} factura${_cmFiles.length !== 1 ? 's' : ''} seleccionada${_cmFiles.length !== 1 ? 's' : ''}`;
     btnCount.textContent = _cmFiles.length;
     itemsEl.innerHTML = _cmFiles.map((f, i) => `

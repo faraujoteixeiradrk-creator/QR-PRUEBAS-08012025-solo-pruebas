@@ -28676,13 +28676,22 @@ Si no encuentras → "".`;
     let promptText;
     if (isDualMode) {
       promptText = `Eres un experto en facturas de energía españolas (electricidad y gas). Analiza esta factura y devuelve SOLO el siguiente JSON sin texto adicional, markdown ni explicaciones:
-{"tipo_suministro":"electricidad","cups":"","tarifa":"2.0TD","dias":0,"nombre_cliente":"","direccion_suministro":"","potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"consumo_gas_kwh":0,"total_factura":0}
+{"tipo_suministro":"electricidad","cups":"","tarifa":"2.0TD","dias":0,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"consumo_gas_kwh":0,"total_factura":0}
 REGLAS CRÍTICAS:
 - tipo_suministro: pon "gas" si es factura de gas natural (detecta por: título FACTURA DE GAS, palabra gas natural, m³, tarifa RL.X, CUPS tipo gas). Pon "electricidad" en cualquier otro caso.
 - Si es GAS: tarifa debe ser exactamente "RL1","RL2","RL3","RL4" o "RL5" según tarifa acceso (RL.1→RL1, RL.2→RL2, etc.). Rellena consumo_gas_kwh con kWh totales de gas.
 - Si es ELECTRICIDAD: tarifa debe ser "2.0TD" o "3.0TD". Rellena potencias_kw y energia_kwh por periodo.
 - cups: CUPS completo incluyendo letras finales (ej: ES0217010240175738JV).
-- Pon 0 o "" si no encuentras el dato. Devuelve SOLO el JSON sin nada más.`;
+- Pon 0 o "" si no encuentras el dato. Devuelve SOLO el JSON sin nada más.
+=== CAMPO CRÍTICO: nombre_empresa ===
+BUSCA en: sección "Datos del cliente" o "Datos del titular", cabecera en MAYÚSCULAS antes de la dirección postal.
+- Si el titular tiene forma jurídica (S.L., S.A., S.L.U., S.COOP., C.B., S.C., S.L.P., SOCIEDAD, GRUPO, SERVICIOS) → pon la razón social exacta.
+- Si es persona física (nombre + apellidos sin forma jurídica) → nombre_empresa = "" (vacío).
+- NUNCA pongas el nombre de la comercializadora (Iberdrola, Endesa, Naturgy, Repsol, etc.).
+=== CAMPO CRÍTICO: cif_nif ===
+BUSCA etiquetas: "CIF:", "NIF:", "CIF/NIF:", "N.I.F:", "DNI:" en "Datos del cliente" o junto al nombre del titular.
+- Formato CIF: letra + 8 dígitos → ej: B78518669. Formato NIF/DNI: 8 dígitos + letra → ej: 12345678A.
+- Copia EXACTAMENTE sin espacios. Usa el del CLIENTE (no el de la comercializadora). Si no aparece → "".`;
     } else {
       promptText = (typeof getPromptIA === 'function') ? getPromptIA() : `Eres un experto en facturas de electricidad españolas. Analiza esta factura y devuelve SOLO el siguiente JSON sin texto adicional:\n{"cups":"","tarifa":"2.0TD","dias":0,"potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":""}\nREGLAS: tarifa solo puede ser "2.0TD" o "3.0TD". cups empieza por ES. nombre_empresa: nombre de la empresa o autónomo titular (NO persona física si es particular). cif_nif: CIF de empresa o DNI/NIF del titular (formato A12345678 o 12345678A). Pon 0 o "" si no encuentras el dato.`;
     }
@@ -28895,7 +28904,8 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       }
 
       const modoEmpresa = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
-      const showEmpresaCols = modoEmpresa === 'diferentes';
+      // En modo DUAL siempre mostrar columnas empresa/CIF (la IA las extrae para agrupar por empresa)
+      const showEmpresaCols = modoEmpresa === 'diferentes' || window._cmModoDual;
       const empresaCell = showEmpresaCols
         ? `<input value="${r.empresa||''}" onchange="_cmResultados[${i}].empresa=this.value" placeholder="Empresa" style="width:90px;padding:2px 4px;border:1px solid #c4b5fd;border-radius:4px;font-size:0.72rem;">`
         : `<span style="font-size:0.72rem;color:#94a3b8;">—</span>`;

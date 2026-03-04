@@ -30132,6 +30132,144 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       doc.text(`[${comercialCode}] | Estudio anual proyectado ${isDrk?'DRK Energía':'POWER CUP'} · ${new Date().toLocaleDateString('es-ES')}`, W/2, 292, {align:'center'});
     });
 
+    // ════ ÚLTIMA PÁGINA: PRECIOS + AHORRO + FORMALIZACIÓN ════
+    doc.addPage();
+    drawPageHeader();
+    y = 50;
+
+    // ── PRECIOS DE LAS OFERTAS SELECCIONADAS ──
+    doc.setFillColor(...greenColor);
+    doc.roundedRect(m, y, cw, 10, 3, 3, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.text('PRECIOS DE LAS OFERTAS SELECCIONADAS', m+3, y+6.5);
+    y += 14;
+
+    // Recopilar tarifas únicas usadas (por nombre)
+    const tarifasUsadas = new Map();
+    grupos.forEach(g => {
+      g.facturas.forEach(f => {
+        if (f._mejorTarifa && f._mejorTarifa !== '—') {
+          if (!tarifasUsadas.has(f._mejorTarifa)) {
+            // Buscar la oferta en currentTariffs
+            const tarifaType = g._tarifaReciente || '2.0TD';
+            const ofertasDisp = currentTariffs[tarifaType] || [];
+            const oferta = ofertasDisp.find(t => (t.name||t.descripcion||'') === f._mejorTarifa);
+            if (oferta) tarifasUsadas.set(f._mejorTarifa, { oferta, tipo: tarifaType });
+          }
+        }
+      });
+    });
+
+    let numTarifa = 1;
+    tarifasUsadas.forEach(({ oferta, tipo }) => {
+      if (y > 220) { doc.addPage(); drawPageHeader(); y = 50; }
+      const is30 = tipo === '3.0TD';
+      const boxH = is30 ? 56 : 34;
+      doc.setFillColor(...darkColor);
+      doc.setDrawColor(255,255,255); doc.setLineWidth(2);
+      doc.roundedRect(m, y, cw, boxH, 3, 3, 'FD');
+      doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
+      doc.text(`TARIFA ${tipo} #${numTarifa}: ${oferta.name || oferta.descripcion || ''}`, m+3, y+5);
+      let yb = y+10;
+      doc.setFontSize(7); doc.setFont('helvetica','bold');
+      doc.text('POTENCIA:', m+3, yb); yb+=4;
+      doc.setFont('helvetica','normal');
+      if (is30) {
+        for (let i=1;i<=6;i++) {
+          const pDay=(oferta[`p_potencia_${i}`]||0)/365;
+          const col=i<=3?m+5:m+70;
+          const row=i<=3?i:i-3;
+          doc.text(`P${i}: ${pDay.toFixed(6)} €/kW/día`, col, yb+(row-1)*3.5);
+        }
+        yb+=12;
+      } else {
+        const p1d=(oferta.p_potencia_1||0)/365, p2d=(oferta.p_potencia_2||0)/365;
+        doc.text(`P1: ${p1d.toFixed(6)} €/kW/día`, m+5, yb);
+        doc.text(`P2: ${p2d.toFixed(6)} €/kW/día`, m+70, yb);
+        yb+=5;
+      }
+      doc.setFont('helvetica','bold');
+      doc.text('ENERGÍA:', m+3, yb); yb+=4;
+      doc.setFont('helvetica','bold');
+      if (is30) {
+        for (let i=1;i<=6;i++) {
+          const col=i<=3?m+5:m+70;
+          const row=i<=3?i:i-3;
+          doc.text(`E${i}: ${(oferta[`p${i}_price`]||0).toFixed(6)}`, col, yb+(row-1)*3.5);
+        }
+      } else {
+        doc.text(`E1: ${(oferta.p1_price||0).toFixed(6)}`, m+5, yb);
+        doc.text(`E2: ${(oferta.p2_price||0).toFixed(6)}`, m+48, yb);
+        doc.text(`E3: ${(oferta.p3_price||0).toFixed(6)}`, m+93, yb);
+      }
+      y += boxH + 8;
+      numTarifa++;
+    });
+
+    if (tarifasUsadas.size === 0) {
+      // Nota cuando no hay tarifas disponibles (datos insuficientes)
+      doc.setTextColor(...grisActual); doc.setFontSize(8); doc.setFont('helvetica','italic');
+      doc.text('* Los precios corresponden a las ofertas ganadoras detectadas para cada CUPS.', m+3, y);
+      y += 8;
+    } else {
+      doc.setTextColor(...grisActual); doc.setFontSize(7); doc.setFont('helvetica','italic');
+      doc.text('*Los precios mostrados son de las ofertas ganadoras detectadas para cada tipo de tarifa y se aplican a los CUPS añadidos.', m+3, y);
+      y += 8;
+    }
+
+    // ── BANNER ROJO: TU AHORRO ANUAL ESTIMADO ES ──
+    if (y > 240) { doc.addPage(); drawPageHeader(); y = 50; } else { y += 10; }
+    const totalAhorroFinal = grupos.reduce((a,g)=>a+(g._ahorroAnual||0),0);
+    const fmtFinal = v => v.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+    doc.setFillColor(220,38,38);
+    doc.roundedRect(m, y, cw, 18, 3, 3, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.text('TU AHORRO ANUAL ESTIMADO ES:', m+5, y+7);
+    doc.setFontSize(22);
+    doc.text(`${fmtFinal(totalAhorroFinal)} € / AÑO`, m+5, y+16);
+    y += 24;
+
+    // ── CAJA FORMALIZACIÓN ──
+    if (y > 230) { doc.addPage(); drawPageHeader(); y = 50; }
+    doc.setDrawColor(255,255,255); doc.setLineWidth(3);
+    doc.setFillColor(...darkColor);
+    doc.roundedRect(m, y, cw, 50, 3, 3, 'FD');
+    doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.text('PARA FORMALIZAR ESTE CONTRATO:', m+5, y+7);
+    y += 11;
+    doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text(`Responde a este email adjuntando la documentación de los ${grupos.length} CUPS:`, m+5, y);
+    y += 5;
+    const docs = [
+      '1. Foto del DNI/CIF (anverso y reverso)',
+      '2. Ultima factura (minimo 3 meses de antiguedad)',
+      '3. Email de contacto para validacion',
+      '4. Telefono de contacto',
+      '5. Numero de cuenta bancaria (IBAN)'
+    ];
+    doc.setFontSize(8); doc.setFont('helvetica','normal');
+    docs.forEach(d => { doc.text(d, m+8, y); y+=4; });
+    y+=1;
+    doc.setDrawColor(255,255,255); doc.setLineWidth(0.5);
+    // y calculado desde base de caja: y_inicio_caja + 48 - margen footer
+    const cajaBaseY = y - 32; // aproximado
+    doc.line(m+5, y, W-m-5, y);
+    y+=3;
+    doc.setFontSize(8); doc.setFont('helvetica','normal');
+    doc.text('Envia la documentacion al comercial:', m+5, y);
+    y+=4;
+    doc.setFontSize(13); doc.setFont('helvetica','bold');
+    doc.text(comercialCode, m+5, y);
+
+    // ── PIE DE PÁGINA FINAL ──
+    const footerY = 280;
+    doc.setDrawColor(...primaryColor); doc.setLineWidth(1.5);
+    doc.line(m, footerY, W-m, footerY);
+    doc.setFontSize(8); doc.setTextColor(100,100,100); doc.setFont('helvetica','normal');
+    doc.text(`[Colaborador: ${comercialCode}] | Este resumen es una simulacion consolidada de ${grupos.length} CUPS (estudio anual proyectado).`, m, footerY+5);
+    doc.setFontSize(7); doc.setTextColor(150,150,150);
+    doc.text(`Generado el ${new Date().toLocaleDateString('es-ES')}`, W-m-35, footerY+5);
+
     doc.save('Estudio_Anual_DRK.pdf');
     console.log('✅ PDF Estudio Anual generado con cabecera corporativa');
   }

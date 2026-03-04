@@ -28363,18 +28363,6 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
           </div>
         </label>
       </div>
-      <!-- Subtipo para misma empresa: automático/asistido/revisión -->
-      <div id="cm-modo-sub" style="margin-top:10px;display:flex;flex-direction:column;gap:5px;">
-        <div style="font-size:0.75rem;font-weight:700;color:#64748b;">Procesamiento de facturas:</div>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.8rem;">
-          <input type="radio" name="cm-modo" value="auto" checked style="accent-color:#0ea5e9;">
-          <span><strong>Automático</strong> — La IA procesa todo y añade directamente</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.8rem;">
-          <input type="radio" name="cm-modo" value="revision" style="accent-color:#0ea5e9;">
-          <span><strong>Revisión manual</strong> — Revisa y edita cada factura antes de añadir</span>
-        </label>
-      </div>
     </div>
 
     <button id="cm-btn-procesar" onclick="cmIniciarProcesamiento()" style="display:none;width:100%;background:linear-gradient(135deg,#1e3a8a,#0ea5e9);color:white;font-weight:900;padding:16px;border:none;border-radius:14px;font-size:1rem;cursor:pointer;">

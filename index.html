@@ -28643,10 +28643,18 @@ Si no encuentras → "".`;
 
       try {
         const resultado = await cmProcesarFactura(file, i);
+        // Insertar resultado principal
+        const extras = resultado._extras || [];
+        delete resultado._extras;
         _cmResultados.push({ file, ...resultado, seleccionado: true });
-        document.getElementById('cm-icon-'+i).textContent = resultado.ok ? '✅' : '⚠️';
+        // Insertar suministros extra del mismo PDF (multipunto)
+        extras.forEach(ex => {
+          _cmResultados.push({ file, ...ex, seleccionado: true, _esExtra: true });
+        });
+        const nExtras = extras.length;
+        document.getElementById('cm-icon-'+i).textContent = resultado.ok ? (nExtras > 0 ? '📋' : '✅') : '⚠️';
         document.getElementById('cm-status-'+i).textContent = resultado.ok
-          ? `${resultado.tarifa} · ${resultado.cups ? resultado.cups.substring(0,12) : 'Sin CUPS'} · ${resultado.nombre||''}`
+          ? `${resultado.tarifa} · ${resultado.cups ? resultado.cups.substring(0,12) : 'Sin CUPS'} · ${resultado.nombre||''}${nExtras > 0 ? ` (+${nExtras} más)` : ''}`
           : '⚠️ ' + (resultado.error || 'Revisar tarifa');
         document.getElementById('cm-status-'+i).style.color = resultado.ok ? '#059669' : '#d97706';
       } catch(e) {
@@ -28665,6 +28673,79 @@ Si no encuentras → "".`;
     setTimeout(() => cmMostrarRevision(), 1000);
   };
 
+  // Helper: normalizar un objeto parsed de IA → resultado estándar
+  function cmNormalizarParsed(parsed, raw) {
+    const validRL = ['RL1','RL2','RL3','RL4','RL5'];
+    const rawLower = (raw||'').toLowerCase();
+    let tarifa = (parsed.tarifa || '').toString().toUpperCase().replace(/[\s\.]/g,'');
+    if (tarifa.includes('20') || tarifa === '2TD') tarifa = '2.0TD';
+    else if (tarifa.includes('30') || tarifa === '3TD') tarifa = '3.0TD';
+    const p = parsed.potencias_kw || {};
+    const e = parsed.energia_kwh || {};
+    const tipoIA = (parsed.tipo_suministro || '').toLowerCase().trim();
+    const tienePotencias = (p.p1 && p.p1 > 0) || (p.p2 && p.p2 > 0);
+    const esGas = (tipoIA === 'gas' && !tienePotencias) ||
+      (validRL.includes(tarifa) && tipoIA !== 'electricidad' && !tienePotencias);
+    if (esGas && !validRL.includes(tarifa)) tarifa = 'RL1';
+    if (!esGas && tarifa !== '2.0TD' && tarifa !== '3.0TD') {
+      tarifa = ((p.p3 && p.p3 > 0) || (e.e4 && e.e4 > 0)) ? '3.0TD' : '2.0TD';
+    }
+    const consumoGasKwh = parsed.consumo_gas_kwh || (esGas ? (e.e1 || 0) : 0);
+    return {
+      ok: true, tarifa,
+      tipoSuministro: esGas ? 'gas' : 'electricidad',
+      cups: parsed.cups || '',
+      dias: parsed.dias || 0,
+      p1: p.p1||0, p2: p.p2||0, p3: p.p3||0, p4: p.p4||0, p5: p.p5||0, p6: p.p6||0,
+      e1: esGas ? consumoGasKwh : (e.e1||0),
+      e2: e.e2||0, e3: e.e3||0, e4: e.e4||0, e5: e.e5||0, e6: e.e6||0,
+      consumoGasKwh,
+      total: parsed.total_factura || 0,
+      nombre: parsed.nombre_cliente || '',
+      direccion: parsed.direccion_suministro || '',
+      empresa: parsed.nombre_empresa || '',
+      cif: parsed.cif_nif || '',
+      error: ''
+    };
+  }
+
+  // Helper: mostrar modal de aviso multipunto y preguntar al usuario
+  function cmMostrarModalMultipunto(fileName, suministros) {
+    return new Promise(resolve => {
+      const tipos = suministros.map((s,i) => {
+        const t = s.tipo_suministro === 'gas' ? '🔥 Gas' : '⚡ Electricidad';
+        const tarifa = s.tarifa || '';
+        const cups = s.cups ? s.cups.substring(0,16)+'...' : 'Sin CUPS';
+        return `<div style="padding:6px 10px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;font-size:0.78rem;color:#334155;">
+          <strong>${i+1}.</strong> ${t} · ${tarifa} · <span style="font-family:monospace;">${cups}</span>
+        </div>`;
+      }).join('');
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+      overlay.innerHTML = `
+        <div style="background:white;border-radius:20px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
+          <div style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:18px 22px;">
+            <div style="font-size:1.1rem;font-weight:900;color:white;">📋 Factura multipunto detectada</div>
+            <div style="font-size:0.78rem;color:rgba(255,255,255,0.85);margin-top:4px;">${fileName}</div>
+          </div>
+          <div style="padding:20px;">
+            <p style="font-size:0.85rem;color:#475569;margin:0 0 12px 0;">
+              He detectado <strong>${suministros.length} suministros</strong> en este PDF. ¿Quieres añadirlos todos?
+            </p>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">${tipos}</div>
+            <div style="display:flex;gap:10px;">
+              <button id="cm-multi-no" style="flex:1;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.85rem;color:#64748b;">Solo el 1º</button>
+              <button id="cm-multi-si" style="flex:2;padding:11px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.85rem;color:white;">✅ Añadir todos (${suministros.length})</button>
+            </div>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      overlay.querySelector('#cm-multi-si').onclick = () => { document.body.removeChild(overlay); resolve('todos'); };
+      overlay.querySelector('#cm-multi-no').onclick = () => { document.body.removeChild(overlay); resolve('primero'); };
+    });
+  }
+
   async function cmProcesarFactura(file, idx) {
     function setStatus(txt) {
       const el = document.getElementById('cm-status-'+idx);
@@ -28681,33 +28762,35 @@ Si no encuentras → "".`;
 
     if (!base64) throw new Error('Archivo vacío o inválido');
 
-    // Usar prompt adaptado según modo (DUAL = electricidad+gas, MULTICUPS = solo electricidad)
+    // Prompt multipunto: siempre devuelve array de suministros
     const isDualMode = window._cmModoDual;
-    let promptText;
-    if (isDualMode) {
-      promptText = `Eres un experto en facturas de energía españolas (electricidad y gas). Analiza esta factura y devuelve SOLO el siguiente JSON sin texto adicional, markdown ni explicaciones:
-{"tipo_suministro":"electricidad","cups":"","tarifa":"2.0TD","dias":0,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"consumo_gas_kwh":0,"total_factura":0}
-REGLAS CRÍTICAS:
-- tipo_suministro: pon "gas" si es factura de gas natural (detecta por: título FACTURA DE GAS, palabra gas natural, m³, tarifa RL.X, CUPS tipo gas). Pon "electricidad" en cualquier otro caso.
-- Si es GAS: tarifa debe ser exactamente "RL1","RL2","RL3","RL4" o "RL5" según tarifa acceso (RL.1→RL1, RL.2→RL2, etc.). Rellena consumo_gas_kwh con kWh totales de gas.
-- Si es ELECTRICIDAD: tarifa debe ser "2.0TD" o "3.0TD". Rellena potencias_kw y energia_kwh por periodo.
-- cups: CUPS completo incluyendo letras finales (ej: ES0217010240175738JV).
-- Pon 0 o "" si no encuentras el dato. Devuelve SOLO el JSON sin nada más.
+    const camposSuministro = isDualMode
+      ? `{"tipo_suministro":"electricidad","cups":"","tarifa":"2.0TD","dias":0,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"consumo_gas_kwh":0,"total_factura":0}`
+      : `{"tipo_suministro":"electricidad","cups":"","tarifa":"2.0TD","dias":0,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0}`;
+
+    const reglasExtra = isDualMode ? `
+- tipo_suministro: "gas" si hay gas natural (m³, RL.X, CUPS gas). "electricidad" en otro caso.
+- Si GAS: tarifa = "RL1"…"RL5". Rellena consumo_gas_kwh.
+- Si ELECTRICIDAD: tarifa = "2.0TD" o "3.0TD". Rellena potencias_kw y energia_kwh.` : `
+- tipo_suministro: siempre "electricidad".
+- tarifa: "2.0TD" (≤15kW) o "3.0TD" (>15kW, 6 periodos).`;
+
+    const promptText = `Eres un experto en facturas de energía españolas. Analiza TODOS los suministros de este documento.
+IMPORTANTE: Una factura puede contener MÁS DE UN suministro (multipunto). Busca TODOS los bloques con CUPS distintos.
+Devuelve SOLO un JSON con este formato exacto, sin texto adicional ni markdown:
+{"suministros":[${camposSuministro}]}
+Si hay un solo suministro devuelve el array con 1 elemento. Si hay varios, devuelve todos.
+REGLAS:${reglasExtra}
+- cups: código ES... completo incluyendo letras finales. Cada suministro tiene su propio CUPS.
+- Detecta suministros adicionales buscando: secciones "Datos del suministro" repetidas, múltiples CUPS, bloques "Punto de suministro" distintos.
 === CAMPO CRÍTICO: nombre_empresa ===
-BUSCA en: sección "Datos del cliente" o "Datos del titular", cabecera en MAYÚSCULAS antes de la dirección postal.
-- Si el titular tiene forma jurídica (S.L., S.A., S.L.U., S.COOP., C.B., S.C., S.L.P., SOCIEDAD, GRUPO, SERVICIOS) → pon la razón social exacta.
-- Si es persona física (nombre + apellidos sin forma jurídica) → nombre_empresa = "" (vacío).
-- NUNCA pongas el nombre de la comercializadora (Iberdrola, Endesa, Naturgy, Repsol, etc.).
+- Forma jurídica (S.L., S.A., S.L.U., S.COOP., SOCIEDAD, GRUPO) → pon razón social exacta.
+- Persona física → nombre_empresa = "".
+- NUNCA nombre de la comercializadora.
 === CAMPO CRÍTICO: cif_nif ===
-BUSCA etiquetas: "CIF:", "NIF:", "CIF/NIF:", "N.I.F:", "DNI:" en "Datos del cliente" o junto al nombre del titular.
-- Formato CIF: letra + 8 dígitos → ej: B78518669. Formato NIF/DNI: 8 dígitos + letra → ej: 12345678A.
-- Copia EXACTAMENTE sin espacios. Usa el del CLIENTE (no el de la comercializadora). Si no aparece → "".`;
-    } else {
-      promptText = (typeof getPromptIA === 'function') ? getPromptIA() : `Eres un experto en facturas de electricidad españolas. Analiza esta factura y devuelve SOLO el siguiente JSON sin texto adicional:\n{"cups":"","tarifa":"2.0TD","dias":0,"potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":""}\nREGLAS: tarifa solo puede ser "2.0TD" o "3.0TD". cups empieza por ES. nombre_empresa: nombre de la empresa o autónomo titular (NO persona física si es particular). cif_nif: CIF de empresa o DNI/NIF del titular (formato A12345678 o 12345678A). Pon 0 o "" si no encuentras el dato.`;
-    }
+- Busca "CIF:", "NIF:", "CIF/NIF:". Formato B78518669 o 12345678A. Del CLIENTE, no comercializadora.`;
 
     setStatus('📤 Enviando a IA...');
-
     let messageContent;
     if (file.type === 'application/pdf') {
       messageContent = [
@@ -28726,15 +28809,9 @@ BUSCA etiquetas: "CIF:", "NIF:", "CIF/NIF:", "N.I.F:", "DNI:" en "Datos del clie
       resp = await fetch('https://drk-ai-proxy.f-araujo-teixeira-drk.workers.dev', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 2000,
-          messages: [{ role: 'user', content: messageContent }]
-        })
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 3000, messages: [{ role: 'user', content: messageContent }] })
       });
-    } catch(fetchErr) {
-      throw new Error('Sin conexión al proxy: ' + fetchErr.message);
-    }
+    } catch(fetchErr) { throw new Error('Sin conexión al proxy: ' + fetchErr.message); }
 
     if (!resp.ok) {
       let errMsg = 'Error HTTP ' + resp.status;
@@ -28750,62 +28827,36 @@ BUSCA etiquetas: "CIF:", "NIF:", "CIF/NIF:", "N.I.F:", "DNI:" en "Datos del clie
     if (!raw) throw new Error('IA devolvió respuesta vacía');
 
     setStatus('📊 Extrayendo datos...');
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('Sin JSON en respuesta IA');
+    const matchArr = raw.match(/\{[\s\S]*\}/);
+    if (!matchArr) throw new Error('Sin JSON en respuesta IA');
 
-    let parsed;
-    try { parsed = JSON.parse(match[0]); }
+    let parsedRoot;
+    try { parsedRoot = JSON.parse(matchArr[0]); }
     catch(e) { throw new Error('JSON malformado: ' + raw.substring(0,50)); }
 
-    // Normalizar tarifa — quitar puntos y espacios (RL.2 → RL2)
-    let tarifa = (parsed.tarifa || '').toString().toUpperCase().replace(/[\s\.]/g,'');
-    if (tarifa.includes('20') || tarifa === '2TD') tarifa = '2.0TD';
-    else if (tarifa.includes('30') || tarifa === '3TD') tarifa = '3.0TD';
-    // RL1-RL5 quedan tal cual
+    // Extraer array de suministros (nuevo formato) o parsedRoot directamente (fallback)
+    const suministrosRaw = parsedRoot.suministros || [parsedRoot];
 
-    const p = parsed.potencias_kw || {};
-    const e = parsed.energia_kwh || {};
-
-    // Detectar gas con alta precisión — evitar falsos positivos en electricidad
-    const tipoIA = (parsed.tipo_suministro || '').toLowerCase().trim();
-    const validRL = ['RL1','RL2','RL3','RL4','RL5'];
-    const rawLower = raw.toLowerCase();
-
-    // Señales fuertes de electricidad (evitar clasificar como gas)
-    const tienePotencias = (p.p1 && p.p1 > 0) || (p.p2 && p.p2 > 0);
-    const tienePeriodosElec = (e.e1 > 0) || (e.e2 > 0); // electricidad tiene múltiples periodos
-    const cupsElec = (parsed.cups || '').toUpperCase().startsWith('ES') &&
-      !(rawLower.includes('gas natural') || rawLower.includes('factura de gas') || rawLower.includes('m³') || rawLower.includes('m3'));
-
-    // Es gas SOLO si la IA lo dice explícitamente Y no hay señales de electricidad
-    const esGas = (tipoIA === 'gas' && !tienePotencias) ||
-      (validRL.includes(tarifa) && tipoIA !== 'electricidad' && !tienePotencias);
-
-    // Ajustar tarifa según tipo
-    if (esGas && !validRL.includes(tarifa)) tarifa = 'RL1';
-    if (!esGas && tarifa !== '2.0TD' && tarifa !== '3.0TD') {
-      tarifa = ((p.p3 && p.p3 > 0) || (e.e4 && e.e4 > 0)) ? '3.0TD' : '2.0TD';
+    // Si solo hay 1 suministro → devolver directamente (comportamiento anterior)
+    if (suministrosRaw.length <= 1) {
+      return cmNormalizarParsed(suministrosRaw[0] || parsedRoot, raw);
     }
 
-    // Consumo gas en kWh (puede venir en campo consumo_gas_kwh o energia e1)
-    const consumoGasKwh = parsed.consumo_gas_kwh || (esGas ? (e.e1 || 0) : 0);
+    // Hay MÚLTIPLES suministros → preguntar al usuario
+    setStatus(`⚠️ ${suministrosRaw.length} suministros detectados`);
+    document.getElementById('cm-icon-'+idx).textContent = '📋';
 
-    return {
-      ok: true, tarifa,
-      tipoSuministro: esGas ? 'gas' : 'electricidad',
-      cups: parsed.cups || '',
-      dias: parsed.dias || 0,
-      p1: p.p1||0, p2: p.p2||0, p3: p.p3||0, p4: p.p4||0, p5: p.p5||0, p6: p.p6||0,
-      e1: esGas ? consumoGasKwh : (e.e1||0),
-      e2: e.e2||0, e3: e.e3||0, e4: e.e4||0, e5: e.e5||0, e6: e.e6||0,
-      consumoGasKwh,
-      total: parsed.total_factura || 0,
-      nombre: parsed.nombre_cliente || '',
-      direccion: parsed.direccion_suministro || '',
-      empresa: parsed.nombre_empresa || '',
-      cif: parsed.cif_nif || '',
-      error: ''
-    };
+    const respuesta = await cmMostrarModalMultipunto(file.name, suministrosRaw);
+
+    if (respuesta === 'primero') {
+      // Solo el primero
+      return cmNormalizarParsed(suministrosRaw[0], raw);
+    } else {
+      // Todos: el primero como resultado principal, los extras como _extras para que el loop los inserte
+      const principal = cmNormalizarParsed(suministrosRaw[0], raw);
+      principal._extras = suministrosRaw.slice(1).map(s => cmNormalizarParsed(s, raw));
+      return principal;
+    }
   }
 
   function cmGetPrompt() {

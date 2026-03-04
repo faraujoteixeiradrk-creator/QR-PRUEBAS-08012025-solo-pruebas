@@ -29795,7 +29795,12 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     // Detectar tipo de tarifa de los grupos
     const tipoTarifa = grupos[0]?._tarifaReciente ||
       grupos[0]?.facturas?.slice().sort((a,b)=>(b.mesNumero||0)-(a.mesNumero||0))[0]?.tarifa || '2.0TD';
-    const tarifasDisp = (currentTariffs[tipoTarifa] || []).filter(t => t.isDrk && t.name !== 'Tu Tarifa Actual');
+    // En modo DRK: solo tarifas DRK. En modo PowerCup: todas las tarifas disponibles
+    const tarifasDisp = (currentTariffs[tipoTarifa] || []).filter(t => {
+      if (t.name === 'Tu Tarifa Actual') return false;
+      if (isDrk) return t.isDrk === true;
+      return true; // PowerCup tiene acceso a todas las tarifas
+    });
 
     if (tarifasDisp.length === 0) {
       _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono, null);
@@ -29843,7 +29848,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
             potencia_p5_kw: f.p5||0, potencia_p6_kw: f.p6||0,
             originalBillAnnual: (f.total||0) * (365/dias)
           };
-          const drkRes = tarifas.filter(t=>t.isDrk && t.name!=='Tu Tarifa Actual')
+          const drkRes = tarifas.filter(t=>t.name!=='Tu Tarifa Actual' && (isDrk ? t.isDrk===true : true))
             .map(t => calculateTariffCost(t, data, tipoTarifa))
             .sort((a,b)=>(a.totalPeriod||0)-(b.totalPeriod||0));
           if (drkRes[0]) sumaAhorros += (f.total||0) - (drkRes[0].totalPeriod||0);
@@ -29992,7 +29997,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           drkResults = [rForzado];
         } else {
           const resultados = tarifas.map(t => calculateTariffCost(t, data, tarifaReciente));
-          drkResults = resultados.filter(r => r.offer && r.offer.isDrk);
+          drkResults = resultados.filter(r => r.offer && (isDrk ? r.offer.isDrk : true));
           drkResults.sort((a,b) => (a.totalPeriod||0) - (b.totalPeriod||0));
         }
         const mejor = drkResults[0];

@@ -16444,6 +16444,12 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   });
   // === FIN Event listeners Pegar Código Completo ===
   document.getElementById('send-offer-btn').onclick = () => {
+  // Si modo empresas diferentes → modal por empresa
+  const modoEmpresa = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value;
+  if (modoEmpresa === 'diferentes' && window._cmResultados && window._cmResultados.length > 0) {
+    if (typeof cmAbrirModalEmpresasDiferentes === 'function') cmAbrirModalEmpresasDiferentes();
+    return;
+  }
   if (lastComparisonResult) {
   clearClientModal();
   document.getElementById('send-offer-modal').classList.remove('hidden');
@@ -28338,19 +28344,33 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       <div id="cm-file-items" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;"></div>
     </div>
 
-    <!-- Opciones de procesamiento -->
+    <!-- Modo de Procesamiento -->
     <div style="background:#f0f9ff;border:2px solid #bae6fd;border-radius:12px;padding:14px;margin-bottom:16px;">
-      <div style="font-weight:700;color:#0369a1;font-size:0.82rem;margin-bottom:8px;">⚙️ Modo de procesamiento</div>
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.82rem;">
+      <div style="font-weight:700;color:#0369a1;font-size:0.82rem;margin-bottom:10px;">🏢 Modo de procesamiento</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <label id="cm-modo-misma-label" onclick="cmSetModoEmpresa('misma')" style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;background:#dbeafe;border:2px solid #2563eb;border-radius:10px;padding:10px;">
+          <input type="radio" name="cm-modo-empresa" value="misma" checked style="accent-color:#2563eb;margin-top:2px;flex-shrink:0;">
+          <div>
+            <div style="font-weight:800;color:#1e3a8a;font-size:0.82rem;">🏢 Misma empresa</div>
+            <div style="font-size:0.72rem;color:#3b82f6;">Agrupa todo bajo 1 empresa → 1 PDF conjunto</div>
+          </div>
+        </label>
+        <label id="cm-modo-diferentes-label" onclick="cmSetModoEmpresa('diferentes')" style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;background:white;border:2px solid #cbd5e1;border-radius:10px;padding:10px;">
+          <input type="radio" name="cm-modo-empresa" value="diferentes" style="accent-color:#7c3aed;margin-top:2px;flex-shrink:0;">
+          <div>
+            <div style="font-weight:800;color:#4c1d95;font-size:0.82rem;">🏭 Empresas diferentes</div>
+            <div style="font-size:0.72rem;color:#7c3aed;">1 PDF por cada empresa detectada</div>
+          </div>
+        </label>
+      </div>
+      <!-- Subtipo para misma empresa: automático/asistido/revisión -->
+      <div id="cm-modo-sub" style="margin-top:10px;display:flex;flex-direction:column;gap:5px;">
+        <div style="font-size:0.75rem;font-weight:700;color:#64748b;">Procesamiento de facturas:</div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.8rem;">
           <input type="radio" name="cm-modo" value="auto" checked style="accent-color:#0ea5e9;">
           <span><strong>Automático</strong> — La IA procesa todo y añade directamente</span>
         </label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.82rem;">
-          <input type="radio" name="cm-modo" value="asistido" style="accent-color:#0ea5e9;">
-          <span><strong>Asistido</strong> — La IA pregunta cuando hay dudas sobre la tarifa</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.82rem;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.8rem;">
           <input type="radio" name="cm-modo" value="revision" style="accent-color:#0ea5e9;">
           <span><strong>Revisión manual</strong> — Revisa y edita cada factura antes de añadir</span>
         </label>
@@ -28396,6 +28416,8 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
           <tr style="background:#f0f9ff;border-bottom:2px solid #bae6fd;">
             <th style="padding:8px;text-align:left;font-weight:700;color:#0369a1;white-space:nowrap;"><input type="checkbox" id="cm-check-all" onchange="cmToggleAll(this.checked)"> #</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">Estado</th>
+            <th style="padding:8px;text-align:left;color:#7c3aed;font-weight:700;">Empresa</th>
+            <th style="padding:8px;text-align:left;color:#7c3aed;font-weight:700;">CIF/NIF</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">Archivo</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">Tarifa</th>
             <th style="padding:8px;text-align:left;color:#0369a1;">CUPS</th>
@@ -28608,7 +28630,7 @@ REGLAS CRÍTICAS:
 - cups: CUPS completo incluyendo letras finales (ej: ES0217010240175738JV).
 - Pon 0 o "" si no encuentras el dato. Devuelve SOLO el JSON sin nada más.`;
     } else {
-      promptText = (typeof getPromptIA === 'function') ? getPromptIA() : `Eres un experto en facturas de electricidad españolas. Analiza esta factura y devuelve SOLO el siguiente JSON sin texto adicional:\n{"cups":"","tarifa":"2.0TD","dias":0,"potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0,"nombre_cliente":"","direccion_suministro":""}\nREGLAS: tarifa solo puede ser "2.0TD" o "3.0TD". cups empieza por ES. Pon 0 o "" si no encuentras el dato.`;
+      promptText = (typeof getPromptIA === 'function') ? getPromptIA() : `Eres un experto en facturas de electricidad españolas. Analiza esta factura y devuelve SOLO el siguiente JSON sin texto adicional:\n{"cups":"","tarifa":"2.0TD","dias":0,"potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":""}\nREGLAS: tarifa solo puede ser "2.0TD" o "3.0TD". cups empieza por ES. nombre_empresa: nombre de la empresa o autónomo titular (NO persona física si es particular). cif_nif: CIF de empresa o DNI/NIF del titular (formato A12345678 o 12345678A). Pon 0 o "" si no encuentras el dato.`;
     }
 
     setStatus('📤 Enviando a IA...');
@@ -28707,6 +28729,8 @@ REGLAS CRÍTICAS:
       total: parsed.total_factura || 0,
       nombre: parsed.nombre_cliente || '',
       direccion: parsed.direccion_suministro || '',
+      empresa: parsed.nombre_empresa || '',
+      cif: parsed.cif_nif || '',
       error: ''
     };
   }
@@ -28714,7 +28738,7 @@ REGLAS CRÍTICAS:
   function cmGetPrompt() {
     return `Eres un experto en facturas eléctricas españolas. Analiza esta factura y devuelve ÚNICAMENTE este JSON sin texto adicional ni bloques de código:
 
-{"tarifa":"2.0TD","cups":"ES0000000000000000AA","dias":30,"potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0,"nombre_cliente":"","direccion_suministro":""}
+{"tarifa":"2.0TD","cups":"ES0000000000000000AA","dias":30,"potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":""}
 
 REGLAS:
 - tarifa: SOLO "2.0TD" (doméstico, ≤15kW, 2-3 periodos) o "3.0TD" (empresa, 6 periodos). NUNCA otro valor.
@@ -28723,6 +28747,8 @@ REGLAS:
 - energia_kwh: consumo del periodo. 2.0TD tiene e1, e2, e3. 3.0TD tiene e1 a e6.
 - total_factura: importe total en euros (número sin símbolo €).
 - nombre_cliente y direccion_suministro: del punto de suministro.
+- nombre_empresa: razón social o nombre de empresa titular (vacío si es particular).
+- cif_nif: CIF de empresa (formato A12345678) o NIF/DNI del titular (12345678A). Vacío si no aparece.
 - Pon 0 en los campos numéricos que no aparezcan, "" en los de texto.`;
   }
 
@@ -28796,11 +28822,22 @@ REGLAS:
           </select>`;
       }
 
+      const modoEmpresa = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
+      const showEmpresaCols = modoEmpresa === 'diferentes';
+      const empresaCell = showEmpresaCols
+        ? `<input value="${r.empresa||''}" onchange="_cmResultados[${i}].empresa=this.value" placeholder="Empresa" style="width:90px;padding:2px 4px;border:1px solid #c4b5fd;border-radius:4px;font-size:0.72rem;">`
+        : `<span style="font-size:0.72rem;color:#94a3b8;">—</span>`;
+      const cifCell = showEmpresaCols
+        ? `<input value="${r.cif||''}" onchange="_cmResultados[${i}].cif=this.value" placeholder="CIF/NIF" style="width:80px;padding:2px 4px;border:1px solid #c4b5fd;border-radius:4px;font-size:0.72rem;">`
+        : `<span style="font-size:0.72rem;color:#94a3b8;">—</span>`;
+
       // Para gas: mostrar campos de gas (kWh consumo y coste)
       if (isGas) {
         return `<tr style="background:#fff7ed;border-bottom:1px solid #fed7aa;" id="cm-row-${i}">
           <td style="padding:6px;"><input type="checkbox" ${r.seleccionado?'checked':''} onchange="_cmResultados[${i}].seleccionado=this.checked"></td>
           <td style="padding:6px;">🔥</td>
+          <td style="padding:6px;">${empresaCell}</td>
+          <td style="padding:6px;">${cifCell}</td>
           <td style="padding:6px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;" title="${r.file.name}">${r.file.name}</td>
           <td style="padding:6px;">${tarifaCell}</td>
           <td style="padding:6px;"><input value="${r.cups||''}" onchange="_cmResultados[${i}].cups=this.value" style="width:130px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
@@ -28825,6 +28862,8 @@ REGLAS:
       return `<tr style="background:${bg};border-bottom:1px solid #e2e8f0;" id="cm-row-${i}">
         <td style="padding:6px;"><input type="checkbox" ${r.seleccionado?'checked':''} onchange="_cmResultados[${i}].seleccionado=this.checked"></td>
         <td style="padding:6px;">${est}</td>
+        <td style="padding:6px;">${empresaCell}</td>
+        <td style="padding:6px;">${cifCell}</td>
         <td style="padding:6px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;" title="${r.file.name}">${r.file.name}</td>
         <td style="padding:6px;">${tarifaCell}</td>
         <td style="padding:6px;"><input value="${r.cups||''}" onchange="_cmResultados[${i}].cups=this.value" style="width:130px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
@@ -29109,9 +29148,143 @@ REGLAS:
     }
   };
 
+
+  // ═══ MODO EMPRESA ═══
+  window.cmSetModoEmpresa = function(modo) {
+    // Actualizar radio
+    document.querySelector(`input[name="cm-modo-empresa"][value="${modo}"]`).checked = true;
+    // Actualizar estilos de labels
+    const mLabel = document.getElementById('cm-modo-misma-label');
+    const dLabel = document.getElementById('cm-modo-diferentes-label');
+    if (modo === 'misma') {
+      mLabel.style.background = '#dbeafe'; mLabel.style.border = '2px solid #2563eb';
+      dLabel.style.background = 'white'; dLabel.style.border = '2px solid #cbd5e1';
+    } else {
+      dLabel.style.background = '#f5f3ff'; dLabel.style.border = '2px solid #7c3aed';
+      mLabel.style.background = 'white'; mLabel.style.border = '2px solid #cbd5e1';
+    }
+    // Re-renderizar tabla si ya hay datos
+    if (_cmResultados.length > 0) cmRenderTabla();
+  };
+
+  // Extraer CIF/NIF de nombre_cliente o texto de la IA
+  function cmInferCIF(r) {
+    const texts = [r.nombre || '', r.cups || ''];
+    for (const t of texts) {
+      const m = t.match(/\b([A-Z]\d{7}[A-Z0-9]|\d{8}[A-Z])\b/);
+      if (m) return m[1];
+    }
+    return '';
+  }
+
+  // Extraer nombre de empresa (sin CIF)
+  function cmInferEmpresa(r) {
+    return r.empresa || r.nombre || '';
+  }
+
+  // Agrupar resultados por empresa (CIF o nombre)
+  function cmAgruparEmpresas(resultados) {
+    const grupos = {};
+    resultados.forEach(r => {
+      const cif = r.cif || cmInferCIF(r);
+      const nombre = r.empresa || r.nombre || 'Sin nombre';
+      const key = cif || nombre;
+      if (!grupos[key]) grupos[key] = { cif, nombre, filas: [] };
+      grupos[key].filas.push(r);
+    });
+    return Object.values(grupos).sort((a, b) => (a.cif || a.nombre).localeCompare(b.cif || b.nombre));
+  }
+
+  // Al finalizar la cola, según modo empresa lanzar modal correspondiente
+  window.cmFinalizarCola = function() {
+    const modoEmpresa = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
+    if (modoEmpresa === 'misma') {
+      // Misma empresa → modal datos único (flujo actual)
+      if (typeof finalizarYComparar === 'function') finalizarYComparar();
+    } else {
+      // Empresas diferentes → modal tabla por empresa
+      cmAbrirModalEmpresasDiferentes();
+    }
+  };
+
+  window.cmAbrirModalEmpresasDiferentes = function() {
+    const cola = _cmResultados.filter(r => r.seleccionado !== false);
+    const grupos = cmAgruparEmpresas(cola);
+    window._cmGruposEmpresas = grupos;
+    window._cmGrupoIdx = 0;
+    cmMostrarFormularioEmpresa(0);
+  };
+
+  window.cmMostrarFormularioEmpresa = function(idx) {
+    const grupos = window._cmGruposEmpresas || [];
+    if (idx >= grupos.length) { cmCerrarModalEmpresas(); return; }
+    const g = grupos[idx];
+    const total = grupos.length;
+    const modal = document.getElementById('cm-modal-empresas');
+    if (!modal) return;
+    document.getElementById('cm-emp-titulo').textContent = `Empresa ${idx+1} de ${total}: ${g.nombre || g.cif || 'Sin identificar'}`;
+    document.getElementById('cm-emp-cups-lista').textContent = g.filas.map(f => f.cups || '').filter(Boolean).join(', ') || '—';
+    document.getElementById('cm-emp-nombre').value = g.nombre || '';
+    document.getElementById('cm-emp-telefono').value = g.telefono || '';
+    document.getElementById('cm-emp-email').value = g.email || '';
+    document.getElementById('cm-emp-codigo').value = document.getElementById('comercial-code-input')?.value || '';
+    document.getElementById('cm-emp-progreso').textContent = `${idx+1} / ${total}`;
+    modal.style.display = 'flex';
+  };
+
+  window.cmGenerarPDFEmpresa = function() {
+    const idx = window._cmGrupoIdx || 0;
+    const grupos = window._cmGruposEmpresas || [];
+    const g = grupos[idx];
+    // Rellenar campos del modal de datos del comercial
+    const sv = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    sv('comercial-code-input', document.getElementById('cm-emp-codigo').value);
+    sv('client-name-input', document.getElementById('cm-emp-nombre').value);
+    sv('client-phone-input', document.getElementById('cm-emp-telefono').value);
+    sv('client-address-input', g.filas[0]?.direccion || g.nombre || '');
+    sv('client-email-input', document.getElementById('cm-emp-email').value);
+    // Generar PDF
+    if (typeof crearPDFComparativo === 'function') crearPDFComparativo();
+    // Avanzar a siguiente empresa
+    window._cmGrupoIdx = idx + 1;
+    setTimeout(() => cmMostrarFormularioEmpresa(window._cmGrupoIdx), 800);
+  };
+
+  window.cmCerrarModalEmpresas = function() {
+    const modal = document.getElementById('cm-modal-empresas');
+    if (modal) modal.style.display = 'none';
+    window._cmGruposEmpresas = null;
+    window._cmGrupoIdx = 0;
+  };
+
 })();
 </script>
-<div id="ia-upload-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;">
+
+<!-- Modal Empresas Diferentes -->
+<div id="cm-modal-empresas" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10050;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:white;border-radius:20px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.5);">
+    <div style="background:linear-gradient(135deg,#4c1d95,#7c3aed);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:1rem;font-weight:900;color:white;">📄 Datos del Cliente</div>
+        <div id="cm-emp-titulo" style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:2px;"></div>
+      </div>
+      <span id="cm-emp-progreso" style="background:rgba(255,255,255,0.2);color:white;font-weight:700;font-size:0.8rem;padding:4px 10px;border-radius:20px;"></span>
+    </div>
+    <div style="padding:20px;">
+      <div style="font-size:0.75rem;color:#64748b;margin-bottom:12px;">CUPS incluidos: <span id="cm-emp-cups-lista" style="font-weight:600;color:#1e3a8a;font-family:monospace;font-size:0.7rem;"></span></div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <input id="cm-emp-codigo" placeholder="Código Comercial (Obligatorio)" style="padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.85rem;width:100%;box-sizing:border-box;">
+        <input id="cm-emp-nombre" placeholder="Nombre del cliente / empresa" style="padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.85rem;width:100%;box-sizing:border-box;">
+        <input id="cm-emp-telefono" placeholder="Teléfono" style="padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.85rem;width:100%;box-sizing:border-box;">
+        <input id="cm-emp-email" placeholder="Email" style="padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:0.85rem;width:100%;box-sizing:border-box;">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button onclick="cmCerrarModalEmpresas()" style="flex:1;padding:12px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.85rem;color:#64748b;">✕ Cancelar</button>
+        <button onclick="cmGenerarPDFEmpresa()" style="flex:2;padding:12px;background:linear-gradient(135deg,#4c1d95,#7c3aed);border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.85rem;color:white;">📄 Generar PDF → Siguiente</button>
+      </div>
+    </div>
+  </div>
+</div> style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:10000;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;">
   <div style="background:white;border-radius:24px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.4);margin:auto;">
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#0891b2,#0e7490);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;">

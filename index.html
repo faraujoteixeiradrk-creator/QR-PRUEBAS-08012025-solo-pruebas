@@ -28473,6 +28473,7 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
     const mismaRadio = document.querySelector('input[name="cm-modo-empresa"][value="misma"]');
     if (mismaRadio) { mismaRadio.checked = true; if (typeof cmSetModoEmpresa === 'function') cmSetModoEmpresa('misma'); }
     window._cmResultadosProcesados = null;
+    window._cmSnapshotEmpresas = null;
   };
 
   window.abrirCargaMasivaDual = function() {
@@ -28944,18 +28945,20 @@ REGLAS:
       const inputs = document.querySelectorAll(`#cm-row-${i} input[type="number"]`);
       const fields = ['dias','p1','p2','p3','p4','p5','p6','e1','e2','e3','e4','e5','e6','total'];
       inputs.forEach((inp, idx) => { if (fields[idx] !== undefined) r[fields[idx]] = parseFloat(inp.value)||0; });
-      const texts = document.querySelectorAll(`#cm-row-${i} input:not([type="number"]):not([type="checkbox"])`);
-      if (texts[0]) r.cups = texts[0].value;
-      if (texts[1]) r.nombre = texts[1].value;
-      if (texts[2]) r.direccion = texts[2].value;
-      // Leer empresa y CIF si están visibles (modo empresas diferentes)
-      const allTexts = Array.from(document.querySelectorAll(`#cm-row-${i} input:not([type="number"]):not([type="checkbox"])`));
-      // empresa y cif son los primeros dos inputs de texto en modo diferentes
       const modoEmp = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
-      if (modoEmp === 'diferentes' && allTexts.length >= 4) {
-        // En modo diferentes: empresa(0), cif(1), cups(2), nombre(3), direccion(4)
-        r.empresa = allTexts[0]?.value || r.empresa || '';
-        r.cif     = allTexts[1]?.value || r.cif || '';
+      const allTexts = Array.from(document.querySelectorAll(`#cm-row-${i} input:not([type="number"]):not([type="checkbox"])`));
+      if (modoEmp === 'diferentes') {
+        // En modo diferentes la tabla tiene: empresa(0), cif(1), cups(2), nombre(3), direccion(4)
+        r.empresa   = allTexts[0]?.value ?? r.empresa ?? '';
+        r.cif       = allTexts[1]?.value ?? r.cif ?? '';
+        r.cups      = allTexts[2]?.value ?? r.cups ?? '';
+        r.nombre    = allTexts[3]?.value ?? r.nombre ?? '';
+        r.direccion = allTexts[4]?.value ?? r.direccion ?? '';
+      } else {
+        // Modo misma empresa: cups(0), nombre(1), direccion(2)
+        r.cups      = allTexts[0]?.value ?? r.cups ?? '';
+        r.nombre    = allTexts[1]?.value ?? r.nombre ?? '';
+        r.direccion = allTexts[2]?.value ?? r.direccion ?? '';
       }
     });
 
@@ -28964,6 +28967,19 @@ REGLAS:
 
     // Guardar modo empresa para usarlo al finalizar
     window._cmModoEmpresa = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
+
+    // En modo empresas diferentes: guardar snapshot con empresa/CIF para agrupación posterior
+    if (window._cmModoEmpresa === 'diferentes') {
+      window._cmSnapshotEmpresas = cola.map(r => ({
+        cups: r.cups || '',
+        empresa: r.empresa || '',
+        cif: r.cif || '',
+        nombre: r.nombre || '',
+        direccion: r.direccion || '',
+        tarifa: r.tarifa || ''
+      }));
+      console.log('📸 Snapshot empresas guardado:', window._cmSnapshotEmpresas.map(s => `${s.cups} | empresa:"${s.empresa}" | cif:"${s.cif}"`));
+    }
 
     // Cerrar modal masiva y arrancar cola
     cerrarCargaMasiva();
@@ -29202,19 +29218,22 @@ REGLAS:
   // Agrupar resultados por empresa (CIF o nombre)
   function cmAgruparEmpresas(resultados) {
     const grupos = {};
-    resultados.forEach(r => {
-      // Prioridad: CIF explícito > nombre_empresa > "sin-empresa" (todos juntos si no hay dato)
-      const cif = (r.cif || '').trim();
-      const empresa = (r.empresa || '').trim();
-      // Solo usar nombre_cliente si realmente parece razón social (mayúsculas, S.L., etc.)
-      const nombreParece = (r.nombre||'').match(/S\.L\.|S\.A\.|SL\b|SA\b|S\.L\.U|SOCIEDAD|EMPRESA|GESTION|GROUP/i)
-        ? (r.nombre||'').trim() : '';
-      const key = cif || empresa || nombreParece || '__sin_empresa__';
-      const displayNombre = empresa || cif || nombreParece || 'Sin identificar';
-      if (!grupos[key]) grupos[key] = { cif, nombre: displayNombre, filas: [] };
+    console.log('🏭 cmAgruparEmpresas - total resultados:', resultados.length);
+    resultados.forEach((r, i) => {
+      const cif = (r.cif || '').trim().toUpperCase();
+      const empresa = (r.empresa || '').trim().toUpperCase();
+      // nombre_cliente solo si parece razón social
+      const nombreRazonSocial = /S\.L\.|S\.A\.|SL$|SA$|S\.L\.U|SOCIEDAD|EMPRESA|GESTION|GROUP|S\.COOP|SLU/i.test(r.nombre||'')
+        ? (r.nombre||'').trim().toUpperCase() : '';
+      const key = cif || empresa || nombreRazonSocial || `__individual_${i}__`;
+      const displayNombre = (r.empresa||'').trim() || (r.cif||'').trim() || (nombreRazonSocial ? r.nombre.trim() : '') || r.nombre || 'Sin identificar';
+      console.log(`  [${i}] cups:${r.cups} cif:"${cif}" empresa:"${empresa}" nombre:"${r.nombre}" → key:"${key}" display:"${displayNombre}"`);
+      if (!grupos[key]) grupos[key] = { cif: r.cif||'', nombre: displayNombre, filas: [] };
       grupos[key].filas.push(r);
     });
-    return Object.values(grupos).sort((a, b) => (a.nombre).localeCompare(b.nombre));
+    const result = Object.values(grupos).sort((a, b) => a.nombre.localeCompare(b.nombre));
+    console.log('🏭 Grupos resultado:', result.map(g => `"${g.nombre}" (${g.filas.length} filas)`));
+    return result;
   }
 
   // Al finalizar la cola, según modo empresa lanzar modal correspondiente
@@ -29232,7 +29251,9 @@ REGLAS:
   };
 
   window.cmAbrirModalEmpresasDiferentes = function() {
-    const fuente = window._cmResultadosProcesados || window._cmCola || _cmResultados.filter(r => r.seleccionado !== false);
+    // Usar snapshot guardado en el momento de "Añadir seleccionados" (tiene empresa/CIF frescos del DOM)
+    const fuente = window._cmSnapshotEmpresas || window._cmResultadosProcesados || window._cmCola || _cmResultados.filter(r => r.seleccionado !== false);
+    console.log('🏭 Abriendo modal empresas diferentes, fuente:', fuente.length, 'items');
     const grupos = cmAgruparEmpresas(fuente);
     window._cmGruposEmpresas = grupos;
     window._cmGrupoIdx = 0;

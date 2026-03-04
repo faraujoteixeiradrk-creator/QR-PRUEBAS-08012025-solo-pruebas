@@ -29787,6 +29787,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
 
   function _cmGenerarPDFAnualReal(grupos, comercialCode, clienteNombre, clienteTel) {
     const mesesNombre = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const isDrk = !window.activeBrand || window.activeBrand.NAME.includes('DRK');
 
     // ─── CALCULAR AHORROS por periodo real ───
     grupos.forEach(grupo => {
@@ -29794,15 +29795,11 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       const tarifaReciente = [...facturas].sort((a,b)=>(a.mesNumero||0)-(b.mesNumero||0)).pop()?.tarifa || '2.0TD';
       const tarifas = currentTariffs[tarifaReciente] || [];
       grupo._tarifaReciente = tarifaReciente;
-
       facturas.forEach(f => {
-        if (tarifas.length === 0) { f._ahorroMes = 0; f._mejorTarifa = '—'; f._totalDRK = 0; return; }
+        if (tarifas.length === 0) { f._ahorroMes=0; f._mejorTarifa='—'; f._totalDRK=0; return; }
         const dias = f.dias || 30;
-        // Mapeo correcto para calculateTariffCost
         const data = {
-          cups: f.cups,
-          dias_facturados: dias,
-          importe_total: f.total || 0,
+          cups: f.cups, dias_facturados: dias, importe_total: f.total||0,
           consumo_punta: f.e1||0, consumo_llano: f.e2||0, consumo_valle: f.e3||0,
           consumo_p1: f.e1||0, consumo_p2: f.e2||0, consumo_p3: f.e3||0,
           consumo_p4: f.e4||0, consumo_p5: f.e5||0, consumo_p6: f.e6||0,
@@ -29819,229 +29816,325 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           f._totalDRK = mejor.totalPeriod || 0;
           f._ahorroMes = (f.total||0) - f._totalDRK;
           f._mejorTarifa = mejor.offer.name || mejor.offer.descripcion || '—';
-          console.log(`📊 [Mes ${f.mesNumero}] actual=${f.total} DRK=${f._totalDRK.toFixed(2)} ahorro=${f._ahorroMes.toFixed(2)}`);
-        } else {
-          f._ahorroMes = 0; f._mejorTarifa = '—'; f._totalDRK = 0;
-        }
+        } else { f._ahorroMes=0; f._mejorTarifa='—'; f._totalDRK=0; }
       });
-
-      // Proyección anual: media de ahorros × 12
       const n = facturas.length;
       const suma = facturas.reduce((a,f)=>a+(f._ahorroMes||0),0);
-      grupo._sumaAhorros = suma;
-      grupo._mediaAhorroMes = suma / n;
-      grupo._ahorroAnual = (suma / n) * 12;
-      grupo._nFacturas = n;
+      grupo._sumaAhorros=suma; grupo._mediaAhorroMes=suma/n;
+      grupo._ahorroAnual=(suma/n)*12; grupo._nFacturas=n;
     });
 
-    // ─── GENERAR PDF ───
+    // ─── COLORES CORPORATIVOS (igual que PDF multicups) ───
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const W = doc.internal.pageSize.getWidth();
-    const H = doc.internal.pageSize.getHeight();
-    const m = 14;
-    const cw = W - 2*m;
-    const azulOsc = [15,40,120]; const azul = [30,64,175]; const verde = [22,163,74];
-    const gris = [245,247,250]; const negro = [30,30,30];
-    let y = 0;
+    const doc = new jsPDF('p','mm','a4');
+    const W=210, m=15, cw=W-2*m;
+    const primaryColor = isDrk ? [90,120,145] : [130,145,100];
+    const darkColor    = isDrk ? [107,125,142] : [115,130,95];
+    const greenColor   = [22,163,74];
+    const grisActual   = [104,125,142];  // color pedido para "actual"
+    const verdeAhorro  = [22,163,74];
+    const grayBg       = [245,247,250];
+    let y=0;
 
-    // ── PORTADA ──
-    doc.setFillColor(...azulOsc);
-    doc.rect(0,0,W,H,'F');
-    // Logo text
-    doc.setTextColor(255,255,255);
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(28);
-    doc.text('DRK', W/2, 60, {align:'center'});
-    doc.setFontSize(14);
-    doc.text('ENERGÍA', W/2, 72, {align:'center'});
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(9);
-    doc.setTextColor(150,190,255);
-    doc.text('Liderando el ahorro y la eficiencia energética.', W/2, 82, {align:'center'});
-
-    doc.setFillColor(255,255,255);
-    doc.roundedRect(m,95,cw,8,2,2,'F');
-    doc.setTextColor(...azulOsc);
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(9);
-    doc.text('ESTUDIO ANUAL DE AHORRO — COMPARATIVA PROFESIONAL', W/2, 100.5, {align:'center'});
-
-    // Datos cliente
-    doc.setTextColor(200,220,255);
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(8);
-    doc.text(`CLIENTE: ${clienteNombre||'[NOMBRE CLIENTE]'}`, m+4, 118);
-    const totalAhorroAnual = grupos.reduce((a,g)=>a+(g._ahorroAnual||0),0);
-    const totalActualPeriodo = grupos.reduce((a,g)=>g.facturas.reduce((b,f)=>b+(f.total||0),a),0);
-    const totalDRKPeriodo = grupos.reduce((a,g)=>g.facturas.reduce((b,f)=>b+(f._totalDRK||0),a),0);
-    const totalActualAnual = grupos.reduce((a,g)=>{
-      const n=g.facturas.length||1;
-      return a + (g.facturas.reduce((b,f)=>b+(f.total||0),0)/n)*12;
-    },0);
-    const totalDRKAnual = grupos.reduce((a,g)=>{
-      const n=g.facturas.length||1;
-      return a + (g.facturas.reduce((b,f)=>b+(f._totalDRK||0),0)/n)*12;
-    },0);
-    doc.text(`CUPS TOTALES: ${grupos.length}`, m+4, 126);
-    doc.text(`COMERCIAL: ${comercialCode}`, m+4, 134);
-
-    // Caja ahorro principal
-    doc.setFillColor(22,163,74);
-    doc.roundedRect(m,145,cw,55,4,4,'F');
-    doc.setTextColor(255,255,255);
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(10);
-    doc.text('TU AHORRO ANUAL ESTIMADO', W/2, 156, {align:'center'});
-    doc.setFontSize(26);
-    doc.text(`${totalAhorroAnual.toFixed(2)} €`, W/2, 172, {align:'center'});
-    // Subdata
-    doc.setFontSize(8);
-    doc.setFont('helvetica','normal');
-    doc.text(`Factura actual periodo: ${totalActualPeriodo.toFixed(2)} €`, W/2-1, 182, {align:'center'});
-    doc.text(`Estimado anual actual: ${totalActualAnual.toFixed(2)} €/año`, W/2-1, 188, {align:'center'});
-    doc.setFont('helvetica','bold');
-    doc.text(`Nuevo coste DRK: ${totalDRKPeriodo.toFixed(2)} € / ${totalDRKAnual.toFixed(2)} €/año`, W/2-1, 195, {align:'center'});
-
-    // Resumen CUPS
-    y = 210;
-    doc.setTextColor(200,220,255);
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(8);
-    doc.text('RESUMEN POR CUPS', m+4, y);
-    y += 6;
-    grupos.forEach((g,gi) => {
-      const nombre0 = g.facturas[0]?.nombre||'';
+    // ─── HELPER: dibujar cabecera en cualquier página ───
+    function drawPageHeader() {
+      // Degradado horizontal oscuro→claro (igual que multicups)
+      for (let i=0;i<W;i++) {
+        const r2=i/W;
+        doc.setFillColor(
+          Math.round(darkColor[0]+(240-darkColor[0])*r2),
+          Math.round(darkColor[1]+(245-darkColor[1])*r2),
+          Math.round(darkColor[2]+(250-darkColor[2])*r2)
+        );
+        doc.rect(i,0,1,45,'F');
+      }
+      // Logo
+      const lx=m+8, ly=15, lr=6;
+      if (isDrk) {
+        doc.setFillColor(219,68,55); doc.circle(lx-1,ly+1,lr*0.8,'F');
+        doc.setFillColor(66,133,244); doc.circle(lx+1,ly-1,lr*0.8,'F');
+        doc.setFillColor(244,180,0); doc.circle(lx-1,ly-1,lr*0.7,'F');
+        doc.setFillColor(15,157,88); doc.circle(lx+1,ly+1,lr*0.7,'F');
+        doc.setFillColor(255,255,255); doc.circle(lx,ly,lr*0.4,'F');
+      } else {
+        doc.setFillColor(60,90,50); doc.rect(lx-5,ly+4,10,1,'F');
+        doc.setDrawColor(60,90,50); doc.setLineWidth(1.2);
+        doc.roundedRect(lx-3.5,ly-2,7,6,0.5,0.5,'S');
+        doc.setLineWidth(1);
+        doc.line(lx+3.5,ly,lx+5,ly-0.5); doc.line(lx+5,ly-0.5,lx+5.5,ly+1);
+        doc.line(lx+5.5,ly+1,lx+5,ly+2.5); doc.line(lx+5,ly+2.5,lx+3.5,ly+2);
+        doc.setFillColor(100,150,70);
+        doc.rect(lx-3,ly+2.5,6,0.8,'F'); doc.rect(lx-3,ly+0.8,6,0.8,'F'); doc.rect(lx-3,ly-0.9,6,0.8,'F');
+        doc.setFillColor(255,200,0);
+        const ry=ly-7;
+        doc.triangle(lx-1,ry,lx-2,ry+2.5,lx,ry+2,'F');
+        doc.triangle(lx,ry+2,lx-1,ry+4.5,lx+1.5,ry+4.5,'F');
+      }
+      // Textos cabecera
       doc.setTextColor(255,255,255);
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(7.5);
-      doc.text(`[${gi+1}] ${g.cups}  ${g._tarifaReciente}  ${g._nFacturas} facturas  Ahorro anual: ${g._ahorroAnual.toFixed(2)} €`, m+4, y);
-      if (nombre0) { doc.setTextColor(150,190,255); doc.text(`    ${nombre0}`, m+4, y+4); y+=4; }
-      y += 6;
+      doc.setFontSize(24); doc.setFont('helvetica','bold');
+      doc.text(isDrk?'DRK':'POWER CUP', lx+12, 15);
+      doc.text('ENERGÍA', lx+12, 23);
+      doc.setFontSize(9); doc.setFont('helvetica','normal');
+      doc.setTextColor(200,220,240);
+      doc.text('Liderando el ahorro y la', lx+12, 31);
+      doc.text('eficiencia energética.', lx+12, 36);
+      // Derecha
+      doc.setTextColor(40,60,80); doc.setFontSize(11); doc.setFont('helvetica','bold');
+      doc.text('ESTUDIO DE AHORRO', W-m-3, 17, {align:'right'});
+      doc.setFontSize(14); doc.setTextColor(255,255,255);
+      doc.text('COMPARATIVA', W-m-3, 25, {align:'right'});
+      doc.setFontSize(12); doc.setTextColor(100,120,140);
+      doc.text('PROFESIONAL', W-m-3, 33, {align:'right'});
+    }
+
+    // ════ PÁGINA 1: PORTADA ════
+    drawPageHeader();
+    y=50;
+
+    // Bloque cliente (barra verde + caja blanca bordeada — igual multicups)
+    doc.setFillColor(...greenColor);
+    doc.roundedRect(m,y,cw,8,3,3,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text('ESTUDIO ANUAL DE AHORRO', m+5, y+5.5);
+    doc.setFillColor(255,255,255); doc.setDrawColor(...darkColor); doc.setLineWidth(1);
+    doc.roundedRect(m,y+8,cw,22,3,3,'FD');
+    doc.setTextColor(...darkColor); doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.text('COMPARATIVA PROFESIONAL - ' + (isDrk?'DRK':'POWER CUP'), m+5, y+16);
+    doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+    doc.text(`CLIENTE: ${clienteNombre||'[NOMBRE CLIENTE]'}`, m+5, y+22);
+    const totalCups = grupos.length;
+    doc.text(`CUPS TOTALES: ${totalCups}`, m+5, y+27);
+    // Comercial badge (derecha)
+    doc.setFillColor(...grayBg); doc.setDrawColor(200,210,220); doc.setLineWidth(0.5);
+    doc.roundedRect(W-m-45, y+10, 43, 13, 3,3,'FD');
+    doc.setTextColor(...darkColor); doc.setFontSize(8); doc.setFont('helvetica','bold');
+    doc.text(`COMERCIAL: ${comercialCode}`, W-m-43, y+19);
+    y+=36;
+
+    // Totales
+    const totalAhorroAnual  = grupos.reduce((a,g)=>a+(g._ahorroAnual||0),0);
+    const totalActualPer    = grupos.reduce((a,g)=>g.facturas.reduce((b,f)=>b+(f.total||0),a),0);
+    const totalDRKPer       = grupos.reduce((a,g)=>g.facturas.reduce((b,f)=>b+(f._totalDRK||0),a),0);
+    const totalActualAnual  = grupos.reduce((a,g)=>{const n=g.facturas.length||1;return a+(g.facturas.reduce((b,f)=>b+(f.total||0),0)/n)*12;},0);
+    const totalDRKAnual     = grupos.reduce((a,g)=>{const n=g.facturas.length||1;return a+(g.facturas.reduce((b,f)=>b+(f._totalDRK||0),0)/n)*12;},0);
+
+    // Banner "La mejor opción" (estilo multicups)
+    doc.setFillColor(...primaryColor);
+    doc.roundedRect(m,y,cw,28,4,4,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text('LA MEJOR OPCIÓN PARA TI ES', W/2, y+7, {align:'center'});
+    doc.setFontSize(22);
+    doc.text(isDrk?'DRK':'POWER CUP', W/2, y+18, {align:'center'});
+    doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+    doc.text(`Ofrece el mayor ahorro consolidado con ${isDrk?'DRK Energía':'POWER CUP'}.`, W/2, y+25, {align:'center'});
+    y+=34;
+
+    // Caja ahorro principal (fondo blanco con borde, igual multicups)
+    doc.setFillColor(255,255,255); doc.setDrawColor(220,225,230); doc.setLineWidth(0.5);
+    doc.roundedRect(m,y,cw,52,4,4,'FD');
+    doc.setTextColor(...darkColor); doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text('TU AHORRO ANUAL ESTIMADO', W/2, y+9, {align:'center'});
+    // Número grande verde
+    doc.setTextColor(...greenColor); doc.setFontSize(28); doc.setFont('helvetica','bold');
+    const fmt = v => v.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+    doc.text(`${fmt(totalAhorroAnual)} €`, W/2, y+22, {align:'center'});
+    // Línea divisoria vertical
+    doc.setDrawColor(220,225,230); doc.setLineWidth(0.5);
+    doc.line(W/2, y+27, W/2, y+50);
+    // Izquierda: factura actual (gris con tachado visual)
+    doc.setTextColor(...grisActual); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+    doc.text('TU FACTURA ACTUAL', m+15, y+29, {align:'center'});
+    // Precio tachado (rojo con línea)
+    doc.setTextColor(220,38,38); doc.setFontSize(13); doc.setFont('helvetica','bold');
+    const actPerStr = `${fmt(totalActualPer)} €`;
+    const actPerW = doc.getTextWidth(actPerStr);
+    doc.text(actPerStr, m+15, y+37, {align:'center'});
+    doc.setDrawColor(220,38,38); doc.setLineWidth(0.6);
+    doc.line(m+15-actPerW/2, y+35.5, m+15+actPerW/2, y+35.5);
+    doc.setTextColor(...grisActual); doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.text('Total Periodo (Variado)', m+15, y+42, {align:'center'});
+    // Anual actual tachado
+    doc.setTextColor(220,38,38); doc.setFontSize(10); doc.setFont('helvetica','bold');
+    const actAnStr = `${fmt(totalActualAnual)} €/año`;
+    const actAnW = doc.getTextWidth(actAnStr);
+    doc.text(actAnStr, m+15, y+49, {align:'center'});
+    doc.setDrawColor(220,38,38); doc.setLineWidth(0.5);
+    doc.line(m+15-actAnW/2, y+47.5, m+15+actAnW/2, y+47.5);
+    // Derecha: nuevo coste DRK (verde)
+    doc.setTextColor(...darkColor); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+    doc.text(`TU NUEVO COSTE ${isDrk?'DRK':'POWER CUP'}`, W/2+30, y+29, {align:'center'});
+    doc.setTextColor(...darkColor); doc.setFontSize(13); doc.setFont('helvetica','bold');
+    doc.text(`${fmt(totalDRKPer)} €`, W/2+30, y+37, {align:'center'});
+    doc.setTextColor(...grisActual); doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.text('Estimado Mensual', W/2+30, y+42, {align:'center'});
+    doc.setTextColor(...darkColor); doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.text(`${fmt(totalDRKAnual)} €/año`, W/2+30, y+49, {align:'center'});
+    y+=58;
+
+    // Tabla resumen CUPS
+    doc.setFillColor(...greenColor);
+    doc.roundedRect(m,y,cw,7,2,2,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+    doc.text(`RESUMEN DE ${totalCups} SUMINISTROS (MISMO CUPS — ESTUDIO ANUAL)`, m+4, y+5);
+    y+=7;
+    // Cabecera tabla
+    doc.setFillColor(...darkColor);
+    doc.rect(m,y,cw,6,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont('helvetica','bold');
+    const rCols=[8,70,18,18,28,28];
+    const rHdrs=['Nº','CUPS','Tarifa','Meses','Factura (período)','Ahorro anual proy.'];
+    let xh=m;
+    rHdrs.forEach((h,i)=>{doc.text(h,xh+1.5,y+4.5);xh+=rCols[i];});
+    y+=6;
+    grupos.forEach((g,gi)=>{
+      doc.setFillColor(...(gi%2===0?[255,255,255]:grayBg));
+      doc.rect(m,y,cw,7,'F');
+      doc.setTextColor(30,30,30); doc.setFontSize(7); doc.setFont('helvetica','normal');
+      const sumPer=g.facturas.reduce((a,f)=>a+(f.total||0),0);
+      const row=[`[${gi+1}]`,g.cups,g._tarifaReciente,String(g._nFacturas),
+        `${fmt(sumPer)} €`,`${fmt(g._ahorroAnual)} €`];
+      let xr=m;
+      row.forEach((v,i)=>{
+        if(i===5){doc.setTextColor(...verdeAhorro);doc.setFont('helvetica','bold');}
+        doc.text(v,xr+1.5,y+4.5);
+        doc.setTextColor(30,30,30); doc.setFont('helvetica','normal');
+        xr+=rCols[i];
+      });
+      // Nombre cliente
+      const n0=g.facturas[0]?.nombre||'';
+      if(n0){
+        doc.setTextColor(...grisActual); doc.setFontSize(6.5);
+        doc.text(n0, m+rCols[0]+1.5, y+4.5+3.5);
+        y+=3.5;
+      }
+      y+=7;
     });
 
-    // Footer portada
-    doc.setTextColor(100,130,180);
-    doc.setFontSize(7);
-    doc.text(`[Colaborador: ${comercialCode}] | Estudio anual proyectado. Generado el ${new Date().toLocaleDateString('es-ES')}`, W/2, H-8, {align:'center'});
+    // Footer pág 1
+    doc.setTextColor(160,170,180); doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+    doc.text(`[Colaborador: ${comercialCode}] | Estudio anual proyectado. Generado el ${new Date().toLocaleDateString('es-ES')}`, W/2, 292, {align:'center'});
 
-    // ── PÁGINAS DE DETALLE por grupo ──
+    // ════ PÁGINAS DE DETALLE por grupo ════
     grupos.forEach((grupo, gi) => {
       doc.addPage();
+      drawPageHeader();
       const { cups, facturas, _ahorroAnual, _tarifaReciente, _nFacturas, _mediaAhorroMes } = grupo;
       const ordenadas = [...facturas].sort((a,b)=>(a.mesNumero||0)-(b.mesNumero||0));
       const nombre0 = ordenadas[0]?.nombre||'';
-      y = 0;
+      y=50;
 
-      // Cabecera página
-      doc.setFillColor(...azulOsc);
-      doc.rect(0,0,W,22,'F');
-      doc.setTextColor(255,255,255);
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(9);
-      doc.text(`DESGLOSE MENSUAL — CUPS: ${cups}`, W/2, 10, {align:'center'});
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(7.5);
-      doc.text(`${_tarifaReciente} · ${nombre0} · ${_nFacturas} facturas`, W/2, 17, {align:'center'});
-      y = 28;
-
-      // Tabla mensual
-      const cws = [20,26,14,22,22,28,28,26];
-      const hdrs = ['Mes','Fecha','Días','kWh','P1 kW','Factura actual','Coste DRK','Ahorro periodo'];
-      doc.setFillColor(...azul);
-      doc.rect(m,y,cw,7,'F');
-      doc.setTextColor(255,255,255);
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(6.5);
-      let xh=m;
-      hdrs.forEach((h,i)=>{ doc.text(h,xh+1.5,y+5); xh+=cws[i]; });
+      // Bloque CUPS identificación
+      doc.setFillColor(...greenColor);
+      doc.roundedRect(m,y,cw,7,2,2,'F');
+      doc.setTextColor(255,255,255); doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+      doc.text(`DESGLOSE MENSUAL — CUPS: ${cups}`, m+4, y+5);
       y+=7;
-
-      let sumActual=0, sumDRK=0, sumAhorro=0;
-      ordenadas.forEach((f,ri)=>{
-        doc.setFillColor(...(ri%2===0?[255,255,255]:gris));
-        doc.rect(m,y,cw,6.5,'F');
-        doc.setTextColor(...negro);
-        doc.setFont('helvetica','normal');
-        doc.setFontSize(6.5);
-        const mes = mesesNombre[f.mesNumero]||`Mes ${f.mesNumero}`;
-        const kwh = (f.e1||0)+(f.e2||0)+(f.e3||0);
-        const fA = f.total||0; const fD = f._totalDRK||0; const fAh = f._ahorroMes||0;
-        sumActual+=fA; sumDRK+=fD; sumAhorro+=fAh;
-        const row=[mes,f.fechaEmision||'—',String(f.dias||0),kwh.toFixed(0),
-          (f.p1||0).toFixed(2),`${fA.toFixed(2)} €`,`${fD.toFixed(2)} €`,
-          `${fAh>=0?'+':''}${fAh.toFixed(2)} €`];
-        let xr=m;
-        row.forEach((v,i)=>{
-          doc.setTextColor(i===7&&fAh>0?22:(i===7?200:30),i===7&&fAh>0?163:30,i===7&&fAh>0?74:30);
-          doc.text(v,xr+1.5,y+4.5);
-          xr+=cws[i];
-        });
-        y+=6.5;
-      });
-
-      // Fila totales
-      doc.setFillColor(220,240,225);
-      doc.rect(m,y,cw,7,'F');
-      doc.setTextColor(...negro);
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(6.5);
-      const rowT=['TOTAL',`${ordenadas.length} fact.`,'','','',
-        `${sumActual.toFixed(2)} €`,`${sumDRK.toFixed(2)} €`,
-        `${sumAhorro>=0?'+':''}${sumAhorro.toFixed(2)} €`];
-      let xtt=m;
-      rowT.forEach((v,i)=>{doc.text(v,xtt+1.5,y+5);xtt+=cws[i];});
+      doc.setFillColor(...grayBg); doc.setDrawColor(220,225,230); doc.setLineWidth(0.5);
+      doc.roundedRect(m,y,cw,8,2,2,'FD');
+      doc.setTextColor(...darkColor); doc.setFontSize(8); doc.setFont('helvetica','normal');
+      doc.text(`${_tarifaReciente} · ${nombre0} · ${_nFacturas} facturas analizadas`, m+4, y+5.5);
       y+=12;
 
-      // Caja proyección anual
-      doc.setFillColor(...azul);
-      doc.roundedRect(m,y,cw,24,3,3,'F');
-      doc.setTextColor(255,255,255);
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(11);
-      doc.text(`AHORRO ANUAL PROYECTADO: ${_ahorroAnual.toFixed(2)} €`, W/2, y+10, {align:'center'});
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(8);
-      doc.text(`${_nFacturas} mes${_nFacturas>1?'es':''} analizados · Media: ${_mediaAhorroMes.toFixed(2)} €/mes × 12`, W/2, y+17, {align:'center'});
+      // Tabla mensual
+      const cws2=[20,24,12,20,20,12,26,26,22];
+      const hdrs2=['Mes','Fecha emisión','Días','kWh','P1 kW','Tarifa DRK','Factura actual','Coste DRK','Ahorro periodo'];
+      doc.setFillColor(...darkColor);
+      doc.rect(m,y,cw,6.5,'F');
+      doc.setTextColor(255,255,255); doc.setFontSize(6.5); doc.setFont('helvetica','bold');
+      let xhd=m;
+      hdrs2.forEach((h,i)=>{doc.text(h,xhd+1.5,y+5);xhd+=cws2[i];});
+      y+=6.5;
+
+      let sumA=0,sumD=0,sumAh=0;
+      ordenadas.forEach((f,ri)=>{
+        doc.setFillColor(...(ri%2===0?[255,255,255]:grayBg));
+        doc.rect(m,y,cw,7,'F');
+        doc.setTextColor(30,30,30); doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+        const mes=mesesNombre[f.mesNumero]||`M${f.mesNumero}`;
+        const kwh=(f.e1||0)+(f.e2||0)+(f.e3||0);
+        const fA=f.total||0, fD=f._totalDRK||0, fAh=f._ahorroMes||0;
+        sumA+=fA; sumD+=fD; sumAh+=fAh;
+        const row2=[mes, f.fechaEmision||'—', String(f.dias||0), kwh.toFixed(0),
+          (f.p1||0).toFixed(2), f._mejorTarifa||'—',
+          `${fmt(fA)} €`, `${fmt(fD)} €`,
+          `${fAh>=0?'+':''}${fmt(fAh)} €`];
+        let xr2=m;
+        row2.forEach((v,i)=>{
+          // col 6 = Factura actual: gris con efecto "tachado" visual (color gris)
+          if(i===6){ doc.setTextColor(...grisActual); doc.setFont('helvetica','normal'); }
+          // col 7 = Coste DRK: verde
+          else if(i===7){ doc.setTextColor(...verdeAhorro); doc.setFont('helvetica','bold'); }
+          // col 8 = Ahorro: verde negrita
+          else if(i===8){ doc.setTextColor(fAh>=0?22:200, fAh>=0?163:38, fAh>=0?74:38); doc.setFont('helvetica','bold'); }
+          else { doc.setTextColor(30,30,30); doc.setFont('helvetica','normal'); }
+          doc.text(v,xr2+1.5,y+5);
+          xr2+=cws2[i];
+        });
+        y+=7;
+      });
+
+      // Fila TOTALES
+      doc.setFillColor(230,242,232);
+      doc.rect(m,y,cw,7,'F');
+      doc.setFontSize(6.5);
+      const rowT2=['TOTAL',`${ordenadas.length} fact.`,'','','','',
+        `${fmt(sumA)} €`,`${fmt(sumD)} €`,
+        `${sumAh>=0?'+':''}${fmt(sumAh)} €`];
+      let xt2=m;
+      rowT2.forEach((v,i)=>{
+        if(i===6){doc.setTextColor(...grisActual);doc.setFont('helvetica','bold');}
+        else if(i===7){doc.setTextColor(...verdeAhorro);doc.setFont('helvetica','bold');}
+        else if(i===8){doc.setTextColor(...verdeAhorro);doc.setFont('helvetica','bold');}
+        else{doc.setTextColor(30,30,30);doc.setFont('helvetica','bold');}
+        doc.text(v,xt2+1.5,y+5);
+        xt2+=cws2[i];
+      });
+      y+=12;
+
+      // Caja proyección anual (estilo banner)
+      doc.setFillColor(...primaryColor);
+      doc.roundedRect(m,y,cw,22,4,4,'F');
+      doc.setTextColor(255,255,255); doc.setFontSize(10); doc.setFont('helvetica','bold');
+      doc.text(`AHORRO ANUAL PROYECTADO: ${fmt(_ahorroAnual)} €`, W/2, y+10, {align:'center'});
+      doc.setFont('helvetica','normal'); doc.setFontSize(8);
+      doc.text(`${_nFacturas} mes${_nFacturas>1?'es':''} analizados · Media: ${fmt(_mediaAhorroMes)} €/mes × 12`, W/2, y+17, {align:'center'});
       y+=28;
 
-      // Desglose individual por mes (cálculo detallado)
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(8);
-      doc.setTextColor(...azulOsc);
+      // Desglose calculado por mes
+      doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...darkColor);
       doc.text('Desglose de cálculo por mes:', m, y);
       y+=5;
 
       ordenadas.forEach(f=>{
-        if (y > H-40) { doc.addPage(); y=15; }
-        const mes = mesesNombre[f.mesNumero]||`Mes ${f.mesNumero}`;
-        const dias = f.dias||0;
-        // Cabecera mes
-        doc.setFillColor(240,244,255);
-        doc.rect(m,y,cw,6,'F');
-        doc.setTextColor(...azulOsc);
-        doc.setFont('helvetica','bold');
-        doc.setFontSize(7.5);
+        if(y>262){doc.addPage();drawPageHeader();y=50;}
+        const mes=mesesNombre[f.mesNumero]||`Mes ${f.mesNumero}`;
+        doc.setFillColor(240,245,252);
+        doc.roundedRect(m,y,cw,6,1,1,'F');
+        doc.setTextColor(...darkColor); doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
         doc.text(`${mes} (${f.fechaEmision||'—'}) · ${f._mejorTarifa||'—'}`, m+3, y+4.5);
-        doc.setTextColor(22,163,74);
-        doc.text(`Ahorro: +${(f._ahorroMes||0).toFixed(2)} €`, W-m-3, y+4.5, {align:'right'});
+        doc.setTextColor(...verdeAhorro);
+        doc.text(`Ahorro: +${fmt(f._ahorroMes||0)} €`, W-m-3, y+4.5, {align:'right'});
         y+=6;
-        doc.setFont('helvetica','normal');
-        doc.setFontSize(6.5);
-        doc.setTextColor(...negro);
-        doc.text(`Factura actual: ${(f.total||0).toFixed(2)} €   Coste DRK: ${(f._totalDRK||0).toFixed(2)} €   Días: ${dias}   E1:${f.e1||0} E2:${f.e2||0} E3:${f.e3||0} kWh   P1:${(f.p1||0).toFixed(2)} kW`, m+3, y+4.5);
-        y+=8;
+        doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(60,60,60);
+        // Factura actual en gris, DRK en verde
+        doc.setTextColor(...grisActual);
+        doc.text(`Factura actual: ${fmt(f.total||0)} €`, m+3, y+4);
+        doc.setTextColor(...verdeAhorro);
+        doc.text(`Coste DRK: ${fmt(f._totalDRK||0)} €`, m+45, y+4);
+        doc.setTextColor(60,60,60);
+        doc.text(`Días: ${f.dias||0}   E1:${f.e1||0}  E2:${f.e2||0}  E3:${f.e3||0} kWh   P1:${(f.p1||0).toFixed(2)} kW`, m+90, y+4);
+        y+=9;
       });
 
       // Footer
-      doc.setTextColor(150,150,150);
-      doc.setFontSize(6.5);
-      doc.text(`[${comercialCode}] | Estudio anual proyectado DRK Energía · ${new Date().toLocaleDateString('es-ES')}`, W/2, H-6, {align:'center'});
+      doc.setTextColor(160,170,180); doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+      doc.text(`[${comercialCode}] | Estudio anual proyectado ${isDrk?'DRK Energía':'POWER CUP'} · ${new Date().toLocaleDateString('es-ES')}`, W/2, 292, {align:'center'});
     });
 
     doc.save('Estudio_Anual_DRK.pdf');
-    console.log('✅ PDF Estudio Anual generado correctamente');
-  };
+    console.log('✅ PDF Estudio Anual generado con cabecera corporativa');
+  }
 
   window.cmCerrarModalEmpresas = function() {
     const modal = document.getElementById('cm-modal-empresas');

@@ -28076,7 +28076,19 @@ Antes de generar el JSON, verifica mentalmente:
 
 === RESPUESTA ===
 Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
-{"cups":"ES...","tarifa":"2.0TD","dias":30,"potencias_kw":{"p1":0.0,"p2":0.0,"p3":0.0,"p4":0.0,"p5":0.0,"p6":0.0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0.00,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","notas":""}`;
+{"cups":"ES...","tarifa":"2.0TD","dias":30,"potencias_kw":{"p1":0.0,"p2":0.0,"p3":0.0,"p4":0.0,"p5":0.0,"p6":0.0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0.00,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","notas":""}
+
+=== CAMPO nombre_empresa ===
+BUSCA en "Datos del cliente/titular": "Razón social:", "Empresa:", nombre en MAYÚSCULAS.
+Si el titular tiene S.L., S.A., S.L.U., S.COOP., SOCIEDAD, GRUPO → ese es nombre_empresa.
+Si es persona física (nombre + apellidos sin forma jurídica) → nombre_empresa = "".
+NUNCA pongas el nombre de la comercializadora (Iberdrola, Endesa, Naturgy...).
+
+=== CAMPO cif_nif ===
+BUSCA en "Datos del cliente": etiquetas "CIF:", "NIF:", "CIF/NIF:", "N.I.F:", "DNI:".
+CIF formato: letra+8dígitos (ej: B78518669). NIF/DNI: 8dígitos+letra (ej: 12345678A).
+Copia EXACTAMENTE como aparece. Si hay varios CIF, usa el del cliente (NO el de la distribuidora).
+Si no encuentras → "".`;
  }
   // ===== DRAG & DROP ZONES =====
  function setupDragZone(zoneId, tariff) {
@@ -28279,7 +28291,7 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
       }
      };
      function getPromptGasIA() {
-      return 'Eres un experto en facturas de gas espanolas. Analiza esta factura.\nINSTRUCCIONES:\n1. CUPS: Codigo que empieza por ES de 20-22 caracteres. Busca la etiqueta explicita "CUPS:" en datos del suministro.\n2. DIAS: Dias del periodo de facturacion.\n3. KWH: kWh consumidos en el periodo.\n4. TOTAL: Importe final a pagar con IVA.\n5. NOMBRE_CLIENTE: Nombre completo del titular (persona o empresa). Busca en "Datos del titular" o "Nombre:".\n6. DIRECCION: Direccion del punto de suministro (NO la fiscal). Busca en "Datos del suministro".\nDevuelve SOLO este JSON sin texto adicional:\n{"cups":"ES...","dias":30,"kwh":250.0,"total_factura":45.50,"nombre_cliente":"","direccion_suministro":"","notas":""}';
+      return 'Eres un experto en facturas de gas espanolas. Analiza esta factura.\nINSTRUCCIONES:\n1. CUPS: Codigo que empieza por ES de 20-22 caracteres. Busca la etiqueta explicita "CUPS:" en datos del suministro.\n2. DIAS: Dias del periodo de facturacion.\n3. KWH: kWh consumidos en el periodo.\n4. TOTAL: Importe final a pagar con IVA.\n5. NOMBRE_CLIENTE: Nombre completo del titular (persona o empresa). Busca en "Datos del titular" o "Nombre:".\n6. DIRECCION: Direccion del punto de suministro (NO la fiscal). Busca en "Datos del suministro".\n7. NOMBRE_EMPRESA: Si el titular tiene forma juridica (S.L., S.A., S.L.U., SOCIEDAD, GRUPO, etc.) pon la razon social exacta. Si es persona fisica pon "".\n8. CIF_NIF: Busca etiquetas "CIF:", "NIF:", "CIF/NIF:", "N.I.F:". Formato CIF: letra+8digitos (ej:B78518669). Formato NIF: 8digitos+letra (ej:12345678A). Copia EXACTAMENTE. Usa el del CLIENTE, no el de la comercializadora. Si no aparece pon "".\nDevuelve SOLO este JSON sin texto adicional:\n{"cups":"ES...","dias":30,"kwh":250.0,"total_factura":45.50,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","notas":""}';
      }
      window.confirmarDatosGasIA = function() {
       if (!gasAiData) return;
@@ -28309,6 +28321,9 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
        sv('client-address-input', gasAiData.direccion_suministro);
        sv('multicups-supply-address', gasAiData.direccion_suministro);
       }
+      // Guardar empresa y CIF del gas para adjuntar al dualSupply
+      if (gasAiData.nombre_empresa) window._iaEmpresa = gasAiData.nombre_empresa;
+      if (gasAiData.cif_nif) window._iaCif = gasAiData.cif_nif;
       cerrarModalGasIA();
      };
      document.addEventListener('DOMContentLoaded', function() {
@@ -28766,16 +28781,34 @@ REGLAS CRÍTICAS:
 
 {"tarifa":"2.0TD","cups":"ES0000000000000000AA","dias":30,"potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":""}
 
-REGLAS:
+REGLAS GENERALES:
 - tarifa: SOLO "2.0TD" (doméstico, ≤15kW, 2-3 periodos) o "3.0TD" (empresa, 6 periodos). NUNCA otro valor.
 - cups: código 18-22 chars que empieza por "ES". Si no se ve claramente pon "".
 - potencias_kw: las contratadas en kW. 2.0TD tiene p1 y p2. 3.0TD tiene p1 a p6.
 - energia_kwh: consumo del periodo. 2.0TD tiene e1, e2, e3. 3.0TD tiene e1 a e6.
 - total_factura: importe total en euros (número sin símbolo €).
-- nombre_cliente y direccion_suministro: del punto de suministro.
-- nombre_empresa: razón social o nombre de empresa titular (vacío si es particular).
-- cif_nif: CIF de empresa (formato A12345678) o NIF/DNI del titular (12345678A). Vacío si no aparece.
-- Pon 0 en los campos numéricos que no aparezcan, "" en los de texto.`;
+- nombre_cliente: nombre completo del titular del contrato (persona física o jurídica).
+- direccion_suministro: dirección del punto de suministro (NO la dirección fiscal).
+- Pon 0 en campos numéricos ausentes, "" en campos de texto ausentes.
+
+=== CAMPO CRÍTICO: nombre_empresa ===
+BUSCA en estas secciones de la factura (en orden de prioridad):
+1. Sección "Datos del cliente" o "Datos del titular" → busca "Razón social:", "Empresa:", "Nombre empresa:"
+2. Cabecera superior de la factura → nombre en MAYÚSCULAS antes de la dirección postal
+3. Si el titular tiene forma jurídica: S.L., S.A., S.L.U., S.COOP., C.B., S.C., S.L.P., SOCIEDAD, GRUPO, SERVICIOS → ese ES el nombre_empresa
+4. Si es un autónomo con nombre propio (ej: "Juan García López") → nombre_empresa = "" (vacío)
+5. NUNCA pongas el nombre de la comercializadora (Iberdrola, Endesa, Naturgy, Repsol, etc.)
+
+=== CAMPO CRÍTICO: cif_nif ===
+BUSCA en estas secciones de la factura:
+1. Sección "Datos del cliente" → busca "CIF:", "NIF:", "CIF/NIF:", "N.I.F:", "DNI:"
+2. Junto al nombre del titular en la cabecera
+3. En "Datos del contrato" o "Datos de facturación"
+FORMATO del CIF: letra + 8 dígitos → ej: B78518669, A12345678, G87654321
+FORMATO del NIF/DNI: 8 dígitos + letra → ej: 12345678A, 05394824J
+REGLA: Copia el CIF/NIF EXACTAMENTE como aparece en la factura, sin espacios.
+Si aparece múltiples CIF (cliente + distribuidora), usa el del CLIENTE (titular del contrato).
+Si no encuentras ningún CIF/NIF → pon "".`;
   }
 
   function cmMostrarRevision() {
@@ -28969,16 +29002,19 @@ REGLAS:
       const allTexts = Array.from(document.querySelectorAll(`#cm-row-${i} input:not([type="number"]):not([type="checkbox"])`));
       if (modoEmp === 'diferentes') {
         // En modo diferentes la tabla tiene: empresa(0), cif(1), cups(2), nombre(3), direccion(4)
-        r.empresa   = allTexts[0]?.value ?? r.empresa ?? '';
-        r.cif       = allTexts[1]?.value ?? r.cif ?? '';
-        r.cups      = allTexts[2]?.value ?? r.cups ?? '';
-        r.nombre    = allTexts[3]?.value ?? r.nombre ?? '';
-        r.direccion = allTexts[4]?.value ?? r.direccion ?? '';
+        // Priorizar valor del DOM si no está vacío, sino usar el valor ya en r (puesto por la IA)
+        r.empresa   = (allTexts[0]?.value || '').trim() || r.empresa || '';
+        r.cif       = (allTexts[1]?.value || '').trim() || r.cif || '';
+        r.cups      = (allTexts[2]?.value || '').trim() || r.cups || '';
+        r.nombre    = (allTexts[3]?.value || '').trim() || r.nombre || '';
+        r.direccion = (allTexts[4]?.value || '').trim() || r.direccion || '';
       } else {
         // Modo misma empresa: cups(0), nombre(1), direccion(2)
-        r.cups      = allTexts[0]?.value ?? r.cups ?? '';
-        r.nombre    = allTexts[1]?.value ?? r.nombre ?? '';
-        r.direccion = allTexts[2]?.value ?? r.direccion ?? '';
+        // Aun así preservar empresa/cif que la IA detectó (para snapshot posterior)
+        r.cups      = (allTexts[0]?.value || '').trim() || r.cups || '';
+        r.nombre    = (allTexts[1]?.value || '').trim() || r.nombre || '';
+        r.direccion = (allTexts[2]?.value || '').trim() || r.direccion || '';
+        // empresa y cif ya están en r desde la IA, no los sobreescribimos
       }
     });
 
@@ -28988,8 +29024,8 @@ REGLAS:
     // Guardar modo empresa para usarlo al finalizar
     window._cmModoEmpresa = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
 
-    // En modo empresas diferentes: guardar snapshot con empresa/CIF para agrupación posterior
-    if (window._cmModoEmpresa === 'diferentes') {
+    // En modo empresas diferentes O en DUAL: guardar snapshot con empresa/CIF para agrupación posterior
+    if (window._cmModoEmpresa === 'diferentes' || window._cmModoDual) {
       window._cmSnapshotEmpresas = cola.map(r => ({
         cups: r.cups || '',
         empresa: r.empresa || '',

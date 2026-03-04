@@ -29790,63 +29790,133 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     // Detectar tipo de tarifa de los grupos
     const tipoTarifa = grupos[0]?._tarifaReciente ||
       grupos[0]?.facturas?.slice().sort((a,b)=>(b.mesNumero||0)-(a.mesNumero||0))[0]?.tarifa || '2.0TD';
-    const tarifasDisp = (currentTariffs[tipoTarifa] || []).filter(t => t.isDrk);
+    const tarifasDisp = (currentTariffs[tipoTarifa] || []).filter(t => t.isDrk && t.name !== 'Tu Tarifa Actual');
 
     if (tarifasDisp.length === 0) {
-      // Sin tarifas disponibles → generar con lo que haya
-      _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono);
+      _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono, null);
       return;
     }
 
-    const overlay2 = document.createElement('div');
-    overlay2.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;';
+    // Pre-calcular ahorro estimado por tarifa (usando todas las facturas de todos los grupos)
+    function calcAhorroTarifa(tarifa) {
+      let sumaAhorros = 0, nFacturas = 0;
+      grupos.forEach(g => {
+        g.facturas.forEach(f => {
+          const dias = f.dias || 30;
+          const data = {
+            cups: f.cups, dias_facturados: dias, importe_total: f.total||0,
+            consumo_punta: f.e1||0, consumo_llano: f.e2||0, consumo_valle: f.e3||0,
+            consumo_p1: f.e1||0, consumo_p2: f.e2||0, consumo_p3: f.e3||0,
+            consumo_p4: f.e4||0, consumo_p5: f.e5||0, consumo_p6: f.e6||0,
+            potencia_p1_kw: f.p1||0, potencia_p2_kw: f.p2||0,
+            potencia_p3_kw: f.p3||0, potencia_p4_kw: f.p4||0,
+            potencia_p5_kw: f.p5||0, potencia_p6_kw: f.p6||0,
+            originalBillAnnual: (f.total||0) * (365/dias)
+          };
+          const r = calculateTariffCost(tarifa, data, tipoTarifa);
+          sumaAhorros += (f.total||0) - (r.totalPeriod||0);
+          nFacturas++;
+        });
+      });
+      return nFacturas > 0 ? (sumaAhorros / nFacturas) * 12 : 0;
+    }
 
-    const opciones = tarifasDisp.map((t, i) => {
-      const tarNombre = t.name || t.descripcion || `Tarifa ${i+1}`;
+    // Calcular ahorro automático (mejor tarifa por mes)
+    function calcAhorroAuto() {
+      const tarifas = currentTariffs[tipoTarifa] || [];
+      let sumaAhorros = 0, nFacturas = 0;
+      grupos.forEach(g => {
+        g.facturas.forEach(f => {
+          const dias = f.dias || 30;
+          const data = {
+            cups: f.cups, dias_facturados: dias, importe_total: f.total||0,
+            consumo_punta: f.e1||0, consumo_llano: f.e2||0, consumo_valle: f.e3||0,
+            consumo_p1: f.e1||0, consumo_p2: f.e2||0, consumo_p3: f.e3||0,
+            consumo_p4: f.e4||0, consumo_p5: f.e5||0, consumo_p6: f.e6||0,
+            potencia_p1_kw: f.p1||0, potencia_p2_kw: f.p2||0,
+            potencia_p3_kw: f.p3||0, potencia_p4_kw: f.p4||0,
+            potencia_p5_kw: f.p5||0, potencia_p6_kw: f.p6||0,
+            originalBillAnnual: (f.total||0) * (365/dias)
+          };
+          const drkRes = tarifas.filter(t=>t.isDrk && t.name!=='Tu Tarifa Actual')
+            .map(t => calculateTariffCost(t, data, tipoTarifa))
+            .sort((a,b)=>(a.totalPeriod||0)-(b.totalPeriod||0));
+          if (drkRes[0]) sumaAhorros += (f.total||0) - (drkRes[0].totalPeriod||0);
+          nFacturas++;
+        });
+      });
+      return nFacturas > 0 ? (sumaAhorros / nFacturas) * 12 : 0;
+    }
+
+    const fmt = v => v.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const ahorroAuto = calcAhorroAuto();
+
+    // Calcular ahorros y construir lista única (dedup por nombre+precios)
+    const tarifasUnicas = [];
+    const vistas = new Set();
+    tarifasDisp.forEach((t, i) => {
+      const tarNombre = t.descripcion ? `${t.name} - ${t.descripcion}` : (t.name || `Tarifa ${i+1}`);
+      const key = `${tarNombre}_${t.p1_price}`;
+      if (vistas.has(key)) return;
+      vistas.add(key);
+      const ahorro = calcAhorroTarifa(t);
+      tarifasUnicas.push({ t, tarNombre, ahorro, origIdx: i });
+    });
+
+    // Ordenar por ahorro descendente
+    tarifasUnicas.sort((a,b) => b.ahorro - a.ahorro);
+
+    const opciones = tarifasUnicas.map(({ t, tarNombre, ahorro }, i) => {
       const p1d = ((t.p_potencia_1||0)/365).toFixed(6);
       const p2d = ((t.p_potencia_2||0)/365).toFixed(6);
       const e1 = (t.p1_price||0).toFixed(6);
       const e2 = (t.p2_price||0).toFixed(6);
       const e3 = (t.p3_price||0).toFixed(6);
+      const ahorroColor = ahorro > 0 ? '#16a34a' : '#dc2626';
       return `<label style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:#f8fafc;border-radius:10px;border:2px solid #e2e8f0;cursor:pointer;transition:all 0.15s;" id="ea-tarifa-label-${i}"
-        onmouseover="this.style.borderColor='#3b82f6'" onmouseout="if(!document.getElementById('ea-tarifa-${i}').checked)this.style.borderColor='#e2e8f0'">
+        onclick="document.querySelectorAll('[id^=ea-tarifa-label-]').forEach(l=>{l.style.borderColor='#e2e8f0';l.style.background='#f8fafc';});this.style.borderColor='#3b82f6';this.style.background='#eff6ff';">
         <input type="radio" name="ea-tarifa-sel" id="ea-tarifa-${i}" value="${i}"
-          onchange="document.querySelectorAll('[id^=ea-tarifa-label-]').forEach(l=>l.style.borderColor='#e2e8f0');this.closest('label').style.borderColor='#3b82f6';this.closest('label').style.background='#eff6ff';"
-          style="margin-top:3px;accent-color:#2563eb;flex-shrink:0;">
-        <div>
-          <div style="font-weight:800;color:#1e3a8a;font-size:0.88rem;">${tarNombre}</div>
-          <div style="font-size:0.72rem;color:#64748b;margin-top:3px;">
-            P1: ${p1d} €/kW/día &nbsp;·&nbsp; P2: ${p2d} €/kW/día
+          style="margin-top:4px;accent-color:#2563eb;flex-shrink:0;">
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-weight:800;color:#1e3a8a;font-size:0.85rem;">${tarNombre}</div>
+            <div style="font-weight:900;font-size:0.88rem;color:${ahorroColor};white-space:nowrap;margin-left:8px;">
+              ${ahorro>=0?'+':''}${fmt(ahorro)} €/año
+            </div>
           </div>
-          <div style="font-size:0.72rem;color:#64748b;">
-            E1: ${e1} &nbsp;·&nbsp; E2: ${e2} &nbsp;·&nbsp; E3: ${e3} €/kWh
+          <div style="font-size:0.7rem;color:#64748b;margin-top:3px;">
+            P1: ${p1d} · P2: ${p2d} €/kW/día &nbsp;|&nbsp; E1: ${e1} · E2: ${e2} · E3: ${e3} €/kWh
           </div>
         </div>
       </label>`;
     }).join('');
 
-    // Opción "mejor tarifa automática"
-    const autoOpcion = `<label style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0fdf4;border-radius:10px;border:2px solid #16a34a;cursor:pointer;" id="ea-tarifa-label-auto">
+    const autoOpcion = `<label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f0fdf4;border-radius:10px;border:2px solid #16a34a;cursor:pointer;" id="ea-tarifa-label-auto"
+      onclick="document.querySelectorAll('[id^=ea-tarifa-label-]').forEach(l=>{l.style.borderColor='#e2e8f0';l.style.background='#f8fafc';});document.getElementById('ea-tarifa-label-auto').style.borderColor='#16a34a';document.getElementById('ea-tarifa-label-auto').style.background='#f0fdf4';">
       <input type="radio" name="ea-tarifa-sel" id="ea-tarifa-auto" value="auto" checked
-        onchange="document.querySelectorAll('[id^=ea-tarifa-label-]').forEach(l=>{l.style.borderColor='#e2e8f0';l.style.background='#f8fafc';});document.getElementById('ea-tarifa-label-auto').style.borderColor='#16a34a';"
         style="accent-color:#16a34a;flex-shrink:0;">
-      <div>
-        <div style="font-weight:800;color:#16a34a;font-size:0.88rem;">🏆 Mejor tarifa automática (recomendado)</div>
-        <div style="font-size:0.72rem;color:#64748b;margin-top:2px;">El sistema elige la tarifa más barata para cada mes</div>
+      <div style="flex:1;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-weight:800;color:#15803d;font-size:0.88rem;">🏆 Mejor tarifa automática</div>
+          <div style="font-weight:900;font-size:0.88rem;color:#16a34a;">+${fmt(ahorroAuto)} €/año</div>
+        </div>
+        <div style="font-size:0.7rem;color:#16a34a;margin-top:2px;">El sistema elige la tarifa más barata para cada mes</div>
       </div>
     </label>`;
 
+    const overlay2 = document.createElement('div');
+    overlay2.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;';
     overlay2.innerHTML = `
-      <div style="background:white;border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
-        <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:18px 22px;position:sticky;top:0;z-index:1;">
+      <div style="background:white;border-radius:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
+        <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:18px 22px;position:sticky;top:0;z-index:1;border-radius:20px 20px 0 0;">
           <div style="font-size:1rem;font-weight:900;color:white;">🎯 Selecciona la tarifa para el estudio</div>
-          <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">${tipoTarifa} · ${tarifasDisp.length} tarifa${tarifasDisp.length>1?'s':''} disponible${tarifasDisp.length>1?'s':''}</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">${tipoTarifa} · Las tarifas se ordenan de mayor a menor ahorro</div>
         </div>
-        <div style="padding:18px;display:flex;flex-direction:column;gap:8px;">
+        <div style="padding:16px;display:flex;flex-direction:column;gap:7px;">
           ${autoOpcion}
-          <div style="font-size:0.72rem;color:#94a3b8;font-weight:600;margin:4px 0 2px 2px;">O ELIGE UNA TARIFA ESPECÍFICA:</div>
+          <div style="font-size:0.7rem;color:#94a3b8;font-weight:600;margin:4px 0 2px 2px;">O ELIGE UNA TARIFA ESPECÍFICA:</div>
           ${opciones}
-          <div style="display:flex;gap:10px;margin-top:10px;">
+          <div style="display:flex;gap:10px;margin-top:10px;position:sticky;bottom:0;background:white;padding:8px 0 4px;">
             <button id="ea-tarifa-cancelar" style="flex:1;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.84rem;color:#64748b;">← Atrás</button>
             <button id="ea-tarifa-confirmar" style="flex:2;padding:11px;background:linear-gradient(135deg,#16a34a,#15803d);border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.84rem;color:white;">📊 Generar PDF con esta tarifa</button>
           </div>
@@ -29857,7 +29927,6 @@ Si no encuentras ningún CIF/NIF → pon "".`;
 
     overlay2.querySelector('#ea-tarifa-cancelar').onclick = () => {
       document.body.removeChild(overlay2);
-      // Volver al modal de datos
       window.cmGenerarPDFAnual();
     };
 
@@ -29865,11 +29934,10 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       const sel = overlay2.querySelector('input[name="ea-tarifa-sel"]:checked');
       const val = sel?.value;
       document.body.removeChild(overlay2);
-      if (val === 'auto' || val === undefined) {
-        // Automático: sin forzar tarifa
+      if (!val || val === 'auto') {
         _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono, null);
       } else {
-        const tarifaForzada = tarifasDisp[parseInt(val)];
+        const tarifaForzada = tarifasUnicas[parseInt(val)]?.t || null;
         _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono, tarifaForzada);
       }
     };

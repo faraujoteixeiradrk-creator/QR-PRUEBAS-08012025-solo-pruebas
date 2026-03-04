@@ -28817,10 +28817,21 @@ Si no encuentras → "".`;
 
     const reglasExtra = isDualMode ? `
 - tipo_suministro: "gas" si hay gas natural (m³, RL.X, CUPS gas). "electricidad" en otro caso.
-- Si GAS: tarifa = "RL1"…"RL5". Rellena consumo_gas_kwh.
-- Si ELECTRICIDAD: tarifa = "2.0TD" o "3.0TD". Rellena potencias_kw y energia_kwh.` : `
+- Si GAS: tarifa = "RL1"…"RL5". Rellena consumo_gas_kwh con kWh totales de gas.
+- Si ELECTRICIDAD: tarifa = "2.0TD" o "3.0TD". Rellena potencias_kw y energia_kwh por periodo.
+=== CRÍTICO ELECTRICIDAD: energia_kwh con 3 periodos ===
+Para tarifa 2.0TD busca los 3 periodos de consumo: Punta=e1, Llano=e2, Valle=e3.
+ATENCIÓN: Algunas facturas (ej. TotalEnergies) muestran el consumo en 2 bloques de fechas (ej. "340 kWh" y "558 kWh") que son periodos TEMPORALES, no P1/P2/P3.
+En ese caso busca los periodos reales Punta/Llano/Valle en la sección de LECTURAS al final de la factura (ej: "punta: 229,28 kWh, llano: 282,39 kWh, valle: 385,96 kWh").
+- e1 = kWh Punta
+- e2 = kWh Llano  
+- e3 = kWh Valle
+Si solo aparecen 2 valores de consumo (sin desglose P/L/V) → e1 = primer valor, e2 = segundo valor, e3 = 0.` : `
 - tipo_suministro: siempre "electricidad".
-- tarifa: "2.0TD" (≤15kW) o "3.0TD" (>15kW, 6 periodos).`;
+- tarifa: "2.0TD" (≤15kW) o "3.0TD" (>15kW, 6 periodos).
+=== CRÍTICO: energia_kwh con 3 periodos ===
+Para 2.0TD busca Punta=e1, Llano=e2, Valle=e3 en sección de LECTURAS/CONSUMOS.
+Algunas facturas muestran consumo en bloques temporales (ej. "340 kWh del 20/04 al 19/05") — en ese caso busca el desglose Punta/Llano/Valle en las lecturas finales.`;
 
     const promptText = `Eres un experto en facturas de energía españolas. Analiza TODOS los suministros de este documento.
 IMPORTANTE: Una factura puede contener MÁS DE UN suministro (multipunto). Busca TODOS los bloques con CUPS distintos.

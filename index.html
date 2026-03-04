@@ -24182,7 +24182,7 @@ ${clientName}
   <td style="font-size: 11px; font-weight: bold; padding: 5px;">POTENCIA:</td>
   </tr>
   <tr>
-  <td style="font-size: 10px; padding: 2px 5px;">P1: ${num(resFijo.p_fijo_diario / 365)} €/kW/día</td>
+  <td style="font-size: 10px; padding: 2px 5px;">P1: ${num(resFijo.p_fijo_diario * 365)} €/año</td>
   </tr>
   <tr>
   <td style="font-size: 11px; font-weight: bold; padding: 5px; padding-top: 10px;">ENERGÍA:</td>
@@ -24248,7 +24248,7 @@ ${clientName}
   <td style="font-size: 11px; font-weight: bold; padding: 5px;">POTENCIA:</td>
   </tr>
   <tr>
-  <td style="font-size: 10px; padding: 2px 5px;">P1: ${num(resIndexed.p_fijo_diario / 365)} €/kW/día</td>
+  <td style="font-size: 10px; padding: 2px 5px;">P1: ${num(resIndexed.p_fijo_diario * 365)} €/año</td>
   </tr>
   <tr>
   <td style="font-size: 11px; font-weight: bold; padding: 5px; padding-top: 10px;">ENERGÍA:</td>
@@ -24893,7 +24893,7 @@ ${clientName}
   doc.text('TÉRMINO FIJO:', margin + 5, yPos + 8);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text('Precio fijo diario (€/día):', margin + 10, yPos + 15);
+  doc.text('Precio fijo (€/año):', margin + 10, yPos + 15);
   doc.text(num(bestResult.p_fijo_diario * 365, 5), pageWidth - margin - 5, yPos + 15, { align: 'right' });
   yPos += 20;
   doc.setFont('helvetica', 'bold');
@@ -24918,12 +24918,12 @@ ${clientName}
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
-  doc.text('TÉRMINO FIJO (Precio en €/día)', margin, yPos);
+  doc.text('TÉRMINO FIJO (Precio en €/año)', margin, yPos);
   yPos += 6;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  const p_fijo_diario = bestResult.p_fijo_diario / 365;
-  doc.text(tr('Precio fijo') + ' (' + dias + ' ' + tr('días') + ' x ' + num(p_fijo_diario, 6) + ')', margin + 5, yPos);
+  const p_fijo_anual_display = bestResult.p_fijo_diario * 365;
+  doc.text(tr('Precio fijo') + ' (' + dias + ' ' + tr('días') + ' x ' + num(p_fijo_anual_display, 5) + ')', margin + 5, yPos);
   doc.text(eur(bestResult.total_fijo), pageWidth - margin - 5, yPos, { align: 'right' });
   yPos += 6;
   doc.setFont('helvetica', 'bold');
@@ -25291,12 +25291,12 @@ ${clientName}
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
-  doc.text('TÉRMINO FIJO (Precio en €/día)', leftX, leftY);
+  doc.text('TÉRMINO FIJO (Precio en €/año)', leftX, leftY);
   leftY += 6;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
-  const pFijoDiario = resFijo.p_fijo_diario / 365;
-  doc.text(tr('Precio fijo') + ' (' + dias + ' ' + tr('días') + ' x ' + num(pFijoDiario, 6) + ')', leftX + 3, leftY);
+  const pFijoDiario = resFijo.p_fijo_diario * 365;
+  doc.text(tr('Precio fijo') + ' (' + dias + ' ' + tr('días') + ' x ' + num(pFijoDiario, 5) + ')', leftX + 3, leftY);
   doc.text(eur(resFijo.total_fijo), leftX + colW - 2, leftY, { align: 'right' });
   leftY += 5;
   doc.setFont('helvetica', 'bold');
@@ -25375,12 +25375,12 @@ ${clientName}
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
-  doc.text('TÉRMINO FIJO (Precio en €/día)', rightX, rightY);
+  doc.text('TÉRMINO FIJO (Precio en €/año)', rightX, rightY);
   rightY += 6;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
-  const pIndexDiario = resIndexed.p_fijo_diario / 365;
-  doc.text(tr('Precio fijo') + ' (' + dias + ' ' + tr('días') + ' x ' + num(pIndexDiario, 6) + ')', rightX + 3, rightY);
+  const pIndexDiario = resIndexed.p_fijo_diario * 365;
+  doc.text(tr('Precio fijo') + ' (' + dias + ' ' + tr('días') + ' x ' + num(pIndexDiario, 5) + ')', rightX + 3, rightY);
   doc.text(eur(resIndexed.total_fijo), rightX + colW - 2, rightY, { align: 'right' });
   rightY += 5;
   doc.setFont('helvetica', 'bold');
@@ -25725,12 +25725,12 @@ ${clientName}
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
-  doc.text('TÉRMINO FIJO (Precio en €/día)', 12, y);
+  doc.text('TÉRMINO FIJO (Precio en €/año)', 12, y);
   y += 6;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  const pFijoDiario = bestResult.p_fijo_diario / 365;
-  doc.text(tr('Precio fijo') + ' (' + dias + ' ' + tr('días') + ' x ' + num(pFijoDiario, 6) + ')', 15, y);
+  const pFijoDiario = bestResult.p_fijo_diario * 365;
+  doc.text(tr('Precio fijo') + ' (' + dias + ' ' + tr('días') + ' x ' + num(pFijoDiario, 5) + ')', 15, y);
   doc.text(eur(bestResult.total_fijo), 195, y, { align: 'right' });
   y += 5;
   doc.setFont('helvetica', 'bold');
@@ -26057,11 +26057,11 @@ ${clientName}
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
-  doc.text('TÉRMINO FIJO (Precio en €/día)', leftX, leftY);
+  doc.text('TÉRMINO FIJO (Precio en €/año)', leftX, leftY);
   leftY += 6;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
-  const pFijoDiario = resFijo.p_fijo_diario / 365;
+  const pFijoDiario = resFijo.p_fijo_diario * 365;
   doc.text(tr('Precio fijo') + ' (' + dias + ' ' + tr('días') + ' x ' + num(pFijoDiario, 6) + ')', leftX + 3, leftY);
   doc.text(eur(resFijo.total_fijo), leftX + colW - 2, leftY, { align: 'right' });
   leftY += 5;
@@ -26141,11 +26141,11 @@ ${clientName}
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
-  doc.text('TÉRMINO FIJO (Precio en €/día)', rightX, rightY);
+  doc.text('TÉRMINO FIJO (Precio en €/año)', rightX, rightY);
   rightY += 6;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
-  const pIndexDiario = resIndexed.p_fijo_diario / 365;
+  const pIndexDiario = resIndexed.p_fijo_diario * 365;
   doc.text(tr('Precio fijo') + ' (' + dias + ' ' + tr('días') + ' x ' + num(pIndexDiario, 6) + ')', rightX + 3, rightY);
   doc.text(eur(resIndexed.total_fijo), rightX + colW - 2, rightY, { align: 'right' });
   rightY += 5;

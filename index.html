@@ -29994,11 +29994,13 @@ Si no encuentras ningún CIF/NIF → pon "".`;
         if (mejor) {
           f._totalDRK = mejor.totalPeriod || 0;
           f._ahorroMes = (f.total||0) - f._totalDRK;
-          // Nombre completo: name + description (igual que el modal)
+          // Guardar la oferta completa para usarla en el PDF
+          f._ofertaObj = mejor.offer;
+          // Nombre completo: name + description
           const _desc = mejor.offer.description || mejor.offer.descripcion || '';
           const _nm = mejor.offer.name || '';
           f._mejorTarifa = (_desc && _desc !== _nm) ? `${_nm} - ${_desc}` : (_nm || _desc || '—');
-        } else { f._ahorroMes=0; f._mejorTarifa='—'; f._totalDRK=0; }
+        } else { f._ahorroMes=0; f._mejorTarifa='—'; f._totalDRK=0; f._ofertaObj=null; }
       });
       const n = facturas.length;
       const suma = facturas.reduce((a,f)=>a+(f._ahorroMes||0),0);
@@ -30326,17 +30328,14 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     doc.text('PRECIOS DE LAS OFERTAS SELECCIONADAS', m+3, y+6.5);
     y += 14;
 
-    // Recopilar tarifas únicas usadas (por nombre)
+    // Recopilar tarifas únicas usadas — usar _ofertaObj guardado directamente en cada factura
     const tarifasUsadas = new Map();
     grupos.forEach(g => {
+      const tarifaType = g._tarifaReciente || '2.0TD';
       g.facturas.forEach(f => {
-        if (f._mejorTarifa && f._mejorTarifa !== '—') {
+        if (f._ofertaObj && f._mejorTarifa && f._mejorTarifa !== '—') {
           if (!tarifasUsadas.has(f._mejorTarifa)) {
-            // Buscar la oferta en currentTariffs
-            const tarifaType = g._tarifaReciente || '2.0TD';
-            const ofertasDisp = currentTariffs[tarifaType] || [];
-            const oferta = ofertasDisp.find(t => (t.name||t.descripcion||'') === f._mejorTarifa);
-            if (oferta) tarifasUsadas.set(f._mejorTarifa, { oferta, tipo: tarifaType });
+            tarifasUsadas.set(f._mejorTarifa, { oferta: f._ofertaObj, tipo: tarifaType });
           }
         }
       });

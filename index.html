@@ -29265,6 +29265,14 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       console.log('📸 Snapshot empresas guardado:', window._cmSnapshotEmpresas.map(s => `${s.cups} | empresa:"${s.empresa}" | cif:"${s.cif}"`));
     }
 
+    // ═══ MODO ESTUDIO ANUAL: no usar cola, generar PDF anual directamente ═══
+    if (window._cmEstudioAnual && window._cmEstudioAnual.length > 0) {
+      cerrarCargaMasiva();
+      // Pequeña pausa para que se cierre el modal, luego generar PDF
+      setTimeout(() => cmGenerarPDFAnual(), 300);
+      return;
+    }
+
     // Cerrar modal masiva y arrancar cola
     cerrarCargaMasiva();
     window._cmCola = cola;
@@ -29739,30 +29747,65 @@ Si no encuentras ningún CIF/NIF → pon "".`;
   window.cmGenerarPDFAnual = function() {
     const grupos = window._cmEstudioAnual || [];
     if (grupos.length === 0) return;
+
+    // Mostrar mini-modal para datos del cliente antes de generar PDF
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+    const codigoActual = document.getElementById('comercial-code-input')?.value || '';
+    const nombreActual = document.getElementById('client-name-input')?.value || (grupos[0]?.facturas[0]?.nombre||'');
+    overlay.innerHTML = `
+      <div style="background:white;border-radius:20px;width:100%;max-width:400px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
+        <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:18px 22px;">
+          <div style="font-size:1rem;font-weight:900;color:white;">📊 Datos para el Estudio Anual</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">Introduce los datos del cliente</div>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:10px;">
+          <input id="ea-codigo" placeholder="Código Comercial (Obligatorio)" value="${codigoActual}"
+            style="padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.85rem;width:100%;box-sizing:border-box;">
+          <input id="ea-nombre" placeholder="Nombre del cliente / empresa" value="${nombreActual}"
+            style="padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.85rem;width:100%;box-sizing:border-box;">
+          <input id="ea-telefono" placeholder="Teléfono (opcional)"
+            style="padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.85rem;width:100%;box-sizing:border-box;">
+          <div style="display:flex;gap:10px;margin-top:6px;">
+            <button id="ea-cancelar" style="flex:1;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.84rem;color:#64748b;">Cancelar</button>
+            <button id="ea-generar" style="flex:2;padding:11px;background:linear-gradient(135deg,#1e3a8a,#2563eb);border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.84rem;color:white;">📄 Generar PDF</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('#ea-cancelar').onclick = () => document.body.removeChild(overlay);
+    overlay.querySelector('#ea-generar').onclick = () => {
+      const codigo = overlay.querySelector('#ea-codigo').value.trim();
+      const nombre = overlay.querySelector('#ea-nombre').value.trim();
+      const telefono = overlay.querySelector('#ea-telefono').value.trim();
+      if (!codigo) { overlay.querySelector('#ea-codigo').style.borderColor='#dc2626'; return; }
+      document.body.removeChild(overlay);
+      _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono);
+    };
+  };
+
+  function _cmGenerarPDFAnualReal(grupos, comercialCode, clienteNombre, clienteTel) {
     const mesesNombre = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-    // Calcular ahorros por mes usando currentTariffs
+    // ─── CALCULAR AHORROS por periodo real ───
     grupos.forEach(grupo => {
-      const { cups, facturas } = grupo;
+      const { facturas } = grupo;
       const tarifaReciente = [...facturas].sort((a,b)=>(a.mesNumero||0)-(b.mesNumero||0)).pop()?.tarifa || '2.0TD';
       const tarifas = currentTariffs[tarifaReciente] || [];
+      grupo._tarifaReciente = tarifaReciente;
 
       facturas.forEach(f => {
         if (tarifas.length === 0) { f._ahorroMes = 0; f._mejorTarifa = '—'; f._totalDRK = 0; return; }
         const dias = f.dias || 30;
-        // calculateTariffCost usa: consumo_punta/llano/valle, potencia_pN_kw, dias_facturados, importe_total
+        // Mapeo correcto para calculateTariffCost
         const data = {
           cups: f.cups,
           dias_facturados: dias,
           importe_total: f.total || 0,
-          // 2.0TD: e1=punta, e2=llano, e3=valle
-          consumo_punta: f.e1||0,
-          consumo_llano: f.e2||0,
-          consumo_valle: f.e3||0,
-          // 3.0TD: consumo_p1..p6
+          consumo_punta: f.e1||0, consumo_llano: f.e2||0, consumo_valle: f.e3||0,
           consumo_p1: f.e1||0, consumo_p2: f.e2||0, consumo_p3: f.e3||0,
           consumo_p4: f.e4||0, consumo_p5: f.e5||0, consumo_p6: f.e6||0,
-          // Potencias: calculateTariffCost usa potencia_pN_kw
           potencia_p1_kw: f.p1||0, potencia_p2_kw: f.p2||0,
           potencia_p3_kw: f.p3||0, potencia_p4_kw: f.p4||0,
           potencia_p5_kw: f.p5||0, potencia_p6_kw: f.p6||0,
@@ -29770,149 +29813,234 @@ Si no encuentras ningún CIF/NIF → pon "".`;
         };
         const resultados = tarifas.map(t => calculateTariffCost(t, data, tarifaReciente));
         const drkResults = resultados.filter(r => r.offer && r.offer.isDrk);
-        // Ordenar por totalPeriod (coste real del periodo con IVA+IE)
         drkResults.sort((a,b) => (a.totalPeriod||0) - (b.totalPeriod||0));
         const mejor = drkResults[0];
         if (mejor) {
-          // totalPeriod = coste DRK real del periodo (con IVA + IE, sin anualizar)
-          const costeDRKperiodo = mejor.totalPeriod || 0;
-          // Ahorro del periodo = factura actual - coste DRK periodo
-          f._ahorroMes = (f.total||0) - costeDRKperiodo;
+          f._totalDRK = mejor.totalPeriod || 0;
+          f._ahorroMes = (f.total||0) - f._totalDRK;
           f._mejorTarifa = mejor.offer.name || mejor.offer.descripcion || '—';
-          f._totalDRK = costeDRKperiodo;
-          console.log(`📊 Anual calc [${f.mesNumero}]: actual=${f.total} DRK=${costeDRKperiodo.toFixed(2)} ahorro=${f._ahorroMes.toFixed(2)} tarifa=${f._mejorTarifa}`);
+          console.log(`📊 [Mes ${f.mesNumero}] actual=${f.total} DRK=${f._totalDRK.toFixed(2)} ahorro=${f._ahorroMes.toFixed(2)}`);
         } else {
           f._ahorroMes = 0; f._mejorTarifa = '—'; f._totalDRK = 0;
         }
       });
 
-      // Cálculo del ahorro anual:
-      // Suma de ahorros reales de cada periodo / nFacturas × 12
-      const nFacturas = facturas.length;
-      const sumaAhorros = facturas.reduce((a,f) => a + (f._ahorroMes||0), 0);
-      const mediaAhorro = sumaAhorros / nFacturas;
-      grupo._ahorroAnual = mediaAhorro * 12;
-      grupo._tarifaReciente = tarifaReciente;
-      grupo._nFacturas = nFacturas;
-      grupo._sumaAhorros = sumaAhorros;
-      grupo._mediaAhorroMes = mediaAhorro;
+      // Proyección anual: media de ahorros × 12
+      const n = facturas.length;
+      const suma = facturas.reduce((a,f)=>a+(f._ahorroMes||0),0);
+      grupo._sumaAhorros = suma;
+      grupo._mediaAhorroMes = suma / n;
+      grupo._ahorroAnual = (suma / n) * 12;
+      grupo._nFacturas = n;
     });
 
-    // Generar PDF con jsPDF
+    // ─── GENERAR PDF ───
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 12;
-    const contentWidth = pageWidth - 2 * margin;
-    const verde = [76,175,80];
-    const azul = [30,64,175];
-    const grisClaro = [245,247,250];
-    let yPos = 10;
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+    const m = 14;
+    const cw = W - 2*m;
+    const azulOsc = [15,40,120]; const azul = [30,64,175]; const verde = [22,163,74];
+    const gris = [245,247,250]; const negro = [30,30,30];
+    let y = 0;
 
-    // Cabecera
-    doc.setFillColor(...azul);
-    doc.rect(0, 0, pageWidth, 28, 'F');
+    // ── PORTADA ──
+    doc.setFillColor(...azulOsc);
+    doc.rect(0,0,W,H,'F');
+    // Logo text
     doc.setTextColor(255,255,255);
     doc.setFont('helvetica','bold');
+    doc.setFontSize(28);
+    doc.text('DRK', W/2, 60, {align:'center'});
     doc.setFontSize(14);
-    doc.text('ESTUDIO ANUAL DE AHORRO', pageWidth/2, 12, {align:'center'});
-    doc.setFontSize(9);
+    doc.text('ENERGÍA', W/2, 72, {align:'center'});
     doc.setFont('helvetica','normal');
-    doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')}`, pageWidth/2, 20, {align:'center'});
-    yPos = 35;
+    doc.setFontSize(9);
+    doc.setTextColor(150,190,255);
+    doc.text('Liderando el ahorro y la eficiencia energética.', W/2, 82, {align:'center'});
 
+    doc.setFillColor(255,255,255);
+    doc.roundedRect(m,95,cw,8,2,2,'F');
+    doc.setTextColor(...azulOsc);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(9);
+    doc.text('ESTUDIO ANUAL DE AHORRO — COMPARATIVA PROFESIONAL', W/2, 100.5, {align:'center'});
+
+    // Datos cliente
+    doc.setTextColor(200,220,255);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    doc.text(`CLIENTE: ${clienteNombre||'[NOMBRE CLIENTE]'}`, m+4, 118);
+    const totalAhorroAnual = grupos.reduce((a,g)=>a+(g._ahorroAnual||0),0);
+    const totalActualPeriodo = grupos.reduce((a,g)=>g.facturas.reduce((b,f)=>b+(f.total||0),a),0);
+    const totalDRKPeriodo = grupos.reduce((a,g)=>g.facturas.reduce((b,f)=>b+(f._totalDRK||0),a),0);
+    const totalActualAnual = grupos.reduce((a,g)=>{
+      const n=g.facturas.length||1;
+      return a + (g.facturas.reduce((b,f)=>b+(f.total||0),0)/n)*12;
+    },0);
+    const totalDRKAnual = grupos.reduce((a,g)=>{
+      const n=g.facturas.length||1;
+      return a + (g.facturas.reduce((b,f)=>b+(f._totalDRK||0),0)/n)*12;
+    },0);
+    doc.text(`CUPS TOTALES: ${grupos.length}`, m+4, 126);
+    doc.text(`COMERCIAL: ${comercialCode}`, m+4, 134);
+
+    // Caja ahorro principal
+    doc.setFillColor(22,163,74);
+    doc.roundedRect(m,145,cw,55,4,4,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(10);
+    doc.text('TU AHORRO ANUAL ESTIMADO', W/2, 156, {align:'center'});
+    doc.setFontSize(26);
+    doc.text(`${totalAhorroAnual.toFixed(2)} €`, W/2, 172, {align:'center'});
+    // Subdata
+    doc.setFontSize(8);
+    doc.setFont('helvetica','normal');
+    doc.text(`Factura actual periodo: ${totalActualPeriodo.toFixed(2)} €`, W/2-1, 182, {align:'center'});
+    doc.text(`Estimado anual actual: ${totalActualAnual.toFixed(2)} €/año`, W/2-1, 188, {align:'center'});
+    doc.setFont('helvetica','bold');
+    doc.text(`Nuevo coste DRK: ${totalDRKPeriodo.toFixed(2)} € / ${totalDRKAnual.toFixed(2)} €/año`, W/2-1, 195, {align:'center'});
+
+    // Resumen CUPS
+    y = 210;
+    doc.setTextColor(200,220,255);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(8);
+    doc.text('RESUMEN POR CUPS', m+4, y);
+    y += 6;
+    grupos.forEach((g,gi) => {
+      const nombre0 = g.facturas[0]?.nombre||'';
+      doc.setTextColor(255,255,255);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(7.5);
+      doc.text(`[${gi+1}] ${g.cups}  ${g._tarifaReciente}  ${g._nFacturas} facturas  Ahorro anual: ${g._ahorroAnual.toFixed(2)} €`, m+4, y);
+      if (nombre0) { doc.setTextColor(150,190,255); doc.text(`    ${nombre0}`, m+4, y+4); y+=4; }
+      y += 6;
+    });
+
+    // Footer portada
+    doc.setTextColor(100,130,180);
+    doc.setFontSize(7);
+    doc.text(`[Colaborador: ${comercialCode}] | Estudio anual proyectado. Generado el ${new Date().toLocaleDateString('es-ES')}`, W/2, H-8, {align:'center'});
+
+    // ── PÁGINAS DE DETALLE por grupo ──
     grupos.forEach((grupo, gi) => {
-      const { cups, facturas, _ahorroAnual, _tarifaReciente } = grupo;
+      doc.addPage();
+      const { cups, facturas, _ahorroAnual, _tarifaReciente, _nFacturas, _mediaAhorroMes } = grupo;
       const ordenadas = [...facturas].sort((a,b)=>(a.mesNumero||0)-(b.mesNumero||0));
-      const nombre = ordenadas[0]?.nombre || '';
+      const nombre0 = ordenadas[0]?.nombre||'';
+      y = 0;
 
-      if (gi > 0) { doc.addPage(); yPos = 15; }
-
-      // Bloque CUPS
-      doc.setFillColor(...verde);
-      doc.roundedRect(margin, yPos, contentWidth, 14, 2,2,'F');
+      // Cabecera página
+      doc.setFillColor(...azulOsc);
+      doc.rect(0,0,W,22,'F');
       doc.setTextColor(255,255,255);
       doc.setFont('helvetica','bold');
       doc.setFontSize(9);
-      doc.text(`CUPS: ${cups}`, margin+4, yPos+6);
+      doc.text(`DESGLOSE MENSUAL — CUPS: ${cups}`, W/2, 10, {align:'center'});
       doc.setFont('helvetica','normal');
-      doc.setFontSize(8);
-      doc.text(`Tarifa: ${_tarifaReciente} · ${nombre}`, margin+4, yPos+11);
-      yPos += 18;
+      doc.setFontSize(7.5);
+      doc.text(`${_tarifaReciente} · ${nombre0} · ${_nFacturas} facturas`, W/2, 17, {align:'center'});
+      y = 28;
 
-      // Tabla de meses
-      const colWidths = [22, 28, 22, 25, 25, 25, 25];
-      const headers = ['Mes','Fecha emisión','Días','kWh','Factura actual','Con DRK','Ahorro mes'];
+      // Tabla mensual
+      const cws = [20,26,14,22,22,28,28,26];
+      const hdrs = ['Mes','Fecha','Días','kWh','P1 kW','Factura actual','Coste DRK','Ahorro periodo'];
       doc.setFillColor(...azul);
-      doc.rect(margin, yPos, contentWidth, 7, 'F');
+      doc.rect(m,y,cw,7,'F');
       doc.setTextColor(255,255,255);
       doc.setFont('helvetica','bold');
-      doc.setFontSize(7);
-      let xh = margin;
-      headers.forEach((h,i) => { doc.text(h, xh+2, yPos+5); xh+=colWidths[i]; });
-      yPos += 7;
+      doc.setFontSize(6.5);
+      let xh=m;
+      hdrs.forEach((h,i)=>{ doc.text(h,xh+1.5,y+5); xh+=cws[i]; });
+      y+=7;
 
-      let totalFacturas = 0, totalDRK = 0, totalAhorro = 0;
-      ordenadas.forEach((f, ri) => {
-        doc.setFillColor(...(ri%2===0 ? [255,255,255] : grisClaro));
-        doc.rect(margin, yPos, contentWidth, 6.5, 'F');
-        doc.setTextColor(0,0,0);
+      let sumActual=0, sumDRK=0, sumAhorro=0;
+      ordenadas.forEach((f,ri)=>{
+        doc.setFillColor(...(ri%2===0?[255,255,255]:gris));
+        doc.rect(m,y,cw,6.5,'F');
+        doc.setTextColor(...negro);
         doc.setFont('helvetica','normal');
-        doc.setFontSize(7);
-        const mes = mesesNombre[f.mesNumero] || `Mes ${f.mesNumero}`;
-        const totalKwh = (f.e1||0)+(f.e2||0)+(f.e3||0);
-        const fActual = f.total||0;
-        const fDrk = f._totalDRK||0;
-        const fAhorro = f._ahorroMes||0;
-        totalFacturas += fActual; totalDRK += fDrk; totalAhorro += fAhorro;
-        const row = [mes, f.fechaEmision||'—', String(f.dias||0), totalKwh.toFixed(0),
-          `${fActual.toFixed(2)} €`, `${fDrk.toFixed(2)} €`,
-          `${fAhorro>=0?'+':''}${fAhorro.toFixed(2)} €`];
-        let xr = margin;
-        row.forEach((v,i) => {
-          doc.setTextColor(i===6 && fAhorro>0 ? 22 : (i===6 ? 220 : 0),
-                           i===6 && fAhorro>0 ? 163 : 0,
-                           i===6 && fAhorro>0 ? 74 : 0);
-          doc.text(v, xr+2, yPos+4.5);
-          xr += colWidths[i];
+        doc.setFontSize(6.5);
+        const mes = mesesNombre[f.mesNumero]||`Mes ${f.mesNumero}`;
+        const kwh = (f.e1||0)+(f.e2||0)+(f.e3||0);
+        const fA = f.total||0; const fD = f._totalDRK||0; const fAh = f._ahorroMes||0;
+        sumActual+=fA; sumDRK+=fD; sumAhorro+=fAh;
+        const row=[mes,f.fechaEmision||'—',String(f.dias||0),kwh.toFixed(0),
+          (f.p1||0).toFixed(2),`${fA.toFixed(2)} €`,`${fD.toFixed(2)} €`,
+          `${fAh>=0?'+':''}${fAh.toFixed(2)} €`];
+        let xr=m;
+        row.forEach((v,i)=>{
+          doc.setTextColor(i===7&&fAh>0?22:(i===7?200:30),i===7&&fAh>0?163:30,i===7&&fAh>0?74:30);
+          doc.text(v,xr+1.5,y+4.5);
+          xr+=cws[i];
         });
-        yPos += 6.5;
+        y+=6.5;
       });
 
       // Fila totales
-      doc.setFillColor(230,245,233);
-      doc.rect(margin, yPos, contentWidth, 7, 'F');
-      doc.setTextColor(0,0,0);
+      doc.setFillColor(220,240,225);
+      doc.rect(m,y,cw,7,'F');
+      doc.setTextColor(...negro);
       doc.setFont('helvetica','bold');
-      doc.setFontSize(7);
-      const rowTot = ['TOTAL', `${ordenadas.length} facturas`, '', '',
-        `${totalFacturas.toFixed(2)} €`, `${totalDRK.toFixed(2)} €`,
-        `${totalAhorro>=0?'+':''}${totalAhorro.toFixed(2)} €`];
-      let xt = margin;
-      rowTot.forEach((v,i) => { doc.text(v, xt+2, yPos+5); xt += colWidths[i]; });
-      yPos += 12;
+      doc.setFontSize(6.5);
+      const rowT=['TOTAL',`${ordenadas.length} fact.`,'','','',
+        `${sumActual.toFixed(2)} €`,`${sumDRK.toFixed(2)} €`,
+        `${sumAhorro>=0?'+':''}${sumAhorro.toFixed(2)} €`];
+      let xtt=m;
+      rowT.forEach((v,i)=>{doc.text(v,xtt+1.5,y+5);xtt+=cws[i];});
+      y+=12;
 
-      // Resumen anual proyectado
-      const nFacturas = ordenadas.length;
-      const proyectado = nFacturas >= 12;
+      // Caja proyección anual
       doc.setFillColor(...azul);
-      doc.roundedRect(margin, yPos, contentWidth, 18, 3,3,'F');
+      doc.roundedRect(m,y,cw,24,3,3,'F');
       doc.setTextColor(255,255,255);
       doc.setFont('helvetica','bold');
-      doc.setFontSize(10);
-      doc.text(`AHORRO ANUAL ${proyectado ? 'REAL' : 'PROYECTADO'}: ${_ahorroAnual>=0?'+':''}${_ahorroAnual.toFixed(2)} €`, pageWidth/2, yPos+8, {align:'center'});
+      doc.setFontSize(11);
+      doc.text(`AHORRO ANUAL PROYECTADO: ${_ahorroAnual.toFixed(2)} €`, W/2, y+10, {align:'center'});
       doc.setFont('helvetica','normal');
       doc.setFontSize(8);
-      const mediaReal = grupo._mediaAhorroMes || (totalAhorro / nFacturas);
-      const textoProyeccion = proyectado
-        ? `Basado en ${nFacturas} meses · Suma real: ${totalAhorro.toFixed(2)} €`
-        : `${nFacturas} mes${nFacturas>1?'es':''} · Media: ${mediaReal.toFixed(2)} €/mes × 12 = ${_ahorroAnual.toFixed(2)} €/año`;
-      doc.text(textoProyeccion, pageWidth/2, yPos+14, {align:'center'});
-      yPos += 22;
+      doc.text(`${_nFacturas} mes${_nFacturas>1?'es':''} analizados · Media: ${_mediaAhorroMes.toFixed(2)} €/mes × 12`, W/2, y+17, {align:'center'});
+      y+=28;
+
+      // Desglose individual por mes (cálculo detallado)
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(8);
+      doc.setTextColor(...azulOsc);
+      doc.text('Desglose de cálculo por mes:', m, y);
+      y+=5;
+
+      ordenadas.forEach(f=>{
+        if (y > H-40) { doc.addPage(); y=15; }
+        const mes = mesesNombre[f.mesNumero]||`Mes ${f.mesNumero}`;
+        const dias = f.dias||0;
+        // Cabecera mes
+        doc.setFillColor(240,244,255);
+        doc.rect(m,y,cw,6,'F');
+        doc.setTextColor(...azulOsc);
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(7.5);
+        doc.text(`${mes} (${f.fechaEmision||'—'}) · ${f._mejorTarifa||'—'}`, m+3, y+4.5);
+        doc.setTextColor(22,163,74);
+        doc.text(`Ahorro: +${(f._ahorroMes||0).toFixed(2)} €`, W-m-3, y+4.5, {align:'right'});
+        y+=6;
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(6.5);
+        doc.setTextColor(...negro);
+        doc.text(`Factura actual: ${(f.total||0).toFixed(2)} €   Coste DRK: ${(f._totalDRK||0).toFixed(2)} €   Días: ${dias}   E1:${f.e1||0} E2:${f.e2||0} E3:${f.e3||0} kWh   P1:${(f.p1||0).toFixed(2)} kW`, m+3, y+4.5);
+        y+=8;
+      });
+
+      // Footer
+      doc.setTextColor(150,150,150);
+      doc.setFontSize(6.5);
+      doc.text(`[${comercialCode}] | Estudio anual proyectado DRK Energía · ${new Date().toLocaleDateString('es-ES')}`, W/2, H-6, {align:'center'});
     });
 
     doc.save('Estudio_Anual_DRK.pdf');
-    console.log('✅ PDF Estudio Anual generado');
+    console.log('✅ PDF Estudio Anual generado correctamente');
   };
 
   window.cmCerrarModalEmpresas = function() {

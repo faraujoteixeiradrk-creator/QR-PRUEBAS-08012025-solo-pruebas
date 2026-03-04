@@ -29792,6 +29792,8 @@ Si no encuentras ningún CIF/NIF → pon "".`;
   };
 
   function _cmModalSeleccionTarifa(grupos, codigo, nombre, telefono) {
+    // Detectar marca activa dentro del scope de esta función
+    const isDrk = !window.activeBrand || window.activeBrand.NAME.includes('DRK');
     // Detectar tipo de tarifa de los grupos
     const tipoTarifa = grupos[0]?._tarifaReciente ||
       grupos[0]?.facturas?.slice().sort((a,b)=>(b.mesNumero||0)-(a.mesNumero||0))[0]?.tarifa || '2.0TD';

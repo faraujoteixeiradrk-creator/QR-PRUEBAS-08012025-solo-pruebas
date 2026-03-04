@@ -2558,6 +2558,9 @@
       console.log(`🏭 Supply ${supply.cups} → empresa:"${supply._empresa}" cif:"${supply._cif}"`);
     }
   }
+  // Si IA detectó empresa/CIF en suministro individual (no carga masiva), usarlo también
+  if (!supply._empresa && window._iaEmpresa) { supply._empresa = window._iaEmpresa; window._iaEmpresa = null; }
+  if (!supply._cif && window._iaCif) { supply._cif = window._iaCif; window._iaCif = null; }
   console.log('Total suministros:', dualSupplies.length);
   console.log('Array completo:', dualSupplies);
   // Limpiar flags de IA para el siguiente suministro
@@ -28073,7 +28076,7 @@ Antes de generar el JSON, verifica mentalmente:
 
 === RESPUESTA ===
 Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
-{"cups":"ES...","tarifa":"2.0TD","dias":30,"potencias_kw":{"p1":0.0,"p2":0.0,"p3":0.0,"p4":0.0,"p5":0.0,"p6":0.0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0.00,"nombre_cliente":"","direccion_suministro":"","notas":""}`;
+{"cups":"ES...","tarifa":"2.0TD","dias":30,"potencias_kw":{"p1":0.0,"p2":0.0,"p3":0.0,"p4":0.0,"p5":0.0,"p6":0.0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0.00,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","notas":""}`;
  }
   // ===== DRAG & DROP ZONES =====
  function setupDragZone(zoneId, tariff) {
@@ -28133,6 +28136,9 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
   sv('client-address-input', d.direccion_suministro);
   sv('multicups-supply-address', d.direccion_suministro);
   }
+  // Guardar empresa y CIF en aiExtractedData para snapshot DUAL
+  if (d.nombre_empresa) window._iaEmpresa = d.nombre_empresa;
+  if (d.cif_nif) window._iaCif = d.cif_nif;
   // Rellenar CUPS en modal de mejora
   if (d.cups) {
   sv('improvement-client-cups', d.cups);
@@ -29367,20 +29373,44 @@ REGLAS:
 
   // ═══ DUAL - EMPRESAS DIFERENTES ═══
   window.cmAbrirModalEmpresasDiferentesDual = function() {
-    // Agrupar dualSupplies por empresa usando _empresa/_cif adjuntos
+    // Separar gas y electricidad
+    const gasSupplies = dualSupplies.filter(s => s.type === 'gas');
+    const elecSupplies = dualSupplies.filter(s => s.type === 'electricidad');
+
+    // Agrupar SOLO las electricidades por empresa (el gas es compartido o se empareja)
     const grupos = {};
-    dualSupplies.forEach((s, i) => {
+    elecSupplies.forEach((s, i) => {
       const cif = (s._cif || '').trim().toUpperCase();
       const empresa = (s._empresa || '').trim().toUpperCase();
       const key = cif || empresa || `__individual_${i}__`;
       const displayNombre = (s._empresa||'').trim() || (s._cif||'').trim() || s.cups || 'Sin identificar';
-      if (!grupos[key]) grupos[key] = { cif: s._cif||'', nombre: displayNombre, supplies: [] };
-      grupos[key].supplies.push(s);
+      if (!grupos[key]) grupos[key] = { cif: s._cif||'', nombre: displayNombre, elec: [], gas: [] };
+      grupos[key].elec.push(s);
     });
+
+    // Asociar gas a grupos:
+    // Si un gas tiene _cif/_empresa que coincide → va a ese grupo
+    // Si no → se reparte a todos los grupos (gas compartido)
+    gasSupplies.forEach(g => {
+      const gasCif = (g._cif||'').trim().toUpperCase();
+      const gasEmp = (g._empresa||'').trim().toUpperCase();
+      const matchKey = gasCif || gasEmp;
+      let asignado = false;
+      if (matchKey && grupos[matchKey]) {
+        grupos[matchKey].gas.push(g);
+        asignado = true;
+      }
+      if (!asignado) {
+        // Gas sin empresa → añadir a todos los grupos
+        Object.values(grupos).forEach(gr => gr.gas.push(g));
+      }
+    });
+
     const gruposList = Object.values(grupos).sort((a,b) => a.nombre.localeCompare(b.nombre));
-    console.log('🏭 DUAL grupos:', gruposList.map(g=>`"${g.nombre}" (${g.supplies.length})`));
+    console.log('🏭 DUAL grupos:', gruposList.map(g=>`"${g.nombre}" elec:${g.elec.length} gas:${g.gas.length}`));
     window._cmGruposDual = gruposList;
     window._cmGruposDualIdx = 0;
+    window._dualSuppliesOriginal = [...dualSupplies];
     if (gruposList.length === 0) { alert('No hay empresas para generar PDFs.'); return; }
     cmMostrarFormularioDualEmpresa(0);
   };
@@ -29388,8 +29418,8 @@ REGLAS:
   window.cmMostrarFormularioDualEmpresa = function(idx) {
     const grupos = window._cmGruposDual || [];
     if (idx >= grupos.length) {
+      // Todos los PDFs generados → restaurar y recalcular global
       document.getElementById('cm-modal-empresas').style.display = 'none';
-      // Restaurar dualSupplies completo y recalcular global
       dualSupplies.length = 0;
       (window._dualSuppliesOriginal||[]).forEach(s => dualSupplies.push(s));
       if (typeof dualCalculate === 'function') dualCalculate();
@@ -29397,7 +29427,9 @@ REGLAS:
     }
     const g = grupos[idx];
     const total = grupos.length;
-    const cupsList = g.supplies.map(s=>s.cups).filter(Boolean).join(', ') || '—';
+    // Mostrar todos los CUPS del grupo (elec + gas)
+    const cupsList = [...g.elec, ...new Map(g.gas.map(s=>[s.cups,s])).values()]
+      .map(s=>s.cups).filter(Boolean).join(', ') || '—';
     const modal = document.getElementById('cm-modal-empresas');
     document.getElementById('cm-emp-titulo').textContent = `Empresa ${idx+1} de ${total}: ${g.nombre}`;
     document.getElementById('cm-emp-cups-lista').textContent = cupsList;
@@ -29414,51 +29446,59 @@ REGLAS:
     const grupos = window._cmGruposDual || [];
     const g = grupos[idx];
     if (!g) return;
+
     // Rellenar datos del cliente
     const sv = (id, val) => { const el = document.getElementById(id); if (el) el.value = val||''; };
     sv('comercial-code-input', document.getElementById('cm-emp-codigo').value);
     sv('client-name-input',    document.getElementById('cm-emp-nombre').value);
     sv('client-phone-input',   document.getElementById('cm-emp-telefono').value);
-    sv('client-address-input', g.supplies[0]?.supplyAddress || g.nombre || '');
+    sv('client-address-input', g.elec[0]?.supplyAddress || g.gas[0]?.supplyAddress || g.nombre || '');
     sv('client-email-input',   document.getElementById('cm-emp-email').value);
+
     document.getElementById('cm-modal-empresas').style.display = 'none';
     window._cmGruposDualIdx = idx + 1;
     const nextIdx = window._cmGruposDualIdx;
-    // Guardar backup completo
-    window._dualSuppliesOriginal = [...dualSupplies];
-    // Filtrar dualSupplies a solo los de esta empresa
-    const cupsSet = new Set(g.supplies.map(s=>s.cups));
-    console.log(`📄 DUAL PDF empresa "${g.nombre}" CUPS:`, [...cupsSet]);
+
+    // Construir lista de suministros para esta empresa: sus electricidades + sus gases (sin duplicar)
+    const cupsSetElec = new Set(g.elec.map(s=>s.cups));
+    // Para el gas: si es compartido (mismo gas en múltiples grupos), usar solo 1 instancia
+    const gasUnicos = [...new Map(g.gas.map(s=>[s.cups,s])).values()];
+    const suppliesEmpresa = [...g.elec, ...gasUnicos];
+
+    console.log(`📄 DUAL PDF empresa "${g.nombre}": ${suppliesEmpresa.length} suministros (${g.elec.length} elec + ${gasUnicos.length} gas)`);
+
+    // Sustituir temporalmente dualSupplies
     dualSupplies.length = 0;
-    window._dualSuppliesOriginal.filter(s => cupsSet.has(s.cups)).forEach(s => dualSupplies.push(s));
+    suppliesEmpresa.forEach(s => dualSupplies.push(s));
+
     // Recalcular DUAL para esta empresa
     dualCalculate();
-    setTimeout(async () => {
-      try {
-        // Abrir modal de datos del comercial y generar PDF
-        clearClientModal();
-        document.getElementById('client-data-modal').classList.remove('hidden');
-        document.getElementById('client-data-modal').classList.add('flex');
-        autoFillClientDataFromIA();
-        // Re-rellenar con datos de esta empresa (autoFill puede sobreescribir)
-        sv('client-name-input', document.getElementById('cm-emp-nombre')?.value || g.nombre);
-        // Esperar a que el usuario pulse PDF en ese modal
-        // Interceptar el botón PDF para avanzar tras generar
-        const pdfBtn = document.getElementById('execute-pdf-offer-btn');
-        const origClick = pdfBtn?.onclick;
-        if (pdfBtn) {
-          pdfBtn.onclick = async function() {
-            await handleGeneratePDF();
-            // Restaurar dualSupplies y avanzar
-            dualSupplies.length = 0;
-            window._dualSuppliesOriginal.forEach(s => dualSupplies.push(s));
-            dualCalculate();
-            closeClientDataModal();
-            if (origClick) pdfBtn.onclick = origClick;
-            setTimeout(() => cmMostrarFormularioDualEmpresa(nextIdx), 400);
-          };
-        }
-      } catch(e) { console.error('Error PDF DUAL empresa:', e); }
+
+    setTimeout(() => {
+      // Abrir modal datos cliente con datos de esta empresa ya rellenos
+      clearClientModal();
+      document.getElementById('client-data-modal').classList.remove('hidden');
+      document.getElementById('client-data-modal').classList.add('flex');
+      autoFillClientDataFromIA();
+      // Re-forzar nombre de empresa (autoFill puede sobreescribir)
+      sv('client-name-input',    document.getElementById('cm-emp-nombre')?.value || g.nombre);
+      sv('comercial-code-input', document.getElementById('cm-emp-codigo')?.value || '');
+
+      // Interceptar botón PDF para avanzar tras generar
+      const pdfBtn = document.getElementById('execute-pdf-offer-btn');
+      if (pdfBtn) {
+        const origClick = pdfBtn.onclick;
+        pdfBtn.onclick = async function() {
+          await handleGeneratePDF();
+          pdfBtn.onclick = origClick;
+          // Restaurar dualSupplies completos
+          dualSupplies.length = 0;
+          window._dualSuppliesOriginal.forEach(s => dualSupplies.push(s));
+          dualCalculate();
+          closeClientDataModal();
+          setTimeout(() => cmMostrarFormularioDualEmpresa(nextIdx), 400);
+        };
+      }
     }, 400);
   };
 

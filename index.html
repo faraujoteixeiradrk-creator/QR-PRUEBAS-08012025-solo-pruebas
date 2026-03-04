@@ -29748,39 +29748,47 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       const tarifas = currentTariffs[tarifaReciente] || [];
 
       facturas.forEach(f => {
-        if (tarifas.length === 0) { f._ahorroMes = 0; f._mejorTarifa = '—'; return; }
+        if (tarifas.length === 0) { f._ahorroMes = 0; f._mejorTarifa = '—'; f._totalDRK = 0; return; }
+        const dias = f.dias || 30;
+        // calculateTariffCost trabaja internamente en base anual → le pasamos originalBillAnnual anualizada
+        // pero para el AHORRO DEL PERIODO usamos directamente:
+        // coste_DRK_periodo = mejor.total (ya viene en euros del periodo real)
+        // ahorro_periodo = factura_actual - coste_DRK_periodo
         const data = {
-          cups: f.cups, tariff: tarifaReciente, dias: f.dias,
+          cups: f.cups, tariff: tarifaReciente, dias: dias,
           kwh_p1: f.e1||0, kwh_p2: f.e2||0, kwh_p3: f.e3||0,
           kwh_p4: f.e4||0, kwh_p5: f.e5||0, kwh_p6: f.e6||0,
           p1: f.p1||0, p2: f.p2||0, p3: f.p3||0,
           p4: f.p4||0, p5: f.p5||0, p6: f.p6||0,
-          originalBillAnnual: (f.total||0) * (365 / (f.dias||30))
+          originalBillAnnual: (f.total||0) * (365 / dias)
         };
         const resultados = tarifas.map(t => calculateTariffCost(t, data, tarifaReciente));
-        const mejor = resultados.filter(r=>r.offer.isDrk).sort((a,b)=>a.totalAnnual-b.totalAnnual)[0];
+        const drkResults = resultados.filter(r => r.offer && r.offer.isDrk);
+        // Ordenar por total del periodo real (menor coste) 
+        drkResults.sort((a,b) => (a.total||0) - (b.total||0));
+        const mejor = drkResults[0];
         if (mejor) {
-          const ahorroAnual = data.originalBillAnnual - mejor.totalAnnual;
-          f._ahorroMes = ahorroAnual * (f.dias||30) / 365;
+          // Coste DRK del periodo real (no anualizado)
+          const costeDRKperiodo = mejor.total || (mejor.totalAnnual * dias / 365);
+          // Ahorro del periodo = factura actual - coste DRK
+          f._ahorroMes = (f.total||0) - costeDRKperiodo;
           f._mejorTarifa = mejor.offer.name || mejor.offer.descripcion || '—';
-          f._totalDRK = mejor.total || (mejor.totalAnnual * (f.dias||30) / 365);
+          f._totalDRK = costeDRKperiodo;
         } else {
           f._ahorroMes = 0; f._mejorTarifa = '—'; f._totalDRK = 0;
         }
       });
 
       // Cálculo del ahorro anual:
-      // Ahorro real de cada mes = factura_actual_mes - coste_DRK_mes
-      // Si 12 facturas: suma directa. Si menos: media mensual × 12
-      const ahorros = facturas.map(f => f._ahorroMes || 0);
+      // Suma de ahorros reales de cada periodo / nFacturas × 12
       const nFacturas = facturas.length;
-      const sumaAhorros = ahorros.reduce((a,b)=>a+b, 0);
-      // Media mensual = suma / nFacturas → proyección anual = media × 12
-      grupo._ahorroAnual = (sumaAhorros / nFacturas) * 12;
+      const sumaAhorros = facturas.reduce((a,f) => a + (f._ahorroMes||0), 0);
+      const mediaAhorro = sumaAhorros / nFacturas;
+      grupo._ahorroAnual = mediaAhorro * 12;
       grupo._tarifaReciente = tarifaReciente;
       grupo._nFacturas = nFacturas;
       grupo._sumaAhorros = sumaAhorros;
-      grupo._mediaAhorroMes = sumaAhorros / nFacturas;
+      grupo._mediaAhorroMes = mediaAhorro;
     });
 
     // Generar PDF con jsPDF

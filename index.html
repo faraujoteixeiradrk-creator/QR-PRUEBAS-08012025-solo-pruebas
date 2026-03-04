@@ -29285,6 +29285,7 @@ REGLAS:
     const grupos = window._cmGruposEmpresas || [];
     const g = grupos[idx];
     if (!g) return;
+
     // Rellenar campos del modal de datos del comercial con los datos de esta empresa
     const sv = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
     sv('comercial-code-input', document.getElementById('cm-emp-codigo').value);
@@ -29292,33 +29293,55 @@ REGLAS:
     sv('client-phone-input',   document.getElementById('cm-emp-telefono').value);
     sv('client-address-input', g.filas[0]?.direccion || g.nombre || '');
     sv('client-email-input',   document.getElementById('cm-emp-email').value);
-    // Cerrar modal empresas temporalmente para que el PDF se genere limpio
+
+    // Cerrar modal empresas
     const modal = document.getElementById('cm-modal-empresas');
     if (modal) modal.style.display = 'none';
-    // Avanzar índice
+
+    // Avanzar índice antes del async
     window._cmGrupoIdx = idx + 1;
-    const totalGrupos = grupos.length;
     const nextIdx = window._cmGrupoIdx;
-    // Generar PDF usando la función real
-    if (typeof handleGeneratePDF === 'function') {
+
+    // Filtrar multiCupsData a solo los CUPS de esta empresa
+    const cupsDeLaEmpresa = new Set(g.filas.map(f => f.cups).filter(Boolean));
+    console.log(`📄 PDF empresa "${g.nombre}" - CUPS:`, [...cupsDeLaEmpresa]);
+
+    const multiCupsDataOriginal = [...multiCupsData];
+    const filtrado = multiCupsData.filter(d => cupsDeLaEmpresa.has(d.cups));
+
+    if (filtrado.length === 0) {
+      console.warn('⚠️ No se encontraron CUPS en multiCupsData para', g.nombre, '- usando todos');
+      // Fallback: generar con todos y avanzar
       handleGeneratePDF().then(() => {
-        // Abrir siguiente empresa después del PDF
         setTimeout(() => cmMostrarFormularioEmpresa(nextIdx), 500);
-      }).catch(() => {
-        setTimeout(() => cmMostrarFormularioEmpresa(nextIdx), 500);
-      });
-    } else {
-      // Fallback: abrir modal de datos del comercial para PDF manual
-      const sendModal = document.getElementById('send-offer-modal');
-      if (sendModal) { sendModal.classList.remove('hidden'); sendModal.classList.add('flex'); }
-      // Cuando se cierre, avanzar a siguiente
-      const origClose = window.closeClientDataModal;
-      window.closeClientDataModal = function() {
-        if (origClose) origClose();
-        window.closeClientDataModal = origClose;
-        setTimeout(() => cmMostrarFormularioEmpresa(nextIdx), 300);
-      };
+      }).catch(() => setTimeout(() => cmMostrarFormularioEmpresa(nextIdx), 500));
+      return;
     }
+
+    // Sustituir temporalmente multiCupsData con solo los de esta empresa
+    multiCupsData.length = 0;
+    filtrado.forEach(d => multiCupsData.push(d));
+    console.log(`🔄 multiCupsData temporal: ${multiCupsData.length} CUPS`);
+
+    // Recalcular resultado para esta empresa
+    compareMultiOffers();
+
+    // Pequeña espera para que el DOM se actualice, luego generar PDF
+    setTimeout(async () => {
+      try {
+        await handleGeneratePDF();
+      } catch(e) {
+        console.error('Error generando PDF:', e);
+      }
+      // Restaurar multiCupsData completo
+      multiCupsData.length = 0;
+      multiCupsDataOriginal.forEach(d => multiCupsData.push(d));
+      // Recalcular resultado global para restaurar estado
+      compareMultiOffers();
+      console.log(`✅ multiCupsData restaurado: ${multiCupsData.length} CUPS`);
+      // Abrir siguiente empresa
+      setTimeout(() => cmMostrarFormularioEmpresa(nextIdx), 600);
+    }, 300);
   };
 
   window.cmCerrarModalEmpresas = function() {

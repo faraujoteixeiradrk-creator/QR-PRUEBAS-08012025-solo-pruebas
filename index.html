@@ -16445,8 +16445,8 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   // === FIN Event listeners Pegar Código Completo ===
   document.getElementById('send-offer-btn').onclick = () => {
   // Si modo empresas diferentes → modal por empresa
-  const modoEmpresa = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value;
-  if (modoEmpresa === 'diferentes' && window._cmResultados && window._cmResultados.length > 0) {
+  const modoEmpresa = window._cmModoEmpresa;
+  if (modoEmpresa === 'diferentes' && (window._cmResultadosProcesados?.length > 0 || window._cmCola?.length > 0)) {
     if (typeof cmAbrirModalEmpresasDiferentes === 'function') cmAbrirModalEmpresasDiferentes();
     return;
   }
@@ -28461,6 +28461,7 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
 
   window.abrirCargaMasiva = function() {
     window._cmModoDual = false;
+    window._cmModoEmpresa = 'misma'; // default
     _cmFiles = [];
     _cmResultados = [];
     cmMostrarPaso(1);
@@ -28468,6 +28469,10 @@ Devuelve SOLO este JSON sin texto adicional ni markdown ni backticks:
     document.getElementById('cm-file-list').style.display = 'none';
     document.getElementById('cm-btn-procesar').style.display = 'none';
     document.getElementById('cm-file-items').innerHTML = '';
+    // Resetear selector modo empresa a "misma"
+    const mismaRadio = document.querySelector('input[name="cm-modo-empresa"][value="misma"]');
+    if (mismaRadio) { mismaRadio.checked = true; if (typeof cmSetModoEmpresa === 'function') cmSetModoEmpresa('misma'); }
+    window._cmResultadosProcesados = null;
   };
 
   window.abrirCargaMasivaDual = function() {
@@ -28943,10 +28948,22 @@ REGLAS:
       if (texts[0]) r.cups = texts[0].value;
       if (texts[1]) r.nombre = texts[1].value;
       if (texts[2]) r.direccion = texts[2].value;
+      // Leer empresa y CIF si están visibles (modo empresas diferentes)
+      const allTexts = Array.from(document.querySelectorAll(`#cm-row-${i} input:not([type="number"]):not([type="checkbox"])`));
+      // empresa y cif son los primeros dos inputs de texto en modo diferentes
+      const modoEmp = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
+      if (modoEmp === 'diferentes' && allTexts.length >= 4) {
+        // En modo diferentes: empresa(0), cif(1), cups(2), nombre(3), direccion(4)
+        r.empresa = allTexts[0]?.value || r.empresa || '';
+        r.cif     = allTexts[1]?.value || r.cif || '';
+      }
     });
 
     const cola = _cmResultados.filter(r => r.seleccionado);
     if (cola.length === 0) { alert('Marca al menos una factura con el checkbox'); return; }
+
+    // Guardar modo empresa para usarlo al finalizar
+    window._cmModoEmpresa = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
 
     // Cerrar modal masiva y arrancar cola
     cerrarCargaMasiva();
@@ -29197,21 +29214,26 @@ REGLAS:
 
   // Al finalizar la cola, según modo empresa lanzar modal correspondiente
   window.cmFinalizarCola = function() {
-    const modoEmpresa = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
-    if (modoEmpresa === 'misma') {
-      // Misma empresa → modal datos único (flujo actual)
-      if (typeof finalizarYComparar === 'function') finalizarYComparar();
-    } else {
+    const modoEmpresa = window._cmModoEmpresa || 'misma';
+    if (modoEmpresa === 'diferentes') {
       // Empresas diferentes → modal tabla por empresa
+      // Usar los resultados de la cola ya procesada
+      const colaProcesada = window._cmCola || [];
+      if (colaProcesada.length > 0) window._cmResultadosProcesados = colaProcesada;
       cmAbrirModalEmpresasDiferentes();
+    } else {
+      // Misma empresa → flujo normal MULTICUPS
+      if (typeof finalizarYComparar === 'function') finalizarYComparar();
     }
   };
 
   window.cmAbrirModalEmpresasDiferentes = function() {
-    const cola = _cmResultados.filter(r => r.seleccionado !== false);
-    const grupos = cmAgruparEmpresas(cola);
+    // Usar resultados procesados de la cola, o los resultados en tabla
+    const fuente = window._cmResultadosProcesados || window._cmCola || _cmResultados.filter(r => r.seleccionado !== false);
+    const grupos = cmAgruparEmpresas(fuente);
     window._cmGruposEmpresas = grupos;
     window._cmGrupoIdx = 0;
+    if (grupos.length === 0) { alert('No hay empresas para generar PDFs.'); return; }
     cmMostrarFormularioEmpresa(0);
   };
 

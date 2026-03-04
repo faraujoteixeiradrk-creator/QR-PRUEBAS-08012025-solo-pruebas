@@ -30016,7 +30016,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           <div style="font-weight:800;color:#15803d;font-size:0.88rem;">🏆 Mejor tarifa automática</div>
           <div style="font-weight:900;font-size:0.88rem;color:#16a34a;">+${fmt(ahorroAuto)} €/año</div>
         </div>
-        <div style="font-size:0.7rem;color:#16a34a;margin-top:2px;">El sistema elige la tarifa más barata para cada mes</div>
+        <div style="font-size:0.7rem;color:#16a34a;margin-top:2px;">La tarifa con mayor ahorro total acumulado en todos los meses</div>
       </div>
     </label>`;
 
@@ -30056,7 +30056,11 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       const val = sel?.value;
       document.body.removeChild(overlay2);
       if (!val || val === 'auto') {
-        _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono, null);
+        // "Mejor automática" = la UNA tarifa con mayor ahorro total (no mejor por mes)
+        // Usamos tarifasUnicas que ya está calculado y ordenado por ahorro desc
+        const mejorTarifaAuto = (window._cmTarifasUnicasAnual || [])[0]?.t || null;
+        console.log('🏆 Mejor tarifa automática (única):', mejorTarifaAuto?.name, mejorTarifaAuto?.description);
+        _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono, mejorTarifaAuto);
       } else {
         const idx = parseInt(val);
         const tarifaForzada = (window._cmTarifasUnicasAnual || [])[idx]?.t || null;

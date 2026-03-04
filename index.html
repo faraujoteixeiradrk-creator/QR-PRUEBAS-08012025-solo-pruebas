@@ -29203,13 +29203,18 @@ REGLAS:
   function cmAgruparEmpresas(resultados) {
     const grupos = {};
     resultados.forEach(r => {
-      const cif = r.cif || cmInferCIF(r);
-      const nombre = r.empresa || r.nombre || 'Sin nombre';
-      const key = cif || nombre;
-      if (!grupos[key]) grupos[key] = { cif, nombre, filas: [] };
+      // Prioridad: CIF explícito > nombre_empresa > "sin-empresa" (todos juntos si no hay dato)
+      const cif = (r.cif || '').trim();
+      const empresa = (r.empresa || '').trim();
+      // Solo usar nombre_cliente si realmente parece razón social (mayúsculas, S.L., etc.)
+      const nombreParece = (r.nombre||'').match(/S\.L\.|S\.A\.|SL\b|SA\b|S\.L\.U|SOCIEDAD|EMPRESA|GESTION|GROUP/i)
+        ? (r.nombre||'').trim() : '';
+      const key = cif || empresa || nombreParece || '__sin_empresa__';
+      const displayNombre = empresa || cif || nombreParece || 'Sin identificar';
+      if (!grupos[key]) grupos[key] = { cif, nombre: displayNombre, filas: [] };
       grupos[key].filas.push(r);
     });
-    return Object.values(grupos).sort((a, b) => (a.cif || a.nombre).localeCompare(b.cif || b.nombre));
+    return Object.values(grupos).sort((a, b) => (a.nombre).localeCompare(b.nombre));
   }
 
   // Al finalizar la cola, según modo empresa lanzar modal correspondiente
@@ -29217,7 +29222,6 @@ REGLAS:
     const modoEmpresa = window._cmModoEmpresa || 'misma';
     if (modoEmpresa === 'diferentes') {
       // Empresas diferentes → modal tabla por empresa
-      // Usar los resultados de la cola ya procesada
       const colaProcesada = window._cmCola || [];
       if (colaProcesada.length > 0) window._cmResultadosProcesados = colaProcesada;
       cmAbrirModalEmpresasDiferentes();
@@ -29228,7 +29232,6 @@ REGLAS:
   };
 
   window.cmAbrirModalEmpresasDiferentes = function() {
-    // Usar resultados procesados de la cola, o los resultados en tabla
     const fuente = window._cmResultadosProcesados || window._cmCola || _cmResultados.filter(r => r.seleccionado !== false);
     const grupos = cmAgruparEmpresas(fuente);
     window._cmGruposEmpresas = grupos;
@@ -29244,9 +29247,11 @@ REGLAS:
     const total = grupos.length;
     const modal = document.getElementById('cm-modal-empresas');
     if (!modal) return;
-    document.getElementById('cm-emp-titulo').textContent = `Empresa ${idx+1} de ${total}: ${g.nombre || g.cif || 'Sin identificar'}`;
-    document.getElementById('cm-emp-cups-lista').textContent = g.filas.map(f => f.cups || '').filter(Boolean).join(', ') || '—';
-    document.getElementById('cm-emp-nombre').value = g.nombre || '';
+    document.getElementById('cm-emp-titulo').textContent = `Empresa ${idx+1} de ${total}: ${g.nombre}`;
+    // Mostrar CUPS reales, no nombres
+    const cupsList = g.filas.map(f => f.cups || '').filter(v => v && v.startsWith('ES')).join(', ') || g.filas.map(f=>f.cups||'').join(', ') || '—';
+    document.getElementById('cm-emp-cups-lista').textContent = cupsList;
+    document.getElementById('cm-emp-nombre').value = g.nombre !== 'Sin identificar' ? g.nombre : '';
     document.getElementById('cm-emp-telefono').value = g.telefono || '';
     document.getElementById('cm-emp-email').value = g.email || '';
     document.getElementById('cm-emp-codigo').value = document.getElementById('comercial-code-input')?.value || '';
@@ -29258,18 +29263,41 @@ REGLAS:
     const idx = window._cmGrupoIdx || 0;
     const grupos = window._cmGruposEmpresas || [];
     const g = grupos[idx];
-    // Rellenar campos del modal de datos del comercial
-    const sv = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    if (!g) return;
+    // Rellenar campos del modal de datos del comercial con los datos de esta empresa
+    const sv = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
     sv('comercial-code-input', document.getElementById('cm-emp-codigo').value);
-    sv('client-name-input', document.getElementById('cm-emp-nombre').value);
-    sv('client-phone-input', document.getElementById('cm-emp-telefono').value);
+    sv('client-name-input',    document.getElementById('cm-emp-nombre').value);
+    sv('client-phone-input',   document.getElementById('cm-emp-telefono').value);
     sv('client-address-input', g.filas[0]?.direccion || g.nombre || '');
-    sv('client-email-input', document.getElementById('cm-emp-email').value);
-    // Generar PDF
-    if (typeof crearPDFComparativo === 'function') crearPDFComparativo();
-    // Avanzar a siguiente empresa
+    sv('client-email-input',   document.getElementById('cm-emp-email').value);
+    // Cerrar modal empresas temporalmente para que el PDF se genere limpio
+    const modal = document.getElementById('cm-modal-empresas');
+    if (modal) modal.style.display = 'none';
+    // Avanzar índice
     window._cmGrupoIdx = idx + 1;
-    setTimeout(() => cmMostrarFormularioEmpresa(window._cmGrupoIdx), 800);
+    const totalGrupos = grupos.length;
+    const nextIdx = window._cmGrupoIdx;
+    // Generar PDF usando la función real
+    if (typeof handleGeneratePDF === 'function') {
+      handleGeneratePDF().then(() => {
+        // Abrir siguiente empresa después del PDF
+        setTimeout(() => cmMostrarFormularioEmpresa(nextIdx), 500);
+      }).catch(() => {
+        setTimeout(() => cmMostrarFormularioEmpresa(nextIdx), 500);
+      });
+    } else {
+      // Fallback: abrir modal de datos del comercial para PDF manual
+      const sendModal = document.getElementById('send-offer-modal');
+      if (sendModal) { sendModal.classList.remove('hidden'); sendModal.classList.add('flex'); }
+      // Cuando se cierre, avanzar a siguiente
+      const origClose = window.closeClientDataModal;
+      window.closeClientDataModal = function() {
+        if (origClose) origClose();
+        window.closeClientDataModal = origClose;
+        setTimeout(() => cmMostrarFormularioEmpresa(nextIdx), 300);
+      };
+    }
   };
 
   window.cmCerrarModalEmpresas = function() {

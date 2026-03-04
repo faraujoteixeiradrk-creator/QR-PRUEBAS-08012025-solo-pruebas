@@ -28670,8 +28670,77 @@ Si no encuentras → "".`;
     const ok = _cmResultados.filter(r=>r.ok).length;
     textoEl.textContent = `✅ Completado: ${ok} OK · ${_cmResultados.length - ok} con avisos`;
     _cmProcesando = false;
+
+    // ═══ DETECCIÓN ESTUDIO ANUAL (solo modo "misma empresa") ═══
+    const modoEmpresaActual = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
+    if (modoEmpresaActual === 'misma' && !window._cmModoDual) {
+      const cupsGrupos = {};
+      _cmResultados.filter(r => r.ok && r.cups).forEach(r => {
+        if (!cupsGrupos[r.cups]) cupsGrupos[r.cups] = [];
+        cupsGrupos[r.cups].push(r);
+      });
+      // Detectar CUPS con meses distintos
+      const cupsAnuales = Object.entries(cupsGrupos).filter(([cups, facturas]) => {
+        if (facturas.length < 2) return false;
+        const meses = new Set(facturas.map(f => f.mesNumero).filter(m => m > 0));
+        return meses.size >= 2; // al menos 2 meses distintos
+      });
+      if (cupsAnuales.length > 0) {
+        // Mostrar modal preguntando estudio anual o individual
+        const respAnual = await cmMostrarModalEstudioAnual(cupsAnuales);
+        if (respAnual === 'anual') {
+          window._cmEstudioAnual = cupsAnuales.map(([cups, facturas]) => ({ cups, facturas }));
+          setTimeout(() => cmMostrarRevision(), 200);
+          return;
+        }
+        // Si elige individual → flujo normal
+        window._cmEstudioAnual = null;
+      }
+    }
     setTimeout(() => cmMostrarRevision(), 1000);
   };
+
+  // ─── Modal: ¿Estudio anual o individual? ───
+  function cmMostrarModalEstudioAnual(cupsAnuales) {
+    return new Promise(resolve => {
+      const listaCups = cupsAnuales.map(([cups, facturas]) => {
+        const meses = [...new Set(facturas.map(f => f.mesNumero).filter(m=>m>0))].sort((a,b)=>a-b);
+        const nombres = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const mesesStr = meses.map(m => nombres[m]||m).join(', ');
+        return `<div style="padding:8px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #86efac;font-size:0.8rem;color:#166534;">
+          <div style="font-weight:700;font-family:monospace;">${cups}</div>
+          <div style="color:#16a34a;margin-top:2px;">${facturas.length} facturas · Meses: ${mesesStr}</div>
+        </div>`;
+      }).join('');
+
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+      overlay.innerHTML = `
+        <div style="background:white;border-radius:20px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
+          <div style="background:linear-gradient(135deg,#16a34a,#15803d);padding:18px 22px;">
+            <div style="font-size:1.1rem;font-weight:900;color:white;">📅 Facturas del mismo CUPS detectadas</div>
+            <div style="font-size:0.78rem;color:rgba(255,255,255,0.85);margin-top:3px;">He detectado varias facturas con fechas de meses distintos</div>
+          </div>
+          <div style="padding:20px;">
+            <p style="font-size:0.84rem;color:#475569;margin:0 0 12px 0;">
+              He detectado varias facturas del mismo CUPS pero con <strong>fechas diferentes</strong>. ¿Qué quieres hacer?
+            </p>
+            <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px;">${listaCups}</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button id="cm-anual-btn" style="width:100%;padding:13px;background:linear-gradient(135deg,#16a34a,#15803d);border:none;border-radius:12px;font-weight:900;cursor:pointer;font-size:0.9rem;color:white;">
+                📊 Estudio anual del mismo CUPS
+              </button>
+              <button id="cm-individual-btn" style="width:100%;padding:11px;background:#f1f5f9;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-size:0.84rem;color:#475569;">
+                📋 Insertar facturas individualmente (comportamiento actual)
+              </button>
+            </div>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      overlay.querySelector('#cm-anual-btn').onclick    = () => { document.body.removeChild(overlay); resolve('anual'); };
+      overlay.querySelector('#cm-individual-btn').onclick = () => { document.body.removeChild(overlay); resolve('individual'); };
+    });
+  }
 
   // Helper: normalizar un objeto parsed de IA → resultado estándar
   function cmNormalizarParsed(parsed, raw) {
@@ -28705,6 +28774,8 @@ Si no encuentras → "".`;
       direccion: parsed.direccion_suministro || '',
       empresa: parsed.nombre_empresa || '',
       cif: parsed.cif_nif || '',
+      fechaEmision: parsed.fecha_emision || '',
+      mesNumero: parseInt(parsed.mes_numero) || 0,
       error: ''
     };
   }
@@ -28812,8 +28883,8 @@ Si no encuentras → "".`;
     // Prompt multipunto: siempre devuelve array de suministros
     const isDualMode = window._cmModoDual;
     const camposSuministro = isDualMode
-      ? `{"tipo_suministro":"electricidad","cups":"","tarifa":"2.0TD","dias":0,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"consumo_gas_kwh":0,"total_factura":0}`
-      : `{"tipo_suministro":"electricidad","cups":"","tarifa":"2.0TD","dias":0,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0}`;
+      ? `{"tipo_suministro":"electricidad","cups":"","tarifa":"2.0TD","dias":0,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","fecha_emision":"","mes_numero":0,"potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"consumo_gas_kwh":0,"total_factura":0}`
+      : `{"tipo_suministro":"electricidad","cups":"","tarifa":"2.0TD","dias":0,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","fecha_emision":"","mes_numero":0,"potencias_kw":{"p1":0,"p2":0,"p3":0,"p4":0,"p5":0,"p6":0},"energia_kwh":{"e1":0,"e2":0,"e3":0,"e4":0,"e5":0,"e6":0},"total_factura":0}`;
 
     const reglasExtra = isDualMode ? `
 - tipo_suministro: "gas" si hay gas natural (m³, RL.X, CUPS gas). "electricidad" en otro caso.
@@ -28841,6 +28912,8 @@ Si hay un solo suministro devuelve el array con 1 elemento. Si hay varios, devue
 REGLAS:${reglasExtra}
 - cups: código ES... completo incluyendo letras finales. Cada suministro tiene su propio CUPS.
 - Detecta suministros adicionales buscando: secciones "Datos del suministro" repetidas, múltiples CUPS, bloques "Punto de suministro" distintos.
+- fecha_emision: fecha de emisión de la factura en formato "DD/MM/YYYY". Si no aparece, usa la fecha de inicio del período de facturación.
+- mes_numero: mes de la fecha_emision como número entero (1=enero, 2=febrero, ..., 12=diciembre).
 === CAMPO CRÍTICO: nombre_empresa ===
 - Forma jurídica (S.L., S.A., S.L.U., S.COOP., SOCIEDAD, GRUPO) → pon razón social exacta.
 - Persona física → nombre_empresa = "".
@@ -28962,6 +29035,14 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     const tbody = document.getElementById('cm-tabla-body');
     const resumen = document.getElementById('cm-resumen-texto');
     const ok = _cmResultados.filter(r=>r.ok).length;
+
+    // ═══ MODO ESTUDIO ANUAL ═══
+    if (window._cmEstudioAnual && window._cmEstudioAnual.length > 0) {
+      resumen.textContent = `📅 Modo Estudio Anual · ${ok} facturas procesadas`;
+      cmRenderTablaAnual();
+      return;
+    }
+
     resumen.textContent = `${ok} procesadas correctamente · ${_cmResultados.length - ok} con avisos`;
 
     const dudas = _cmResultados.filter(r => !r.ok && !r.error?.includes('Error'));
@@ -29545,6 +29626,222 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       // Abrir siguiente empresa
       setTimeout(() => cmMostrarFormularioEmpresa(nextIdx), 600);
     }, 300);
+  };
+
+  // ═══════════════════════════════════════════════════
+  // ESTUDIO ANUAL - Render tabla y PDF
+  // ═══════════════════════════════════════════════════
+
+  function cmRenderTablaAnual() {
+    const tbody = document.getElementById('cm-tabla-body');
+    const grupos = window._cmEstudioAnual || [];
+    const mesesNombre = ['','Enero','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+    tbody.innerHTML = grupos.map(({ cups, facturas }) => {
+      // Ordenar por mes
+      const ordenadas = [...facturas].sort((a,b) => (a.mesNumero||0) - (b.mesNumero||0));
+      // Usar tarifa más reciente
+      const tarifaReciente = ordenadas[ordenadas.length-1]?.tarifa || '2.0TD';
+      const nombre = ordenadas[0]?.nombre || '';
+      const direccion = ordenadas[0]?.direccion || '';
+
+      const filasCups = ordenadas.map((f, i) => {
+        const mes = mesesNombre[f.mesNumero] || `Mes ${f.mesNumero}`;
+        const totalKwh = (f.e1||0)+(f.e2||0)+(f.e3||0);
+        return `<tr style="background:white;border-bottom:1px solid #e2e8f0;">
+          <td style="padding:5px 8px;font-size:0.75rem;font-weight:600;color:#3b82f6;">${mes}</td>
+          <td style="padding:5px 8px;font-size:0.72rem;color:#475569;">${f.fechaEmision||'—'}</td>
+          <td style="padding:5px 8px;font-size:0.72rem;font-family:monospace;">${cups.substring(0,14)}…</td>
+          <td style="padding:5px 8px;font-size:0.72rem;">${tarifaReciente}</td>
+          <td style="padding:5px 8px;font-size:0.72rem;text-align:center;">${f.dias||0}</td>
+          <td style="padding:5px 8px;font-size:0.72rem;text-align:center;">${totalKwh.toFixed(0)}</td>
+          <td style="padding:5px 8px;font-size:0.72rem;text-align:right;color:#dc2626;">${(f.total||0).toFixed(2)} €</td>
+        </tr>`;
+      }).join('');
+
+      return `<tr style="background:#eff6ff;">
+        <td colspan="7" style="padding:7px 10px;font-size:0.78rem;font-weight:900;color:#1e40af;">
+          📊 CUPS: ${cups} · ${ordenadas.length} facturas · Tarifa: ${tarifaReciente}
+        </td>
+      </tr>${filasCups}`;
+    }).join('');
+
+    // Actualizar cabecera tabla
+    const thead = document.querySelector('#cm-paso3 thead tr');
+    if (thead) {
+      thead.innerHTML = `
+        <th style="padding:8px;font-size:0.72rem;text-align:left;">Mes</th>
+        <th style="padding:8px;font-size:0.72rem;text-align:left;">Fecha emisión</th>
+        <th style="padding:8px;font-size:0.72rem;text-align:left;">CUPS</th>
+        <th style="padding:8px;font-size:0.72rem;">Tarifa</th>
+        <th style="padding:8px;font-size:0.72rem;">Días</th>
+        <th style="padding:8px;font-size:0.72rem;">kWh</th>
+        <th style="padding:8px;font-size:0.72rem;text-align:right;">Total factura</th>`;
+    }
+
+    // Cambiar botón PDF
+    const btnPDF = document.querySelector('#cm-paso3 button[onclick*="cmGenerarPDF"]');
+    if (btnPDF) {
+      btnPDF.setAttribute('onclick', 'cmGenerarPDFAnual()');
+      btnPDF.textContent = '📊 Generar Estudio Anual PDF';
+    }
+  }
+
+  window.cmGenerarPDFAnual = function() {
+    const grupos = window._cmEstudioAnual || [];
+    if (grupos.length === 0) return;
+    const mesesNombre = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+    // Calcular ahorros por mes usando currentTariffs
+    grupos.forEach(grupo => {
+      const { cups, facturas } = grupo;
+      const tarifaReciente = [...facturas].sort((a,b)=>(a.mesNumero||0)-(b.mesNumero||0)).pop()?.tarifa || '2.0TD';
+      const tarifas = currentTariffs[tarifaReciente] || [];
+
+      facturas.forEach(f => {
+        if (tarifas.length === 0) { f._ahorroMes = 0; f._mejorTarifa = '—'; return; }
+        const data = {
+          cups: f.cups, tariff: tarifaReciente, dias: f.dias,
+          kwh_p1: f.e1||0, kwh_p2: f.e2||0, kwh_p3: f.e3||0,
+          kwh_p4: f.e4||0, kwh_p5: f.e5||0, kwh_p6: f.e6||0,
+          p1: f.p1||0, p2: f.p2||0, p3: f.p3||0,
+          p4: f.p4||0, p5: f.p5||0, p6: f.p6||0,
+          originalBillAnnual: (f.total||0) * (365 / (f.dias||30))
+        };
+        const resultados = tarifas.map(t => calculateTariffCost(t, data, tarifaReciente));
+        const mejor = resultados.filter(r=>r.offer.isDrk).sort((a,b)=>a.totalAnnual-b.totalAnnual)[0];
+        if (mejor) {
+          const ahorroAnual = data.originalBillAnnual - mejor.totalAnnual;
+          f._ahorroMes = ahorroAnual * (f.dias||30) / 365;
+          f._mejorTarifa = mejor.offer.name || mejor.offer.descripcion || '—';
+          f._totalDRK = mejor.total || (mejor.totalAnnual * (f.dias||30) / 365);
+        } else {
+          f._ahorroMes = 0; f._mejorTarifa = '—'; f._totalDRK = 0;
+        }
+      });
+
+      // Calcular proyección anual
+      const ahorros = facturas.map(f => f._ahorroMes || 0);
+      const suma = ahorros.reduce((a,b)=>a+b, 0);
+      const nFacturas = facturas.length;
+      grupo._ahorroAnual = nFacturas >= 12 ? suma : (suma / nFacturas) * 12;
+      grupo._tarifaReciente = tarifaReciente;
+    });
+
+    // Generar PDF con jsPDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 12;
+    const contentWidth = pageWidth - 2 * margin;
+    const verde = [76,175,80];
+    const azul = [30,64,175];
+    const grisClaro = [245,247,250];
+    let yPos = 10;
+
+    // Cabecera
+    doc.setFillColor(...azul);
+    doc.rect(0, 0, pageWidth, 28, 'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(14);
+    doc.text('ESTUDIO ANUAL DE AHORRO', pageWidth/2, 12, {align:'center'});
+    doc.setFontSize(9);
+    doc.setFont('helvetica','normal');
+    doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')}`, pageWidth/2, 20, {align:'center'});
+    yPos = 35;
+
+    grupos.forEach((grupo, gi) => {
+      const { cups, facturas, _ahorroAnual, _tarifaReciente } = grupo;
+      const ordenadas = [...facturas].sort((a,b)=>(a.mesNumero||0)-(b.mesNumero||0));
+      const nombre = ordenadas[0]?.nombre || '';
+
+      if (gi > 0) { doc.addPage(); yPos = 15; }
+
+      // Bloque CUPS
+      doc.setFillColor(...verde);
+      doc.roundedRect(margin, yPos, contentWidth, 14, 2,2,'F');
+      doc.setTextColor(255,255,255);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(9);
+      doc.text(`CUPS: ${cups}`, margin+4, yPos+6);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      doc.text(`Tarifa: ${_tarifaReciente} · ${nombre}`, margin+4, yPos+11);
+      yPos += 18;
+
+      // Tabla de meses
+      const colWidths = [22, 28, 22, 25, 25, 25, 25];
+      const headers = ['Mes','Fecha emisión','Días','kWh','Factura actual','Con DRK','Ahorro mes'];
+      doc.setFillColor(...azul);
+      doc.rect(margin, yPos, contentWidth, 7, 'F');
+      doc.setTextColor(255,255,255);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(7);
+      let xh = margin;
+      headers.forEach((h,i) => { doc.text(h, xh+2, yPos+5); xh+=colWidths[i]; });
+      yPos += 7;
+
+      let totalFacturas = 0, totalDRK = 0, totalAhorro = 0;
+      ordenadas.forEach((f, ri) => {
+        doc.setFillColor(...(ri%2===0 ? [255,255,255] : grisClaro));
+        doc.rect(margin, yPos, contentWidth, 6.5, 'F');
+        doc.setTextColor(0,0,0);
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(7);
+        const mes = mesesNombre[f.mesNumero] || `Mes ${f.mesNumero}`;
+        const totalKwh = (f.e1||0)+(f.e2||0)+(f.e3||0);
+        const fActual = f.total||0;
+        const fDrk = f._totalDRK||0;
+        const fAhorro = f._ahorroMes||0;
+        totalFacturas += fActual; totalDRK += fDrk; totalAhorro += fAhorro;
+        const row = [mes, f.fechaEmision||'—', String(f.dias||0), totalKwh.toFixed(0),
+          `${fActual.toFixed(2)} €`, `${fDrk.toFixed(2)} €`,
+          `${fAhorro>=0?'+':''}${fAhorro.toFixed(2)} €`];
+        let xr = margin;
+        row.forEach((v,i) => {
+          doc.setTextColor(i===6 && fAhorro>0 ? 22 : (i===6 ? 220 : 0),
+                           i===6 && fAhorro>0 ? 163 : 0,
+                           i===6 && fAhorro>0 ? 74 : 0);
+          doc.text(v, xr+2, yPos+4.5);
+          xr += colWidths[i];
+        });
+        yPos += 6.5;
+      });
+
+      // Fila totales
+      doc.setFillColor(230,245,233);
+      doc.rect(margin, yPos, contentWidth, 7, 'F');
+      doc.setTextColor(0,0,0);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(7);
+      const rowTot = ['TOTAL', `${ordenadas.length} facturas`, '', '',
+        `${totalFacturas.toFixed(2)} €`, `${totalDRK.toFixed(2)} €`,
+        `${totalAhorro>=0?'+':''}${totalAhorro.toFixed(2)} €`];
+      let xt = margin;
+      rowTot.forEach((v,i) => { doc.text(v, xt+2, yPos+5); xt += colWidths[i]; });
+      yPos += 12;
+
+      // Resumen anual proyectado
+      const nFacturas = ordenadas.length;
+      const proyectado = nFacturas >= 12;
+      doc.setFillColor(...azul);
+      doc.roundedRect(margin, yPos, contentWidth, 18, 3,3,'F');
+      doc.setTextColor(255,255,255);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(10);
+      doc.text(`AHORRO ANUAL ${proyectado ? 'REAL' : 'PROYECTADO'}: ${_ahorroAnual>=0?'+':''}${_ahorroAnual.toFixed(2)} €`, pageWidth/2, yPos+8, {align:'center'});
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      const textoProyeccion = proyectado
+        ? `Basado en ${nFacturas} meses completos`
+        : `Basado en ${nFacturas} mes${nFacturas>1?'es':''} · Media ${(totalAhorro/nFacturas).toFixed(2)} €/mes × 12`;
+      doc.text(textoProyeccion, pageWidth/2, yPos+14, {align:'center'});
+      yPos += 22;
+    });
+
+    doc.save('Estudio_Anual_DRK.pdf');
+    console.log('✅ PDF Estudio Anual generado');
   };
 
   window.cmCerrarModalEmpresas = function() {

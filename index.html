@@ -28510,6 +28510,68 @@ Si no encuentras → "".`;
   let _cmResultados = [];  // Datos extraídos por IA
   let _cmProcesando = false;
 
+
+  // ── Helper: aplicar colores de marca al modal de Carga Masiva ──
+  function _cmApplyBrandColors() {
+    const isPC = (typeof comparisonMode !== 'undefined') && comparisonMode === 'overall_best';
+    const hdrBg   = isPC ? 'linear-gradient(135deg,#15803d,#16a34a)' : 'linear-gradient(135deg,#1e3a8a,#0ea5e9)';
+    const accentC = isPC ? '#16a34a' : '#1e3a8a';
+    const accentL = isPC ? '#dcfce7' : '#dbeafe';
+    const accentB = isPC ? '#16a34a' : '#2563eb';
+    const accentBg= isPC ? '#f0fdf4' : '#f0f9ff';
+    const accentBd= isPC ? '#86efac' : '#bae6fd';
+    const paso1C  = isPC ? '#15803d' : '#0369a1';
+    const dropHov = isPC ? '#dcfce7' : '#e0f2fe';
+    const dropBrd = isPC ? '#16a34a' : '#0ea5e9';
+
+    // Header del modal
+    const hdr = document.querySelector('#modal-carga-masiva > div > div:first-child');
+    if (hdr) hdr.style.background = hdrBg;
+
+    // Textos de pasos
+    document.querySelectorAll('#cm-paso1 [style*="color:#1e3a8a"], #cm-paso3 [style*="color:#1e3a8a"]').forEach(el => {
+      el.style.color = accentC;
+    });
+
+    // Caja de modo empresa
+    const modoBox = document.querySelector('#cm-paso1 .cm-modo-empresa-box');
+    if (modoBox) {
+      modoBox.style.background = accentBg;
+      modoBox.style.borderColor = accentBd;
+      const title = modoBox.querySelector('[style*="color:#0369a1"]');
+      if (title) title.style.color = paso1C;
+    }
+
+    // Radio misma empresa label
+    const mismaLabel = document.getElementById('cm-modo-misma-label');
+    if (mismaLabel) {
+      mismaLabel.style.background = accentL;
+      mismaLabel.style.borderColor = accentB;
+      const t = mismaLabel.querySelector('[style*="color:#1e3a8a"]');
+      if (t) t.style.color = accentC;
+    }
+
+    // Dropzone hover colors via JS overrides
+    const dz = document.getElementById('cm-dropzone');
+    if (dz) {
+      dz.setAttribute('ondragover', `event.preventDefault();this.style.borderColor='${dropBrd}';this.style.background='${dropHov}'`);
+      const dzTxt = dz.querySelector('[style*="color:#1e3a8a"]');
+      if (dzTxt) dzTxt.style.color = accentC;
+    }
+
+    // Botones "Añadir todos" y "Añadir seleccionados" (paso 3)
+    document.querySelectorAll('#cm-paso3 button').forEach(btn => {
+      if (btn.style.background && btn.style.background.includes('16a34a')) return; // ya verde
+      if (btn.textContent.includes('Añadir todos') || btn.textContent.includes('Añadir seleccionados')) {
+        btn.style.background = isPC ? 'linear-gradient(135deg,#16a34a,#15803d)' : btn.style.background;
+      }
+    });
+
+    // PASO 3 header text
+    const paso3hdr = document.querySelector('#cm-paso3 [style*="color:#1e3a8a"]');
+    if (paso3hdr) paso3hdr.style.color = accentC;
+  }
+
   window.abrirCargaMasiva = function() {
     window._cmModoDual = false;
     window._cmModoEmpresa = 'misma'; // default
@@ -28517,6 +28579,7 @@ Si no encuentras → "".`;
     _cmResultados = [];
     cmMostrarPaso(1);
     document.getElementById('modal-carga-masiva').style.display = 'block';
+    setTimeout(_cmApplyBrandColors, 30);
     document.getElementById('cm-file-list').style.display = 'none';
     document.getElementById('cm-btn-procesar').style.display = 'none';
     document.getElementById('cm-file-items').innerHTML = '';
@@ -28537,6 +28600,7 @@ Si no encuentras → "".`;
     _cmFiles = [];
     _cmResultados = [];
     cmMostrarPaso(1);
+    setTimeout(_cmApplyBrandColors, 30);
     // Cambiar título del modal para DUAL
     const titulo = document.getElementById('cm-modal-titulo');
     if (titulo) titulo.textContent = 'CARGA MASIVA DUAL';
@@ -28566,6 +28630,7 @@ Si no encuentras → "".`;
     document.getElementById('cm-paso1').style.display = n===1 ? 'block' : 'none';
     document.getElementById('cm-paso2').style.display = n===2 ? 'block' : 'none';
     document.getElementById('cm-paso3').style.display = n===3 ? 'block' : 'none';
+    setTimeout(_cmApplyBrandColors, 30);
   }
 
   window.cmHandleDrop = function(e) {
@@ -29753,6 +29818,13 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     const grupos = window._cmEstudioAnual || [];
     if (grupos.length === 0) return;
 
+    // Colores dinámicos según marca
+    const _isPC = (typeof comparisonMode !== 'undefined') && comparisonMode === 'overall_best';
+    const _grad = _isPC ? 'linear-gradient(135deg,#15803d,#16a34a)' : 'linear-gradient(135deg,#1e3a8a,#2563eb)';
+    const _btnGrad = _isPC ? 'linear-gradient(135deg,#16a34a,#15803d)' : 'linear-gradient(135deg,#1e3a8a,#2563eb)';
+    const _brandLabel = _isPC ? 'POWER CUP' : 'DRK';
+    const _focus = _isPC ? '#16a34a' : '#2563eb';
+
     // Mostrar mini-modal para datos del cliente antes de generar PDF
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -29760,8 +29832,8 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     const nombreActual = document.getElementById('client-name-input')?.value || (grupos[0]?.facturas[0]?.nombre||'');
     overlay.innerHTML = `
       <div style="background:white;border-radius:20px;width:100%;max-width:400px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
-        <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:18px 22px;">
-          <div style="font-size:1rem;font-weight:900;color:white;">📊 Datos para el Estudio Anual</div>
+        <div style="background:${_grad};padding:18px 22px;">
+          <div style="font-size:1rem;font-weight:900;color:white;">📊 Datos para el Estudio Anual · ${_brandLabel}</div>
           <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">Introduce los datos del cliente</div>
         </div>
         <div style="padding:20px;display:flex;flex-direction:column;gap:10px;">
@@ -29773,7 +29845,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
             style="padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.85rem;width:100%;box-sizing:border-box;">
           <div style="display:flex;gap:10px;margin-top:6px;">
             <button id="ea-cancelar" style="flex:1;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.84rem;color:#64748b;">Cancelar</button>
-            <button id="ea-generar" style="flex:2;padding:11px;background:linear-gradient(135deg,#1e3a8a,#2563eb);border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.84rem;color:white;">📄 Generar PDF</button>
+            <button id="ea-generar" style="flex:2;padding:11px;background:${_btnGrad};border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.84rem;color:white;">📄 Generar PDF</button>
           </div>
         </div>
       </div>`;
@@ -29792,17 +29864,20 @@ Si no encuentras ningún CIF/NIF → pon "".`;
   };
 
   function _cmModalSeleccionTarifa(grupos, codigo, nombre, telefono) {
-    // Detectar marca activa dentro del scope de esta función
-    const isDrk = !window.activeBrand || window.activeBrand.NAME.includes('DRK');
+    // Detectar marca activa: PowerCup = comparisonMode 'overall_best'
+    const isDrk = (typeof comparisonMode === 'undefined') ? true : (comparisonMode !== 'overall_best');
     // Detectar tipo de tarifa de los grupos
     const tipoTarifa = grupos[0]?._tarifaReciente ||
       grupos[0]?.facturas?.slice().sort((a,b)=>(b.mesNumero||0)-(a.mesNumero||0))[0]?.tarifa || '2.0TD';
     // En modo DRK: solo tarifas DRK. En modo PowerCup: todas las tarifas disponibles
-    const tarifasDisp = (currentTariffs[tipoTarifa] || []).filter(t => {
+    const _allTariffs = currentTariffs[tipoTarifa] || [];
+    console.log(`🎯 Modo ${isDrk?'DRK':'PowerCup'}: ${_allTariffs.length} tarifas totales, ${_allTariffs.filter(t=>t.isDrk).length} DRK, ${_allTariffs.filter(t=>!t.isDrk && t.name!=='Tu Tarifa Actual').length} competencia`);
+    const tarifasDisp = _allTariffs.filter(t => {
       if (t.name === 'Tu Tarifa Actual') return false;
       if (isDrk) return t.isDrk === true;
       return true; // PowerCup tiene acceso a todas las tarifas
     });
+    console.log(`🎯 Tarifas mostradas en modal: ${tarifasDisp.length}`);
 
     if (tarifasDisp.length === 0) {
       _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono, null);
@@ -29928,12 +30003,17 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       </div>
     </label>`;
 
+    const _pcMode = !isDrk;
+    const _hdrGrad = _pcMode ? 'linear-gradient(135deg,#15803d,#16a34a)' : 'linear-gradient(135deg,#1e3a8a,#2563eb)';
+    const _confirmGrad = _pcMode ? 'linear-gradient(135deg,#16a34a,#15803d)' : 'linear-gradient(135deg,#16a34a,#15803d)';
+    const _brandTxt = _pcMode ? 'POWER CUP' : 'DRK';
+
     const overlay2 = document.createElement('div');
     overlay2.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;';
     overlay2.innerHTML = `
       <div style="background:white;border-radius:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
-        <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:18px 22px;position:sticky;top:0;z-index:1;border-radius:20px 20px 0 0;">
-          <div style="font-size:1rem;font-weight:900;color:white;">🎯 Selecciona la tarifa para el estudio</div>
+        <div style="background:${_hdrGrad};padding:18px 22px;position:sticky;top:0;z-index:1;border-radius:20px 20px 0 0;">
+          <div style="font-size:1rem;font-weight:900;color:white;">🎯 Selecciona la tarifa · ${_brandTxt}</div>
           <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">${tipoTarifa} · Las tarifas se ordenan de mayor a menor ahorro</div>
         </div>
         <div style="padding:16px;display:flex;flex-direction:column;gap:7px;">
@@ -29942,7 +30022,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           ${opciones}
           <div style="display:flex;gap:10px;margin-top:10px;position:sticky;bottom:0;background:white;padding:8px 0 4px;">
             <button id="ea-tarifa-cancelar" style="flex:1;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.84rem;color:#64748b;">← Atrás</button>
-            <button id="ea-tarifa-confirmar" style="flex:2;padding:11px;background:linear-gradient(135deg,#16a34a,#15803d);border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.84rem;color:white;">📊 Generar PDF con esta tarifa</button>
+            <button id="ea-tarifa-confirmar" style="flex:2;padding:11px;background:${_confirmGrad};border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.84rem;color:white;">📊 Generar PDF con esta tarifa</button>
           </div>
         </div>
       </div>`;
@@ -29971,7 +30051,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
 
   function _cmGenerarPDFAnualReal(grupos, comercialCode, clienteNombre, clienteTel, tarifaForzada) {
     const mesesNombre = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    const isDrk = !window.activeBrand || window.activeBrand.NAME.includes('DRK');
+    const isDrk = (typeof comparisonMode === 'undefined') ? true : (comparisonMode !== 'overall_best');
 
     // ─── CALCULAR AHORROS por periodo real ───
     grupos.forEach(grupo => {

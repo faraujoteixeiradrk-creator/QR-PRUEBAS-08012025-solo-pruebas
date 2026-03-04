@@ -28715,34 +28715,81 @@ Si no encuentras → "".`;
       const tipos = suministros.map((s,i) => {
         const t = s.tipo_suministro === 'gas' ? '🔥 Gas' : '⚡ Electricidad';
         const tarifa = s.tarifa || '';
-        const cups = s.cups ? s.cups.substring(0,16)+'...' : 'Sin CUPS';
-        return `<div style="padding:6px 10px;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0;font-size:0.78rem;color:#334155;">
-          <strong>${i+1}.</strong> ${t} · ${tarifa} · <span style="font-family:monospace;">${cups}</span>
-        </div>`;
+        const cups = s.cups ? s.cups.substring(0,18) : 'Sin CUPS';
+        const nombre = s.nombre_cliente || s.nombre_empresa || '';
+        return `<label id="cm-multi-label-${i}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f8fafc;border-radius:8px;border:2px solid #3b82f6;cursor:pointer;transition:all 0.15s;">
+          <input type="checkbox" id="cm-multi-chk-${i}" checked style="width:18px;height:18px;accent-color:#3b82f6;cursor:pointer;flex-shrink:0;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:0.82rem;font-weight:700;color:#1e293b;">${t} · <span style="color:#3b82f6;">${tarifa}</span></div>
+            <div style="font-size:0.72rem;color:#64748b;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${cups}</div>
+            ${nombre ? `<div style="font-size:0.72rem;color:#94a3b8;">${nombre}</div>` : ''}
+          </div>
+        </label>`;
       }).join('');
 
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
       overlay.innerHTML = `
-        <div style="background:white;border-radius:20px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
+        <div style="background:white;border-radius:20px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
           <div style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:18px 22px;">
             <div style="font-size:1.1rem;font-weight:900;color:white;">📋 Factura multipunto detectada</div>
-            <div style="font-size:0.78rem;color:rgba(255,255,255,0.85);margin-top:4px;">${fileName}</div>
+            <div style="font-size:0.78rem;color:rgba(255,255,255,0.85);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${fileName}</div>
           </div>
-          <div style="padding:20px;">
-            <p style="font-size:0.85rem;color:#475569;margin:0 0 12px 0;">
-              He detectado <strong>${suministros.length} suministros</strong> en este PDF. ¿Quieres añadirlos todos?
+          <div style="padding:18px 20px;">
+            <p style="font-size:0.83rem;color:#475569;margin:0 0 12px 0;">
+              He detectado <strong>${suministros.length} suministros</strong>. Marca los que quieres importar:
             </p>
-            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">${tipos}</div>
+            <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:16px;" id="cm-multi-lista">${tipos}</div>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
+              <button id="cm-multi-sel-todos" style="font-size:0.72rem;padding:4px 10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;cursor:pointer;color:#3b82f6;font-weight:600;">✓ Todos</button>
+              <button id="cm-multi-sel-ninguno" style="font-size:0.72rem;padding:4px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;color:#64748b;font-weight:600;">✗ Ninguno</button>
+            </div>
             <div style="display:flex;gap:10px;">
-              <button id="cm-multi-no" style="flex:1;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.85rem;color:#64748b;">Solo el 1º</button>
-              <button id="cm-multi-si" style="flex:2;padding:11px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.85rem;color:white;">✅ Añadir todos (${suministros.length})</button>
+              <button id="cm-multi-cancelar" style="flex:1;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.84rem;color:#64748b;">Cancelar</button>
+              <button id="cm-multi-confirmar" style="flex:2;padding:11px;background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.84rem;color:white;">✅ Importar seleccionados</button>
             </div>
           </div>
         </div>`;
       document.body.appendChild(overlay);
-      overlay.querySelector('#cm-multi-si').onclick = () => { document.body.removeChild(overlay); resolve('todos'); };
-      overlay.querySelector('#cm-multi-no').onclick = () => { document.body.removeChild(overlay); resolve('primero'); };
+
+      // Actualizar borde visual al cambiar checkbox
+      suministros.forEach((_,i) => {
+        const chk = overlay.querySelector('#cm-multi-chk-'+i);
+        const lbl = overlay.querySelector('#cm-multi-label-'+i);
+        chk.addEventListener('change', () => {
+          lbl.style.borderColor = chk.checked ? '#3b82f6' : '#e2e8f0';
+          lbl.style.background = chk.checked ? '#f8fafc' : '#fafafa';
+        });
+      });
+
+      // Seleccionar todos / ninguno
+      overlay.querySelector('#cm-multi-sel-todos').onclick = () => {
+        suministros.forEach((_,i) => {
+          const chk = overlay.querySelector('#cm-multi-chk-'+i);
+          chk.checked = true;
+          overlay.querySelector('#cm-multi-label-'+i).style.borderColor = '#3b82f6';
+        });
+      };
+      overlay.querySelector('#cm-multi-sel-ninguno').onclick = () => {
+        suministros.forEach((_,i) => {
+          const chk = overlay.querySelector('#cm-multi-chk-'+i);
+          chk.checked = false;
+          overlay.querySelector('#cm-multi-label-'+i).style.borderColor = '#e2e8f0';
+          overlay.querySelector('#cm-multi-label-'+i).style.background = '#fafafa';
+        });
+      };
+
+      overlay.querySelector('#cm-multi-cancelar').onclick = () => {
+        document.body.removeChild(overlay);
+        resolve([]); // nada
+      };
+      overlay.querySelector('#cm-multi-confirmar').onclick = () => {
+        const seleccionados = suministros
+          .map((s,i) => overlay.querySelector('#cm-multi-chk-'+i).checked ? i : -1)
+          .filter(i => i >= 0);
+        document.body.removeChild(overlay);
+        resolve(seleccionados);
+      };
     });
   }
 
@@ -28848,15 +28895,20 @@ REGLAS:${reglasExtra}
 
     const respuesta = await cmMostrarModalMultipunto(file.name, suministrosRaw);
 
-    if (respuesta === 'primero') {
-      // Solo el primero
-      return cmNormalizarParsed(suministrosRaw[0], raw);
-    } else {
-      // Todos: el primero como resultado principal, los extras como _extras para que el loop los inserte
-      const principal = cmNormalizarParsed(suministrosRaw[0], raw);
-      principal._extras = suministrosRaw.slice(1).map(s => cmNormalizarParsed(s, raw));
-      return principal;
+    // respuesta = array de índices seleccionados (puede estar vacío)
+    if (!respuesta || respuesta.length === 0) {
+      // Cancelar → no insertar nada, devolver vacío con flag
+      return { ok: false, _cancelado: true, error: 'Cancelado por usuario', tarifa:'2.0TD',
+        cups:'', dias:0, p1:0,p2:0,p3:0,p4:0,p5:0,p6:0, e1:0,e2:0,e3:0,e4:0,e5:0,e6:0,
+        total:0, nombre:'', direccion:'', empresa:'', cif:'' };
     }
+    // Normalizar solo los seleccionados
+    const seleccionados = respuesta.map(i => cmNormalizarParsed(suministrosRaw[i], raw));
+    const principal = seleccionados[0];
+    if (seleccionados.length > 1) {
+      principal._extras = seleccionados.slice(1);
+    }
+    return principal;
   }
 
   function cmGetPrompt() {

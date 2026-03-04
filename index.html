@@ -29947,34 +29947,17 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       return `Tarifa ${i+1}`;
     }
 
-    // En PowerCup: agrupar por comercializadora y quedarse con la mejor de cada una
-    // En DRK: dedup por nombre+precio exacto
+    // Dedup por nombre+precio exacto (igual para DRK y PowerCup)
     const tarifasUnicas = [];
-    if (!isDrk) {
-      // PowerCup: una entrada por comercializadora (la que más ahorra)
-      const porComercial = new Map();
-      tarifasDisp.forEach((t, i) => {
-        const comercial = t.commercializer || t.name || `Tarifa ${i}`;
-        const ahorro = calcAhorroTarifa(t);
-        const tarNombre = getTarName(t, i);
-        const existing = porComercial.get(comercial);
-        if (!existing || ahorro > existing.ahorro) {
-          porComercial.set(comercial, { t, tarNombre, ahorro });
-        }
-      });
-      porComercial.forEach(entry => tarifasUnicas.push(entry));
-    } else {
-      // DRK: dedup por nombre+precio exacto
-      const vistas = new Set();
-      tarifasDisp.forEach((t, i) => {
-        const tarNombre = getTarName(t, i);
-        const key = `${tarNombre}_${(t.p1_price||0).toFixed(6)}`;
-        if (vistas.has(key)) return;
-        vistas.add(key);
-        const ahorro = calcAhorroTarifa(t);
-        tarifasUnicas.push({ t, tarNombre, ahorro });
-      });
-    }
+    const vistas = new Set();
+    tarifasDisp.forEach((t, i) => {
+      const tarNombre = getTarName(t, i);
+      const key = `${tarNombre}_${(t.p1_price||0).toFixed(6)}`;
+      if (vistas.has(key)) return;
+      vistas.add(key);
+      const ahorro = calcAhorroTarifa(t);
+      tarifasUnicas.push({ t, tarNombre, ahorro });
+    });
 
     // Ordenar por ahorro descendente
     tarifasUnicas.sort((a,b) => b.ahorro - a.ahorro);

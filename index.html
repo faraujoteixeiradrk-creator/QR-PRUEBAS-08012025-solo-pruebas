@@ -29852,11 +29852,21 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     const ahorroAuto = calcAhorroAuto();
 
     // Calcular ahorros y construir lista única (dedup por nombre+precios)
+    // Obtener nombre real de la tarifa (el CSV guarda headers en minúsculas)
+    function getTarName(t, i) {
+      // Posibles campos nombre: description, descripcion, name
+      const desc = t.description || t.descripcion || '';
+      const nm = t.name || '';
+      if (desc && desc !== nm) return `${nm} - ${desc}`.trim();
+      if (nm) return nm;
+      return `Tarifa ${i+1}`;
+    }
+
     const tarifasUnicas = [];
     const vistas = new Set();
     tarifasDisp.forEach((t, i) => {
-      const tarNombre = t.descripcion ? `${t.name} - ${t.descripcion}` : (t.name || `Tarifa ${i+1}`);
-      const key = `${tarNombre}_${t.p1_price}`;
+      const tarNombre = getTarName(t, i);
+      const key = `${tarNombre}_${(t.p1_price||0).toFixed(6)}`;
       if (vistas.has(key)) return;
       vistas.add(key);
       const ahorro = calcAhorroTarifa(t);
@@ -29865,6 +29875,8 @@ Si no encuentras ningún CIF/NIF → pon "".`;
 
     // Ordenar por ahorro descendente
     tarifasUnicas.sort((a,b) => b.ahorro - a.ahorro);
+    // Guardar en window para acceso en el handler de confirmación
+    window._cmTarifasUnicasAnual = tarifasUnicas;
 
     const opciones = tarifasUnicas.map(({ t, tarNombre, ahorro }, i) => {
       const p1d = ((t.p_potencia_1||0)/365).toFixed(6);
@@ -29937,7 +29949,9 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       if (!val || val === 'auto') {
         _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono, null);
       } else {
-        const tarifaForzada = tarifasUnicas[parseInt(val)]?.t || null;
+        const idx = parseInt(val);
+        const tarifaForzada = (window._cmTarifasUnicasAnual || [])[idx]?.t || null;
+        console.log('🎯 Tarifa forzada seleccionada:', tarifaForzada?.name, tarifaForzada?.description, 'E1:', tarifaForzada?.p1_price);
         _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono, tarifaForzada);
       }
     };
@@ -29980,7 +29994,10 @@ Si no encuentras ningún CIF/NIF → pon "".`;
         if (mejor) {
           f._totalDRK = mejor.totalPeriod || 0;
           f._ahorroMes = (f.total||0) - f._totalDRK;
-          f._mejorTarifa = mejor.offer.name || mejor.offer.descripcion || '—';
+          // Nombre completo: name + description (igual que el modal)
+          const _desc = mejor.offer.description || mejor.offer.descripcion || '';
+          const _nm = mejor.offer.name || '';
+          f._mejorTarifa = (_desc && _desc !== _nm) ? `${_nm} - ${_desc}` : (_nm || _desc || '—');
         } else { f._ahorroMes=0; f._mejorTarifa='—'; f._totalDRK=0; }
       });
       const n = facturas.length;
@@ -30334,7 +30351,13 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       doc.setDrawColor(255,255,255); doc.setLineWidth(2);
       doc.roundedRect(m, y, cw, boxH, 3, 3, 'FD');
       doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
-      doc.text(`TARIFA ${tipo} #${numTarifa}: ${oferta.name || oferta.descripcion || ''}`, m+3, y+5);
+      const ofertaNombreCompleto = (() => {
+        const desc = oferta.description || oferta.descripcion || '';
+        const nm = oferta.name || '';
+        if (desc && desc !== nm) return `${nm} - ${desc}`;
+        return nm || oferta.descripcion || '';
+      })();
+      doc.text(`TARIFA ${tipo} #${numTarifa}: ${ofertaNombreCompleto}`, m+3, y+5);
       let yb = y+10;
       doc.setFontSize(7); doc.setFont('helvetica','bold');
       doc.text('POTENCIA:', m+3, yb); yb+=4;

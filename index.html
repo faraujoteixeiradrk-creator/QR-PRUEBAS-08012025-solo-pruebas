@@ -29938,10 +29938,8 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     const fmt = v => v.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
     const ahorroAuto = calcAhorroAuto();
 
-    // Calcular ahorros y construir lista única (dedup por nombre+precios)
-    // Obtener nombre real de la tarifa (el CSV guarda headers en minúsculas)
+    // Obtener nombre real de la tarifa
     function getTarName(t, i) {
-      // Posibles campos nombre: description, descripcion, name
       const desc = t.description || t.descripcion || '';
       const nm = t.name || '';
       if (desc && desc !== nm) return `${nm} - ${desc}`.trim();
@@ -29949,16 +29947,34 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       return `Tarifa ${i+1}`;
     }
 
+    // En PowerCup: agrupar por comercializadora y quedarse con la mejor de cada una
+    // En DRK: dedup por nombre+precio exacto
     const tarifasUnicas = [];
-    const vistas = new Set();
-    tarifasDisp.forEach((t, i) => {
-      const tarNombre = getTarName(t, i);
-      const key = `${tarNombre}_${(t.p1_price||0).toFixed(6)}`;
-      if (vistas.has(key)) return;
-      vistas.add(key);
-      const ahorro = calcAhorroTarifa(t);
-      tarifasUnicas.push({ t, tarNombre, ahorro, origIdx: i });
-    });
+    if (!isDrk) {
+      // PowerCup: una entrada por comercializadora (la que más ahorra)
+      const porComercial = new Map();
+      tarifasDisp.forEach((t, i) => {
+        const comercial = t.commercializer || t.name || `Tarifa ${i}`;
+        const ahorro = calcAhorroTarifa(t);
+        const tarNombre = getTarName(t, i);
+        const existing = porComercial.get(comercial);
+        if (!existing || ahorro > existing.ahorro) {
+          porComercial.set(comercial, { t, tarNombre, ahorro });
+        }
+      });
+      porComercial.forEach(entry => tarifasUnicas.push(entry));
+    } else {
+      // DRK: dedup por nombre+precio exacto
+      const vistas = new Set();
+      tarifasDisp.forEach((t, i) => {
+        const tarNombre = getTarName(t, i);
+        const key = `${tarNombre}_${(t.p1_price||0).toFixed(6)}`;
+        if (vistas.has(key)) return;
+        vistas.add(key);
+        const ahorro = calcAhorroTarifa(t);
+        tarifasUnicas.push({ t, tarNombre, ahorro });
+      });
+    }
 
     // Ordenar por ahorro descendente
     tarifasUnicas.sort((a,b) => b.ahorro - a.ahorro);

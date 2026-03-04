@@ -29637,53 +29637,102 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     const grupos = window._cmEstudioAnual || [];
     const mesesNombre = ['','Enero','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
-    tbody.innerHTML = grupos.map(({ cups, facturas }) => {
-      // Ordenar por mes
+    // Reconstruir _cmResultados con todos los resultados de los grupos anuales (para edición)
+    // Los resultados ya están en _cmResultados, solo hay que renderizarlos igual que la tabla normal
+    // pero añadiendo la columna Mes al inicio
+
+    const bGray = 'border:1px solid #cbd5e1;';
+    const bBlue = 'border:1px solid #bfdbfe;background:#eff6ff;';
+    const inp = (field, i, val, w='42px', extra='') =>
+      `<input type="number" value="${val||''}" onchange="_cmResultados[${i}].${field}=+this.value" style="width:${w};padding:2px 4px;${extra}border-radius:4px;font-size:0.75rem;text-align:center;">`;
+    const inpDis = (field, i, val, w='42px', disabled=false) =>
+      `<input type="number" value="${(!disabled&&val)||''}" onchange="_cmResultados[${i}].${field}=+this.value" ${disabled?'disabled':''} style="width:${w};padding:2px 4px;${disabled?'border:1px solid #e2e8f0;opacity:0.3;':bBlue}border-radius:4px;font-size:0.75rem;text-align:center;">`;
+
+    let html = '';
+    grupos.forEach(({ cups, facturas }) => {
       const ordenadas = [...facturas].sort((a,b) => (a.mesNumero||0) - (b.mesNumero||0));
-      // Usar tarifa más reciente
       const tarifaReciente = ordenadas[ordenadas.length-1]?.tarifa || '2.0TD';
-      const nombre = ordenadas[0]?.nombre || '';
-      const direccion = ordenadas[0]?.direccion || '';
 
-      const filasCups = ordenadas.map((f, i) => {
-        const mes = mesesNombre[f.mesNumero] || `Mes ${f.mesNumero}`;
-        const totalKwh = (f.e1||0)+(f.e2||0)+(f.e3||0);
-        return `<tr style="background:white;border-bottom:1px solid #e2e8f0;">
-          <td style="padding:5px 8px;font-size:0.75rem;font-weight:600;color:#3b82f6;">${mes}</td>
-          <td style="padding:5px 8px;font-size:0.72rem;color:#475569;">${f.fechaEmision||'—'}</td>
-          <td style="padding:5px 8px;font-size:0.72rem;font-family:monospace;">${cups.substring(0,14)}…</td>
-          <td style="padding:5px 8px;font-size:0.72rem;">${tarifaReciente}</td>
-          <td style="padding:5px 8px;font-size:0.72rem;text-align:center;">${f.dias||0}</td>
-          <td style="padding:5px 8px;font-size:0.72rem;text-align:center;">${totalKwh.toFixed(0)}</td>
-          <td style="padding:5px 8px;font-size:0.72rem;text-align:right;color:#dc2626;">${(f.total||0).toFixed(2)} €</td>
-        </tr>`;
-      }).join('');
-
-      return `<tr style="background:#eff6ff;">
-        <td colspan="7" style="padding:7px 10px;font-size:0.78rem;font-weight:900;color:#1e40af;">
+      // Fila cabecera de grupo
+      html += `<tr style="background:#eff6ff;">
+        <td colspan="20" style="padding:7px 10px;font-size:0.78rem;font-weight:900;color:#1e40af;">
           📊 CUPS: ${cups} · ${ordenadas.length} facturas · Tarifa: ${tarifaReciente}
         </td>
-      </tr>${filasCups}`;
-    }).join('');
+      </tr>`;
 
-    // Actualizar cabecera tabla
+      ordenadas.forEach(f => {
+        // Encontrar índice real en _cmResultados
+        const i = _cmResultados.indexOf(f);
+        if (i < 0) return;
+        const is30 = f.tarifa === '3.0TD';
+        const mes = mesesNombre[f.mesNumero] || `Mes ${f.mesNumero||'?'}`;
+
+        html += `<tr style="background:white;border-bottom:1px solid #e2e8f0;" id="cm-row-${i}">
+          <td style="padding:6px;"><input type="checkbox" ${f.seleccionado?'checked':''} onchange="_cmResultados[${i}].seleccionado=this.checked"></td>
+          <td style="padding:6px;font-size:0.78rem;font-weight:700;color:#3b82f6;white-space:nowrap;">${mes}</td>
+          <td style="padding:6px;">
+            <select onchange="_cmResultados[${i}].tarifa=this.value;cmRenderTablaAnual()" style="padding:2px 4px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.75rem;font-weight:700;">
+              <option value="2.0TD" ${f.tarifa==='2.0TD'?'selected':''}>2.0TD</option>
+              <option value="3.0TD" ${f.tarifa==='3.0TD'?'selected':''}>3.0TD</option>
+            </select>
+          </td>
+          <td style="padding:6px;"><input value="${f.cups||''}" onchange="_cmResultados[${i}].cups=this.value" style="width:130px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
+          <td style="padding:6px;"><input value="${f.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:90px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
+          <td style="padding:6px;">${inp('dias',i,f.dias,'42px',bGray)}</td>
+          <td style="padding:6px;">${inp('p1',i,f.p1,'42px',bGray)}</td>
+          <td style="padding:6px;">${inp('p2',i,f.p2,'42px',bGray)}</td>
+          <td style="padding:6px;background:#eff6ff;">${inpDis('p3',i,f.p3,'42px',!is30)}</td>
+          <td style="padding:6px;background:#eff6ff;">${inpDis('p4',i,f.p4,'42px',!is30)}</td>
+          <td style="padding:6px;background:#eff6ff;">${inpDis('p5',i,f.p5,'42px',!is30)}</td>
+          <td style="padding:6px;background:#eff6ff;">${inpDis('p6',i,f.p6,'42px',!is30)}</td>
+          <td style="padding:6px;">${inp('e1',i,f.e1,'50px',bGray)}</td>
+          <td style="padding:6px;">${inp('e2',i,f.e2,'50px',bGray)}</td>
+          <td style="padding:6px;">${inp('e3',i,f.e3,'50px',bGray)}</td>
+          <td style="padding:6px;background:#eff6ff;">${inpDis('e4',i,f.e4,'50px',!is30)}</td>
+          <td style="padding:6px;background:#eff6ff;">${inpDis('e5',i,f.e5,'50px',!is30)}</td>
+          <td style="padding:6px;background:#eff6ff;">${inpDis('e6',i,f.e6,'50px',!is30)}</td>
+          <td style="padding:6px;">${inp('total',i,f.total,'55px',bGray)}</td>
+          <td style="padding:6px;white-space:nowrap;">
+            <button onclick="cmReprocesar(${i})" title="Reprocesar" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:0.72rem;">🔄</button>
+            <button onclick="cmEliminarFila(${i})" title="Eliminar" style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:0.72rem;">🗑️</button>
+          </td>
+        </tr>`;
+      });
+    });
+
+    tbody.innerHTML = html;
+
+    // Actualizar cabecera con columna Mes añadida
     const thead = document.querySelector('#cm-paso3 thead tr');
     if (thead) {
       thead.innerHTML = `
-        <th style="padding:8px;font-size:0.72rem;text-align:left;">Mes</th>
-        <th style="padding:8px;font-size:0.72rem;text-align:left;">Fecha emisión</th>
-        <th style="padding:8px;font-size:0.72rem;text-align:left;">CUPS</th>
+        <th style="padding:8px;font-size:0.72rem;"></th>
+        <th style="padding:8px;font-size:0.72rem;text-align:left;color:#3b82f6;">Mes</th>
         <th style="padding:8px;font-size:0.72rem;">Tarifa</th>
+        <th style="padding:8px;font-size:0.72rem;text-align:left;">CUPS</th>
+        <th style="padding:8px;font-size:0.72rem;text-align:left;">Nombre</th>
         <th style="padding:8px;font-size:0.72rem;">Días</th>
-        <th style="padding:8px;font-size:0.72rem;">kWh</th>
-        <th style="padding:8px;font-size:0.72rem;text-align:right;">Total factura</th>`;
+        <th style="padding:8px;font-size:0.72rem;">P1 kW</th>
+        <th style="padding:8px;font-size:0.72rem;">P2 kW</th>
+        <th style="padding:8px;font-size:0.72rem;background:#eff6ff;">P3 kW</th>
+        <th style="padding:8px;font-size:0.72rem;background:#eff6ff;">P4 kW</th>
+        <th style="padding:8px;font-size:0.72rem;background:#eff6ff;">P5 kW</th>
+        <th style="padding:8px;font-size:0.72rem;background:#eff6ff;">P6 kW</th>
+        <th style="padding:8px;font-size:0.72rem;">E1 kWh</th>
+        <th style="padding:8px;font-size:0.72rem;">E2 kWh</th>
+        <th style="padding:8px;font-size:0.72rem;">E3 kWh</th>
+        <th style="padding:8px;font-size:0.72rem;background:#eff6ff;">E4 kWh</th>
+        <th style="padding:8px;font-size:0.72rem;background:#eff6ff;">E5 kWh</th>
+        <th style="padding:8px;font-size:0.72rem;background:#eff6ff;">E6 kWh</th>
+        <th style="padding:8px;font-size:0.72rem;">Total €</th>
+        <th style="padding:8px;font-size:0.72rem;">Acciones</th>`;
     }
 
     // Cambiar botón PDF
     const btnPDF = document.querySelector('#cm-paso3 button[onclick*="cmGenerarPDF"]');
     if (btnPDF) {
       btnPDF.setAttribute('onclick', 'cmGenerarPDFAnual()');
-      btnPDF.textContent = '📊 Generar Estudio Anual PDF';
+      btnPDF.innerHTML = '📊 Generar Estudio Anual PDF';
     }
   }
 
@@ -29720,12 +29769,18 @@ Si no encuentras ningún CIF/NIF → pon "".`;
         }
       });
 
-      // Calcular proyección anual
+      // Cálculo del ahorro anual:
+      // Ahorro real de cada mes = factura_actual_mes - coste_DRK_mes
+      // Si 12 facturas: suma directa. Si menos: media mensual × 12
       const ahorros = facturas.map(f => f._ahorroMes || 0);
-      const suma = ahorros.reduce((a,b)=>a+b, 0);
       const nFacturas = facturas.length;
-      grupo._ahorroAnual = nFacturas >= 12 ? suma : (suma / nFacturas) * 12;
+      const sumaAhorros = ahorros.reduce((a,b)=>a+b, 0);
+      // Media mensual = suma / nFacturas → proyección anual = media × 12
+      grupo._ahorroAnual = (sumaAhorros / nFacturas) * 12;
       grupo._tarifaReciente = tarifaReciente;
+      grupo._nFacturas = nFacturas;
+      grupo._sumaAhorros = sumaAhorros;
+      grupo._mediaAhorroMes = sumaAhorros / nFacturas;
     });
 
     // Generar PDF con jsPDF
@@ -29833,9 +29888,10 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       doc.text(`AHORRO ANUAL ${proyectado ? 'REAL' : 'PROYECTADO'}: ${_ahorroAnual>=0?'+':''}${_ahorroAnual.toFixed(2)} €`, pageWidth/2, yPos+8, {align:'center'});
       doc.setFont('helvetica','normal');
       doc.setFontSize(8);
+      const mediaReal = grupo._mediaAhorroMes || (totalAhorro / nFacturas);
       const textoProyeccion = proyectado
-        ? `Basado en ${nFacturas} meses completos`
-        : `Basado en ${nFacturas} mes${nFacturas>1?'es':''} · Media ${(totalAhorro/nFacturas).toFixed(2)} €/mes × 12`;
+        ? `Basado en ${nFacturas} meses · Suma real: ${totalAhorro.toFixed(2)} €`
+        : `${nFacturas} mes${nFacturas>1?'es':''} · Media: ${mediaReal.toFixed(2)} €/mes × 12 = ${_ahorroAnual.toFixed(2)} €/año`;
       doc.text(textoProyeccion, pageWidth/2, yPos+14, {align:'center'});
       yPos += 22;
     });

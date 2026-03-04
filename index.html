@@ -30221,8 +30221,8 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       y+=12;
 
       // Tabla mensual
-      const cws2=[20,24,12,20,20,12,26,26,22];
-      const hdrs2=['Mes','Fecha emisión','Días','kWh','P1 kW','Tarifa DRK','Factura actual','Coste DRK','Ahorro periodo'];
+      const cws2=[20,26,12,22,20,32,32,28];
+      const hdrs2=['Mes','Fecha emisión','Días','kWh','P1 kW','Factura actual','Coste DRK','Ahorro periodo'];
       doc.setFillColor(...darkColor);
       doc.rect(m,y,cw,6.5,'F');
       doc.setTextColor(255,255,255); doc.setFontSize(6.5); doc.setFont('helvetica','bold');
@@ -30240,17 +30240,17 @@ Si no encuentras ningún CIF/NIF → pon "".`;
         const fA=f.total||0, fD=f._totalDRK||0, fAh=f._ahorroMes||0;
         sumA+=fA; sumD+=fD; sumAh+=fAh;
         const row2=[mes, f.fechaEmision||'—', String(f.dias||0), kwh.toFixed(0),
-          (f.p1||0).toFixed(2), f._mejorTarifa||'—',
+          (f.p1||0).toFixed(2),
           `${fmt(fA)} €`, `${fmt(fD)} €`,
           `${fAh>=0?'+':''}${fmt(fAh)} €`];
         let xr2=m;
         row2.forEach((v,i)=>{
-          // col 6 = Factura actual: gris con efecto "tachado" visual (color gris)
-          if(i===6){ doc.setTextColor(...grisActual); doc.setFont('helvetica','normal'); }
-          // col 7 = Coste DRK: verde
-          else if(i===7){ doc.setTextColor(...verdeAhorro); doc.setFont('helvetica','bold'); }
-          // col 8 = Ahorro: verde negrita
-          else if(i===8){ doc.setTextColor(fAh>=0?22:200, fAh>=0?163:38, fAh>=0?74:38); doc.setFont('helvetica','bold'); }
+          // col 5 = Factura actual: gris
+          if(i===5){ doc.setTextColor(...grisActual); doc.setFont('helvetica','normal'); }
+          // col 6 = Coste DRK: verde
+          else if(i===6){ doc.setTextColor(...verdeAhorro); doc.setFont('helvetica','bold'); }
+          // col 7 = Ahorro: verde/rojo negrita
+          else if(i===7){ doc.setTextColor(fAh>=0?22:200, fAh>=0?163:38, fAh>=0?74:38); doc.setFont('helvetica','bold'); }
           else { doc.setTextColor(30,30,30); doc.setFont('helvetica','normal'); }
           doc.text(v,xr2+1.5,y+5);
           xr2+=cws2[i];
@@ -30262,14 +30262,14 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       doc.setFillColor(230,242,232);
       doc.rect(m,y,cw,7,'F');
       doc.setFontSize(6.5);
-      const rowT2=['TOTAL',`${ordenadas.length} fact.`,'','','','',
+      const rowT2=['TOTAL',`${ordenadas.length} fact.`,'','','',
         `${fmt(sumA)} €`,`${fmt(sumD)} €`,
         `${sumAh>=0?'+':''}${fmt(sumAh)} €`];
       let xt2=m;
       rowT2.forEach((v,i)=>{
-        if(i===6){doc.setTextColor(...grisActual);doc.setFont('helvetica','bold');}
+        if(i===5){doc.setTextColor(...grisActual);doc.setFont('helvetica','bold');}
+        else if(i===6){doc.setTextColor(...verdeAhorro);doc.setFont('helvetica','bold');}
         else if(i===7){doc.setTextColor(...verdeAhorro);doc.setFont('helvetica','bold');}
-        else if(i===8){doc.setTextColor(...verdeAhorro);doc.setFont('helvetica','bold');}
         else{doc.setTextColor(30,30,30);doc.setFont('helvetica','bold');}
         doc.text(v,xt2+1.5,y+5);
         xt2+=cws2[i];

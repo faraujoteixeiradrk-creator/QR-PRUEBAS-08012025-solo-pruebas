@@ -21132,7 +21132,7 @@ ${clientName}
   dualGeneratePDF(comercialCode, clientName, clientPhone, clientEmail, clientAddress);
  }
  // Función: Generar PDF DUAL
- async function dualGeneratePDF(comercialCode = 'D=00', clientName = '', clientPhone = '', clientEmail = '', clientAddress = '') {
+ window.dualGeneratePDF = async function dualGeneratePDF(comercialCode = 'D=00', clientName = '', clientPhone = '', clientEmail = '', clientAddress = '') {
   if (!clientName) {
   clientName = tr('[NOMBRE COMPLETO CLIENTE]');
   }
@@ -29500,65 +29500,52 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     modal.style.display = 'flex';
   };
 
-  window.cmGenerarPDFDualEmpresa = function() {
+  window.cmGenerarPDFDualEmpresa = async function() {
     const idx = window._cmGruposDualIdx || 0;
     const grupos = window._cmGruposDual || [];
     const g = grupos[idx];
     if (!g) return;
 
-    // Rellenar datos del cliente
-    const sv = (id, val) => { const el = document.getElementById(id); if (el) el.value = val||''; };
-    sv('comercial-code-input', document.getElementById('cm-emp-codigo').value);
-    sv('client-name-input',    document.getElementById('cm-emp-nombre').value);
-    sv('client-phone-input',   document.getElementById('cm-emp-telefono').value);
-    sv('client-address-input', g.elec[0]?.supplyAddress || g.gas[0]?.supplyAddress || g.nombre || '');
-    sv('client-email-input',   document.getElementById('cm-emp-email').value);
+    // Leer datos del modal cm-modal-empresas
+    const comercialCode = document.getElementById('cm-emp-codigo')?.value?.trim() || '';
+    const clientName    = document.getElementById('cm-emp-nombre')?.value?.trim() || g.nombre || '';
+    const clientPhone   = document.getElementById('cm-emp-telefono')?.value?.trim() || '';
+    const clientEmail   = document.getElementById('cm-emp-email')?.value?.trim() || '';
+    const clientAddress = g.elec[0]?.supplyAddress || g.gas[0]?.supplyAddress || '';
+
+    if (!comercialCode) {
+      alert('⚠️ El código comercial es obligatorio');
+      return;
+    }
 
     document.getElementById('cm-modal-empresas').style.display = 'none';
     window._cmGruposDualIdx = idx + 1;
     const nextIdx = window._cmGruposDualIdx;
 
-    // Construir lista de suministros para esta empresa: sus electricidades + sus gases (sin duplicar)
-    const cupsSetElec = new Set(g.elec.map(s=>s.cups));
     // Para el gas: si es compartido (mismo gas en múltiples grupos), usar solo 1 instancia
     const gasUnicos = [...new Map(g.gas.map(s=>[s.cups,s])).values()];
     const suppliesEmpresa = [...g.elec, ...gasUnicos];
 
     console.log(`📄 DUAL PDF empresa "${g.nombre}": ${suppliesEmpresa.length} suministros (${g.elec.length} elec + ${gasUnicos.length} gas)`);
 
-    // Sustituir temporalmente dualSupplies
+    // Sustituir temporalmente dualSupplies y recalcular
     dualSupplies.length = 0;
     suppliesEmpresa.forEach(s => dualSupplies.push(s));
-
-    // Recalcular DUAL para esta empresa
     dualCalculate();
 
-    setTimeout(() => {
-      // Abrir modal datos cliente con datos de esta empresa ya rellenos
-      clearClientModal();
-      document.getElementById('client-data-modal').classList.remove('hidden');
-      document.getElementById('client-data-modal').classList.add('flex');
-      autoFillClientDataFromIA();
-      // Re-forzar nombre de empresa (autoFill puede sobreescribir)
-      sv('client-name-input',    document.getElementById('cm-emp-nombre')?.value || g.nombre);
-      sv('comercial-code-input', document.getElementById('cm-emp-codigo')?.value || '');
+    // Pequeño delay para que dualCalculate termine de actualizar dualGlobalResults
+    await new Promise(r => setTimeout(r, 350));
 
-      // Interceptar botón PDF para avanzar tras generar
-      const pdfBtn = document.getElementById('execute-pdf-offer-btn');
-      if (pdfBtn) {
-        const origClick = pdfBtn.onclick;
-        pdfBtn.onclick = async function() {
-          await handleGeneratePDF();
-          pdfBtn.onclick = origClick;
-          // Restaurar dualSupplies completos
-          dualSupplies.length = 0;
-          window._dualSuppliesOriginal.forEach(s => dualSupplies.push(s));
-          dualCalculate();
-          closeClientDataModal();
-          setTimeout(() => cmMostrarFormularioDualEmpresa(nextIdx), 400);
-        };
-      }
-    }, 400);
+    // Generar PDF directamente sin abrir client-data-modal
+    await dualGeneratePDF(comercialCode, clientName, clientPhone, clientEmail, clientAddress);
+
+    // Restaurar dualSupplies completos y recalcular resultado global
+    dualSupplies.length = 0;
+    (window._dualSuppliesOriginal || []).forEach(s => dualSupplies.push(s));
+    dualCalculate();
+
+    // Avanzar al siguiente grupo tras breve pausa
+    setTimeout(() => cmMostrarFormularioDualEmpresa(nextIdx), 400);
   };
 
 })();

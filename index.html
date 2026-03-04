@@ -2559,8 +2559,21 @@
     }
   }
   // Si IA detectó empresa/CIF en suministro individual (no carga masiva), usarlo también
+  // Fuente 1: window._iaEmpresa/_iaCif (set por confirmarDatosIA)
   if (!supply._empresa && window._iaEmpresa) { supply._empresa = window._iaEmpresa; window._iaEmpresa = null; }
   if (!supply._cif && window._iaCif) { supply._cif = window._iaCif; window._iaCif = null; }
+  // Fuente 2 (FIX DUAL): leer directamente de aiExtractedData/gasAiData ANTES de que se limpien
+  // Cubre flujos que no pasan por confirmarDatosIA (ej: selectBestOptionDirectDual)
+  if (type === 'gas') {
+    const gd = window.gasAiData || {};
+    if (!supply._empresa && gd.nombre_empresa) supply._empresa = gd.nombre_empresa;
+    if (!supply._cif && gd.cif_nif) supply._cif = gd.cif_nif;
+  } else {
+    const ed = window.aiExtractedData || {};
+    if (!supply._empresa && ed.nombre_empresa) supply._empresa = ed.nombre_empresa;
+    if (!supply._cif && ed.cif_nif) supply._cif = ed.cif_nif;
+  }
+  console.log(`🏭 [DUAL] Supply ${supply.cups} → empresa:"${supply._empresa||''}" cif:"${supply._cif||''}"`);
   console.log('Total suministros:', dualSupplies.length);
   console.log('Array completo:', dualSupplies);
   // Limpiar flags de IA para el siguiente suministro

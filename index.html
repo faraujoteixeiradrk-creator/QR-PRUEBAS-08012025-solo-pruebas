@@ -29781,11 +29781,101 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       const telefono = overlay.querySelector('#ea-telefono').value.trim();
       if (!codigo) { overlay.querySelector('#ea-codigo').style.borderColor='#dc2626'; return; }
       document.body.removeChild(overlay);
-      _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono);
+      // Paso 2: modal de selección de tarifa
+      _cmModalSeleccionTarifa(grupos, codigo, nombre, telefono);
     };
   };
 
-  function _cmGenerarPDFAnualReal(grupos, comercialCode, clienteNombre, clienteTel) {
+  function _cmModalSeleccionTarifa(grupos, codigo, nombre, telefono) {
+    // Detectar tipo de tarifa de los grupos
+    const tipoTarifa = grupos[0]?._tarifaReciente ||
+      grupos[0]?.facturas?.slice().sort((a,b)=>(b.mesNumero||0)-(a.mesNumero||0))[0]?.tarifa || '2.0TD';
+    const tarifasDisp = (currentTariffs[tipoTarifa] || []).filter(t => t.isDrk);
+
+    if (tarifasDisp.length === 0) {
+      // Sin tarifas disponibles → generar con lo que haya
+      _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono);
+      return;
+    }
+
+    const overlay2 = document.createElement('div');
+    overlay2.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;';
+
+    const opciones = tarifasDisp.map((t, i) => {
+      const tarNombre = t.name || t.descripcion || `Tarifa ${i+1}`;
+      const p1d = ((t.p_potencia_1||0)/365).toFixed(6);
+      const p2d = ((t.p_potencia_2||0)/365).toFixed(6);
+      const e1 = (t.p1_price||0).toFixed(6);
+      const e2 = (t.p2_price||0).toFixed(6);
+      const e3 = (t.p3_price||0).toFixed(6);
+      return `<label style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:#f8fafc;border-radius:10px;border:2px solid #e2e8f0;cursor:pointer;transition:all 0.15s;" id="ea-tarifa-label-${i}"
+        onmouseover="this.style.borderColor='#3b82f6'" onmouseout="if(!document.getElementById('ea-tarifa-${i}').checked)this.style.borderColor='#e2e8f0'">
+        <input type="radio" name="ea-tarifa-sel" id="ea-tarifa-${i}" value="${i}"
+          onchange="document.querySelectorAll('[id^=ea-tarifa-label-]').forEach(l=>l.style.borderColor='#e2e8f0');this.closest('label').style.borderColor='#3b82f6';this.closest('label').style.background='#eff6ff';"
+          style="margin-top:3px;accent-color:#2563eb;flex-shrink:0;">
+        <div>
+          <div style="font-weight:800;color:#1e3a8a;font-size:0.88rem;">${tarNombre}</div>
+          <div style="font-size:0.72rem;color:#64748b;margin-top:3px;">
+            P1: ${p1d} €/kW/día &nbsp;·&nbsp; P2: ${p2d} €/kW/día
+          </div>
+          <div style="font-size:0.72rem;color:#64748b;">
+            E1: ${e1} &nbsp;·&nbsp; E2: ${e2} &nbsp;·&nbsp; E3: ${e3} €/kWh
+          </div>
+        </div>
+      </label>`;
+    }).join('');
+
+    // Opción "mejor tarifa automática"
+    const autoOpcion = `<label style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f0fdf4;border-radius:10px;border:2px solid #16a34a;cursor:pointer;" id="ea-tarifa-label-auto">
+      <input type="radio" name="ea-tarifa-sel" id="ea-tarifa-auto" value="auto" checked
+        onchange="document.querySelectorAll('[id^=ea-tarifa-label-]').forEach(l=>{l.style.borderColor='#e2e8f0';l.style.background='#f8fafc';});document.getElementById('ea-tarifa-label-auto').style.borderColor='#16a34a';"
+        style="accent-color:#16a34a;flex-shrink:0;">
+      <div>
+        <div style="font-weight:800;color:#16a34a;font-size:0.88rem;">🏆 Mejor tarifa automática (recomendado)</div>
+        <div style="font-size:0.72rem;color:#64748b;margin-top:2px;">El sistema elige la tarifa más barata para cada mes</div>
+      </div>
+    </label>`;
+
+    overlay2.innerHTML = `
+      <div style="background:white;border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
+        <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:18px 22px;position:sticky;top:0;z-index:1;">
+          <div style="font-size:1rem;font-weight:900;color:white;">🎯 Selecciona la tarifa para el estudio</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">${tipoTarifa} · ${tarifasDisp.length} tarifa${tarifasDisp.length>1?'s':''} disponible${tarifasDisp.length>1?'s':''}</div>
+        </div>
+        <div style="padding:18px;display:flex;flex-direction:column;gap:8px;">
+          ${autoOpcion}
+          <div style="font-size:0.72rem;color:#94a3b8;font-weight:600;margin:4px 0 2px 2px;">O ELIGE UNA TARIFA ESPECÍFICA:</div>
+          ${opciones}
+          <div style="display:flex;gap:10px;margin-top:10px;">
+            <button id="ea-tarifa-cancelar" style="flex:1;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.84rem;color:#64748b;">← Atrás</button>
+            <button id="ea-tarifa-confirmar" style="flex:2;padding:11px;background:linear-gradient(135deg,#16a34a,#15803d);border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.84rem;color:white;">📊 Generar PDF con esta tarifa</button>
+          </div>
+        </div>
+      </div>`;
+
+    document.body.appendChild(overlay2);
+
+    overlay2.querySelector('#ea-tarifa-cancelar').onclick = () => {
+      document.body.removeChild(overlay2);
+      // Volver al modal de datos
+      window.cmGenerarPDFAnual();
+    };
+
+    overlay2.querySelector('#ea-tarifa-confirmar').onclick = () => {
+      const sel = overlay2.querySelector('input[name="ea-tarifa-sel"]:checked');
+      const val = sel?.value;
+      document.body.removeChild(overlay2);
+      if (val === 'auto' || val === undefined) {
+        // Automático: sin forzar tarifa
+        _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono, null);
+      } else {
+        const tarifaForzada = tarifasDisp[parseInt(val)];
+        _cmGenerarPDFAnualReal(grupos, codigo, nombre, telefono, tarifaForzada);
+      }
+    };
+  }
+
+  function _cmGenerarPDFAnualReal(grupos, comercialCode, clienteNombre, clienteTel, tarifaForzada) {
     const mesesNombre = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     const isDrk = !window.activeBrand || window.activeBrand.NAME.includes('DRK');
 
@@ -29808,9 +29898,16 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           potencia_p5_kw: f.p5||0, potencia_p6_kw: f.p6||0,
           originalBillAnnual: (f.total||0) * (365 / dias)
         };
-        const resultados = tarifas.map(t => calculateTariffCost(t, data, tarifaReciente));
-        const drkResults = resultados.filter(r => r.offer && r.offer.isDrk);
-        drkResults.sort((a,b) => (a.totalPeriod||0) - (b.totalPeriod||0));
+        // Si hay tarifa forzada → solo calcular con esa; si no → elegir la mejor DRK
+        let drkResults;
+        if (tarifaForzada) {
+          const rForzado = calculateTariffCost(tarifaForzada, data, tarifaReciente);
+          drkResults = [rForzado];
+        } else {
+          const resultados = tarifas.map(t => calculateTariffCost(t, data, tarifaReciente));
+          drkResults = resultados.filter(r => r.offer && r.offer.isDrk);
+          drkResults.sort((a,b) => (a.totalPeriod||0) - (b.totalPeriod||0));
+        }
         const mejor = drkResults[0];
         if (mejor) {
           f._totalDRK = mejor.totalPeriod || 0;

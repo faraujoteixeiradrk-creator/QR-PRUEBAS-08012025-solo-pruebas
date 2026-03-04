@@ -3133,6 +3133,14 @@
   document.getElementById('solar-yes-btn-dual').addEventListener('click', () => {
   modal.remove();
   console.log('✅ Usuario tiene instalación solar - Mostrando formulario excedentes');
+  // FIX: Restaurar currentTariffType desde el contexto DUAL para que compareOffers no falle con null
+  const dualCtxTariff = lastComparisonResult?._dualContext?.tariffType
+    || lastComparisonResult?.tariffType
+    || lastComparisonResult?.originalTariffType;
+  if (dualCtxTariff && (!currentTariffType || currentTariffType === 'null')) {
+    currentTariffType = dualCtxTariff;
+    console.log('🔧 DUAL solar: currentTariffType restaurado a', currentTariffType);
+  }
   // Activar checkbox de excedentes y mostrar formulario
   const solarCheckbox = document.getElementById('solar-surplus-checkbox');
   if (solarCheckbox) {
@@ -3879,7 +3887,9 @@
   const isMultiCupsFlow = currentTariffType === 'MULTICUPS';
   const tariffType = isMultiCupsFlow
   ? (data.originalTariffType || data.tariffType || '2.0TD')
-  : currentTariffType;
+  : (currentTariffType && currentTariffType !== 'null'
+      ? currentTariffType
+      : (data.originalTariffType || data.tariffType || lastComparisonResult?._dualContext?.tariffType || '2.0TD'));
   console.log('🔍 compareOffers - tariffType determinado:', {
   currentTariffType: currentTariffType,
   isMultiCupsFlow: isMultiCupsFlow,
@@ -13941,7 +13951,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   pricePerKwh: solarSurplusData.pricePerKwh
   };
   // Recalcular TODAS las ofertas con excedentes activos (solarSurplusEnabled sigue TRUE aquí)
-  const tariffTypeForCalc = lastComparisonResult.originalTariffType || lastComparisonResult.tariffType || currentTariffType;
+  const tariffTypeForCalc = lastComparisonResult.originalTariffType || lastComparisonResult.tariffType || lastComparisonResult?._dualContext?.tariffType || (currentTariffType !== 'null' ? currentTariffType : null) || '2.0TD';
   let tariffsToRecalc = currentTariffs[tariffTypeForCalc] || [];
   if (comparisonMode === 'drk_only') {
   tariffsToRecalc = tariffsToRecalc.filter(t => t.isDrk === true);

@@ -28877,7 +28877,7 @@ Si no encuentras → "".`;
     return {
       ok: true, tarifa,
       tipoSuministro: esGas ? 'gas' : 'electricidad',
-      cups: parsed.cups || '',
+      cups: (parsed.cups || '').toString().toUpperCase().replace(/\s+/g, ''),
       dias: parsed.dias || 0,
       // En 2.0TD facturas DRK: la potencia aparece como P1+P3 (no P1+P2). Si p2=0 y p3>0 → usamos p3 como p2
       p1: p.p1||0, p2: (p.p2||0) > 0 ? (p.p2||0) : (tarifa==='2.0TD' ? (p.p3||0) : 0), p3: tarifa==='2.0TD' ? 0 : (p.p3||0), p4: p.p4||0, p5: p.p5||0, p6: p.p6||0,
@@ -29242,7 +29242,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           <td style="padding:6px;">${cifCell}</td>
           <td style="padding:6px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;" title="${r.file.name}">${r.file.name}</td>
           <td style="padding:6px;">${tarifaCell}</td>
-          <td style="padding:6px;"><input value="${r.cups||''}" onchange="_cmResultados[${i}].cups=this.value" style="width:130px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
+          <td style="padding:6px;"><input value="${(r.cups||'').replace(/\s+/g,'')}" onchange="_cmResultados[${i}].cups=this.value.toUpperCase().replace(/\s+/g,'')" style="width:130px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
           <td style="padding:6px;"><input value="${r.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:100px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
           <td style="padding:6px;"><input value="${r.direccion||''}" onchange="_cmResultados[${i}].direccion=this.value" style="width:120px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
           <td style="padding:6px;">${inp('dias',r.dias,'42px',bGray)}</td>
@@ -29268,7 +29268,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
         <td style="padding:6px;">${cifCell}</td>
         <td style="padding:6px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;" title="${r.file.name}">${r.file.name}</td>
         <td style="padding:6px;">${tarifaCell}</td>
-        <td style="padding:6px;"><input value="${r.cups||''}" onchange="_cmResultados[${i}].cups=this.value" style="width:130px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
+        <td style="padding:6px;"><input value="${(r.cups||'').replace(/\s+/g,'')}" onchange="_cmResultados[${i}].cups=this.value.toUpperCase().replace(/\s+/g,'')" style="width:130px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
         <td style="padding:6px;"><input value="${r.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:100px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
         <td style="padding:6px;"><input value="${r.direccion||''}" onchange="_cmResultados[${i}].direccion=this.value" style="width:120px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
         <td style="padding:6px;">${inp('dias',r.dias,'42px',bGray)}</td>
@@ -29343,18 +29343,19 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       inputs.forEach((inp, idx) => { if (fields[idx] !== undefined) r[fields[idx]] = parseFloat(inp.value)||0; });
       const modoEmp = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
       const allTexts = Array.from(document.querySelectorAll(`#cm-row-${i} input:not([type="number"]):not([type="checkbox"])`));
+      const normCups = v => (v||'').toUpperCase().replace(/\s+/g,''); // quitar espacios del CUPS
       if (modoEmp === 'diferentes') {
         // En modo diferentes la tabla tiene: empresa(0), cif(1), cups(2), nombre(3), direccion(4)
         // Priorizar valor del DOM si no está vacío, sino usar el valor ya en r (puesto por la IA)
         r.empresa   = (allTexts[0]?.value || '').trim() || r.empresa || '';
         r.cif       = (allTexts[1]?.value || '').trim() || r.cif || '';
-        r.cups      = (allTexts[2]?.value || '').trim() || r.cups || '';
+        r.cups      = normCups(allTexts[2]?.value) || normCups(r.cups) || '';
         r.nombre    = (allTexts[3]?.value || '').trim() || r.nombre || '';
         r.direccion = (allTexts[4]?.value || '').trim() || r.direccion || '';
       } else {
         // Modo misma empresa: cups(0), nombre(1), direccion(2)
         // Aun así preservar empresa/cif que la IA detectó (para snapshot posterior)
-        r.cups      = (allTexts[0]?.value || '').trim() || r.cups || '';
+        r.cups      = normCups(allTexts[0]?.value) || normCups(r.cups) || '';
         r.nombre    = (allTexts[1]?.value || '').trim() || r.nombre || '';
         r.direccion = (allTexts[2]?.value || '').trim() || r.direccion || '';
         // empresa y cif ya están en r desde la IA, no los sobreescribimos
@@ -29856,7 +29857,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
               <option value="3.0TD" ${f.tarifa==='3.0TD'?'selected':''}>3.0TD</option>
             </select>
           </td>
-          <td style="padding:6px;"><input value="${f.cups||''}" onchange="_cmResultados[${i}].cups=this.value" style="width:130px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
+          <td style="padding:6px;"><input value="${(f.cups||'').replace(/\s+/g,'')}" onchange="_cmResultados[${i}].cups=this.value.toUpperCase().replace(/\s+/g,'')" style="width:130px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
           <td style="padding:6px;"><input value="${f.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:90px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
           <td style="padding:6px;">${inp('dias',i,f.dias,'42px',bGray)}</td>
           <td style="padding:6px;">${inp('p1',i,f.p1,'42px',bGray)}</td>

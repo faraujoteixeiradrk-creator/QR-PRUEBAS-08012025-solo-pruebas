@@ -28333,8 +28333,8 @@ Si no encuentras → "".`;
      }
      window.confirmarDatosGasIA = function() {
       if (!gasAiData) return;
-      window.gasUsedIA = true; // Marcar que esta sesión usó IA
-      window.gasAiData = gasAiData; // Asegurar que está expuesto globalmente
+      window.gasUsedIA = true;
+      window.gasAiData = gasAiData;
       function sv(id, val) {
        var el = document.getElementById(id);
        if (el && val !== undefined && val !== 0 && val !== '') {
@@ -28346,8 +28346,27 @@ Si no encuentras → "".`;
       }
       sv('gas-cups', gasAiData.cups);
       sv('gas-dias', gasAiData.dias);
-      sv('gas-kwh', gasAiData.kwh);
+      sv('gas-kwh', gasAiData.kwh || (gasAiData.energia_kwh && (gasAiData.energia_kwh.e1 || 0)));
       sv('gas-total-cliente', gasAiData.total_factura);
+      // Asegurar tarifa gas correcta
+      if (gasAiData.tarifa) {
+       var selTariff = document.getElementById('gas-selected-tariff');
+       if (selTariff) selTariff.textContent = gasAiData.tarifa;
+      }
+      // IMPORTANTE: Cerrar modal IA y abrir el modal de gas correcto (NO el de electricidad)
+      cerrarModalGasIA();
+      var gasModal = document.getElementById('gas-manual-input-modal');
+      if (gasModal) {
+       gasModal.classList.remove('hidden');
+       gasModal.style.display = 'flex';
+       gasModal.classList.add('flex');
+      }
+      // Asegurar que el manual-input-modal de electricidad NO se abre
+      var elecModal = document.getElementById('manual-input-modal');
+      if (elecModal) {
+       elecModal.classList.add('hidden');
+       elecModal.classList.remove('flex');
+      }
       // Rellenar nombre y dirección en modales compartidos
       if (gasAiData.nombre_cliente) {
        sv('client-name', gasAiData.nombre_cliente);
@@ -28362,7 +28381,6 @@ Si no encuentras → "".`;
       // Guardar empresa y CIF del gas para adjuntar al dualSupply
       if (gasAiData.nombre_empresa) window._iaEmpresa = gasAiData.nombre_empresa;
       if (gasAiData.cif_nif) window._iaCif = gasAiData.cif_nif;
-      cerrarModalGasIA();
      };
      document.addEventListener('DOMContentLoaded', function() {
       var zone = document.getElementById('gas-ai-drop-zone');

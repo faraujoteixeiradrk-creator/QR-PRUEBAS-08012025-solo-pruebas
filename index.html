@@ -28766,9 +28766,9 @@ Si no encuentras → "".`;
     textoEl.textContent = `✅ Completado: ${ok} OK · ${_cmResultados.length - ok} con avisos`;
     _cmProcesando = false;
 
-    // ═══ DETECCIÓN ESTUDIO ANUAL (solo modo "misma empresa") ═══
+    // ═══ DETECCIÓN ESTUDIO ANUAL (modo "misma empresa" Y también en "empresas diferentes" para gas) ═══
     const modoEmpresaActual = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
-    if (modoEmpresaActual === 'misma') { // funciona en modo normal Y en DUAL
+    if (modoEmpresaActual === 'misma' || modoEmpresaActual === 'diferentes') { // funciona en modo normal Y en DUAL
       // ── ELECTRICIDAD ──
       const cupsGruposElec = {};
       _cmResultados.filter(r => r.ok && r.cups && r.tipoSuministro !== 'gas').forEach(r => {
@@ -29393,59 +29393,55 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       return;
     }
 
-    // ═══ DETECCIÓN EN TIEMPO REAL (por si no pasó por el flujo IA, ej. DUAL o revisión manual) ═══
-    if (window._cmModoEmpresa === 'misma') {
-      // GAS: detectar mismo CUPS con meses distintos
-      const cupsGruposGasRT = {};
-      cola.filter(r => r.ok && r.cups && r.tipoSuministro === 'gas').forEach(r => {
-        if (!cupsGruposGasRT[r.cups]) cupsGruposGasRT[r.cups] = [];
-        cupsGruposGasRT[r.cups].push(r);
+    // ═══ DETECCIÓN EN TIEMPO REAL — funciona en CUALQUIER modo empresa ═══
+    // GAS: detectar mismo CUPS con meses distintos en la cola actual
+    const _cupsGasRT = {};
+    cola.filter(r => r.ok && r.cups && r.tipoSuministro === 'gas').forEach(r => {
+      if (!_cupsGasRT[r.cups]) _cupsGasRT[r.cups] = [];
+      _cupsGasRT[r.cups].push(r);
+    });
+    const _cupsAnualesGasRT = Object.entries(_cupsGasRT).filter(([c, fs]) =>
+      fs.length >= 2 && new Set(fs.map(f => f.mesNumero).filter(m => m > 0)).size >= 2
+    );
+    if (_cupsAnualesGasRT.length > 0) {
+      cerrarCargaMasiva();
+      (async () => {
+        const resp = await cmMostrarModalEstudioAnual(_cupsAnualesGasRT, 'gas');
+        if (resp === 'anual') {
+          window._cmEstudioAnualGas = _cupsAnualesGasRT.map(([cups, facturas]) => ({ cups, facturas }));
+          setTimeout(() => _cmGenerarPDFAnualGas(), 200);
+        } else {
+          window._cmEstudioAnualGas = null;
+          window._cmCola = cola; window._cmColaIdx = 0; window._cmColaTotal = cola.length;
+          cmMostrarBannerCola(); cmProcesarSiguienteDeCola();
+        }
+      })();
+      return;
+    }
+    // ELECTRICIDAD: detectar mismo CUPS si no fue seteado por el flujo IA
+    if (!window._cmEstudioAnual) {
+      const _cupsElecRT = {};
+      cola.filter(r => r.ok && r.cups && r.tipoSuministro !== 'gas').forEach(r => {
+        if (!_cupsElecRT[r.cups]) _cupsElecRT[r.cups] = [];
+        _cupsElecRT[r.cups].push(r);
       });
-      const cupsAnualesGasRT = Object.entries(cupsGruposGasRT).filter(([c, fs]) => {
-        if (fs.length < 2) return false;
-        return new Set(fs.map(f => f.mesNumero).filter(m => m > 0)).size >= 2;
-      });
-      if (cupsAnualesGasRT.length > 0) {
+      const _cupsAnualesElecRT = Object.entries(_cupsElecRT).filter(([c, fs]) =>
+        fs.length >= 2 && new Set(fs.map(f => f.mesNumero).filter(m => m > 0)).size >= 2
+      );
+      if (_cupsAnualesElecRT.length > 0) {
         cerrarCargaMasiva();
         (async () => {
-          const resp = await cmMostrarModalEstudioAnual(cupsAnualesGasRT, 'gas');
+          const resp = await cmMostrarModalEstudioAnual(_cupsAnualesElecRT, 'electricidad');
           if (resp === 'anual') {
-            window._cmEstudioAnualGas = cupsAnualesGasRT.map(([cups, facturas]) => ({ cups, facturas }));
-            setTimeout(() => _cmGenerarPDFAnualGas(), 200);
+            window._cmEstudioAnual = _cupsAnualesElecRT.map(([cups, facturas]) => ({ cups, facturas }));
+            setTimeout(() => cmGenerarPDFAnual(), 200);
           } else {
-            window._cmEstudioAnualGas = null;
+            window._cmEstudioAnual = null;
             window._cmCola = cola; window._cmColaIdx = 0; window._cmColaTotal = cola.length;
             cmMostrarBannerCola(); cmProcesarSiguienteDeCola();
           }
         })();
         return;
-      }
-      // ELECTRICIDAD: detectar mismo CUPS si no fue seteado por IA
-      if (!window._cmEstudioAnual) {
-        const cupsGruposElecRT = {};
-        cola.filter(r => r.ok && r.cups && r.tipoSuministro !== 'gas').forEach(r => {
-          if (!cupsGruposElecRT[r.cups]) cupsGruposElecRT[r.cups] = [];
-          cupsGruposElecRT[r.cups].push(r);
-        });
-        const cupsAnualesElecRT = Object.entries(cupsGruposElecRT).filter(([c, fs]) => {
-          if (fs.length < 2) return false;
-          return new Set(fs.map(f => f.mesNumero).filter(m => m > 0)).size >= 2;
-        });
-        if (cupsAnualesElecRT.length > 0) {
-          cerrarCargaMasiva();
-          (async () => {
-            const resp = await cmMostrarModalEstudioAnual(cupsAnualesElecRT, 'electricidad');
-            if (resp === 'anual') {
-              window._cmEstudioAnual = cupsAnualesElecRT.map(([cups, facturas]) => ({ cups, facturas }));
-              setTimeout(() => cmGenerarPDFAnual(), 200);
-            } else {
-              window._cmEstudioAnual = null;
-              window._cmCola = cola; window._cmColaIdx = 0; window._cmColaTotal = cola.length;
-              cmMostrarBannerCola(); cmProcesarSiguienteDeCola();
-            }
-          })();
-          return;
-        }
       }
     }
 
@@ -29974,9 +29970,8 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     const rlBase = rlTarifa.toUpperCase().replace(/[\s\.]/g,''); // → "RL1"
     const fmt = v => v.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
 
-    // ── Función auxiliar: filtrar y calcular tarifas ──
+    // ── Filtrar y calcular ──
     function _filtrarTarifasGas(data) {
-      // Normalizar y filtrar por RL
       let lista = data.filter(t => {
         const tv = (t.Tarifa || '').trim().toUpperCase().replace(/[\s\.]/g,'');
         if (tv !== rlBase) return false;
@@ -29984,25 +29979,15 @@ Si no encuentras ningún CIF/NIF → pon "".`;
         const nm = (t.name || t.Name || t.Nombre || '').toLowerCase();
         return nm.includes('drk') || nm.includes('direct');
       });
-      // Relajar filtro marca si DRK no tiene
-      if (!isPC && lista.length === 0) {
-        lista = data.filter(t => {
-          const tv = (t.Tarifa || '').trim().toUpperCase().replace(/[\s\.]/g,'');
-          return tv === rlBase;
-        });
-      }
-      // Fallback total: todas las tarifas si aún vacío
+      if (!isPC && lista.length === 0) lista = data.filter(t => (t.Tarifa||'').trim().toUpperCase().replace(/[\s\.]/g,'') === rlBase);
       if (lista.length === 0) lista = [...data];
-      // Dedup
       const seen = new Set();
-      lista = lista.filter(t => {
+      return lista.filter(t => {
         const k = (t.name||t.Name||t.Nombre||'').trim()+'_'+parseFloat(t.p1_price||t.P1_price||0).toFixed(6)+'_'+parseFloat(t.p_fijo_1||t.P_fijo_1||0).toFixed(4);
         if (seen.has(k)) return false; seen.add(k); return true;
       });
-      return lista;
     }
-
-    function _calcAhorroTarifaGas(tarifa) {
+    function _calcAhorro(tarifa) {
       let suma = 0, n = 0;
       grupos.forEach(g => g.facturas.forEach(f => {
         const kwh = f.consumoGasKwh || f.e1 || 0;
@@ -30013,16 +29998,20 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       return n > 0 ? (suma / n) * 12 : 0;
     }
 
-    // ── Función principal: construir y mostrar el modal con las tarifas ──
+    // ── Construir y mostrar el modal con las tarifas ──
     function _mostrarModalTarifas(data) {
       const tarifasGas = _filtrarTarifasGas(data);
       const tarifasConAhorro = tarifasGas.map(t => ({
         t,
         nombre: (t.name||t.Name||t.Nombre||'') + ((t.description||t.Description) ? ' - '+(t.description||t.Description) : ''),
-        ahorro: _calcAhorroTarifaGas(t)
+        ahorro: _calcAhorro(t)
       })).sort((a,b) => b.ahorro - a.ahorro);
       const ahorroAuto = tarifasConAhorro[0]?.ahorro || 0;
       window._cmTarifasGasAnual = tarifasConAhorro;
+
+      // Quitar overlay de carga si existe
+      const prevLoad = document.getElementById('ga-carga-overlay');
+      if (prevLoad) document.body.removeChild(prevLoad);
 
       const overlay2 = document.createElement('div');
       overlay2.id = 'ga-tarifa-overlay';
@@ -30034,9 +30023,8 @@ Si no encuentras ningún CIF/NIF → pon "".`;
             <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">${rlTarifa} · ${tarifasConAhorro.length} tarifas disponibles · Ordenadas por mayor ahorro</div>
           </div>
           <div style="padding:16px;display:flex;flex-direction:column;gap:8px;">
-            <!-- Opción automática -->
             <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f0fdf4;border-radius:10px;border:2px solid #16a34a;cursor:pointer;" id="ga-tarifa-label-auto"
-              onclick="document.querySelectorAll('[id^=ga-tarifa-label-]').forEach(l=>{l.style.borderColor='#e2e8f0';l.style.background='#f8fafc';});this.style.borderColor='#16a34a';this.style.background='#f0fdf4';">
+              onclick="document.querySelectorAll('[id^=ga-tarifa-label-]').forEach(l=>{l.style.borderColor='#e2e8f0';l.style.background='#f8fafc'});this.style.borderColor='#16a34a';this.style.background='#f0fdf4';">
               <input type="radio" name="ga-tarifa-sel" value="auto" checked style="accent-color:#16a34a;flex-shrink:0;">
               <div style="flex:1;">
                 <div style="font-weight:800;color:#15803d;font-size:0.88rem;">🏆 Mejor tarifa para este cliente</div>
@@ -30047,7 +30035,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
             <div style="font-size:0.72rem;font-weight:700;color:#64748b;padding:4px 2px;margin-top:4px;">ELIGE UNA TARIFA ESPECÍFICA (${tarifasConAhorro.length}):</div>
             ${tarifasConAhorro.map((item,i) => `
               <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8fafc;border-radius:10px;border:2px solid #e2e8f0;cursor:pointer;" id="ga-tarifa-label-${i}"
-                onclick="document.querySelectorAll('[id^=ga-tarifa-label-]').forEach(l=>{l.style.borderColor='#e2e8f0';l.style.background='#f8fafc';});this.style.borderColor='#6366f1';this.style.background='#eef2ff';">
+                onclick="document.querySelectorAll('[id^=ga-tarifa-label-]').forEach(l=>{l.style.borderColor='#e2e8f0';l.style.background='#f8fafc'});this.style.borderColor='#6366f1';this.style.background='#eef2ff';">
                 <input type="radio" name="ga-tarifa-sel" value="${i}" style="accent-color:#6366f1;flex-shrink:0;">
                 <div style="flex:1;">
                   <div style="font-weight:700;color:#1e3a8a;font-size:0.84rem;">${item.nombre}</div>
@@ -30069,18 +30057,15 @@ Si no encuentras ningún CIF/NIF → pon "".`;
         const sel = overlay2.querySelector('input[name="ga-tarifa-sel"]:checked');
         const val = sel?.value;
         document.body.removeChild(overlay2);
-        const tarifaForzada = (!val || val==='auto') ? (window._cmTarifasGasAnual[0]?.t||null) : (window._cmTarifasGasAnual[parseInt(val)]?.t||null);
-        _cmGenerarPDFAnualGasReal(grupos, codigo, nombre, telefono, tarifaForzada);
+        const tf = (!val||val==='auto') ? (window._cmTarifasGasAnual[0]?.t||null) : (window._cmTarifasGasAnual[parseInt(val)]?.t||null);
+        _cmGenerarPDFAnualGasReal(grupos, codigo, nombre, telefono, tf);
       };
     }
 
-    // ── Si ya hay datos cargados → mostrar directamente ──
-    if ((gasTariffsData||[]).length > 0) {
-      _mostrarModalTarifas(gasTariffsData);
-      return;
-    }
+    // ── Si hay datos → mostrar directamente ──
+    if ((gasTariffsData||[]).length > 0) { _mostrarModalTarifas(gasTariffsData); return; }
 
-    // ── Sin datos: mostrar spinner + intentar recargar ──
+    // ── Sin datos: spinner + intentar recargar ──
     const overlayCarga = document.createElement('div');
     overlayCarga.id = 'ga-carga-overlay';
     overlayCarga.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -30090,77 +30075,64 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           <div style="font-size:1rem;font-weight:900;color:white;">🔥 Tarifas de Gas · ${brand}</div>
           <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">Cargando tarifas disponibles...</div>
         </div>
-        <div style="padding:20px;display:flex;flex-direction:column;gap:12px;" id="ga-carga-contenido">
+        <div style="padding:20px;display:flex;flex-direction:column;gap:12px;">
           <div id="ga-carga-spinner" style="display:flex;align-items:center;gap:12px;padding:14px;background:#f0fdf4;border-radius:10px;border:2px solid #86efac;">
-            <div style="width:20px;height:20px;border:3px solid #16a34a;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div>
+            <div style="width:22px;height:22px;border:3px solid #16a34a;border-top-color:transparent;border-radius:50%;animation:gaSpin 0.8s linear infinite;flex-shrink:0;"></div>
             <div style="font-size:0.84rem;color:#15803d;font-weight:700;">Conectando con el servidor de tarifas...</div>
           </div>
-          <div style="font-size:0.75rem;color:#94a3b8;text-align:center;">Si la carga falla, puedes subir el CSV manualmente</div>
-          <div id="ga-upload-zone" style="display:none;border:2px dashed #cbd5e1;border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;"
+          <div id="ga-upload-zone" style="display:none;border:2px dashed #cbd5e1;border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:white;"
             ondragover="event.preventDefault();this.style.borderColor='#16a34a';this.style.background='#f0fdf4';"
             ondragleave="this.style.borderColor='#cbd5e1';this.style.background='white';"
-            ondrop="event.preventDefault();this.style.borderColor='#cbd5e1';this.style.background='white';window._gaHandleCSVDrop(event.dataTransfer.files[0]);">
-            <div style="font-size:1.5rem;margin-bottom:6px;">📄</div>
-            <div style="font-weight:700;color:#475569;font-size:0.84rem;">Arrastra aquí el CSV de tarifas de gas</div>
-            <div style="color:#94a3b8;font-size:0.75rem;margin-top:4px;">o haz clic para seleccionar</div>
-            <input type="file" accept=".csv,.txt" id="ga-csv-file-input" style="display:none;" onchange="window._gaHandleCSVDrop(this.files[0]);">
+            ondrop="event.preventDefault();this.style.borderColor='#cbd5e1';this.style.background='white';window._gaHandleCSV(event.dataTransfer.files[0]);">
+            <div style="font-size:1.8rem;margin-bottom:6px;">📄</div>
+            <div style="font-weight:700;color:#475569;font-size:0.88rem;">Sube el CSV de tarifas de gas</div>
+            <div style="color:#94a3b8;font-size:0.75rem;margin:4px 0 10px;">Arrastra aquí o haz clic para seleccionar</div>
+            <input type="file" accept=".csv,.txt" id="ga-csv-input" style="display:none;" onchange="window._gaHandleCSV(this.files[0]);">
+            <button onclick="document.getElementById('ga-csv-input').click()" style="padding:9px 20px;background:${grad};color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.82rem;">📂 Seleccionar CSV</button>
           </div>
-          <div style="display:flex;gap:8px;margin-top:4px;">
+          <div style="display:flex;gap:8px;">
             <button id="ga-carga-cancelar" style="flex:1;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.84rem;color:#64748b;">Cancelar</button>
             <button id="ga-carga-reintentar" style="flex:1;padding:11px;background:${grad};border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.84rem;color:white;display:none;">🔄 Reintentar</button>
           </div>
         </div>
       </div>
-      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`;
+      <style>@keyframes gaSpin{to{transform:rotate(360deg)}}</style>`;
     document.body.appendChild(overlayCarga);
-    overlayCarga.querySelector('#ga-upload-zone').onclick = () => document.getElementById('ga-csv-file-input').click();
-    overlayCarga.querySelector('#ga-carga-cancelar').onclick = () => document.body.removeChild(overlayCarga);
+    overlayCarga.querySelector('#ga-carga-cancelar').onclick = () => { const o=document.getElementById('ga-carga-overlay'); if(o) document.body.removeChild(o); };
 
-    // Manejar CSV subido manualmente
-    window._gaHandleCSVDrop = (file) => {
+    window._gaHandleCSV = (file) => {
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (e) => {
-        const text = e.target.result;
-        const parsed = parseGasCSV(text);
-        if (parsed.length > 0) {
-          gasTariffsData = parsed;
-          document.body.removeChild(overlayCarga);
-          _mostrarModalTarifas(gasTariffsData);
-        } else {
-          document.getElementById('ga-carga-spinner').innerHTML = '<div style="color:#dc2626;font-weight:700;font-size:0.84rem;">❌ No se pudieron leer tarifas del CSV. Verifica el formato.</div>';
-        }
+        const parsed = parseGasCSV(e.target.result);
+        if (parsed.length > 0) { gasTariffsData = parsed; _mostrarModalTarifas(gasTariffsData); }
+        else { document.getElementById('ga-carga-spinner').innerHTML = '<div style="color:#dc2626;font-weight:700;font-size:0.84rem;">❌ No se leyeron tarifas. Verifica el formato del CSV.</div>'; }
       };
       reader.readAsText(file);
     };
 
-    // Intentar recargar automáticamente
-    const intentarCarga = async () => {
+    const _intentarCarga = async () => {
       try {
         const url = `https://docs.google.com/spreadsheets/d/${GAS_SHEET_ID}/export?format=csv&gid=0&t=${Date.now()}`;
         const resp = await fetch(url);
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        if (!resp.ok) throw new Error('HTTP '+resp.status);
         const text = await resp.text();
         if (!text || text.length < 10) throw new Error('CSV vacío');
         const parsed = parseGasCSV(text);
-        if (parsed.length > 0) {
-          gasTariffsData = parsed;
-          if (document.getElementById('ga-carga-overlay')) document.body.removeChild(overlayCarga);
-          _mostrarModalTarifas(gasTariffsData);
-        } else {
-          throw new Error('Sin tarifas parseadas');
-        }
+        if (parsed.length === 0) throw new Error('Sin tarifas');
+        gasTariffsData = parsed;
+        _mostrarModalTarifas(gasTariffsData);
       } catch(err) {
-        console.warn('[GAS] Fallo carga automática:', err.message);
-        const spinnerEl = document.getElementById('ga-carga-spinner');
-        const uploadZone = document.getElementById('ga-upload-zone');
-        const reintentarBtn = document.getElementById('ga-carga-reintentar');
-        if (spinnerEl) spinnerEl.innerHTML = `<div style="font-size:0.84rem;color:#b45309;font-weight:700;">⚠️ No se pudieron cargar las tarifas automáticamente.<br><span style="font-weight:400;font-size:0.78rem;">Sube el CSV de tarifas de gas manualmente:</span></div>`;
-        if (uploadZone) uploadZone.style.display = 'block';
-        if (reintentarBtn) { reintentarBtn.style.display = 'block'; reintentarBtn.onclick = () => { spinnerEl.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><div style="width:18px;height:18px;border:3px solid #16a34a;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></div><span style="font-size:0.84rem;color:#15803d;font-weight:700;">Reintentando...</span></div>'; uploadZone.style.display='none'; reintentarBtn.style.display='none'; intentarCarga(); }; }
+        console.warn('[GAS] Fallo carga:', err.message);
+        const sp = document.getElementById('ga-carga-spinner');
+        const uz = document.getElementById('ga-upload-zone');
+        const rb = document.getElementById('ga-carga-reintentar');
+        if (sp) sp.innerHTML = `<div style="font-size:0.84rem;color:#b45309;font-weight:700;">⚠️ No se pudieron cargar las tarifas automáticamente.<br><span style="font-weight:400;font-size:0.78rem;">Sube el CSV de tarifas de gas manualmente:</span></div>`;
+        if (uz) uz.style.display = 'block';
+        if (rb) { rb.style.display='block'; rb.onclick=()=>{ if(sp) sp.innerHTML='<div style="display:flex;align-items:center;gap:10px;"><div style="width:20px;height:20px;border:3px solid #16a34a;border-top-color:transparent;border-radius:50%;animation:gaSpin 0.8s linear infinite;"></div><span style="font-size:0.84rem;color:#15803d;font-weight:700;">Reintentando...</span></div>'; if(uz) uz.style.display='none'; rb.style.display='none'; _intentarCarga(); }; }
       }
     };
-    intentarCarga();
+    _intentarCarga();
   }
 
   function _cmGenerarPDFAnualGasReal(grupos, comercialCode, clienteNombre, clienteTel, tarifaForzada) {
@@ -32000,6 +31972,20 @@ Reglas:
 
   // Inicializar slot multi al abrir
   document.addEventListener('DOMContentLoaded', function() { _iaMultiSlotCount = 0; });
+
+  // ── Cargar tarifas de gas automáticamente al iniciar la app ──
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+      if (typeof loadGasData === 'function' && (typeof gasTariffsData === 'undefined' || gasTariffsData.length === 0)) {
+        console.log('🔄 [INIT] Precargando tarifas de gas al inicio...');
+        loadGasData().then(() => {
+          if (typeof gasTariffsData !== 'undefined' && gasTariffsData.length > 0) {
+            console.log(`✅ [INIT] Tarifas gas precargadas: ${gasTariffsData.length}`);
+          }
+        }).catch(e => console.warn('⚠️ [INIT] No se pudieron precargar tarifas gas:', e));
+      }
+    }, 1500); // Esperar 1.5s a que la app arranque completamente
+  });
 })();
 </script>
 </body></html>

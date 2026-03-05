@@ -28768,7 +28768,7 @@ Si no encuentras → "".`;
 
     // ═══ DETECCIÓN ESTUDIO ANUAL (solo modo "misma empresa") ═══
     const modoEmpresaActual = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
-    if (modoEmpresaActual === 'misma' && !window._cmModoDual) {
+    if (modoEmpresaActual === 'misma') { // funciona en modo normal Y en DUAL
       // ── ELECTRICIDAD ──
       const cupsGruposElec = {};
       _cmResultados.filter(r => r.ok && r.cups && r.tipoSuministro !== 'gas').forEach(r => {
@@ -29380,11 +29380,16 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       console.log('📸 Snapshot empresas guardado:', window._cmSnapshotEmpresas.map(s => `${s.cups} | empresa:"${s.empresa}" | cif:"${s.cif}"`));
     }
 
-    // ═══ MODO ESTUDIO ANUAL: no usar cola, generar PDF anual directamente ═══
+    // ═══ MODO ESTUDIO ANUAL ELECTRICIDAD: no usar cola, generar PDF anual directamente ═══
     if (window._cmEstudioAnual && window._cmEstudioAnual.length > 0) {
       cerrarCargaMasiva();
-      // Pequeña pausa para que se cierre el modal, luego generar PDF
       setTimeout(() => cmGenerarPDFAnual(), 300);
+      return;
+    }
+    // ═══ MODO ESTUDIO ANUAL GAS ═══
+    if (window._cmEstudioAnualGas && window._cmEstudioAnualGas.length > 0) {
+      cerrarCargaMasiva();
+      setTimeout(() => _cmGenerarPDFAnualGas(), 300);
       return;
     }
 

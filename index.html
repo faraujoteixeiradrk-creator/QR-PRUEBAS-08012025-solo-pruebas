@@ -30476,9 +30476,10 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       const nm = (tarifaForzada.name||tarifaForzada.Name||'') +
         ((tarifaForzada.description||tarifaForzada.Description)
           ? ' - '+(tarifaForzada.description||tarifaForzada.Description) : '');
-      const pFijo = parseEuro(tarifaForzada.p_fijo_1||tarifaForzada.P_fijo_1||0);
-      const p1    = parseEuro(tarifaForzada.p1_price||tarifaForzada.P1_price||0);
+      const pFijo = parseEuro(tarifaForzada.p_fijo_1||tarifaForzada.P_fijo_1||tarifaForzada.p_fijo||0);
+      const p1    = parseEuro(tarifaForzada.p1_price||tarifaForzada.P1_price||tarifaForzada.precio_kwh||tarifaForzada.energia||0);
       const pFijoDia = pFijo / 365;
+      console.log('🔍 Tarifa forzada precios:', JSON.stringify(tarifaForzada));
 
       doc.setFillColor(...darkColor);
       doc.setDrawColor(255,255,255); doc.setLineWidth(2);

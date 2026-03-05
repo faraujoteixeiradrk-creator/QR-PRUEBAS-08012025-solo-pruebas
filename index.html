@@ -28769,34 +28769,53 @@ Si no encuentras → "".`;
     // ═══ DETECCIÓN ESTUDIO ANUAL (solo modo "misma empresa") ═══
     const modoEmpresaActual = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
     if (modoEmpresaActual === 'misma' && !window._cmModoDual) {
-      const cupsGrupos = {};
-      _cmResultados.filter(r => r.ok && r.cups).forEach(r => {
-        if (!cupsGrupos[r.cups]) cupsGrupos[r.cups] = [];
-        cupsGrupos[r.cups].push(r);
+      // ── ELECTRICIDAD ──
+      const cupsGruposElec = {};
+      _cmResultados.filter(r => r.ok && r.cups && r.tipoSuministro !== 'gas').forEach(r => {
+        if (!cupsGruposElec[r.cups]) cupsGruposElec[r.cups] = [];
+        cupsGruposElec[r.cups].push(r);
       });
-      // Detectar CUPS con meses distintos
-      const cupsAnuales = Object.entries(cupsGrupos).filter(([cups, facturas]) => {
+      const cupsAnualesElec = Object.entries(cupsGruposElec).filter(([cups, facturas]) => {
         if (facturas.length < 2) return false;
         const meses = new Set(facturas.map(f => f.mesNumero).filter(m => m > 0));
-        return meses.size >= 2; // al menos 2 meses distintos
+        return meses.size >= 2;
       });
-      if (cupsAnuales.length > 0) {
-        // Mostrar modal preguntando estudio anual o individual
-        const respAnual = await cmMostrarModalEstudioAnual(cupsAnuales);
+      if (cupsAnualesElec.length > 0) {
+        const respAnual = await cmMostrarModalEstudioAnual(cupsAnualesElec, 'electricidad');
         if (respAnual === 'anual') {
-          window._cmEstudioAnual = cupsAnuales.map(([cups, facturas]) => ({ cups, facturas }));
+          window._cmEstudioAnual = cupsAnualesElec.map(([cups, facturas]) => ({ cups, facturas }));
           setTimeout(() => cmMostrarRevision(), 200);
           return;
         }
-        // Si elige individual → flujo normal
         window._cmEstudioAnual = null;
+      }
+
+      // ── GAS ──
+      const cupsGruposGas = {};
+      _cmResultados.filter(r => r.ok && r.cups && r.tipoSuministro === 'gas').forEach(r => {
+        if (!cupsGruposGas[r.cups]) cupsGruposGas[r.cups] = [];
+        cupsGruposGas[r.cups].push(r);
+      });
+      const cupsAnualesGas = Object.entries(cupsGruposGas).filter(([cups, facturas]) => {
+        if (facturas.length < 2) return false;
+        const meses = new Set(facturas.map(f => f.mesNumero).filter(m => m > 0));
+        return meses.size >= 2;
+      });
+      if (cupsAnualesGas.length > 0) {
+        const respGas = await cmMostrarModalEstudioAnual(cupsAnualesGas, 'gas');
+        if (respGas === 'anual') {
+          window._cmEstudioAnualGas = cupsAnualesGas.map(([cups, facturas]) => ({ cups, facturas }));
+          setTimeout(() => _cmGenerarPDFAnualGas(), 200);
+          return;
+        }
+        window._cmEstudioAnualGas = null;
       }
     }
     setTimeout(() => cmMostrarRevision(), 1000);
   };
 
   // ─── Modal: ¿Estudio anual o individual? ───
-  function cmMostrarModalEstudioAnual(cupsAnuales) {
+  function cmMostrarModalEstudioAnual(cupsAnuales, tipo='electricidad') {
     return new Promise(resolve => {
       const listaCups = cupsAnuales.map(([cups, facturas]) => {
         const meses = [...new Set(facturas.map(f => f.mesNumero).filter(m=>m>0))].sort((a,b)=>a-b);
@@ -28813,7 +28832,7 @@ Si no encuentras → "".`;
       overlay.innerHTML = `
         <div style="background:white;border-radius:20px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
           <div style="background:linear-gradient(135deg,#16a34a,#15803d);padding:18px 22px;">
-            <div style="font-size:1.1rem;font-weight:900;color:white;">📅 Facturas del mismo CUPS detectadas</div>
+            <div style="font-size:1.1rem;font-weight:900;color:white;">${tipo==='gas'?'🔥':'📅'} Facturas de ${tipo==='gas'?'GAS':'electricidad'} del mismo CUPS detectadas</div>
             <div style="font-size:0.78rem;color:rgba(255,255,255,0.85);margin-top:3px;">He detectado varias facturas con fechas de meses distintos</div>
           </div>
           <div style="padding:20px;">
@@ -29838,6 +29857,460 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       btnPDF.setAttribute('onclick', 'cmGenerarPDFAnual()');
       btnPDF.innerHTML = '📊 Generar Estudio Anual PDF';
     }
+  }
+
+
+  // ════════════════════════════════════════════════════════════════
+  //   ESTUDIO ANUAL DE GAS — flujo completo (análogo a electricidad)
+  // ════════════════════════════════════════════════════════════════
+  function _cmGenerarPDFAnualGas() {
+    const grupos = window._cmEstudioAnualGas || [];
+    if (grupos.length === 0) return;
+    const isPC = (typeof comparisonMode !== 'undefined') && comparisonMode === 'overall_best';
+    const grad  = isPC ? 'linear-gradient(135deg,#15803d,#16a34a)' : 'linear-gradient(135deg,#1e3a8a,#2563eb)';
+    const brand = isPC ? 'POWER CUP' : 'DRK';
+
+    // ── Modal datos cliente ──
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+    const nombreAuto = grupos[0]?.facturas[0]?.nombre || '';
+    overlay.innerHTML = `
+      <div style="background:white;border-radius:20px;width:100%;max-width:400px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
+        <div style="background:${grad};padding:18px 22px;">
+          <div style="font-size:1rem;font-weight:900;color:white;">🔥 Datos para el Estudio Anual de Gas · ${brand}</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">Introduce los datos del cliente</div>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:10px;">
+          <input id="ga-codigo" placeholder="Código Comercial (Obligatorio)"
+            style="padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.85rem;width:100%;box-sizing:border-box;">
+          <input id="ga-nombre" placeholder="Nombre del cliente / empresa" value="${nombreAuto}"
+            style="padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.85rem;width:100%;box-sizing:border-box;">
+          <input id="ga-telefono" placeholder="Teléfono (opcional)"
+            style="padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.85rem;width:100%;box-sizing:border-box;">
+          <div style="display:flex;gap:10px;margin-top:6px;">
+            <button id="ga-cancelar" style="flex:1;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.84rem;color:#64748b;">Cancelar</button>
+            <button id="ga-generar" style="flex:2;padding:11px;background:${grad};border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.84rem;color:white;">📄 Siguiente →</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#ga-cancelar').onclick = () => document.body.removeChild(overlay);
+    overlay.querySelector('#ga-generar').onclick = () => {
+      const codigo = overlay.querySelector('#ga-codigo').value.trim();
+      const nombre = overlay.querySelector('#ga-nombre').value.trim();
+      const telefono = overlay.querySelector('#ga-telefono').value.trim();
+      if (!codigo) { overlay.querySelector('#ga-codigo').style.borderColor='#dc2626'; return; }
+      document.body.removeChild(overlay);
+      _cmModalSeleccionTarifaGas(grupos, codigo, nombre, telefono);
+    };
+  }
+
+  function _cmModalSeleccionTarifaGas(grupos, codigo, nombre, telefono) {
+    const isPC = (typeof comparisonMode !== 'undefined') && comparisonMode === 'overall_best';
+    const grad  = isPC ? 'linear-gradient(135deg,#15803d,#16a34a)' : 'linear-gradient(135deg,#1e3a8a,#2563eb)';
+    const brand = isPC ? 'POWER CUP' : 'DRK';
+
+    // Detectar tarifa RL del grupo
+    const rlTarifa = grupos[0]?.facturas[0]?.tarifa || 'RL1';
+    const searchTariff = rlTarifa.replace(/RL(\d)/, 'RL.$1');
+
+    // Filtrar tarifas disponibles de gas
+    let tarifasGas = (gasTariffsData || []).filter(t => {
+      const tv = (t.Tarifa || '').trim().toUpperCase();
+      if (tv !== searchTariff.toUpperCase()) return false;
+      if (isPC) return true;
+      const nm = (t.name || t.Name || '').toLowerCase();
+      return nm.includes('drk') || nm.includes('direct');
+    });
+    // Dedup por nombre
+    const seen = new Set();
+    tarifasGas = tarifasGas.filter(t => {
+      const k = (t.name||t.Name||'') + '_' + (t.p1_price||'');
+      if (seen.has(k)) return false;
+      seen.add(k); return true;
+    });
+
+    // Pre-calcular ahorro por tarifa sumando todos los meses
+    function calcAhorroTarifaGas(tarifa) {
+      let suma = 0, n = 0;
+      grupos.forEach(g => g.facturas.forEach(f => {
+        const kwh = f.consumoGasKwh || f.e1 || 0;
+        const total = f.total || 0;
+        const dias = f.dias || 30;
+        if (kwh <= 0) return;
+        const r = calculateGasTariff(tarifa, dias, kwh, total);
+        suma += r.ahorro_periodo || 0;
+        n++;
+      }));
+      return n > 0 ? (suma / n) * 12 : 0;
+    }
+
+    // Calcular ahorro y ordenar
+    const tarifasConAhorro = tarifasGas.map(t => ({
+      t,
+      nombre: (t.name || t.Name || '') + (t.description || t.Description ? ' - ' + (t.description||t.Description) : ''),
+      ahorro: calcAhorroTarifaGas(t)
+    })).sort((a,b) => b.ahorro - a.ahorro);
+
+    // Calcular ahorro auto (misma lógica = mejor tarifa)
+    const ahorroAuto = tarifasConAhorro[0]?.ahorro || 0;
+    window._cmTarifasGasAnual = tarifasConAhorro;
+
+    const fmt = v => v.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+    const overlay2 = document.createElement('div');
+    overlay2.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;';
+    overlay2.innerHTML = `
+      <div style="background:white;border-radius:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
+        <div style="background:${grad};padding:18px 22px;position:sticky;top:0;z-index:1;border-radius:20px 20px 0 0;">
+          <div style="font-size:1rem;font-weight:900;color:white;">🔥 Selecciona la tarifa de Gas · ${brand}</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">${rlTarifa} · Ordenadas por mayor ahorro</div>
+        </div>
+        <div style="padding:16px;display:flex;flex-direction:column;gap:8px;">
+          <!-- Opción automática -->
+          <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f0fdf4;border-radius:10px;border:2px solid #16a34a;cursor:pointer;" id="ga-tarifa-label-auto"
+            onclick="document.querySelectorAll('[id^=ga-tarifa-label-]').forEach(l=>{l.style.borderColor='#e2e8f0';l.style.background='#f8fafc';});document.getElementById('ga-tarifa-label-auto').style.borderColor='#16a34a';document.getElementById('ga-tarifa-label-auto').style.background='#f0fdf4';">
+            <input type="radio" name="ga-tarifa-sel" value="auto" checked style="accent-color:#16a34a;flex-shrink:0;">
+            <div style="flex:1;">
+              <div style="font-weight:800;color:#15803d;font-size:0.88rem;">🏆 Mejor tarifa para este cliente</div>
+              <div style="font-size:0.7rem;color:#16a34a;margin-top:2px;">La tarifa con mayor ahorro total acumulado</div>
+            </div>
+            <div style="font-weight:900;color:#16a34a;font-size:0.9rem;white-space:nowrap;">+${fmt(ahorroAuto)} €/año</div>
+          </label>
+          <div style="font-size:0.72rem;font-weight:700;color:#64748b;padding:4px 2px;margin-top:4px;">ELIGE UNA TARIFA ESPECÍFICA:</div>
+          ${tarifasConAhorro.map((item,i) => `
+            <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8fafc;border-radius:10px;border:2px solid #e2e8f0;cursor:pointer;" id="ga-tarifa-label-${i}"
+              onclick="document.querySelectorAll('[id^=ga-tarifa-label-]').forEach(l=>{l.style.borderColor='#e2e8f0';l.style.background='#f8fafc';});document.getElementById('ga-tarifa-label-${i}').style.borderColor='#6366f1';document.getElementById('ga-tarifa-label-${i}').style.background='#eef2ff';">
+              <input type="radio" name="ga-tarifa-sel" value="${i}" style="accent-color:#6366f1;flex-shrink:0;">
+              <div style="flex:1;">
+                <div style="font-weight:700;color:#1e3a8a;font-size:0.84rem;">${item.nombre}</div>
+                <div style="font-size:0.68rem;color:#64748b;margin-top:2px;">
+                  Fijo: ${(parseFloat(item.t.p_fijo_1||item.t.P_fijo_1||0)).toFixed(4)} €/año &nbsp;|&nbsp; Energía: ${(parseFloat(item.t.p1_price||item.t.P1_price||0)).toFixed(6)} €/kWh
+                </div>
+              </div>
+              <div style="font-weight:900;color:#16a34a;font-size:0.9rem;white-space:nowrap;">${item.ahorro>=0?'+':''}${fmt(item.ahorro)} €/año</div>
+            </label>`).join('')}
+          <div style="display:flex;gap:10px;margin-top:10px;position:sticky;bottom:0;background:white;padding:8px 0 4px;">
+            <button id="ga-tarifa-cancelar" style="flex:1;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.84rem;color:#64748b;">← Atrás</button>
+            <button id="ga-tarifa-confirmar" style="flex:2;padding:11px;background:${grad};border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.84rem;color:white;">🔥 Generar PDF con esta tarifa</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay2);
+
+    overlay2.querySelector('#ga-tarifa-cancelar').onclick = () => {
+      document.body.removeChild(overlay2);
+      _cmGenerarPDFAnualGas();
+    };
+    overlay2.querySelector('#ga-tarifa-confirmar').onclick = () => {
+      const sel = overlay2.querySelector('input[name="ga-tarifa-sel"]:checked');
+      const val = sel?.value;
+      document.body.removeChild(overlay2);
+      const tarifaForzada = (!val || val==='auto')
+        ? (window._cmTarifasGasAnual[0]?.t || null)
+        : (window._cmTarifasGasAnual[parseInt(val)]?.t || null);
+      _cmGenerarPDFAnualGasReal(grupos, codigo, nombre, telefono, tarifaForzada);
+    };
+  }
+
+  function _cmGenerarPDFAnualGasReal(grupos, comercialCode, clienteNombre, clienteTel, tarifaForzada) {
+    const mesesNombre = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const isPC = (typeof comparisonMode !== 'undefined') && comparisonMode === 'overall_best';
+    const brand = isPC ? 'POWER CUP' : 'DRK';
+
+    // ─── Calcular ahorros por factura ───
+    grupos.forEach(grupo => {
+      const { facturas } = grupo;
+      facturas.forEach(f => {
+        const kwh = f.consumoGasKwh || f.e1 || 0;
+        const dias = f.dias || 30;
+        const total = f.total || 0;
+        if (!kwh || !tarifaForzada) { f._ahorroGas=0; f._costeGas=0; f._tarifaGasNombre='—'; return; }
+        const r = calculateGasTariff(tarifaForzada, dias, kwh, total);
+        f._costeGas   = r.total || 0;
+        f._ahorroGas  = r.ahorro_periodo || 0;
+        f._tarifaGasNombre = (tarifaForzada.name || tarifaForzada.Name || '') +
+          (tarifaForzada.description || tarifaForzada.Description
+            ? ' - ' + (tarifaForzada.description || tarifaForzada.Description) : '');
+      });
+      // Ordenar por mes
+      facturas.sort((a,b) => (a.mesNumero||0) - (b.mesNumero||0));
+      const n = facturas.length;
+      const sumaAhorro = facturas.reduce((s,f) => s + (f._ahorroGas||0), 0);
+      grupo._sumaAhorrosGas = sumaAhorro;
+      grupo._mediaAhorroMesGas = n > 0 ? sumaAhorro / n : 0;
+    });
+
+    // ─── Totales globales ───
+    const allFacturas = grupos.flatMap(g => g.facturas);
+    const nMeses = allFacturas.length;
+    const totalFactura = allFacturas.reduce((s,f) => s + (f.total||0), 0);
+    const totalCoste   = allFacturas.reduce((s,f) => s + (f._costeGas||0), 0);
+    const totalAhorro  = allFacturas.reduce((s,f) => s + (f._ahorroGas||0), 0);
+    const mediaAhorroMes = nMeses > 0 ? totalAhorro / nMeses : 0;
+    const ahorroAnual = mediaAhorroMes * 12;
+    const facturaAnual = nMeses > 0 ? (totalFactura / nMeses) * 12 : 0;
+    const costeAnual   = nMeses > 0 ? (totalCoste / nMeses) * 12 : 0;
+
+    // ─── Generar PDF ───
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+    const fmt = v => v.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+    let currentPage = 0;
+
+    function drawPageHeader(title, subtitle) {
+      currentPage++;
+      if (currentPage > 1) doc.addPage();
+      // Fondo sidebar izquierdo
+      const sbW = 52;
+      doc.setFillColor(isPC ? 21 : 30, isPC ? 128 : 58, isPC ? 61 : 138);
+      doc.rect(0, 0, sbW, H, 'F');
+      doc.setFillColor(isPC ? 22 : 37, isPC ? 163 : 99, isPC ? 74 : 235);
+      doc.rect(0, 0, sbW, 60, 'F');
+      // Logo/brand
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(14); doc.setTextColor(255,255,255);
+      doc.text(brand, sbW/2, 18, {align:'center'});
+      doc.setFontSize(7); doc.setFont('helvetica','normal');
+      doc.text('GAS NATURAL', sbW/2, 24, {align:'center'});
+      doc.setFontSize(6);
+      ['Liderando el ahorro y la','eficiencia energética.'].forEach((l,i) => doc.text(l, sbW/2, 30+i*4, {align:'center'}));
+      doc.setFontSize(8); doc.setFont('helvetica','bold');
+      ['ESTUDIO DE AHORRO','COMPARATIVA','PROFESIONAL'].forEach((l,i) => doc.text(l, sbW/2, 42+i*5, {align:'center'}));
+      // Header derecho
+      doc.setFillColor(isPC ? 22 : 37, isPC ? 163 : 99, isPC ? 74 : 235);
+      doc.rect(sbW, 0, W-sbW, 18, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(255,255,255);
+      doc.text(title, sbW+6, 12);
+      if (subtitle) { doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.text(subtitle, sbW+6, 17); }
+      // Footer
+      doc.setFillColor(isPC ? 21 : 30, isPC ? 128 : 58, isPC ? 61 : 138);
+      doc.rect(0, H-10, W, 10, 'F');
+      doc.setFontSize(6); doc.setTextColor(255,255,255); doc.setFont('helvetica','normal');
+      doc.text(`[Colaborador: ${comercialCode}] | Estudio anual gas proyectado ${brand} · ${new Date().toLocaleDateString('es-ES')}`, W/2, H-4, {align:'center'});
+      return sbW + 6; // leftX content start
+    }
+
+    // ─── PÁGINA 1: Portada ───
+    const lx = drawPageHeader('ESTUDIO ANUAL DE AHORRO — GAS NATURAL', 'COMPARATIVA PROFESIONAL - ' + brand);
+    const cx = W/2;
+    // Cliente
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(isPC?21:30,isPC?128:58,isPC?61:138);
+    doc.text('CLIENTE: ' + (clienteNombre||grupos[0]?.facturas[0]?.nombre||''), lx, 28);
+    doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+    doc.text('CUPS TOTALES: ' + grupos.length, lx, 34);
+    doc.text('COMERCIAL: ' + comercialCode, lx, 39);
+
+    // Banner mejor tarifa
+    const by = 46;
+    doc.setFillColor(isPC?21:30,isPC?128:58,isPC?61:138);
+    doc.roundedRect(lx-2, by, W-lx-8, 22, 4,4,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+    doc.text('LA MEJOR OPCIÓN PARA TI ES', cx, by+7, {align:'center'});
+    doc.setFontSize(14); doc.text(brand, cx, by+16, {align:'center'});
+    doc.setFontSize(6); doc.setFont('helvetica','normal');
+    doc.text('Ofrece el mayor ahorro consolidado con ' + brand + '.', cx, by+21, {align:'center'});
+
+    // KPIs
+    const ky = by + 28;
+    const kw = (W - lx - 8) / 3;
+    [
+      ['TU AHORRO ANUAL', fmt(ahorroAnual) + ' €', 'Proyectado anual'],
+      ['TU FACTURA ACTUAL', fmt(totalFactura) + ' €', `Total Periodo (${nMeses} meses)  ${fmt(facturaAnual)} €/año`],
+      ['TU NUEVO COSTE ' + brand, fmt(totalCoste) + ' €', `Estimado mensual  ${fmt(costeAnual)} €/año`]
+    ].forEach(([title, val, sub], i) => {
+      const kx = lx - 2 + i * kw;
+      doc.setFillColor(i===0?22:245, i===0?163:247, i===0?74:250);
+      doc.roundedRect(kx, ky, kw-2, 28, 3,3,'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(6);
+      doc.setTextColor(i===0?255:(isPC?21:30), i===0?255:(isPC?128:58), i===0?255:(isPC?61:138));
+      doc.text(title, kx + (kw-2)/2, ky+6, {align:'center'});
+      doc.setFontSize(11);
+      doc.setTextColor(i===0?255:(isPC?21:30), i===0?255:(isPC?128:58), i===0?255:(isPC?61:138));
+      doc.text(val, kx + (kw-2)/2, ky+15, {align:'center'});
+      doc.setFontSize(5.5); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+      if (i===0) doc.setTextColor(255,255,255);
+      doc.text(sub, kx + (kw-2)/2, ky+22, {align:'center'});
+    });
+
+    // Resumen tabla CUPS
+    const ty = ky + 32;
+    doc.setFillColor(isPC?21:30,isPC?128:58,isPC?61:138);
+    doc.rect(lx-2, ty, W-lx-6, 7, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(255,255,255);
+    doc.text('RESUMEN DE ' + grupos.length + ' SUMINISTROS (MISMO CUPS — ESTUDIO ANUAL GAS)', lx+2, ty+5);
+    const thCols = [8,50,14,28,30]; const thHdrs = ['Nº','CUPS','Meses','Factura (período)','Ahorro anual proy.'];
+    let tx = lx-2, ty2 = ty+7;
+    doc.setFillColor(230,235,245); doc.rect(lx-2, ty2, W-lx-6, 6,'F');
+    thHdrs.forEach((h,i) => {
+      doc.setFont('helvetica','bold'); doc.setFontSize(6); doc.setTextColor(40,40,100);
+      doc.text(h, tx+1, ty2+4.5); tx += thCols[i];
+    });
+    ty2 += 6;
+    grupos.forEach((g, gi) => {
+      tx = lx-2;
+      const bg = gi%2===0 ? [248,250,252] : [255,255,255];
+      doc.setFillColor(...bg); doc.rect(lx-2, ty2, W-lx-6, 8,'F');
+      const sumF = g.facturas.reduce((s,f)=>s+(f.total||0),0);
+      const sumA = g.facturas.reduce((s,f)=>s+(f._ahorroGas||0),0);
+      const aProy = g.facturas.length > 0 ? (sumA/g.facturas.length)*12 : 0;
+      const rowData = [`[${gi+1}]`, g.cups, String(g.facturas.length), fmt(sumF)+' €', fmt(aProy)+' €'];
+      rowData.forEach((d,i) => {
+        doc.setFont(i===4?'helvetica':'helvetica', i===4?'bold':'normal');
+        doc.setFontSize(6); doc.setTextColor(i===4?22:40, i===4?163:40, i===4?74:40);
+        doc.text(d, tx+1, ty2+5); tx += thCols[i];
+      });
+      ty2 += 8;
+      // Nombre cliente
+      doc.setFont('helvetica','italic'); doc.setFontSize(5.5); doc.setTextColor(100,100,100);
+      doc.text(g.facturas[0]?.nombre || '', lx+8, ty2+1);
+      ty2 += 5;
+    });
+
+    // ─── PÁGINAS: Desglose mensual por CUPS ───
+    grupos.forEach(grupo => {
+      const { cups, facturas } = grupo;
+      const rlT = facturas[0]?.tarifa || 'RL1';
+      const nombreCliente = facturas[0]?.nombre || '';
+      const lx2 = drawPageHeader(
+        'DESGLOSE MENSUAL — CUPS: ' + cups,
+        rlT + ' · ' + nombreCliente + ' · ' + facturas.length + ' facturas analizadas'
+      );
+
+      // Tabla mensual
+      const cws = [18,26,11,18,30,30,30];
+      const hdrs = ['Mes','Fecha emisión','Días','kWh','Factura actual','Coste ' + brand,'Ahorro periodo'];
+      let ty = 26;
+      // Cabecera tabla
+      doc.setFillColor(isPC?21:30,isPC?128:58,isPC?61:138);
+      doc.rect(lx2-2, ty, W-lx2-6, 7,'F');
+      let tx2 = lx2-2;
+      hdrs.forEach((h,i) => {
+        doc.setFont('helvetica','bold'); doc.setFontSize(5.5); doc.setTextColor(255,255,255);
+        doc.text(h, tx2+1.5, ty+5); tx2 += cws[i];
+      });
+      ty += 7;
+
+      facturas.forEach((f, fi) => {
+        const bg = fi%2===0 ? [248,250,252] : [255,255,255];
+        doc.setFillColor(...bg); doc.rect(lx2-2, ty, W-lx2-6, 7,'F');
+        tx2 = lx2-2;
+        const mesNom = mesesNombre[f.mesNumero||0] || (f.mes||'—');
+        const kwh = f.consumoGasKwh || f.e1 || 0;
+        const rowVals = [
+          mesNom,
+          f.fechaEmision || '—',
+          String(f.dias||0),
+          String(kwh),
+          fmt(f.total||0)+' €',
+          fmt(f._costeGas||0)+' €',
+          (f._ahorroGas>=0?'+':'')+fmt(f._ahorroGas||0)+' €'
+        ];
+        rowVals.forEach((v,i) => {
+          const isGreen = i >= 5;
+          const isGray  = i === 4;
+          doc.setFont('helvetica', isGreen?'bold':'normal');
+          doc.setFontSize(6);
+          doc.setTextColor(isGreen?(f._ahorroGas<0&&i===6?220:22):isGray?80:40,
+                           isGreen?(f._ahorroGas<0&&i===6?50:163):isGray?80:40,
+                           isGreen?(f._ahorroGas<0&&i===6?50:74):isGray?80:40);
+          doc.text(v, tx2+1.5, ty+5); tx2 += cws[i];
+        });
+        ty += 7;
+      });
+
+      // Fila total
+      const sumF2 = facturas.reduce((s,f)=>s+(f.total||0),0);
+      const sumC2 = facturas.reduce((s,f)=>s+(f._costeGas||0),0);
+      const sumA2 = facturas.reduce((s,f)=>s+(f._ahorroGas||0),0);
+      doc.setFillColor(isPC?21:30,isPC?128:58,isPC?61:138);
+      doc.rect(lx2-2, ty, W-lx2-6, 7,'F');
+      tx2 = lx2-2;
+      [
+        'TOTAL '+facturas.length+' fact.','','','',
+        fmt(sumF2)+' €', fmt(sumC2)+' €', '+'+fmt(sumA2)+' €'
+      ].forEach((v,i) => {
+        doc.setFont('helvetica','bold'); doc.setFontSize(6); doc.setTextColor(255,255,255);
+        doc.text(v||'', tx2+1.5, ty+5); tx2 += cws[i];
+      });
+      ty += 10;
+
+      // Proyección anual
+      const mediaM = facturas.length > 0 ? sumA2 / facturas.length : 0;
+      const proyAnual = mediaM * 12;
+      doc.setFillColor(22,163,74);
+      doc.roundedRect(lx2-2, ty, W-lx2-6, 10, 3,3,'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(255,255,255);
+      doc.text('AHORRO ANUAL PROYECTADO: ' + fmt(proyAnual) + ' €', (lx2-2+(W-lx2-6)/2), ty+7, {align:'center'});
+      doc.setFontSize(6); doc.setFont('helvetica','normal');
+      doc.text(`${facturas.length} meses analizados · Media: ${fmt(mediaM)} €/mes × 12`, (lx2-2+(W-lx2-6)/2), ty+10, {align:'center'});
+      ty += 16;
+
+      // Desglose por mes
+      doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(isPC?21:30,isPC?128:58,isPC?61:138);
+      doc.text('Desglose de cálculo por mes:', lx2, ty); ty += 5;
+      facturas.forEach(f => {
+        const kwh = f.consumoGasKwh || f.e1 || 0;
+        const mesNom = mesesNombre[f.mesNumero||0] || (f.mes||'—');
+        doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(isPC?21:30,isPC?128:58,isPC?61:138);
+        doc.text(`${mesNom} (${f.fechaEmision||'—'}) · ${f._tarifaGasNombre||'—'}  Ahorro: ${f._ahorroGas>=0?'+':''}${fmt(f._ahorroGas||0)} €`, lx2, ty);
+        ty += 4.5;
+        doc.setFont('helvetica','normal'); doc.setFontSize(6); doc.setTextColor(80,80,80);
+        doc.text(`Factura actual: ${fmt(f.total||0)} €  Coste ${brand}: ${fmt(f._costeGas||0)} €  Días: ${f.dias||0}  kWh: ${kwh}`, lx2+3, ty);
+        ty += 5.5;
+        if (ty > H - 20) { drawPageHeader('DESGLOSE (cont.)', cups); ty = 26; }
+      });
+    });
+
+    // ─── PÁGINA: Precios oferta ───
+    const lx3 = drawPageHeader('PRECIOS DE LAS OFERTAS DE GAS SELECCIONADAS', '');
+    let py = 26;
+    if (tarifaForzada) {
+      const nm = (tarifaForzada.name||tarifaForzada.Name||'') +
+        ((tarifaForzada.description||tarifaForzada.Description) ? ' - '+(tarifaForzada.description||tarifaForzada.Description) : '');
+      doc.setFillColor(isPC?21:30,isPC?128:58,isPC?61:138);
+      doc.roundedRect(lx3-2, py, W-lx3-6, 8, 3,3,'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(255,255,255);
+      doc.text('TARIFA GAS: ' + nm, lx3+2, py+6); py += 12;
+      doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(isPC?21:30,isPC?128:58,isPC?61:138);
+      doc.text('TÉRMINO FIJO:', lx3, py); py += 5;
+      doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(50,50,50);
+      doc.text(`Término fijo: ${parseFloat(tarifaForzada.p_fijo_1||tarifaForzada.P_fijo_1||0).toFixed(4)} €/año`, lx3+3, py); py += 5;
+      doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(isPC?21:30,isPC?128:58,isPC?61:138);
+      doc.text('ENERGÍA:', lx3, py); py += 5;
+      doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(50,50,50);
+      doc.text(`Precio energía: ${parseFloat(tarifaForzada.p1_price||tarifaForzada.P1_price||0).toFixed(6)} €/kWh`, lx3+3, py); py += 8;
+    }
+
+    // Ahorro anual banner
+    doc.setFillColor(22,163,74);
+    doc.roundedRect(lx3-2, py, W-lx3-6, 14, 4,4,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+    doc.text('TU AHORRO ANUAL ESTIMADO EN GAS ES:', W/2, py+6, {align:'center'});
+    doc.setFontSize(14); doc.text(fmt(ahorroAnual) + ' € / AÑO', W/2, py+13, {align:'center'});
+    py += 20;
+
+    // Documentación
+    doc.setFillColor(248,250,252); doc.roundedRect(lx3-2, py, W-lx3-6, 52, 4,4,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(isPC?21:30,isPC?128:58,isPC?61:138);
+    doc.text('PARA FORMALIZAR ESTE CONTRATO:', lx3+2, py+8); py += 12;
+    doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(50,50,50);
+    ['Responde a este email adjuntando la documentación de los ' + grupos.length + ' CUPS:',
+     '1. Foto del DNI/CIF (anverso y reverso)',
+     '2. Ultima factura de gas (mínimo 3 meses de antigüedad)',
+     '3. Email de contacto para validación',
+     '4. Teléfono de contacto',
+     '5. Número de cuenta bancaria (IBAN)',
+     '',
+     'Envía la documentación al comercial: ' + comercialCode
+    ].forEach(l => { doc.text(l, lx3+3, py); py += 5; });
+
+    // Guardar
+    const clientSlug = (clienteNombre||'cliente').replace(/[^a-zA-Z0-9]/g,'-').substring(0,20);
+    doc.save(`Estudio_Anual_Gas_${brand}_${clientSlug}.pdf`);
+    alert('✅ PDF de Estudio Anual de Gas generado correctamente.');
   }
 
   window.cmGenerarPDFAnual = function() {

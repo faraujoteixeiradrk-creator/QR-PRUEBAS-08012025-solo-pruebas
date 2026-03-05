@@ -30044,7 +30044,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
                 <div style="flex:1;">
                   <div style="font-weight:700;color:#1e3a8a;font-size:0.84rem;">${item.nombre}</div>
                   <div style="font-size:0.68rem;color:#64748b;margin-top:2px;">
-                    Fijo: ${parseFloat(item.t.p_fijo_1||item.t.P_fijo_1||0).toFixed(4)} €/año &nbsp;|&nbsp; Energía: ${parseFloat(item.t.p1_price||item.t.P1_price||0).toFixed(6)} €/kWh
+                    Fijo: ${(parseFloat((item.t.p_fijo_1||item.t.P_fijo_1||'0').toString().replace(/\./g,'').replace(',','.'))||0).toFixed(4)} €/año &nbsp;|&nbsp; Energía: ${(parseFloat((item.t.p1_price||item.t.P1_price||'0').toString().replace(/\./g,'').replace(',','.'))||0).toFixed(6)} €/kWh
                   </div>
                 </div>
                 <div style="font-weight:900;color:${item.ahorro>=0?'#16a34a':'#dc2626'};font-size:0.9rem;white-space:nowrap;">${item.ahorro>=0?'+':''}${fmt(item.ahorro)} €/año</div>

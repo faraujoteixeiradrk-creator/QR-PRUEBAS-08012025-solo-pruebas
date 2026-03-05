@@ -28070,16 +28070,24 @@ ${clientName}
 - EXTRAE el CONSUMO real del periodo. ATENCION a los separadores numericos:
   * En facturas españolas el punto "." es separador de MILES: 18.000 kWh = DIECIOCHO kWh, NO dieciocho mil.
   * Convierte siempre: 18.000 → 18, 15.000 → 15, 1.250 → 1.25, 235 → 235.
+- Para 2.0TD: E1=punta, E2=llano, E3=valle. Para 3.0TD: E1 a E6.
 - FUENTE PRIORITARIA (usa si existe):
-  * Seccion "Energia" o "Termino energia" en detalle de factura:
-    "P1. Energia activa: 18,000 kWh" o "P1: 235 kWh - Precio: 0.1136" → e1=18 o e1=235
-  * Tabla "MEDIDAS": columna "Cantidad" (es el consumo real del periodo)
+  * Tabla de lecturas del contador con columnas Punta/Llano/Valle: usa esos valores directamente.
+    Ejemplo: "punta: 102 kWh; llano: 118 kWh; valle 220 kWh" → e1=102, e2=118, e3=220
+  * Seccion "Energia" o "Termino energia" con P1/P2/P3:
+    "P1: 235 kWh" → e1=235
+- CASO ESPECIAL - Facturas con "Horas promocionadas / no promocionadas" (Iberdrola y similares):
+  * NUNCA uses "horas promocionadas" como E1 ni "horas no promocionadas" como E3.
+  * Estas facturas siempre incluyen los consumos reales desagregados por periodo en otra sección.
+  * Busca la frase "Sus consumos desagregados han sido punta: X kWh; llano: Y kWh; valle Z kWh"
+    → e1=X(punta), e2=Y(llano), e3=Z(valle)
+  * O busca la tabla de lecturas del contador con columnas Punta/Llano/Valle.
+  * Si no encuentras la desagregación, usa: e1=consumo_no_promocionado, e2=0, e3=consumo_promocionado
+    pero SIEMPRE intenta encontrar la desagregación real primero.
 - FUENTE SECUNDARIA (solo si no hay detalle):
   * Tabla "Lecturas del contador": columna "Consumo" UNICAMENTE. NUNCA columnas "Actual" ni "Anterior".
-  * P2: Anterior=21733 / Actual=21921 / Consumo=90 → e2=90 (NO 21921, NO 293)
 - NUNCA restes Actual menos Anterior. USA directamente la columna Consumo.
 - IGNORAR valores de 4-5 cifras sin contexto de consumo (son lecturas acumuladas del contador).
-- Para 2.0TD: E1=punta, E2=llano, E3=valle. Para 3.0TD: E1 a E6.
 
 === CAMPO 6: TOTAL ===
 - Importe final con IVA incluido. Busca "TOTAL A PAGAR", "TOTAL FACTURA", "Total a pagar". Es el importe mas alto.

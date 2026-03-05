@@ -29915,27 +29915,72 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     const grad  = isPC ? 'linear-gradient(135deg,#15803d,#16a34a)' : 'linear-gradient(135deg,#1e3a8a,#2563eb)';
     const brand = isPC ? 'POWER CUP' : 'DRK';
 
-    // Detectar tarifa RL del grupo
+    // Detectar tarifa RL del grupo — normalizar a formato "RL.1" Y también "RL1" para comparar ambos
     const rlTarifa = grupos[0]?.facturas[0]?.tarifa || 'RL1';
-    const searchTariff = rlTarifa.replace(/RL(\d)/, 'RL.$1');
+    // Normalizar: quitar puntos, espacios → "RL1", luego también versión con punto "RL.1"
+    const rlBase = rlTarifa.toUpperCase().replace(/[\s\.]/g,''); // → "RL1"
+    const rlConPunto = rlBase.replace(/RL(\d)/, 'RL.$1');         // → "RL.1"
 
-    // Filtrar tarifas disponibles de gas
+    console.log('[GAS MODAL] rlTarifa original:', rlTarifa, '→ buscando:', rlBase, 'o', rlConPunto);
+    console.log('[GAS MODAL] gasTariffsData total:', (gasTariffsData||[]).length);
+    if ((gasTariffsData||[]).length > 0) {
+      // Mostrar primeros valores del campo Tarifa para debug
+      const muestras = [...new Set((gasTariffsData||[]).slice(0,20).map(t=>(t.Tarifa||'').trim()))];
+      console.log('[GAS MODAL] Muestra campo Tarifa en CSV:', muestras);
+    }
+
+    // Filtrar tarifas disponibles de gas — acepta tanto "RL1" como "RL.1" en el CSV
     let tarifasGas = (gasTariffsData || []).filter(t => {
-      const tv = (t.Tarifa || '').trim().toUpperCase();
-      if (tv !== searchTariff.toUpperCase()) return false;
+      const tv = (t.Tarifa || '').trim().toUpperCase().replace(/[\s]/g,'');
+      // Acepta "RL1", "RL.1", "RL 1" — normalizar quitando punto y espacio para comparar
+      const tvNorm = tv.replace(/\./g,''); // quita el punto → "RL1"
+      if (tvNorm !== rlBase) return false;
       if (isPC) return true;
-      const nm = (t.name || t.Name || '').toLowerCase();
+      const nm = (t.name || t.Name || t.Nombre || '').toLowerCase();
       return nm.includes('drk') || nm.includes('direct');
     });
-    // Dedup por nombre
+
+    console.log('[GAS MODAL] Tarifas tras filtro RL+marca:', tarifasGas.length);
+
+    // Si en modo DRK no hay nada, relajar filtro de nombre (puede que el campo sea distinto)
+    if (!isPC && tarifasGas.length === 0) {
+      console.warn('[GAS MODAL] Sin tarifas DRK — mostrando TODAS las RL sin filtro de marca');
+      tarifasGas = (gasTariffsData || []).filter(t => {
+        const tv = (t.Tarifa || '').trim().toUpperCase().replace(/[\s]/g,'');
+        const tvNorm = tv.replace(/\./g,'');
+        return tvNorm === rlBase;
+      });
+    }
+
+    // Dedup por nombre + precio (evita duplicados exactos pero no elimina variantes)
     const seen = new Set();
     tarifasGas = tarifasGas.filter(t => {
-      const k = (t.name||t.Name||'') + '_' + (t.p1_price||'');
+      const nm = (t.name || t.Name || t.Nombre || '').trim();
+      const pr = parseFloat(t.p1_price || t.P1_price || 0).toFixed(6);
+      const pf = parseFloat(t.p_fijo_1 || t.P_fijo_1 || 0).toFixed(4);
+      const k = nm + '_' + pr + '_' + pf;
       if (seen.has(k)) return false;
       seen.add(k); return true;
     });
 
-    // Pre-calcular ahorro por tarifa sumando todos los meses
+    console.log('[GAS MODAL] Tarifas tras dedup:', tarifasGas.length);
+
+    // FALLBACK FINAL: si no se encontró ninguna tarifa, mostrar TODAS las de gas disponibles
+    if (tarifasGas.length === 0) {
+      console.warn('[GAS MODAL] ⚠️ 0 tarifas encontradas para', rlBase, '— mostrando TODAS las tarifas gas sin filtro RL');
+      const seenFb = new Set();
+      tarifasGas = (gasTariffsData || []).filter(t => {
+        const nm = (t.name || t.Name || t.Nombre || '').trim();
+        const pr = parseFloat(t.p1_price || t.P1_price || 0).toFixed(6);
+        const pf = parseFloat(t.p_fijo_1 || t.P_fijo_1 || 0).toFixed(4);
+        const k = nm + '_' + pr + '_' + pf;
+        if (seenFb.has(k)) return false;
+        seenFb.add(k); return true;
+      });
+      console.log('[GAS MODAL] Fallback total tarifas:', tarifasGas.length);
+    }
+
+
     function calcAhorroTarifaGas(tarifa) {
       let suma = 0, n = 0;
       grupos.forEach(g => g.facturas.forEach(f => {
@@ -29969,9 +30014,10 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       <div style="background:white;border-radius:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
         <div style="background:${grad};padding:18px 22px;position:sticky;top:0;z-index:1;border-radius:20px 20px 0 0;">
           <div style="font-size:1rem;font-weight:900;color:white;">🔥 Selecciona la tarifa de Gas · ${brand}</div>
-          <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">${rlTarifa} · Ordenadas por mayor ahorro</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">${rlTarifa} · ${tarifasConAhorro.length} tarifas disponibles · Ordenadas por mayor ahorro</div>
         </div>
         <div style="padding:16px;display:flex;flex-direction:column;gap:8px;">
+          ${tarifasConAhorro.length === 0 ? `<div style="padding:16px;background:#fef2f2;border-radius:10px;border:2px solid #fca5a5;color:#dc2626;font-size:0.84rem;font-weight:700;">⚠️ No se han cargado tarifas de gas.<br><span style="font-weight:400;font-size:0.78rem;">Por favor carga el CSV de tarifas de gas desde el menú correspondiente antes de generar el PDF.</span></div>` : ''}
           <!-- Opción automática -->
           <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f0fdf4;border-radius:10px;border:2px solid #16a34a;cursor:pointer;" id="ga-tarifa-label-auto"
             onclick="document.querySelectorAll('[id^=ga-tarifa-label-]').forEach(l=>{l.style.borderColor='#e2e8f0';l.style.background='#f8fafc';});document.getElementById('ga-tarifa-label-auto').style.borderColor='#16a34a';document.getElementById('ga-tarifa-label-auto').style.background='#f0fdf4';">
@@ -29982,7 +30028,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
             </div>
             <div style="font-weight:900;color:#16a34a;font-size:0.9rem;white-space:nowrap;">+${fmt(ahorroAuto)} €/año</div>
           </label>
-          <div style="font-size:0.72rem;font-weight:700;color:#64748b;padding:4px 2px;margin-top:4px;">ELIGE UNA TARIFA ESPECÍFICA:</div>
+          <div style="font-size:0.72rem;font-weight:700;color:#64748b;padding:4px 2px;margin-top:4px;">ELIGE UNA TARIFA ESPECÍFICA (${tarifasConAhorro.length}):</div>
           ${tarifasConAhorro.map((item,i) => `
             <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8fafc;border-radius:10px;border:2px solid #e2e8f0;cursor:pointer;" id="ga-tarifa-label-${i}"
               onclick="document.querySelectorAll('[id^=ga-tarifa-label-]').forEach(l=>{l.style.borderColor='#e2e8f0';l.style.background='#f8fafc';});document.getElementById('ga-tarifa-label-${i}').style.borderColor='#6366f1';document.getElementById('ga-tarifa-label-${i}').style.background='#eef2ff';">

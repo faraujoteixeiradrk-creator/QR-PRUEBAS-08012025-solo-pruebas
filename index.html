@@ -23030,9 +23030,9 @@ ${clientName}
   // Verificar que tenga datos válidos
   // Columnas críticas: name, p1_price, Tarifa
   const hasName = row.name || row.Name;
-  const hasPrice = row.p1_price || row.P1_price;
+  const hasPrice = row.p1_price || row.P1_price || row.p_fijo_1 || row.P_fijo_1; // indexadas pueden tener p1_price=0 pero tienen fijo
   const hasTarifa = row.Tarifa || row.TARIFA; // Buscar en ambas columnas
-  if (hasName && hasPrice && hasTarifa) {
+  if (hasName && hasTarifa) { // No requerir precio - puede ser indexada con p1=0
   data.push(row);
   // Log de las primeras 3 filas para debug
   if (data.length <= 3) {
@@ -23060,12 +23060,15 @@ ${clientName}
  */
  // Función: Calcular una tarifa específica de GAS
  function calculateGasTariff(tariff, dias, kwh, totalCliente) {
-  // Función auxiliar para convertir string europeo a número
+  // Función auxiliar para convertir string europeo a número (1.234,56 → 1234.56)
   const parseEuropeanNumber = (value) => {
-  if (!value) return 0;
-  // Convertir coma a punto y luego parsear
-  const cleanValue = String(value).replace(',', '.');
-  return parseFloat(cleanValue) || 0;
+    if (!value && value !== 0) return 0;
+    const s = String(value).trim();
+    if (!s) return 0;
+    // Detectar formato europeo: tiene coma como decimal
+    // Quitar puntos de miles y convertir coma decimal a punto
+    const clean = s.replace(/\./g, '').replace(',', '.');
+    return parseFloat(clean) || 0;
   };
   // Extraer datos de la tarifa (usando nombres exactos del Excel)
   const p1_price = parseEuropeanNumber(tariff.p1_price || tariff.P1_price);
@@ -29984,7 +29987,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       if (lista.length === 0) lista = [...data];
       const seen = new Set();
       return lista.filter(t => {
-        const k = (t.name||t.Name||t.Nombre||'').trim()+'_'+parseFloat(t.p1_price||t.P1_price||0).toFixed(6)+'_'+parseFloat(t.p_fijo_1||t.P_fijo_1||0).toFixed(4);
+        const k = (t.name||t.Name||t.Nombre||'').trim()+'_'+parseFloat((t.p1_price||t.P1_price||'0').toString().replace(',','.'))||0 +'_'+parseFloat((t.p_fijo_1||t.P_fijo_1||'0').toString().replace(',','.'))||0;
         if (seen.has(k)) return false; seen.add(k); return true;
       });
     }

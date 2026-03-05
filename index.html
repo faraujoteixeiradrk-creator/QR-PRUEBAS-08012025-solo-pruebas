@@ -31667,12 +31667,18 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     statusEl.style.display = 'block';
     statusEl.textContent = '⏳ Convirtiendo fotos a PDF...';
     document.getElementById('ia-btn-enviar-fotos').style.display = 'none';
+    // CRÍTICO: guardar la zona ANTES de cerrar el modal
+    const zonaCopia = _iaZone;
     try {
       const pdfBlob = await iaFotosAPDF(fotos, statusEl);
       statusEl.textContent = '🤖 Enviando a IA...';
       cerrarModalIAUpload();
       const pdfFile = new File([pdfBlob], 'factura_fotos.pdf', { type: 'application/pdf' });
-      iaEnviarArchivo(pdfFile);
+      if (zonaCopia === 'gas') {
+        if (typeof procesarFacturaGasIA === 'function') procesarFacturaGasIA(pdfFile);
+      } else {
+        if (typeof procesarFacturaIA === 'function') procesarFacturaIA(pdfFile, zonaCopia === '30td' ? '3.0TD' : '2.0TD');
+      }
     } catch(e) {
       statusEl.textContent = '❌ Error: ' + e.message;
     }
@@ -31711,12 +31717,19 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     const statusEl = document.getElementById('ia-multi-status');
     statusEl.style.display = 'block';
     document.getElementById('ia-btn-enviar-multi').style.display = 'none';
+    // CRÍTICO: guardar la zona ANTES de cerrar el modal (cerrarModalIAUpload resetea _iaZone)
+    const zonaCopia = _iaZone;
 
     // Si solo hay 1 archivo, enviar directamente
     if (files.length === 1) {
       statusEl.textContent = '🤖 Enviando a IA...';
       cerrarModalIAUpload();
-      iaEnviarArchivo(files[0]);
+      // Usar la copia de zona guardada
+      if (zonaCopia === 'gas') {
+        if (typeof procesarFacturaGasIA === 'function') procesarFacturaGasIA(files[0]);
+      } else {
+        if (typeof procesarFacturaIA === 'function') procesarFacturaIA(files[0], zonaCopia === '30td' ? '3.0TD' : '2.0TD');
+      }
       return;
     }
     // Varios: juntar en 1 PDF
@@ -31726,7 +31739,12 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       statusEl.textContent = '🤖 Enviando a IA...';
       cerrarModalIAUpload();
       const pdfFile = new File([pdfBlob], 'factura_multi.pdf', { type: 'application/pdf' });
-      iaEnviarArchivo(pdfFile);
+      // Usar la copia de zona guardada
+      if (zonaCopia === 'gas') {
+        if (typeof procesarFacturaGasIA === 'function') procesarFacturaGasIA(pdfFile);
+      } else {
+        if (typeof procesarFacturaIA === 'function') procesarFacturaIA(pdfFile, zonaCopia === '30td' ? '3.0TD' : '2.0TD');
+      }
     } catch(e) {
       statusEl.textContent = '❌ Error: ' + e.message;
     }

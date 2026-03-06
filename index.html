@@ -13680,6 +13680,11 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   document.getElementById('best-option-tariff-selector')?.classList.add('hidden');
   // NUEVO: Si hay comparativo de potencias optimizadas activo O es modo DUAL, OCULTAR el checkbox de Fijo & Indexado
   const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
+  // FIX: restaurar dualMode si se perdió pero _cmModoDual sigue activo (cola masiva DUAL)
+  if (window._cmModoDual && !window.dualMode) {
+    console.log('🔧 showOfferDecisionModal: restaurando dualMode desde _cmModoDual');
+    window.dualMode = true;
+  }
   const isDualMode = window.dualMode === true;
   // CRÍTICO DEBUG: Log del estado de hideDecisionCheckboxes
   console.log('🔍 showOfferDecisionModal() - Estado de flags:', {
@@ -14914,6 +14919,11 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   }
   console.log('✅ lastComparisonResult OK, continuando...');
   // ⚡⚡⚡ INTERCEPTOR MODO DUAL ⚡⚡⚡
+  // FIX: también verificar _cmModoDual por si dualMode se perdió durante el flujo
+  if (window._cmModoDual && !window.dualMode) {
+    console.log('🔧 FIX: dualMode perdido pero _cmModoDual activo - restaurando dualMode');
+    window.dualMode = true;
+  }
   if (window.dualMode === true) {
   console.log('===== 🔥 MODO DUAL - Añadiendo directamente al array =====');
   try {
@@ -19436,6 +19446,11 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
  }
  function goToElectricidad() {
   console.log('🔵 Iniciando nuevo estudio de ELECTRICIDAD');
+  // FIX: No resetear si estamos en cola masiva DUAL
+  if (window._cmModoDual) {
+    console.log('🔧 goToElectricidad: modo DUAL activo, omitiendo reset de variables');
+    return;
+  }
   // CRÍTICO: Resetear TODOS los flags y datos para evitar caché
   alreadyAskedAboutSolar = false;
   skipDecisionModal = false;

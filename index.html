@@ -29675,29 +29675,81 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           if (typeof dualCurrentType !== 'undefined') dualCurrentType = 'electricidad';
         }
         const tarifa = r.tarifa || '2.0TD';
-        // Usar saveSupply directamente (flujo estándar DUAL cola)
-        console.log('⚡ DUAL cola - electricidad - llamando saveSupply con tarifa:', tarifa, '| data.cups:', data.cups, '| data.importe_total:', data.importe_total);
-        const doSaveSupply = () => {
-          console.log('⚡ doSaveSupply EJECUTÁNDOSE - tarifa:', tarifa);
-          saveSupply(data, tarifa);
-        };
-        if (true) { // siempre usar este bloque
+
+        // FIX CRÍTICO: Re-extraer electricidad con getPromptIA() (prompt individual detallado)
+        // El prompt multipunto DUAL es simplificado y extrae potencias/kWh incorrectamente.
+        // getPromptIA() usa instrucciones específicas por comercializadora y es más preciso.
+        const doSaveSupplyWithData = (finalData) => {
+          console.log('⚡ doSaveSupply EJECUTÁNDOSE - tarifa:', tarifa, '| p1_kw:', finalData.potencia_p1_kw, '| p2_kw:', finalData.potencia_p2_kw, '| e1:', finalData.consumo_punta, '| e2:', finalData.consumo_llano, '| e3:', finalData.consumo_valle);
+          const run = () => saveSupply(finalData, tarifa);
           if (typeof currentTariffs !== 'undefined' && currentTariffs[tarifa] && currentTariffs[tarifa].length > 0) {
-            doSaveSupply();
+            run();
+          } else if (typeof fetchTariffsFromSheet === 'function') {
+            fetchTariffsFromSheet(tarifa).then(() => run()).catch(() => run());
           } else {
-            if (typeof fetchTariffsFromSheet === 'function') {
-              fetchTariffsFromSheet(tarifa).then(() => doSaveSupply()).catch(() => doSaveSupply());
-            } else {
-              let elecWait = 0;
-              const waitElec = setInterval(() => {
-                elecWait++;
-                if ((typeof currentTariffs !== 'undefined' && currentTariffs[tarifa] && currentTariffs[tarifa].length > 0) || elecWait > 80) {
-                  clearInterval(waitElec);
-                  doSaveSupply();
-                }
-              }, 100);
-            }
+            let w = 0; const wi = setInterval(() => { w++; if ((typeof currentTariffs !== 'undefined' && currentTariffs[tarifa]?.length > 0) || w > 80) { clearInterval(wi); run(); } }, 100);
           }
+        };
+
+        // Intentar re-extraer con prompt individual si tenemos el archivo PDF
+        if (r.file && typeof getPromptIA === 'function') {
+          console.log('⚡ DUAL cola - re-extrayendo electricidad con getPromptIA() para mayor precisión...');
+          (async () => {
+            try {
+              // Convertir archivo a base64
+              const base64 = await new Promise((res, rej) => {
+                const reader = new FileReader();
+                reader.onload = () => res(reader.result.split(',')[1]);
+                reader.onerror = () => rej(new Error('Error leyendo archivo'));
+                reader.readAsDataURL(r.file);
+              });
+              const mediaType = r.file.type === 'application/pdf' ? 'application/pdf' : r.file.type;
+              const contentType = r.file.type === 'application/pdf' ? 'document' : 'image';
+              const msgContent = [
+                { type: contentType, source: { type: 'base64', media_type: mediaType, data: base64 } },
+                { type: 'text', text: getPromptIA() }
+              ];
+              const resp = await fetch('https://drk-ai-proxy.f-araujo-teixeira-drk.workers.dev', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000, messages: [{ role: 'user', content: msgContent }] })
+              });
+              if (!resp.ok) throw new Error('API error ' + resp.status);
+              const apiData = await resp.json();
+              const rawText = apiData.content?.[0]?.text || '';
+              const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+              const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
+              const p = parsed.potencias_kw || {};
+              const e = parsed.energia_kwh || {};
+              // Construir data con valores precisos del prompt individual
+              const precisaData = {
+                ...data, // mantener cups, importe_total, dias, etc.
+                potencia_p1_kw: p.p1 || data.potencia_p1_kw || 0,
+                potencia_p2_kw: p.p2 || data.potencia_p2_kw || 0,
+                potencia_p3_kw: p.p3 || 0,
+                potencia_p4_kw: p.p4 || 0,
+                potencia_p5_kw: p.p5 || 0,
+                potencia_p6_kw: p.p6 || 0,
+                consumo_p1: e.e1 || data.consumo_p1 || 0,
+                consumo_p2: e.e2 || data.consumo_p2 || 0,
+                consumo_p3: e.e3 || data.consumo_p3 || 0,
+                consumo_punta: e.e1 || data.consumo_punta || 0,
+                consumo_llano: e.e2 || data.consumo_llano || 0,
+                consumo_valle: e.e3 || data.consumo_valle || 0,
+              };
+              // Actualizar tarifa si el prompt individual detectó algo diferente
+              const tarifaFinal = parsed.tarifa || tarifa;
+              console.log('✅ Re-extracción OK - p1_kw:', precisaData.potencia_p1_kw, '| p2_kw:', precisaData.potencia_p2_kw, '| e1:', precisaData.consumo_punta, '| e2:', precisaData.consumo_llano, '| e3:', precisaData.consumo_valle);
+              doSaveSupplyWithData(precisaData);
+            } catch(reExtractErr) {
+              console.warn('⚠️ Re-extracción fallida, usando datos originales:', reExtractErr.message);
+              doSaveSupplyWithData(data); // Fallback a datos originales
+            }
+          })();
+        } else {
+          // Sin archivo disponible: usar datos originales directamente
+          console.log('⚡ DUAL cola - usando datos originales (sin re-extracción)');
+          doSaveSupplyWithData(data);
         }
       }
     }

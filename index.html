@@ -18987,6 +18987,19 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   console.log('Primera tarifa name:', tariffsToCompare[0]?.name);
   console.log('Primera tarifa p1_price:', tariffsToCompare[0]?.p1_price);
   console.log('Primera tarifa p_potencia_1:', tariffsToCompare[0]?.p_potencia_1);
+  // LOG CRÍTICO DUAL: mostrar exactamente qué datos de cliente entran
+  console.log('📋 DATA DEL CLIENTE EN saveSupply:', {
+    cups: data.cups,
+    dias: data.dias_facturados,
+    importe_total: data.importe_total,
+    p1_kw: data.potencia_p1_kw,
+    p2_kw: data.potencia_p2_kw,
+    e1_punta: data.consumo_punta || data.consumo_p1,
+    e2_llano: data.consumo_llano || data.consumo_p2,
+    e3_valle: data.consumo_valle || data.consumo_p3,
+    _cmModoDual: window._cmModoDual,
+    dualMode: window.dualMode
+  });
   // Creamos un nuevo objeto de datos para el cálculo, ya que el cálculo interno necesita los campos correctos (consumo_p1, consumo_p2, etc.)
   let dataForCalc = { ...data };
   const p1_kw = data.potencia_p1_kw || 0;
@@ -29692,6 +29705,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
         };
 
         // Re-extraer con prompt individual si tenemos el archivo
+        console.log('🔍 DUAL CHECK - r.file:', !!r.file, '| getPromptIA:', typeof getPromptIA, '| cups:', data.cups);
         if (r.file && typeof getPromptIA === 'function') {
           const cupsElec = data.cups || r.cups || '';
           console.log('⚡ DUAL cola - re-extrayendo electricidad con prompt individual. CUPS:', cupsElec);

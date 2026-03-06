@@ -2138,8 +2138,8 @@
  };
  const EXTERNAL_APP_URL = 'https://faraujoteixeiradrk-creator.github.io/QR-21-POWER-2-0-TD---3.0-TD-Con-PDF/';
  // Estado Global
- // ⚡⚡⚡ VERSIÓN: 2025-03-06-TOTAL-IVA-FIX-v68 ⚡⚡⚡
- console.log('🔥🔥🔥 ARCHIVO CARGADO - VERSIÓN: 2025-03-06-TOTAL-IVA-FIX-v68 🔥🔥🔥');
+ // ⚡⚡⚡ VERSIÓN: 2024-12-31-DEBUG-ULTRA-v45 ⚡⚡⚡
+ console.log('🔥🔥🔥 ARCHIVO CARGADO - VERSIÓN: 2024-12-31-DEBUG-ULTRA-v45 🔥🔥🔥');
  console.log('🔍 DEBUG ULTRA: Logs JSON.stringify para ver arrays completos');
  console.log('🔍 Esto mostrará EXACTAMENTE qué propiedades tienen powerCosts y energyCosts');
  console.log('📝 Por favor, comparte los logs de powerCosts[0] y energyCosts[0] COMPLETOS');
@@ -29063,7 +29063,6 @@ Si no encuentras → "".`;
 - tipo_suministro: "gas" si hay gas natural (m³, RL.X, CUPS gas). "electricidad" en otro caso.
 - Si GAS: tarifa = "RL1"…"RL5". Rellena consumo_gas_kwh con kWh totales de gas.
 - Si ELECTRICIDAD: tarifa = "2.0TD" o "3.0TD". Rellena potencias_kw y energia_kwh por periodo.
-- total_factura de CADA suministro: importe FINAL CON IVA de ESE suministro específico. Busca "TOTAL A PAGAR" o "Total con IVA" dentro del bloque de cada suministro. Es el importe más alto de ese bloque. NO uses subtotales ni importes sin IVA.
 === CRÍTICO: campo "dias" en facturas multipunto ===
 CADA suministro tiene su PROPIO periodo de facturación con fechas distintas.
 El campo "dias" de cada suministro debe ser el número de días de ESE suministro específico.
@@ -29185,7 +29184,7 @@ REGLAS GENERALES:
 - cups: código 18-22 chars que empieza por "ES". Si no se ve claramente pon "".
 - potencias_kw: las contratadas en kW. 2.0TD tiene p1 y p2 (si la factura usa P1+P3 en lugar de P1+P2, pon p1=P1, p2=P3, p3=0). 3.0TD tiene p1 a p6.
 - energia_kwh: consumo del periodo. 2.0TD tiene e1, e2, e3. 3.0TD tiene e1 a e6.
-- total_factura: importe FINAL a pagar CON IVA incluido (número sin símbolo €). Busca "TOTAL A PAGAR", "TOTAL FACTURA", "Total a pagar". Es el importe más alto que aparece en la factura.
+- total_factura: importe total en euros de ESTE suministro específico (número sin símbolo €). En facturas multipunto (electricidad + gas), pon SOLO el importe del suministro que estás extrayendo, NO el total combinado de toda la factura.
 - nombre_cliente: nombre completo del titular del contrato (persona física o jurídica).
 - direccion_suministro: dirección del punto de suministro (NO la dirección fiscal).
 - Pon 0 en campos numéricos ausentes, "" en campos de texto ausentes.
@@ -29737,8 +29736,11 @@ Si no encuentras ningún CIF/NIF → pon "".`;
 Esta factura contiene MÁS DE UN suministro (electricidad + gas en el mismo PDF).
 Extrae ÚNICAMENTE los datos del suministro ELÉCTRICO con CUPS: ${cupsElec}
 Ignora completamente el suministro de gas y sus datos.
-En especial: el campo "dias" debe ser el periodo de facturación del suministro ELÉCTRICO (CUPS ${cupsElec}), NO el del gas.
-Si los dos suministros tienen periodos diferentes, usa solo el del CUPS eléctrico indicado.`
+En especial:
+- El campo "dias" debe ser el periodo de facturación del suministro ELÉCTRICO (CUPS ${cupsElec}), NO el del gas.
+- El campo "total_factura" debe ser SOLO el importe del suministro ELÉCTRICO (CUPS ${cupsElec}), NO el total global de la factura que suma electricidad + gas.
+- Busca la sección específica del CUPS eléctrico y extrae su subtotal o total propio, NO el importe final combinado de la factura completa.
+- Si los dos suministros tienen periodos o importes diferentes, usa SOLO los del CUPS eléctrico indicado.`
                 : '');
               const msgContent = [
                 { type: contentType, source: { type: 'base64', media_type: mediaType, data: base64 } },
@@ -29765,7 +29767,21 @@ Si los dos suministros tienen periodos diferentes, usa solo el del CUPS eléctri
               }
               // FIX CRÍTICO: incluir dias del prompt individual (más preciso que el multipunto)
               const diasIndividual = parsed.dias > 0 ? parsed.dias : data.dias_facturados;
-              const totalIndividual = parsed.total_factura > 0 ? parsed.total_factura : data.importe_total;
+              // FIX DUAL TOTAL: validar que el total extraído corresponde SOLO a electricidad
+              // Si la IA devuelve el total combinado (gas+luz), el total del multipunto (r.total)
+              // es más fiable porque fue extraído para ese suministro específico.
+              // Heurística: si parsed.total_factura > r.total * 1.4, probablemente es el total global.
+              let totalIndividual;
+              const totalMultipunto = r.total || data.importe_total || 0;
+              const totalIAIndividual = parsed.total_factura || 0;
+              if (totalIAIndividual > 0 && totalMultipunto > 0 && totalIAIndividual > totalMultipunto * 1.4) {
+                console.warn('DUAL total validation: IA devolvio ' + totalIAIndividual + ' pero multipunto tenia ' + totalMultipunto + '. Usando multipunto (probable total combinado gas+luz).');
+                totalIndividual = totalMultipunto;
+              } else if (totalIAIndividual > 0) {
+                totalIndividual = totalIAIndividual;
+              } else {
+                totalIndividual = totalMultipunto || data.importe_total;
+              }
               const precisaData = {
                 ...data,
                 dias: diasIndividual,

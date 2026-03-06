@@ -29063,6 +29063,12 @@ Si no encuentras → "".`;
 - tipo_suministro: "gas" si hay gas natural (m³, RL.X, CUPS gas). "electricidad" en otro caso.
 - Si GAS: tarifa = "RL1"…"RL5". Rellena consumo_gas_kwh con kWh totales de gas.
 - Si ELECTRICIDAD: tarifa = "2.0TD" o "3.0TD". Rellena potencias_kw y energia_kwh por periodo.
+=== CRÍTICO: campo "dias" en facturas multipunto ===
+CADA suministro tiene su PROPIO periodo de facturación con fechas distintas.
+El campo "dias" de cada suministro debe ser el número de días de ESE suministro específico.
+Busca las fechas "Periodo de facturación: DD/MM/AAAA a DD/MM/AAAA" de CADA bloque de suministro por separado.
+NO uses el mismo número de días para todos los suministros si sus periodos son distintos.
+Ejemplo: electricidad puede tener 44 días y gas 57 días en la misma factura.
 === CRÍTICO ELECTRICIDAD: energia_kwh con 3 periodos ===
 Para tarifa 2.0TD busca los 3 periodos de consumo: Punta=e1, Llano=e2, Valle=e3.
 ATENCIÓN: Algunas facturas (ej. TotalEnergies) muestran el consumo en 2 bloques de fechas (ej. "340 kWh" y "558 kWh") que son periodos TEMPORALES, no P1/P2/P3.

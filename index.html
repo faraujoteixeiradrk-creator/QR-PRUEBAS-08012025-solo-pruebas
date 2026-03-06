@@ -14627,20 +14627,15 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   console.log('  - CUPS:', newSupply.cups);
   console.log('  - Tarifa:', newSupply.tariff);
   console.log('  - Coste anual:', newSupply.totalAnnual);
-  // Actualizar UI
-  updateDualSuppliesList();
-  console.log('✅ UI actualizada');
   // Cerrar modales
   const offerModal = document.getElementById('offer-decision-modal');
   if (offerModal) {
   offerModal.classList.add('hidden');
   offerModal.classList.remove('flex');
   }
-  // Ocultar todas las pantallas
-  hideAllScreens();
-  // Volver a pantalla DUAL
-  document.getElementById('screen-dual').classList.add('active');
-  console.log('✅ Volviendo a pantalla DUAL');
+  // FIX: usar backToDualManager() para continuar cola si hay pendientes
+  backToDualManager();
+  console.log('✅ Volviendo a pantalla DUAL via backToDualManager');
   return;
   } catch (error) {
   console.error('❌ ERROR en interceptor DUAL:', error);
@@ -14980,20 +14975,15 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   console.log('  - CUPS:', newSupply.cups);
   console.log('  - Tarifa:', newSupply.tariff);
   console.log('  - Coste anual:', newSupply.totalAnnual);
-  // Actualizar UI
-  updateDualSuppliesList();
-  console.log('✅ UI actualizada');
   // Cerrar modales
   const offerModal = document.getElementById('offer-decision-modal');
   if (offerModal) {
   offerModal.classList.add('hidden');
   offerModal.classList.remove('flex');
   }
-  // Ocultar todas las pantallas
-  hideAllScreens();
-  // Volver a pantalla DUAL
-  document.getElementById('screen-dual').classList.add('active');
-  console.log('✅ Volviendo a pantalla DUAL');
+  // FIX: usar backToDualManager() que también llama cmProcesarSiguienteDeCola si hay cola pendiente
+  backToDualManager();
+  console.log('✅ Volviendo a pantalla DUAL via backToDualManager');
   return; // CRÍTICO: Salir aquí
   } catch (error) {
   console.error('❌ ERROR en interceptor DUAL:', error);
@@ -29602,6 +29592,8 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     if (banner) banner.textContent = `📋 Suministro ${idx + 1}/${cola.length}: ${nombreCorto} — elige tarifa y confirma`;
 
     // Llamar saveSupply o dualSelectTariff según tipo
+    console.log('🚀 cmProcesarSiguienteDeCola - tipoSuministro:', r.tipoSuministro, '| tarifa:', r.tarifa, '| cups:', r.cups, '| dualMode:', window.dualMode, '| typeof saveSupply:', typeof saveSupply);
+    try {
     if (typeof saveSupply === 'function') {
       if (window._cmModoDual && r.tipoSuministro === 'gas') {
         // Gas en DUAL: usar el flujo de gas
@@ -29669,22 +29661,13 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           if (typeof dualCurrentType !== 'undefined') dualCurrentType = 'electricidad';
         }
         const tarifa = r.tarifa || '2.0TD';
-        // FIX DUAL: en modo DUAL cola, pre-rellenar el formulario con confirmarDatosIA()
-        // para que el usuario revise datos (potencias, kWh) antes de calcular,
-        // igual que en el flujo individual. Esto evita discrepancias por extracción IA imprecisa.
-        if (window._cmModoDual && typeof confirmarDatosIA === 'function' && window.aiExtractedData) {
-          // Configurar tipo de tarifa activo para que handleManualInput use la tarifa correcta
-          if (typeof currentTariffType !== 'undefined') currentTariffType = tarifa;
-          if (typeof multiCupsAddType !== 'undefined') multiCupsAddType = tarifa;
-          if (typeof aiTargetTariff !== 'undefined') aiTargetTariff = tarifa;
-          // Abrir modal de entrada manual con datos pre-rellenados (funciona como overlay sobre cualquier pantalla)
-          // El usuario revisa/corrige potencias y kWh, luego pulsa Calcular normalmente
-          setTimeout(() => {
-            if (typeof confirmarDatosIA === 'function') confirmarDatosIA();
-          }, 200);
-        } else {
-          // Flujo no-DUAL (MULTICUPS normal): usar saveSupply directamente
-          const doSaveSupply = () => saveSupply(data, tarifa);
+        // Usar saveSupply directamente (flujo estándar DUAL cola)
+        console.log('⚡ DUAL cola - electricidad - llamando saveSupply con tarifa:', tarifa, '| data.cups:', data.cups, '| data.importe_total:', data.importe_total);
+        const doSaveSupply = () => {
+          console.log('⚡ doSaveSupply EJECUTÁNDOSE - tarifa:', tarifa);
+          saveSupply(data, tarifa);
+        };
+        if (true) { // siempre usar este bloque
           if (typeof currentTariffs !== 'undefined' && currentTariffs[tarifa] && currentTariffs[tarifa].length > 0) {
             doSaveSupply();
           } else {
@@ -29703,6 +29686,9 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           }
         }
       }
+    } catch(cmErr) {
+      console.error('❌❌❌ ERROR en cmProcesarSiguienteDeCola:', cmErr.message, cmErr.stack);
+      alert('Error procesando suministro: ' + cmErr.message);
     }
   };
 

@@ -29563,7 +29563,17 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       consumo_valle: r.e3 || 0,
     };
 
-    window.aiExtractedData = { cups: data.cups, nombre_cliente: data.nombre_cliente, direccion_suministro: data.direccion_suministro };
+    // FIX: pasar datos completos de potencias y energia para que el formulario se rellene correctamente en DUAL
+    window.aiExtractedData = {
+      cups: data.cups,
+      nombre_cliente: data.nombre_cliente,
+      direccion_suministro: data.direccion_suministro,
+      dias: data.dias_facturados,
+      total_factura: data.importe_total,
+      tarifa: r.tarifa || '2.0TD',
+      potencias_kw: { p1: r.p1||0, p2: r.p2||0, p3: r.p3||0, p4: r.p4||0, p5: r.p5||0, p6: r.p6||0 },
+      energia_kwh: { e1: r.e1||0, e2: r.e2||0, e3: r.e3||0, e4: r.e4||0, e5: r.e5||0, e6: r.e6||0 }
+    };
     window.elecUsedIA = true;
 
     // Activar modo según origen (DUAL o MULTICUPS)
@@ -29650,30 +29660,43 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           }
         }, 100);
       } else {
-        // Electricidad: asegurar dualCurrentType correcto antes de saveSupply
+        // Electricidad en DUAL cola masiva
         if (window._cmModoDual) {
           window.dualCurrentType = 'electricidad';
           if (typeof dualCurrentType !== 'undefined') dualCurrentType = 'electricidad';
         }
-        // Esperar a que las tarifas estén cargadas antes de saveSupply
         const tarifa = r.tarifa || '2.0TD';
-        const doSaveSupply = () => saveSupply(data, tarifa);
-        if (typeof currentTariffs !== 'undefined' && currentTariffs[tarifa] && currentTariffs[tarifa].length > 0) {
-          doSaveSupply();
+        // FIX DUAL: en modo DUAL cola, pre-rellenar el formulario con confirmarDatosIA()
+        // para que el usuario revise datos (potencias, kWh) antes de calcular,
+        // igual que en el flujo individual. Esto evita discrepancias por extracción IA imprecisa.
+        if (window._cmModoDual && typeof confirmarDatosIA === 'function' && window.aiExtractedData) {
+          // Configurar tipo de tarifa activo para que handleManualInput use la tarifa correcta
+          if (typeof currentTariffType !== 'undefined') currentTariffType = tarifa;
+          if (typeof multiCupsAddType !== 'undefined') multiCupsAddType = tarifa;
+          if (typeof aiTargetTariff !== 'undefined') aiTargetTariff = tarifa;
+          // Abrir modal de entrada manual con datos pre-rellenados (funciona como overlay sobre cualquier pantalla)
+          // El usuario revisa/corrige potencias y kWh, luego pulsa Calcular normalmente
+          setTimeout(() => {
+            if (typeof confirmarDatosIA === 'function') confirmarDatosIA();
+          }, 200);
         } else {
-          // Tarifas no cargadas — cargarlas primero
-          if (typeof fetchTariffsFromSheet === 'function') {
-            fetchTariffsFromSheet(tarifa).then(() => doSaveSupply()).catch(() => doSaveSupply());
+          // Flujo no-DUAL (MULTICUPS normal): usar saveSupply directamente
+          const doSaveSupply = () => saveSupply(data, tarifa);
+          if (typeof currentTariffs !== 'undefined' && currentTariffs[tarifa] && currentTariffs[tarifa].length > 0) {
+            doSaveSupply();
           } else {
-            // Esperar polling hasta 8s
-            let elecWait = 0;
-            const waitElec = setInterval(() => {
-              elecWait++;
-              if ((typeof currentTariffs !== 'undefined' && currentTariffs[tarifa] && currentTariffs[tarifa].length > 0) || elecWait > 80) {
-                clearInterval(waitElec);
-                doSaveSupply();
-              }
-            }, 100);
+            if (typeof fetchTariffsFromSheet === 'function') {
+              fetchTariffsFromSheet(tarifa).then(() => doSaveSupply()).catch(() => doSaveSupply());
+            } else {
+              let elecWait = 0;
+              const waitElec = setInterval(() => {
+                elecWait++;
+                if ((typeof currentTariffs !== 'undefined' && currentTariffs[tarifa] && currentTariffs[tarifa].length > 0) || elecWait > 80) {
+                  clearInterval(waitElec);
+                  doSaveSupply();
+                }
+              }, 100);
+            }
           }
         }
       }

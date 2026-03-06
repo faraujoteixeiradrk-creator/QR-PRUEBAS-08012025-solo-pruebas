@@ -19068,7 +19068,8 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   // para dar al usuario la máxima flexibilidad
   // CRÍTICO: Verificar currentTariffType (que indica el modo general)
   // NO tariffType (que es el tipo específico del CUPS actual: 2.0TD o 3.0TD)
-  const isInMultiCupsFlow = currentTariffType === 'MULTICUPS';
+  // FIX: en modo DUAL cola masiva (_cmModoDual) también tratar como MultiCups para mostrar TODAS las ofertas DRK
+  const isInMultiCupsFlow = currentTariffType === 'MULTICUPS' || (window._cmModoDual && window.dualMode);
   console.log('=== FILTER AVAILABLE OFFERS ===');
   console.log('currentTariffType (flow):', currentTariffType);
   console.log('tariffType (this CUPS):', tariffType);
@@ -19245,7 +19246,9 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   condition3_multipleOfertas: availableOffers.length > 1
   });
   // PRIORIDAD 1: Si NO hay ahorro y es tarifa 2.0TD/3.0TD, preguntar por excedentes solares PRIMERO
-  if (finalIndividualResult.savings <= 0 && isTariff20or30 && !alreadyAskedAboutSolar) {
+  // FIX: En modo DUAL cola masiva, saltar la pregunta solar y pasar directamente al modal de ofertas
+  const isDualQueueMode = window._cmModoDual && window.dualMode;
+  if (finalIndividualResult.savings <= 0 && isTariff20or30 && !alreadyAskedAboutSolar && !isDualQueueMode) {
   console.log(`🌞 MultiCups: Sin ahorro detectado en tarifa ${tariffType} - Preguntando por fotovoltaica`);
   // Marcar que ya preguntamos
   alreadyAskedAboutSolar = true;

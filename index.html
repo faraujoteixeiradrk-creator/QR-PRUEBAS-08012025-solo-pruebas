@@ -19353,6 +19353,15 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   if (!response.ok) throw new Error(`Error red para ${tariffType}`);
   const text = await response.text();
   currentTariffs[tariffType] = parseCSV(text, tariffType);
+  // 🔍 LOG DIAGNÓSTICO: mostrar precios exactos de DRK INDEX 4 2026
+  const drkIndex4 = currentTariffs[tariffType]?.find(t => t.name?.includes('INDEX') && t.description?.includes('4 2026'));
+  if (drkIndex4) {
+    console.log('🔍 DRK INDEX 4 2026 PRECIOS REALES DEL SHEET:', {
+      name: drkIndex4.name, description: drkIndex4.description,
+      p1_price: drkIndex4.p1_price, p2_price: drkIndex4.p2_price, p3_price: drkIndex4.p3_price,
+      p_potencia_1: drkIndex4.p_potencia_1, p_potencia_2: drkIndex4.p_potencia_2
+    });
+  }
   if (currentTariffType !== 'MULTICUPS' && tariffType === currentTariffType) {
   const count = currentTariffs[currentTariffType].length;
   document.getElementById('tariff-display-badge').textContent = count;
@@ -28129,7 +28138,13 @@ ${clientName}
 - IGNORAR valores de 4-5 cifras sin contexto de consumo (son lecturas acumuladas del contador).
 
 === CAMPO 6: TOTAL ===
-- Importe final con IVA incluido. Busca "TOTAL A PAGAR", "TOTAL FACTURA", "Total a pagar". Es el importe mas alto.
+- Importe final con IVA incluido SOLO de la ELECTRICIDAD.
+- REGLA CRÍTICA FACTURAS DUALES (electricidad + gas en el mismo PDF):
+  * NUNCA uses el total global de toda la factura (que suma luz + gas + servicios).
+  * Busca ESPECÍFICAMENTE: "IMPORTE TOTAL ELECTRICIDAD", "Total electricidad", "TOTAL ELECTRICIDAD + TASAS E IMPUESTOS".
+  * Usa ese subtotal eléctrico, NO el "Total a pagar" ni "¿Cuánto tengo que pagar?" que incluye gas.
+  * Ejemplo: Si la factura muestra 259,53€ total pero "IMPORTE TOTAL ELECTRICIDAD + TASAS E IMPUESTOS 199,14€", debes devolver 199.14.
+- Para facturas solo de electricidad: busca "TOTAL A PAGAR", "TOTAL FACTURA". Es el importe final con IVA.
 
 === CAMPO 7: NOMBRE DEL TITULAR ===
 - Busca en "Datos del titular", "Datos del cliente", "Nombre:" o similar.
@@ -29184,7 +29199,10 @@ REGLAS GENERALES:
 - cups: código 18-22 chars que empieza por "ES". Si no se ve claramente pon "".
 - potencias_kw: las contratadas en kW. 2.0TD tiene p1 y p2 (si la factura usa P1+P3 en lugar de P1+P2, pon p1=P1, p2=P3, p3=0). 3.0TD tiene p1 a p6.
 - energia_kwh: consumo del periodo. 2.0TD tiene e1, e2, e3. 3.0TD tiene e1 a e6.
-- total_factura: importe total en euros de ESTE suministro específico (número sin símbolo €). En facturas multipunto (electricidad + gas), pon SOLO el importe del suministro que estás extrayendo, NO el total combinado de toda la factura.
+- total_factura: importe total en euros de ESTE suministro específico (número sin símbolo €).
+  * FACTURAS DUALES (electricidad + gas juntos): busca "IMPORTE TOTAL ELECTRICIDAD + TASAS E IMPUESTOS" o similar. USA ese subtotal eléctrico, NUNCA el total global de la factura completa.
+  * Ejemplo factura dual TotalEnergies: total global 259,53€ pero electricidad 199,14€ → devuelve 199.14.
+  * Para facturas solo eléctricas: usa el total final con IVA.
 - nombre_cliente: nombre completo del titular del contrato (persona física o jurídica).
 - direccion_suministro: dirección del punto de suministro (NO la dirección fiscal).
 - Pon 0 en campos numéricos ausentes, "" en campos de texto ausentes.

@@ -29593,7 +29593,6 @@ Si no encuentras ningún CIF/NIF → pon "".`;
 
     // Llamar saveSupply o dualSelectTariff según tipo
     console.log('🚀 cmProcesarSiguienteDeCola - tipoSuministro:', r.tipoSuministro, '| tarifa:', r.tarifa, '| cups:', r.cups, '| dualMode:', window.dualMode, '| typeof saveSupply:', typeof saveSupply);
-    try {
     if (typeof saveSupply === 'function') {
       if (window._cmModoDual && r.tipoSuministro === 'gas') {
         // Gas en DUAL: usar el flujo de gas
@@ -29686,9 +29685,6 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           }
         }
       }
-    } catch(cmErr) {
-      console.error('❌❌❌ ERROR en cmProcesarSiguienteDeCola:', cmErr.message, cmErr.stack);
-      alert('Error procesando suministro: ' + cmErr.message);
     }
   };
 

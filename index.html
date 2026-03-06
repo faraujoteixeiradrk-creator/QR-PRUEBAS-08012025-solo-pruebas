@@ -223,7 +223,7 @@
  </div>
     </div>
     <div id="app" class="w-full max-w-lg mx-auto p-4 md:p-6 flex-grow">
- <div id="modo-comparacion-section" class="fade-in mb-6" style="display:none!important;">
+ <div id="modo-comparacion-section" class="fade-in mb-6">
   <div class="bg-white p-6 md:p-8 rounded-3xl shadow-2xl w-full border-t-4 border-drk-500">
   <p class="text-sm font-bold text-drk-800 mb-3 text-center uppercase tracking-wider">MODO DE COMPARACIÓN</p>
   <div class="flex flex-wrap justify-center gap-2 text-sm">
@@ -2155,7 +2155,7 @@
  let hideDecisionCheckboxes = false; // Para ocultar checkboxes en el modal cuando ya se introdujeron excedentes
  let alreadyAskedAboutSolar = false; // Para no volver a preguntar por fotovoltaica en recálculos posteriores
  let lastIndexedResult = null; // Para almacenar el resultado de tarifa indexada
- let comparisonMode = 'drk_only'; // FORZADO: solo DRK
+ let comparisonMode = 'drk_only';
  let compareWithIndexed = false; // Control para comparación con tarifas indexadas
  let bestOptionTariffChoice = 'fija'; // NUEVO: Elección de tarifa para VER MEJOR OPCIÓN ('fija' o 'indexada')
  let isProcessingBestOption = false; // NUEVO: Bandera para prevenir llamadas concurrentes
@@ -2855,12 +2855,15 @@
   if (fijaRadio) {
   fijaRadio.checked = true;
   }
-  // FORZADO: siempre DRK únicamente
-  comparisonMode = 'drk_only';
-  applyBrandStyles(BRANDS.DRK);
-  // Asegurarse de que el radio button DRK esté checked
-  const selectorInput = document.querySelector('input[name="comparison_mode"][value="drk_only"]');
-  if (selectorInput) selectorInput.checked = true;
+  // Restaurar la marca activa según el modo de comparación
+  const brandToApply = comparisonMode === 'overall_best' ? BRANDS.POWER_CUP : BRANDS.DRK;
+  applyBrandStyles(brandToApply);
+  // Asegurarse de que el radio button correcto esté checked
+  const selectorInput = document.querySelector(`input[name="comparison_mode"][value="${comparisonMode}"]`);
+  if (selectorInput) {
+  selectorInput.checked = true;
+  updateComparisonMode(comparisonMode);
+  }
   // Ocultar vistas adicionales del flujo normal
   document.getElementById('initial-view')?.classList.add('hidden');
   document.getElementById('multicups-saga-view')?.classList.add('hidden');
@@ -2874,12 +2877,12 @@
   document.getElementById('landing-view')?.classList.remove('hidden');
   document.querySelectorAll('.hidden-period').forEach(el => el.style.display = 'none');
   document.getElementById('tariff-display-badge').textContent = '0';
-  // FORZADO: mantener selector de modo siempre oculto
+  // FINALMENTE: Mostrar pantalla inicial y selector de modo
+  document.getElementById('screen-inicio')?.classList.add('active');
   const modoComparacionSection = document.getElementById('modo-comparacion-section');
   if (modoComparacionSection) {
-  modoComparacionSection.style.display = 'none';
+  modoComparacionSection.style.display = 'block';
   }
-  document.getElementById('screen-inicio')?.classList.add('active');
   console.log('✅ resetToLanding completada - screen-inicio activa');
  };
  // NUEVA FUNCIÓN: Volver desde initial-view SIN hacer reset completo
@@ -15423,7 +15426,20 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   if (window._cmModoDual && window.dualMode) {
   console.log('🔀 DUAL cola masiva: redirigiendo addSupplyToMultiCupsList → dualAddFromResults');
   const tariff = result.originalTariffType || result._multiCupsContext?.tariffType || currentTariffType || '2.0TD';
-  const cost = result.totalAnnual || result.totalPeriod || 0;
+  // FIX: usar coste DRK real y originalBillAnnual correctamente calculado
+  // result.totalAnnual = coste anualizado de la mejor oferta (ya calculado con factor 365/dias)
+  // result.originalBillAnnual = factura original anualizada (ya calculada con factor 365/dias)
+  const drkCost = result.totalAnnual || 0;
+  // Coste original anualizado: priorizar result.originalBillAnnual (ya tiene factor correcto)
+  const dias = result.dias || result.dias_facturados || 30;
+  const factorAnual = dias > 0 ? 365 / dias : 12;
+  const originalBillAnnual = result.originalBillAnnual
+    || (result.importe_total ? result.importe_total * factorAnual : 0);
+  // Coste indexado (PowerCup): usar indexedComparison si existe
+  const indexedCost = (result.indexedComparison && result.indexedComparison.totalAnnual)
+    ? result.indexedComparison.totalAnnual
+    : drkCost;
+  console.log('🔀 DUAL fix - drkCost:', drkCost, 'originalBillAnnual:', originalBillAnnual, 'indexedCost:', indexedCost, 'ahorro:', (originalBillAnnual - drkCost).toFixed(2));
   const dd = {
     cups: result.cups || '',
     tariff: tariff,
@@ -15431,14 +15447,14 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
     kwh_p4: result.kwh_p4||0, kwh_p5: result.kwh_p5||0, kwh_p6: result.kwh_p6||0,
     p1: result.potencia_p1_kw||0, p2: result.potencia_p2_kw||0, p3: result.potencia_p3_kw||0,
     p4: result.potencia_p4_kw||0, p5: result.potencia_p5_kw||0, p6: result.potencia_p6_kw||0,
-    dias: result.dias||30,
-    originalBillAnnual: result.originalBillAnnual || (result.importe_total||0)*12,
+    dias: dias,
+    originalBillAnnual: originalBillAnnual,
     nombre_cliente: result.nombre_cliente || '',
     direccion_suministro: result.direccion_suministro || ''
   };
   const res = {
-    drk: { total: cost/12, total_anual: cost },
-    powercup: { total: cost/12, total_anual: cost }
+    drk: { total: drkCost/12, total_anual: drkCost },
+    powercup: { total: indexedCost/12, total_anual: indexedCost }
   };
   window.dualAddFromResults('electricidad', tariff, dd, res, result);
   return;
@@ -16658,13 +16674,11 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   });
   // Event listener para botón de confirmar selección de oferta
   document.getElementById('confirm-offer-selection-btn').addEventListener('click', confirmOfferSelection);
-  // FORZADO: siempre iniciar en modo DRK únicamente, selector siempre oculto
-  comparisonMode = 'drk_only';
-  updateComparisonMode('drk_only');
-  const drkInput = document.querySelector('input[name="comparison_mode"][value="drk_only"]');
-  if (drkInput) drkInput.checked = true;
-  const modoSec = document.getElementById('modo-comparacion-section');
-  if (modoSec) modoSec.style.display = 'none';
+  // Disparar evento de cambio inicial para aplicar el branding pre-seleccionado
+  const initialModeInput = document.querySelector('input[name="comparison_mode"]:checked');
+  if (initialModeInput) {
+  updateComparisonMode(initialModeInput.value);
+  }
  });
  // FUNCIÓN MEJORADA: Preprocesar imagen para mejor detección de QR
  function preprocessImage(imageData, options = {}) {
@@ -19424,8 +19438,8 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   window.gasAiData = null;
   hideAllScreens();
   document.getElementById('screen-inicio').classList.add('active');
-  // FORZADO: mantener selector de modo siempre oculto
-  document.getElementById('modo-comparacion-section').style.display = 'none';
+  // Mostrar selector de modo de comparación
+  document.getElementById('modo-comparacion-section').style.display = 'block';
  }
  function goToElectricidad() {
   console.log('🔵 Iniciando nuevo estudio de ELECTRICIDAD');

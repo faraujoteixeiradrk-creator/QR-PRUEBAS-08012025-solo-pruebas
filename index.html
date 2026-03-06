@@ -29676,11 +29676,11 @@ Si no encuentras ningún CIF/NIF → pon "".`;
         }
         const tarifa = r.tarifa || '2.0TD';
 
-        // FIX CRÍTICO: Re-extraer electricidad con getPromptIA() (prompt individual detallado)
-        // El prompt multipunto DUAL es simplificado y extrae potencias/kWh incorrectamente.
-        // getPromptIA() usa instrucciones específicas por comercializadora y es más preciso.
+        // FIX CRÍTICO: Re-extraer SOLO el suministro eléctrico con prompt individual detallado
+        // El prompt multipunto DUAL extrae potencias/kWh incorrectamente en PDFs complejos.
+        // Solución: llamar a la IA de nuevo con prompt individual + CUPS específico como ancla.
         const doSaveSupplyWithData = (finalData) => {
-          console.log('⚡ doSaveSupply EJECUTÁNDOSE - tarifa:', tarifa, '| p1_kw:', finalData.potencia_p1_kw, '| p2_kw:', finalData.potencia_p2_kw, '| e1:', finalData.consumo_punta, '| e2:', finalData.consumo_llano, '| e3:', finalData.consumo_valle);
+          console.log('⚡ doSaveSupply FINAL - tarifa:', tarifa, '| p1_kw:', finalData.potencia_p1_kw, '| p2_kw:', finalData.potencia_p2_kw, '| e1:', finalData.consumo_punta, '| e2:', finalData.consumo_llano, '| e3:', finalData.consumo_valle, '| total:', finalData.importe_total);
           const run = () => saveSupply(finalData, tarifa);
           if (typeof currentTariffs !== 'undefined' && currentTariffs[tarifa] && currentTariffs[tarifa].length > 0) {
             run();
@@ -29691,12 +29691,12 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           }
         };
 
-        // Intentar re-extraer con prompt individual si tenemos el archivo PDF
+        // Re-extraer con prompt individual si tenemos el archivo
         if (r.file && typeof getPromptIA === 'function') {
-          console.log('⚡ DUAL cola - re-extrayendo electricidad con getPromptIA() para mayor precisión...');
+          const cupsElec = data.cups || r.cups || '';
+          console.log('⚡ DUAL cola - re-extrayendo electricidad con prompt individual. CUPS:', cupsElec);
           (async () => {
             try {
-              // Convertir archivo a base64
               const base64 = await new Promise((res, rej) => {
                 const reader = new FileReader();
                 reader.onload = () => res(reader.result.split(',')[1]);
@@ -29705,9 +29705,17 @@ Si no encuentras ningún CIF/NIF → pon "".`;
               });
               const mediaType = r.file.type === 'application/pdf' ? 'application/pdf' : r.file.type;
               const contentType = r.file.type === 'application/pdf' ? 'document' : 'image';
+              // Prompt individual + ancla por CUPS específico para PDFs multipunto
+              const promptIndividual = getPromptIA() + (cupsElec
+                ? `
+
+=== IMPORTANTE: FACTURA MULTIPUNTO ===
+Esta factura contiene MÁS DE UN suministro. Extrae ÚNICAMENTE los datos del suministro eléctrico con CUPS: ${cupsElec}
+Ignora completamente cualquier suministro de gas o cualquier otro CUPS.`
+                : '');
               const msgContent = [
                 { type: contentType, source: { type: 'base64', media_type: mediaType, data: base64 } },
-                { type: 'text', text: getPromptIA() }
+                { type: 'text', text: promptIndividual }
               ];
               const resp = await fetch('https://drk-ai-proxy.f-araujo-teixeira-drk.workers.dev', {
                 method: 'POST',
@@ -29721,34 +29729,37 @@ Si no encuentras ningún CIF/NIF → pon "".`;
               const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
               const p = parsed.potencias_kw || {};
               const e = parsed.energia_kwh || {};
-              // Construir data con valores precisos del prompt individual
+              // Validación: si p1 > 15 y tarifa es 2.0TD, probablemente error de extracción
+              const p1Val = p.p1 || 0;
+              if (tarifa === '2.0TD' && p1Val > 15) {
+                console.warn('⚠️ p1_kw=' + p1Val + ' parece incorrecto para 2.0TD (max 15kW). Usando datos originales.');
+                doSaveSupplyWithData(data);
+                return;
+              }
               const precisaData = {
-                ...data, // mantener cups, importe_total, dias, etc.
-                potencia_p1_kw: p.p1 || data.potencia_p1_kw || 0,
-                potencia_p2_kw: p.p2 || data.potencia_p2_kw || 0,
-                potencia_p3_kw: p.p3 || 0,
-                potencia_p4_kw: p.p4 || 0,
-                potencia_p5_kw: p.p5 || 0,
-                potencia_p6_kw: p.p6 || 0,
-                consumo_p1: e.e1 || data.consumo_p1 || 0,
-                consumo_p2: e.e2 || data.consumo_p2 || 0,
-                consumo_p3: e.e3 || data.consumo_p3 || 0,
-                consumo_punta: e.e1 || data.consumo_punta || 0,
-                consumo_llano: e.e2 || data.consumo_llano || 0,
-                consumo_valle: e.e3 || data.consumo_valle || 0,
+                ...data,
+                potencia_p1_kw: p.p1 > 0 ? p.p1 : data.potencia_p1_kw,
+                potencia_p2_kw: p.p2 > 0 ? p.p2 : data.potencia_p2_kw,
+                potencia_p3_kw: p.p3 > 0 ? p.p3 : 0,
+                potencia_p4_kw: p.p4 > 0 ? p.p4 : 0,
+                potencia_p5_kw: p.p5 > 0 ? p.p5 : 0,
+                potencia_p6_kw: p.p6 > 0 ? p.p6 : 0,
+                consumo_p1: e.e1 > 0 ? e.e1 : data.consumo_p1,
+                consumo_p2: e.e2 > 0 ? e.e2 : data.consumo_p2,
+                consumo_p3: e.e3 > 0 ? e.e3 : data.consumo_p3,
+                consumo_punta: e.e1 > 0 ? e.e1 : data.consumo_punta,
+                consumo_llano: e.e2 > 0 ? e.e2 : data.consumo_llano,
+                consumo_valle: e.e3 > 0 ? e.e3 : data.consumo_valle,
               };
-              // Actualizar tarifa si el prompt individual detectó algo diferente
-              const tarifaFinal = parsed.tarifa || tarifa;
-              console.log('✅ Re-extracción OK - p1_kw:', precisaData.potencia_p1_kw, '| p2_kw:', precisaData.potencia_p2_kw, '| e1:', precisaData.consumo_punta, '| e2:', precisaData.consumo_llano, '| e3:', precisaData.consumo_valle);
+              console.log('✅ Re-extracción DUAL OK - p1_kw:', precisaData.potencia_p1_kw, '| p2_kw:', precisaData.potencia_p2_kw, '| e1:', precisaData.consumo_punta, '| e2:', precisaData.consumo_llano, '| e3:', precisaData.consumo_valle);
               doSaveSupplyWithData(precisaData);
             } catch(reExtractErr) {
-              console.warn('⚠️ Re-extracción fallida, usando datos originales:', reExtractErr.message);
-              doSaveSupplyWithData(data); // Fallback a datos originales
+              console.warn('⚠️ Re-extracción fallida, usando datos originales del prompt multipunto:', reExtractErr.message);
+              doSaveSupplyWithData(data);
             }
           })();
         } else {
-          // Sin archivo disponible: usar datos originales directamente
-          console.log('⚡ DUAL cola - usando datos originales (sin re-extracción)');
+          console.log('⚡ DUAL cola - sin archivo, usando datos originales');
           doSaveSupplyWithData(data);
         }
       }

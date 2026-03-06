@@ -2138,8 +2138,8 @@
  };
  const EXTERNAL_APP_URL = 'https://faraujoteixeiradrk-creator.github.io/QR-21-POWER-2-0-TD---3.0-TD-Con-PDF/';
  // Estado Global
- // ⚡⚡⚡ VERSIÓN: 2024-12-31-DEBUG-ULTRA-v45 ⚡⚡⚡
- console.log('🔥🔥🔥 ARCHIVO CARGADO - VERSIÓN: 2025-03-06-DUAL-DIAS-FIX-v68 🔥🔥🔥');
+ // ⚡⚡⚡ VERSIÓN: 2025-03-06-TOTAL-FIX-v68 ⚡⚡⚡
+ console.log('🔥🔥🔥 ARCHIVO CARGADO - VERSIÓN: 2025-03-06-TOTAL-FIX-v68 🔥🔥🔥');
  console.log('🔍 DEBUG ULTRA: Logs JSON.stringify para ver arrays completos');
  console.log('🔍 Esto mostrará EXACTAMENTE qué propiedades tienen powerCosts y energyCosts');
  console.log('📝 Por favor, comparte los logs de powerCosts[0] y energyCosts[0] COMPLETOS');
@@ -29063,6 +29063,7 @@ Si no encuentras → "".`;
 - tipo_suministro: "gas" si hay gas natural (m³, RL.X, CUPS gas). "electricidad" en otro caso.
 - Si GAS: tarifa = "RL1"…"RL5". Rellena consumo_gas_kwh con kWh totales de gas.
 - Si ELECTRICIDAD: tarifa = "2.0TD" o "3.0TD". Rellena potencias_kw y energia_kwh por periodo.
+- total_factura: el importe TOTAL que paga el cliente por ESE suministro, CON IVA incluido. En facturas multipunto, cada suministro tiene su propio total. NO uses el total global de la factura combinada para todos los suministros.
 === CRÍTICO: campo "dias" en facturas multipunto ===
 CADA suministro tiene su PROPIO periodo de facturación con fechas distintas.
 El campo "dias" de cada suministro debe ser el número de días de ESE suministro específico.
@@ -29184,7 +29185,7 @@ REGLAS GENERALES:
 - cups: código 18-22 chars que empieza por "ES". Si no se ve claramente pon "".
 - potencias_kw: las contratadas en kW. 2.0TD tiene p1 y p2 (si la factura usa P1+P3 en lugar de P1+P2, pon p1=P1, p2=P3, p3=0). 3.0TD tiene p1 a p6.
 - energia_kwh: consumo del periodo. 2.0TD tiene e1, e2, e3. 3.0TD tiene e1 a e6.
-- total_factura: importe total en euros (número sin símbolo €).
+- total_factura: importe TOTAL a pagar en euros CON IVA incluido (número sin símbolo €). Es la cantidad final que el cliente paga, NO el subtotal sin impuestos.
 - nombre_cliente: nombre completo del titular del contrato (persona física o jurídica).
 - direccion_suministro: dirección del punto de suministro (NO la dirección fiscal).
 - Pon 0 en campos numéricos ausentes, "" en campos de texto ausentes.
@@ -29348,7 +29349,10 @@ Si no encuentras ningún CIF/NIF → pon "".`;
         <td style="padding:6px;background:#eff6ff;">${inpDis('e4',r.e4,'50px',!is30)}</td>
         <td style="padding:6px;background:#eff6ff;">${inpDis('e5',r.e5,'50px',!is30)}</td>
         <td style="padding:6px;background:#eff6ff;">${inpDis('e6',r.e6,'50px',!is30)}</td>
-        <td style="padding:6px;">${inp('total',r.total,'55px',bGray)}</td>
+        <td style="padding:6px;">
+          ${inp('total',r.total,'55px',bGray)}
+          ${(r.total > 0 && r.total < 50) ? '<div style="font-size:0.6rem;color:#dc2626;font-weight:700;">⚠️ Revisar total</div>' : ''}
+        </td>
         <td style="padding:6px;white-space:nowrap;">
           <button onclick="cmReprocesar(${i})" title="Reprocesar" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:0.72rem;">🔄</button>
           <button onclick="cmEliminarFila(${i})" title="Eliminar" style="background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:0.72rem;">🗑️</button>

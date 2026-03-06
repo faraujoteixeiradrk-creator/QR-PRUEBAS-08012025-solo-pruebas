@@ -3927,6 +3927,7 @@
   }
   console.log('Best overall:', bestOverall.offer.name, bestOverall.totalAnnual);
   console.log('Best DRK:', bestDrk ? bestDrk.offer.name : 'None', bestDrk ? bestDrk.totalAnnual : 0);
+  console.log('🔑 DATOS USADOS EN CÁLCULO:', { p1_kw: dataForCalc.potencia_p1_kw, p2_kw: dataForCalc.potencia_p2_kw, e1: dataForCalc.consumo_punta, e2: dataForCalc.consumo_llano, e3: dataForCalc.consumo_valle, dias: dataForCalc.dias_facturados, total: dataForCalc.importe_total, originalBillAnnual: dataForCalc.originalBillAnnual });
   // --- GUARDAR OFERTAS CON AHORRO POSITIVO ---
   // NUEVO: En modo DUAL o MULTICUPS (con excedentes), incluir también ofertas con ahorro negativo
   const isDualMode = window.dualMode === true;
@@ -28362,6 +28363,7 @@ Si no encuentras → "".`;
        document.getElementById('gas-ai-error-section').classList.remove('hidden');
       }
      };
+     window.getPromptIA = getPromptIA; // FIX: exponer globalmente para cola DUAL
      function getPromptGasIA() {
       return 'Eres un experto en facturas de gas espanolas. Analiza esta factura.\nINSTRUCCIONES:\n1. CUPS: Codigo que empieza por ES de 20-22 caracteres. Busca la etiqueta explicita "CUPS:" en datos del suministro.\n2. DIAS: Dias del periodo de facturacion.\n3. KWH: kWh consumidos en el periodo.\n4. TOTAL: Importe final a pagar con IVA.\n5. NOMBRE_CLIENTE: Nombre completo del titular (persona o empresa). Busca en "Datos del titular" o "Nombre:".\n6. DIRECCION: Direccion del punto de suministro (NO la fiscal). Busca en "Datos del suministro".\n7. NOMBRE_EMPRESA: Si el titular tiene forma juridica (S.L., S.A., S.L.U., SOCIEDAD, GRUPO, etc.) pon la razon social exacta. Si es persona fisica pon "".\n8. CIF_NIF: Busca etiquetas "CIF:", "NIF:", "CIF/NIF:", "N.I.F:". Formato CIF: letra+8digitos (ej:B78518669). Formato NIF: 8digitos+letra (ej:12345678A). Copia EXACTAMENTE. Usa el del CLIENTE, no el de la comercializadora. Si no aparece pon "".\nDevuelve SOLO este JSON sin texto adicional:\n{"cups":"ES...","dias":30,"kwh":250.0,"total_factura":45.50,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","notas":""}';
      }

@@ -3927,7 +3927,7 @@
   }
   console.log('Best overall:', bestOverall.offer.name, bestOverall.totalAnnual);
   console.log('Best DRK:', bestDrk ? bestDrk.offer.name : 'None', bestDrk ? bestDrk.totalAnnual : 0);
-  console.log('🔑 DATOS USADOS EN CÁLCULO:', { p1_kw: dataForCalc.potencia_p1_kw, p2_kw: dataForCalc.potencia_p2_kw, e1: dataForCalc.consumo_punta, e2: dataForCalc.consumo_llano, e3: dataForCalc.consumo_valle, dias: dataForCalc.dias_facturados, total: dataForCalc.importe_total, originalBillAnnual: dataForCalc.originalBillAnnual });
+  console.log('🔑 DATOS compareOffers:', { p1_kw: data.potencia_p1_kw||data.p1, e1: data.consumo_punta||data.kwh_p1, dias: data.dias_facturados||data.dias, total: data.importe_total, originalBillAnnual: data.originalBillAnnual });
   // --- GUARDAR OFERTAS CON AHORRO POSITIVO ---
   // NUEVO: En modo DUAL o MULTICUPS (con excedentes), incluir también ofertas con ahorro negativo
   const isDualMode = window.dualMode === true;
@@ -19076,6 +19076,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   }
   }
   });
+  console.log('🔑 DATOS saveSupply:', { p1_kw: dataForCalc.potencia_p1_kw, e1: dataForCalc.consumo_punta, dias: dataForCalc.dias_facturados, total: dataForCalc.importe_total, bestDrk_total: bestDrk?.totalAnnual, bestDrk_savings: bestDrk?.savings, bestOverall_total: bestOverall?.totalAnnual });
   let finalIndividualResult = bestOverall;
   // --- GUARDAR OFERTAS PARA SELECCIÓN MANUAL ---
   // En MultiCups, permitir elegir entre TODAS las ofertas (con o sin ahorro)
@@ -29752,8 +29753,15 @@ Ignora completamente cualquier suministro de gas o cualquier otro CUPS.`
                 doSaveSupplyWithData(data);
                 return;
               }
+              // FIX CRÍTICO: incluir dias del prompt individual (más preciso que el multipunto)
+              const diasIndividual = parsed.dias > 0 ? parsed.dias : data.dias_facturados;
+              const totalIndividual = parsed.total_factura > 0 ? parsed.total_factura : data.importe_total;
               const precisaData = {
                 ...data,
+                dias: diasIndividual,
+                dias_facturados: diasIndividual,
+                importe_total: totalIndividual,
+                total_cliente: totalIndividual,
                 potencia_p1_kw: p.p1 > 0 ? p.p1 : data.potencia_p1_kw,
                 potencia_p2_kw: p.p2 > 0 ? p.p2 : data.potencia_p2_kw,
                 potencia_p3_kw: p.p3 > 0 ? p.p3 : 0,
@@ -29767,7 +29775,7 @@ Ignora completamente cualquier suministro de gas o cualquier otro CUPS.`
                 consumo_llano: e.e2 > 0 ? e.e2 : data.consumo_llano,
                 consumo_valle: e.e3 > 0 ? e.e3 : data.consumo_valle,
               };
-              console.log('✅ Re-extracción DUAL OK - p1_kw:', precisaData.potencia_p1_kw, '| p2_kw:', precisaData.potencia_p2_kw, '| e1:', precisaData.consumo_punta, '| e2:', precisaData.consumo_llano, '| e3:', precisaData.consumo_valle);
+              console.log('✅ Re-extracción DUAL OK - dias:', precisaData.dias_facturados, '| p1_kw:', precisaData.potencia_p1_kw, '| e1:', precisaData.consumo_punta, '| e2:', precisaData.consumo_llano, '| e3:', precisaData.consumo_valle, '| total:', precisaData.importe_total);
               doSaveSupplyWithData(precisaData);
             } catch(reExtractErr) {
               console.warn('⚠️ Re-extracción fallida, usando datos originales del prompt multipunto:', reExtractErr.message);

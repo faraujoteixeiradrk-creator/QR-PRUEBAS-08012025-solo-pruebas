@@ -2398,13 +2398,13 @@
   let description = '';
   let totalKwh = 0;
   if (type === 'electricidad') {
-  totalKwh = (parseFloat(data.kwh_p1) || 0) +
-  (parseFloat(data.kwh_p2) || 0) +
-  (parseFloat(data.kwh_p3) || 0) +
+  totalKwh = (parseFloat(data.kwh_p1) || parseFloat(data.consumo_punta) || 0) +
+  (parseFloat(data.kwh_p2) || parseFloat(data.consumo_llano) || 0) +
+  (parseFloat(data.kwh_p3) || parseFloat(data.consumo_valle) || 0) +
   (parseFloat(data.kwh_p4) || 0) +
   (parseFloat(data.kwh_p5) || 0) +
   (parseFloat(data.kwh_p6) || 0);
-  description = `${totalKwh.toFixed(0)} kWh, ${data.dias} días`;
+  description = `${totalKwh.toFixed(0)} kWh, ${data.dias_facturados || data.dias} días`;
   } else {
   totalKwh = parseFloat(data.kwh) || 0;
   description = `${totalKwh.toFixed(0)} kWh, ${data.dias} días`;
@@ -29726,9 +29726,12 @@ Si no encuentras ningún CIF/NIF → pon "".`;
               const promptIndividual = getPromptIA() + (cupsElec
                 ? `
 
-=== IMPORTANTE: FACTURA MULTIPUNTO ===
-Esta factura contiene MÁS DE UN suministro. Extrae ÚNICAMENTE los datos del suministro eléctrico con CUPS: ${cupsElec}
-Ignora completamente cualquier suministro de gas o cualquier otro CUPS.`
+=== CRÍTICO: FACTURA MULTIPUNTO ===
+Esta factura contiene MÁS DE UN suministro (electricidad + gas en el mismo PDF).
+Extrae ÚNICAMENTE los datos del suministro ELÉCTRICO con CUPS: ${cupsElec}
+Ignora completamente el suministro de gas y sus datos.
+En especial: el campo "dias" debe ser el periodo de facturación del suministro ELÉCTRICO (CUPS ${cupsElec}), NO el del gas.
+Si los dos suministros tienen periodos diferentes, usa solo el del CUPS eléctrico indicado.`
                 : '');
               const msgContent = [
                 { type: contentType, source: { type: 'base64', media_type: mediaType, data: base64 } },

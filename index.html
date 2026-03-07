@@ -427,7 +427,7 @@
   <p class="text-xs font-bold text-orange-700 mb-2 text-center" data-i18n="🤖 Leer factura con IA">🤖 Leer factura con IA</p>
   <input type="file" id="gas-ai-file-input" accept=".pdf,image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="procesarFacturaGasIA(this.files[0])">
   <input type="file" id="gas-ai-file-input-multi" accept=".pdf,image/*" multiple style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="procesarGasMultiFilesIA(this)">
-  <div id="gas-ai-drop-zone" onclick="abrirModalIAUpload('gas')" style="border:2px dashed #f97316;border-radius:12px;padding:12px;text-align:center;cursor:pointer;background:#fff7ed;">
+  <div id="gas-ai-drop-zone" onclick="abrirModalIAUpload('gas')" ondragover="event.preventDefault();event.stopPropagation();this.style.background='#fed7aa';" ondragleave="this.style.background='#fff7ed';" ondrop="event.preventDefault();event.stopPropagation();this.style.background='#fff7ed';var f=event.dataTransfer.files[0];if(f&&typeof procesarFacturaGasIA==='function')procesarFacturaGasIA(f);else if(f)document.getElementById('gas-ai-file-input').files=event.dataTransfer.files;" style="border:2px dashed #f97316;border-radius:12px;padding:12px;text-align:center;cursor:pointer;background:#fff7ed;">
   <div style="font-size:1.5rem;">🤖</div>
   <p class="text-xs font-bold text-orange-600" data-i18n="Subir PDF o foto de factura de gas">Subir PDF o foto de factura de gas</p>
   <p class="text-xs text-slate-400 mt-1" data-i18n="La IA extraerá los datos automáticamente">La IA extraerá los datos automáticamente</p>

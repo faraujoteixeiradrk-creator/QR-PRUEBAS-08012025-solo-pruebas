@@ -29021,7 +29021,13 @@ REGLAS:${reglasExtra}
 - Persona física → nombre_empresa = "".
 - NUNCA nombre de la comercializadora.
 === CAMPO CRÍTICO: cif_nif ===
-- Busca "CIF:", "NIF:", "CIF/NIF:". Formato B78518669 o 12345678A. Del CLIENTE, no comercializadora.`;
+- Busca "CIF:", "NIF:", "CIF/NIF:". Formato B78518669 o 12345678A. Del CLIENTE, no comercializadora.
+=== CAMPO CRÍTICO: total_factura ===
+- FACTURAS DUALES (electricidad + gas en el mismo PDF): el total_factura del suministro ELÉCTRICO es SOLO el importe eléctrico.
+- Busca específicamente "IMPORTE TOTAL ELECTRICIDAD + TASAS E IMPUESTOS" y usa ese valor.
+- NUNCA uses el "¿Cuánto tengo que pagar?" ni el total global que suma gas + luz + servicios.
+- Ejemplo TotalEnergies: total global 259,53€ pero "IMPORTE TOTAL ELECTRICIDAD + TASAS E IMPUESTOS 199,14€" → total_factura = 199.14
+- Para el suministro de GAS usa "IMPORTE TOTAL GAS NATURAL + TASAS E IMPUESTOS".`;
 
     setStatus('📤 Enviando a IA...');
     let messageContent;

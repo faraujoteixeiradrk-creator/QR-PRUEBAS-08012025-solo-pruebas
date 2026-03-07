@@ -28302,7 +28302,8 @@ Si no encuentras → "".`;
      }
      window.cerrarModalGasIA = function() {
       document.getElementById('gas-ai-processing-modal').classList.add('hidden');
-      gasAiData = null;
+      // NO borramos gasAiData aqui para que confirmarDatosGasIA pueda usarlo
+      // gasAiData = null;  ← comentado intencionalmente
      };
      async function toBase64(file) {
       return new Promise(function(res, rej) {
@@ -28384,6 +28385,8 @@ Si no encuentras → "".`;
       return 'Eres un experto en facturas de gas espanolas. Analiza esta factura.\nINSTRUCCIONES:\n1. CUPS: Codigo que empieza por ES de 20-22 caracteres. Busca la etiqueta explicita "CUPS:" en datos del suministro.\n2. DIAS: Dias del periodo de facturacion.\n3. KWH: kWh consumidos en el periodo.\n4. TOTAL: Importe final a pagar con IVA.\n5. NOMBRE_CLIENTE: Nombre completo del titular (persona o empresa). Busca en "Datos del titular" o "Nombre:".\n6. DIRECCION: Direccion del punto de suministro (NO la fiscal). Busca en "Datos del suministro".\n7. NOMBRE_EMPRESA: Si el titular tiene forma juridica (S.L., S.A., S.L.U., SOCIEDAD, GRUPO, etc.) pon la razon social exacta. Si es persona fisica pon "".\n8. CIF_NIF: Busca etiquetas "CIF:", "NIF:", "CIF/NIF:", "N.I.F:". Formato CIF: letra+8digitos (ej:B78518669). Formato NIF: 8digitos+letra (ej:12345678A). Copia EXACTAMENTE. Usa el del CLIENTE, no el de la comercializadora. Si no aparece pon "".\nDevuelve SOLO este JSON sin texto adicional:\n{"cups":"ES...","dias":30,"kwh":250.0,"total_factura":45.50,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","notas":""}';
      }
      window.confirmarDatosGasIA = function() {
+      // FIX: usar window.gasAiData como fallback si la variable local se perdió
+      if (!gasAiData && window.gasAiData) gasAiData = window.gasAiData;
       if (!gasAiData) return;
       window.gasUsedIA = true;
       window.gasAiData = gasAiData;

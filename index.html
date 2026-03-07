@@ -427,7 +427,7 @@
   <p class="text-xs font-bold text-orange-700 mb-2 text-center" data-i18n="🤖 Leer factura con IA">🤖 Leer factura con IA</p>
   <input type="file" id="gas-ai-file-input" accept=".pdf,image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="procesarFacturaGasIA(this.files[0])">
   <input type="file" id="gas-ai-file-input-multi" accept=".pdf,image/*" multiple style="position:absolute;opacity:0;width:0;height:0;pointer-events:none;" onchange="procesarGasMultiFilesIA(this)">
-  <div id="gas-ai-drop-zone" onclick="abrirModalIAUpload('gas')" ondragover="event.preventDefault();event.stopPropagation();this.style.background='#fed7aa';" ondragleave="this.style.background='#fff7ed';" ondrop="event.preventDefault();event.stopPropagation();this.style.background='#fff7ed';var f=event.dataTransfer.files[0];if(f&&typeof procesarFacturaGasIA==='function')procesarFacturaGasIA(f);else if(f)document.getElementById('gas-ai-file-input').files=event.dataTransfer.files;" style="border:2px dashed #f97316;border-radius:12px;padding:12px;text-align:center;cursor:pointer;background:#fff7ed;">
+  <div id="gas-ai-drop-zone" onclick="abrirModalIAUpload('gas')" style="border:2px dashed #f97316;border-radius:12px;padding:12px;text-align:center;cursor:pointer;background:#fff7ed;">
   <div style="font-size:1.5rem;">🤖</div>
   <p class="text-xs font-bold text-orange-600" data-i18n="Subir PDF o foto de factura de gas">Subir PDF o foto de factura de gas</p>
   <p class="text-xs text-slate-400 mt-1" data-i18n="La IA extraerá los datos automáticamente">La IA extraerá los datos automáticamente</p>
@@ -2398,13 +2398,13 @@
   let description = '';
   let totalKwh = 0;
   if (type === 'electricidad') {
-  totalKwh = (parseFloat(data.kwh_p1) || parseFloat(data.consumo_punta) || 0) +
-  (parseFloat(data.kwh_p2) || parseFloat(data.consumo_llano) || 0) +
-  (parseFloat(data.kwh_p3) || parseFloat(data.consumo_valle) || 0) +
+  totalKwh = (parseFloat(data.kwh_p1) || 0) +
+  (parseFloat(data.kwh_p2) || 0) +
+  (parseFloat(data.kwh_p3) || 0) +
   (parseFloat(data.kwh_p4) || 0) +
   (parseFloat(data.kwh_p5) || 0) +
   (parseFloat(data.kwh_p6) || 0);
-  description = `${totalKwh.toFixed(0)} kWh, ${data.dias_facturados || data.dias} días`;
+  description = `${totalKwh.toFixed(0)} kWh, ${data.dias} días`;
   } else {
   totalKwh = parseFloat(data.kwh) || 0;
   description = `${totalKwh.toFixed(0)} kWh, ${data.dias} días`;
@@ -3927,7 +3927,6 @@
   }
   console.log('Best overall:', bestOverall.offer.name, bestOverall.totalAnnual);
   console.log('Best DRK:', bestDrk ? bestDrk.offer.name : 'None', bestDrk ? bestDrk.totalAnnual : 0);
-  console.log('🔑 DATOS compareOffers:', { p1_kw: data.potencia_p1_kw||data.p1, e1: data.consumo_punta||data.kwh_p1, dias: data.dias_facturados||data.dias, total: data.importe_total, originalBillAnnual: data.originalBillAnnual });
   // --- GUARDAR OFERTAS CON AHORRO POSITIVO ---
   // NUEVO: En modo DUAL o MULTICUPS (con excedentes), incluir también ofertas con ahorro negativo
   const isDualMode = window.dualMode === true;
@@ -13681,11 +13680,6 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   document.getElementById('best-option-tariff-selector')?.classList.add('hidden');
   // NUEVO: Si hay comparativo de potencias optimizadas activo O es modo DUAL, OCULTAR el checkbox de Fijo & Indexado
   const checkboxContainer = document.getElementById('powercup-indexed-comparison-checkbox');
-  // FIX: restaurar dualMode si se perdió pero _cmModoDual sigue activo (cola masiva DUAL)
-  if (window._cmModoDual && !window.dualMode) {
-    console.log('🔧 showOfferDecisionModal: restaurando dualMode desde _cmModoDual');
-    window.dualMode = true;
-  }
   const isDualMode = window.dualMode === true;
   // CRÍTICO DEBUG: Log del estado de hideDecisionCheckboxes
   console.log('🔍 showOfferDecisionModal() - Estado de flags:', {
@@ -14633,15 +14627,20 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   console.log('  - CUPS:', newSupply.cups);
   console.log('  - Tarifa:', newSupply.tariff);
   console.log('  - Coste anual:', newSupply.totalAnnual);
+  // Actualizar UI
+  updateDualSuppliesList();
+  console.log('✅ UI actualizada');
   // Cerrar modales
   const offerModal = document.getElementById('offer-decision-modal');
   if (offerModal) {
   offerModal.classList.add('hidden');
   offerModal.classList.remove('flex');
   }
-  // FIX: usar backToDualManager() para continuar cola si hay pendientes
-  backToDualManager();
-  console.log('✅ Volviendo a pantalla DUAL via backToDualManager');
+  // Ocultar todas las pantallas
+  hideAllScreens();
+  // Volver a pantalla DUAL
+  document.getElementById('screen-dual').classList.add('active');
+  console.log('✅ Volviendo a pantalla DUAL');
   return;
   } catch (error) {
   console.error('❌ ERROR en interceptor DUAL:', error);
@@ -14920,11 +14919,6 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   }
   console.log('✅ lastComparisonResult OK, continuando...');
   // ⚡⚡⚡ INTERCEPTOR MODO DUAL ⚡⚡⚡
-  // FIX: también verificar _cmModoDual por si dualMode se perdió durante el flujo
-  if (window._cmModoDual && !window.dualMode) {
-    console.log('🔧 FIX: dualMode perdido pero _cmModoDual activo - restaurando dualMode');
-    window.dualMode = true;
-  }
   if (window.dualMode === true) {
   console.log('===== 🔥 MODO DUAL - Añadiendo directamente al array =====');
   try {
@@ -14986,15 +14980,20 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   console.log('  - CUPS:', newSupply.cups);
   console.log('  - Tarifa:', newSupply.tariff);
   console.log('  - Coste anual:', newSupply.totalAnnual);
+  // Actualizar UI
+  updateDualSuppliesList();
+  console.log('✅ UI actualizada');
   // Cerrar modales
   const offerModal = document.getElementById('offer-decision-modal');
   if (offerModal) {
   offerModal.classList.add('hidden');
   offerModal.classList.remove('flex');
   }
-  // FIX: usar backToDualManager() que también llama cmProcesarSiguienteDeCola si hay cola pendiente
-  backToDualManager();
-  console.log('✅ Volviendo a pantalla DUAL via backToDualManager');
+  // Ocultar todas las pantallas
+  hideAllScreens();
+  // Volver a pantalla DUAL
+  document.getElementById('screen-dual').classList.add('active');
+  console.log('✅ Volviendo a pantalla DUAL');
   return; // CRÍTICO: Salir aquí
   } catch (error) {
   console.error('❌ ERROR en interceptor DUAL:', error);
@@ -15427,20 +15426,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   if (window._cmModoDual && window.dualMode) {
   console.log('🔀 DUAL cola masiva: redirigiendo addSupplyToMultiCupsList → dualAddFromResults');
   const tariff = result.originalTariffType || result._multiCupsContext?.tariffType || currentTariffType || '2.0TD';
-  // FIX: usar coste DRK real y originalBillAnnual correctamente calculado
-  // result.totalAnnual = coste anualizado de la mejor oferta (ya calculado con factor 365/dias)
-  // result.originalBillAnnual = factura original anualizada (ya calculada con factor 365/dias)
-  const drkCost = result.totalAnnual || 0;
-  // Coste original anualizado: priorizar result.originalBillAnnual (ya tiene factor correcto)
-  const dias = result.dias || result.dias_facturados || 30;
-  const factorAnual = dias > 0 ? 365 / dias : 12;
-  const originalBillAnnual = result.originalBillAnnual
-    || (result.importe_total ? result.importe_total * factorAnual : 0);
-  // Coste indexado (PowerCup): usar indexedComparison si existe
-  const indexedCost = (result.indexedComparison && result.indexedComparison.totalAnnual)
-    ? result.indexedComparison.totalAnnual
-    : drkCost;
-  console.log('🔀 DUAL fix - drkCost:', drkCost, 'originalBillAnnual:', originalBillAnnual, 'indexedCost:', indexedCost, 'ahorro:', (originalBillAnnual - drkCost).toFixed(2));
+  const cost = result.totalAnnual || result.totalPeriod || 0;
   const dd = {
     cups: result.cups || '',
     tariff: tariff,
@@ -15448,14 +15434,14 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
     kwh_p4: result.kwh_p4||0, kwh_p5: result.kwh_p5||0, kwh_p6: result.kwh_p6||0,
     p1: result.potencia_p1_kw||0, p2: result.potencia_p2_kw||0, p3: result.potencia_p3_kw||0,
     p4: result.potencia_p4_kw||0, p5: result.potencia_p5_kw||0, p6: result.potencia_p6_kw||0,
-    dias: dias,
-    originalBillAnnual: originalBillAnnual,
+    dias: result.dias||30,
+    originalBillAnnual: result.originalBillAnnual || (result.importe_total||0)*12,
     nombre_cliente: result.nombre_cliente || '',
     direccion_suministro: result.direccion_suministro || ''
   };
   const res = {
-    drk: { total: drkCost/12, total_anual: drkCost },
-    powercup: { total: indexedCost/12, total_anual: indexedCost }
+    drk: { total: cost/12, total_anual: cost },
+    powercup: { total: cost/12, total_anual: cost }
   };
   window.dualAddFromResults('electricidad', tariff, dd, res, result);
   return;
@@ -18988,19 +18974,6 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   console.log('Primera tarifa name:', tariffsToCompare[0]?.name);
   console.log('Primera tarifa p1_price:', tariffsToCompare[0]?.p1_price);
   console.log('Primera tarifa p_potencia_1:', tariffsToCompare[0]?.p_potencia_1);
-  // LOG CRÍTICO DUAL: mostrar exactamente qué datos de cliente entran
-  console.log('📋 DATA DEL CLIENTE EN saveSupply:', {
-    cups: data.cups,
-    dias: data.dias_facturados,
-    importe_total: data.importe_total,
-    p1_kw: data.potencia_p1_kw,
-    p2_kw: data.potencia_p2_kw,
-    e1_punta: data.consumo_punta || data.consumo_p1,
-    e2_llano: data.consumo_llano || data.consumo_p2,
-    e3_valle: data.consumo_valle || data.consumo_p3,
-    _cmModoDual: window._cmModoDual,
-    dualMode: window.dualMode
-  });
   // Creamos un nuevo objeto de datos para el cálculo, ya que el cálculo interno necesita los campos correctos (consumo_p1, consumo_p2, etc.)
   let dataForCalc = { ...data };
   const p1_kw = data.potencia_p1_kw || 0;
@@ -19076,15 +19049,13 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   }
   }
   });
-  console.log('🔑 DATOS saveSupply:', { p1_kw: dataForCalc.potencia_p1_kw, e1: dataForCalc.consumo_punta, dias: dataForCalc.dias_facturados, total: dataForCalc.importe_total, bestDrk_total: bestDrk?.totalAnnual, bestDrk_savings: bestDrk?.savings, bestOverall_total: bestOverall?.totalAnnual });
   let finalIndividualResult = bestOverall;
   // --- GUARDAR OFERTAS PARA SELECCIÓN MANUAL ---
   // En MultiCups, permitir elegir entre TODAS las ofertas (con o sin ahorro)
   // para dar al usuario la máxima flexibilidad
   // CRÍTICO: Verificar currentTariffType (que indica el modo general)
   // NO tariffType (que es el tipo específico del CUPS actual: 2.0TD o 3.0TD)
-  // FIX: en modo DUAL cola masiva (_cmModoDual) también tratar como MultiCups para mostrar TODAS las ofertas DRK
-  const isInMultiCupsFlow = currentTariffType === 'MULTICUPS' || (window._cmModoDual && window.dualMode);
+  const isInMultiCupsFlow = currentTariffType === 'MULTICUPS';
   console.log('=== FILTER AVAILABLE OFFERS ===');
   console.log('currentTariffType (flow):', currentTariffType);
   console.log('tariffType (this CUPS):', tariffType);
@@ -19261,9 +19232,7 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   condition3_multipleOfertas: availableOffers.length > 1
   });
   // PRIORIDAD 1: Si NO hay ahorro y es tarifa 2.0TD/3.0TD, preguntar por excedentes solares PRIMERO
-  // FIX: En modo DUAL cola masiva, saltar la pregunta solar y pasar directamente al modal de ofertas
-  const isDualQueueMode = window._cmModoDual && window.dualMode;
-  if (finalIndividualResult.savings <= 0 && isTariff20or30 && !alreadyAskedAboutSolar && !isDualQueueMode) {
+  if (finalIndividualResult.savings <= 0 && isTariff20or30 && !alreadyAskedAboutSolar) {
   console.log(`🌞 MultiCups: Sin ahorro detectado en tarifa ${tariffType} - Preguntando por fotovoltaica`);
   // Marcar que ya preguntamos
   alreadyAskedAboutSolar = true;
@@ -19353,15 +19322,6 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
   if (!response.ok) throw new Error(`Error red para ${tariffType}`);
   const text = await response.text();
   currentTariffs[tariffType] = parseCSV(text, tariffType);
-  // 🔍 LOG DIAGNÓSTICO: mostrar precios exactos de DRK INDEX 4 2026
-  const drkIndex4 = currentTariffs[tariffType]?.find(t => t.name?.includes('INDEX') && t.description?.includes('4 2026'));
-  if (drkIndex4) {
-    console.log('🔍 DRK INDEX 4 2026 PRECIOS REALES DEL SHEET:', {
-      name: drkIndex4.name, description: drkIndex4.description,
-      p1_price: drkIndex4.p1_price, p2_price: drkIndex4.p2_price, p3_price: drkIndex4.p3_price,
-      p_potencia_1: drkIndex4.p_potencia_1, p_potencia_2: drkIndex4.p_potencia_2
-    });
-  }
   if (currentTariffType !== 'MULTICUPS' && tariffType === currentTariffType) {
   const count = currentTariffs[currentTariffType].length;
   document.getElementById('tariff-display-badge').textContent = count;
@@ -19470,11 +19430,6 @@ ${tr('Puedes adjuntarlo directamente en el email para tu cliente.')}`);
  }
  function goToElectricidad() {
   console.log('🔵 Iniciando nuevo estudio de ELECTRICIDAD');
-  // FIX: No resetear si estamos en cola masiva DUAL
-  if (window._cmModoDual) {
-    console.log('🔧 goToElectricidad: modo DUAL activo, omitiendo reset de variables');
-    return;
-  }
   // CRÍTICO: Resetear TODOS los flags y datos para evitar caché
   alreadyAskedAboutSolar = false;
   skipDecisionModal = false;
@@ -23075,9 +23030,9 @@ ${clientName}
   // Verificar que tenga datos válidos
   // Columnas críticas: name, p1_price, Tarifa
   const hasName = row.name || row.Name;
-  const hasPrice = row.p1_price || row.P1_price || row.p_fijo_1 || row.P_fijo_1; // indexadas pueden tener p1_price=0 pero tienen fijo
+  const hasPrice = row.p1_price || row.P1_price;
   const hasTarifa = row.Tarifa || row.TARIFA; // Buscar en ambas columnas
-  if (hasName && hasTarifa) { // No requerir precio - puede ser indexada con p1=0
+  if (hasName && hasPrice && hasTarifa) {
   data.push(row);
   // Log de las primeras 3 filas para debug
   if (data.length <= 3) {
@@ -23105,15 +23060,12 @@ ${clientName}
  */
  // Función: Calcular una tarifa específica de GAS
  function calculateGasTariff(tariff, dias, kwh, totalCliente) {
-  // Función auxiliar para convertir string europeo a número (1.234,56 → 1234.56)
+  // Función auxiliar para convertir string europeo a número
   const parseEuropeanNumber = (value) => {
-    if (!value && value !== 0) return 0;
-    const s = String(value).trim();
-    if (!s) return 0;
-    // Detectar formato europeo: tiene coma como decimal
-    // Quitar puntos de miles y convertir coma decimal a punto
-    const clean = s.replace(/\./g, '').replace(',', '.');
-    return parseFloat(clean) || 0;
+  if (!value) return 0;
+  // Convertir coma a punto y luego parsear
+  const cleanValue = String(value).replace(',', '.');
+  return parseFloat(cleanValue) || 0;
   };
   // Extraer datos de la tarifa (usando nombres exactos del Excel)
   const p1_price = parseEuropeanNumber(tariff.p1_price || tariff.P1_price);
@@ -28138,13 +28090,7 @@ ${clientName}
 - IGNORAR valores de 4-5 cifras sin contexto de consumo (son lecturas acumuladas del contador).
 
 === CAMPO 6: TOTAL ===
-- Importe final con IVA incluido SOLO de la ELECTRICIDAD.
-- REGLA CRÍTICA FACTURAS DUALES (electricidad + gas en el mismo PDF):
-  * NUNCA uses el total global de toda la factura (que suma luz + gas + servicios).
-  * Busca ESPECÍFICAMENTE: "IMPORTE TOTAL ELECTRICIDAD", "Total electricidad", "TOTAL ELECTRICIDAD + TASAS E IMPUESTOS".
-  * Usa ese subtotal eléctrico, NO el "Total a pagar" ni "¿Cuánto tengo que pagar?" que incluye gas.
-  * Ejemplo: Si la factura muestra 259,53€ total pero "IMPORTE TOTAL ELECTRICIDAD + TASAS E IMPUESTOS 199,14€", debes devolver 199.14.
-- Para facturas solo de electricidad: busca "TOTAL A PAGAR", "TOTAL FACTURA". Es el importe final con IVA.
+- Importe final con IVA incluido. Busca "TOTAL A PAGAR", "TOTAL FACTURA", "Total a pagar". Es el importe mas alto.
 
 === CAMPO 7: NOMBRE DEL TITULAR ===
 - Busca en "Datos del titular", "Datos del cliente", "Nombre:" o similar.
@@ -28302,8 +28248,7 @@ Si no encuentras → "".`;
      }
      window.cerrarModalGasIA = function() {
       document.getElementById('gas-ai-processing-modal').classList.add('hidden');
-      // NO borramos gasAiData aqui para que confirmarDatosGasIA pueda usarlo
-      // gasAiData = null;  ← comentado intencionalmente
+      gasAiData = null;
      };
      async function toBase64(file) {
       return new Promise(function(res, rej) {
@@ -28380,16 +28325,13 @@ Si no encuentras → "".`;
        document.getElementById('gas-ai-error-section').classList.remove('hidden');
       }
      };
-     window.getPromptIA = getPromptIA; // FIX: exponer globalmente para cola DUAL
      function getPromptGasIA() {
       return 'Eres un experto en facturas de gas espanolas. Analiza esta factura.\nINSTRUCCIONES:\n1. CUPS: Codigo que empieza por ES de 20-22 caracteres. Busca la etiqueta explicita "CUPS:" en datos del suministro.\n2. DIAS: Dias del periodo de facturacion.\n3. KWH: kWh consumidos en el periodo.\n4. TOTAL: Importe final a pagar con IVA.\n5. NOMBRE_CLIENTE: Nombre completo del titular (persona o empresa). Busca en "Datos del titular" o "Nombre:".\n6. DIRECCION: Direccion del punto de suministro (NO la fiscal). Busca en "Datos del suministro".\n7. NOMBRE_EMPRESA: Si el titular tiene forma juridica (S.L., S.A., S.L.U., SOCIEDAD, GRUPO, etc.) pon la razon social exacta. Si es persona fisica pon "".\n8. CIF_NIF: Busca etiquetas "CIF:", "NIF:", "CIF/NIF:", "N.I.F:". Formato CIF: letra+8digitos (ej:B78518669). Formato NIF: 8digitos+letra (ej:12345678A). Copia EXACTAMENTE. Usa el del CLIENTE, no el de la comercializadora. Si no aparece pon "".\nDevuelve SOLO este JSON sin texto adicional:\n{"cups":"ES...","dias":30,"kwh":250.0,"total_factura":45.50,"nombre_cliente":"","direccion_suministro":"","nombre_empresa":"","cif_nif":"","notas":""}';
      }
      window.confirmarDatosGasIA = function() {
-      // FIX: usar window.gasAiData como fallback si la variable local se perdió
-      if (!gasAiData && window.gasAiData) gasAiData = window.gasAiData;
       if (!gasAiData) return;
-      window.gasUsedIA = true;
-      window.gasAiData = gasAiData;
+      window.gasUsedIA = true; // Marcar que esta sesión usó IA
+      window.gasAiData = gasAiData; // Asegurar que está expuesto globalmente
       function sv(id, val) {
        var el = document.getElementById(id);
        if (el && val !== undefined && val !== 0 && val !== '') {
@@ -28401,27 +28343,8 @@ Si no encuentras → "".`;
       }
       sv('gas-cups', gasAiData.cups);
       sv('gas-dias', gasAiData.dias);
-      sv('gas-kwh', gasAiData.kwh || (gasAiData.energia_kwh && (gasAiData.energia_kwh.e1 || 0)));
+      sv('gas-kwh', gasAiData.kwh);
       sv('gas-total-cliente', gasAiData.total_factura);
-      // Asegurar tarifa gas correcta
-      if (gasAiData.tarifa) {
-       var selTariff = document.getElementById('gas-selected-tariff');
-       if (selTariff) selTariff.textContent = gasAiData.tarifa;
-      }
-      // IMPORTANTE: Cerrar modal IA y abrir el modal de gas correcto (NO el de electricidad)
-      cerrarModalGasIA();
-      var gasModal = document.getElementById('gas-manual-input-modal');
-      if (gasModal) {
-       gasModal.classList.remove('hidden');
-       gasModal.style.display = 'flex';
-       gasModal.classList.add('flex');
-      }
-      // Asegurar que el manual-input-modal de electricidad NO se abre
-      var elecModal = document.getElementById('manual-input-modal');
-      if (elecModal) {
-       elecModal.classList.add('hidden');
-       elecModal.classList.remove('flex');
-      }
       // Rellenar nombre y dirección en modales compartidos
       if (gasAiData.nombre_cliente) {
        sv('client-name', gasAiData.nombre_cliente);
@@ -28436,6 +28359,7 @@ Si no encuentras → "".`;
       // Guardar empresa y CIF del gas para adjuntar al dualSupply
       if (gasAiData.nombre_empresa) window._iaEmpresa = gasAiData.nombre_empresa;
       if (gasAiData.cif_nif) window._iaCif = gasAiData.cif_nif;
+      cerrarModalGasIA();
      };
      document.addEventListener('DOMContentLoaded', function() {
       var zone = document.getElementById('gas-ai-drop-zone');
@@ -28842,56 +28766,37 @@ Si no encuentras → "".`;
     textoEl.textContent = `✅ Completado: ${ok} OK · ${_cmResultados.length - ok} con avisos`;
     _cmProcesando = false;
 
-    // ═══ DETECCIÓN ESTUDIO ANUAL (modo "misma empresa" Y también en "empresas diferentes" para gas) ═══
+    // ═══ DETECCIÓN ESTUDIO ANUAL (solo modo "misma empresa") ═══
     const modoEmpresaActual = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
-    if (modoEmpresaActual === 'misma' || modoEmpresaActual === 'diferentes') { // funciona en modo normal Y en DUAL
-      // ── ELECTRICIDAD ──
-      const cupsGruposElec = {};
-      _cmResultados.filter(r => r.ok && r.cups && r.tipoSuministro !== 'gas').forEach(r => {
-        if (!cupsGruposElec[r.cups]) cupsGruposElec[r.cups] = [];
-        cupsGruposElec[r.cups].push(r);
+    if (modoEmpresaActual === 'misma' && !window._cmModoDual) {
+      const cupsGrupos = {};
+      _cmResultados.filter(r => r.ok && r.cups).forEach(r => {
+        if (!cupsGrupos[r.cups]) cupsGrupos[r.cups] = [];
+        cupsGrupos[r.cups].push(r);
       });
-      const cupsAnualesElec = Object.entries(cupsGruposElec).filter(([cups, facturas]) => {
+      // Detectar CUPS con meses distintos
+      const cupsAnuales = Object.entries(cupsGrupos).filter(([cups, facturas]) => {
         if (facturas.length < 2) return false;
         const meses = new Set(facturas.map(f => f.mesNumero).filter(m => m > 0));
-        return meses.size >= 2;
+        return meses.size >= 2; // al menos 2 meses distintos
       });
-      if (cupsAnualesElec.length > 0) {
-        const respAnual = await cmMostrarModalEstudioAnual(cupsAnualesElec, 'electricidad');
+      if (cupsAnuales.length > 0) {
+        // Mostrar modal preguntando estudio anual o individual
+        const respAnual = await cmMostrarModalEstudioAnual(cupsAnuales);
         if (respAnual === 'anual') {
-          window._cmEstudioAnual = cupsAnualesElec.map(([cups, facturas]) => ({ cups, facturas }));
+          window._cmEstudioAnual = cupsAnuales.map(([cups, facturas]) => ({ cups, facturas }));
           setTimeout(() => cmMostrarRevision(), 200);
           return;
         }
+        // Si elige individual → flujo normal
         window._cmEstudioAnual = null;
-      }
-
-      // ── GAS ──
-      const cupsGruposGas = {};
-      _cmResultados.filter(r => r.ok && r.cups && r.tipoSuministro === 'gas').forEach(r => {
-        if (!cupsGruposGas[r.cups]) cupsGruposGas[r.cups] = [];
-        cupsGruposGas[r.cups].push(r);
-      });
-      const cupsAnualesGas = Object.entries(cupsGruposGas).filter(([cups, facturas]) => {
-        if (facturas.length < 2) return false;
-        const meses = new Set(facturas.map(f => f.mesNumero).filter(m => m > 0));
-        return meses.size >= 2;
-      });
-      if (cupsAnualesGas.length > 0) {
-        const respGas = await cmMostrarModalEstudioAnual(cupsAnualesGas, 'gas');
-        if (respGas === 'anual') {
-          window._cmEstudioAnualGas = cupsAnualesGas.map(([cups, facturas]) => ({ cups, facturas }));
-          setTimeout(() => _cmGenerarPDFAnualGas(), 200);
-          return;
-        }
-        window._cmEstudioAnualGas = null;
       }
     }
     setTimeout(() => cmMostrarRevision(), 1000);
   };
 
   // ─── Modal: ¿Estudio anual o individual? ───
-  function cmMostrarModalEstudioAnual(cupsAnuales, tipo='electricidad') {
+  function cmMostrarModalEstudioAnual(cupsAnuales) {
     return new Promise(resolve => {
       const listaCups = cupsAnuales.map(([cups, facturas]) => {
         const meses = [...new Set(facturas.map(f => f.mesNumero).filter(m=>m>0))].sort((a,b)=>a-b);
@@ -28908,7 +28813,7 @@ Si no encuentras → "".`;
       overlay.innerHTML = `
         <div style="background:white;border-radius:20px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
           <div style="background:linear-gradient(135deg,#16a34a,#15803d);padding:18px 22px;">
-            <div style="font-size:1.1rem;font-weight:900;color:white;">${tipo==='gas'?'🔥':'📅'} Facturas de ${tipo==='gas'?'GAS':'electricidad'} del mismo CUPS detectadas</div>
+            <div style="font-size:1.1rem;font-weight:900;color:white;">📅 Facturas del mismo CUPS detectadas</div>
             <div style="font-size:0.78rem;color:rgba(255,255,255,0.85);margin-top:3px;">He detectado varias facturas con fechas de meses distintos</div>
           </div>
           <div style="padding:20px;">
@@ -28953,7 +28858,7 @@ Si no encuentras → "".`;
     return {
       ok: true, tarifa,
       tipoSuministro: esGas ? 'gas' : 'electricidad',
-      cups: (parsed.cups || '').toString().toUpperCase().replace(/\s+/g, ''),
+      cups: parsed.cups || '',
       dias: parsed.dias || 0,
       // En 2.0TD facturas DRK: la potencia aparece como P1+P3 (no P1+P2). Si p2=0 y p3>0 → usamos p3 como p2
       p1: p.p1||0, p2: (p.p2||0) > 0 ? (p.p2||0) : (tarifa==='2.0TD' ? (p.p3||0) : 0), p3: tarifa==='2.0TD' ? 0 : (p.p3||0), p4: p.p4||0, p5: p.p5||0, p6: p.p6||0,
@@ -29081,12 +28986,6 @@ Si no encuentras → "".`;
 - tipo_suministro: "gas" si hay gas natural (m³, RL.X, CUPS gas). "electricidad" en otro caso.
 - Si GAS: tarifa = "RL1"…"RL5". Rellena consumo_gas_kwh con kWh totales de gas.
 - Si ELECTRICIDAD: tarifa = "2.0TD" o "3.0TD". Rellena potencias_kw y energia_kwh por periodo.
-=== CRÍTICO: campo "dias" en facturas multipunto ===
-CADA suministro tiene su PROPIO periodo de facturación con fechas distintas.
-El campo "dias" de cada suministro debe ser el número de días de ESE suministro específico.
-Busca las fechas "Periodo de facturación: DD/MM/AAAA a DD/MM/AAAA" de CADA bloque de suministro por separado.
-NO uses el mismo número de días para todos los suministros si sus periodos son distintos.
-Ejemplo: electricidad puede tener 44 días y gas 57 días en la misma factura.
 === CRÍTICO ELECTRICIDAD: energia_kwh con 3 periodos ===
 Para tarifa 2.0TD busca los 3 periodos de consumo: Punta=e1, Llano=e2, Valle=e3.
 ATENCIÓN: Algunas facturas (ej. TotalEnergies) muestran el consumo en 2 bloques de fechas (ej. "340 kWh" y "558 kWh") que son periodos TEMPORALES, no P1/P2/P3.
@@ -29202,10 +29101,7 @@ REGLAS GENERALES:
 - cups: código 18-22 chars que empieza por "ES". Si no se ve claramente pon "".
 - potencias_kw: las contratadas en kW. 2.0TD tiene p1 y p2 (si la factura usa P1+P3 en lugar de P1+P2, pon p1=P1, p2=P3, p3=0). 3.0TD tiene p1 a p6.
 - energia_kwh: consumo del periodo. 2.0TD tiene e1, e2, e3. 3.0TD tiene e1 a e6.
-- total_factura: importe total en euros de ESTE suministro específico (número sin símbolo €).
-  * FACTURAS DUALES (electricidad + gas juntos): busca "IMPORTE TOTAL ELECTRICIDAD + TASAS E IMPUESTOS" o similar. USA ese subtotal eléctrico, NUNCA el total global de la factura completa.
-  * Ejemplo factura dual TotalEnergies: total global 259,53€ pero electricidad 199,14€ → devuelve 199.14.
-  * Para facturas solo eléctricas: usa el total final con IVA.
+- total_factura: importe total en euros (número sin símbolo €).
 - nombre_cliente: nombre completo del titular del contrato (persona física o jurídica).
 - direccion_suministro: dirección del punto de suministro (NO la dirección fiscal).
 - Pon 0 en campos numéricos ausentes, "" en campos de texto ausentes.
@@ -29327,7 +29223,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           <td style="padding:6px;">${cifCell}</td>
           <td style="padding:6px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;" title="${r.file.name}">${r.file.name}</td>
           <td style="padding:6px;">${tarifaCell}</td>
-          <td style="padding:6px;"><input value="${(r.cups||'').replace(/\s+/g,'')}" onchange="_cmResultados[${i}].cups=this.value.toUpperCase().replace(/\s+/g,'')" style="width:130px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
+          <td style="padding:6px;"><input value="${r.cups||''}" onchange="_cmResultados[${i}].cups=this.value" style="width:130px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
           <td style="padding:6px;"><input value="${r.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:100px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
           <td style="padding:6px;"><input value="${r.direccion||''}" onchange="_cmResultados[${i}].direccion=this.value" style="width:120px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
           <td style="padding:6px;">${inp('dias',r.dias,'42px',bGray)}</td>
@@ -29353,7 +29249,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
         <td style="padding:6px;">${cifCell}</td>
         <td style="padding:6px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.72rem;" title="${r.file.name}">${r.file.name}</td>
         <td style="padding:6px;">${tarifaCell}</td>
-        <td style="padding:6px;"><input value="${(r.cups||'').replace(/\s+/g,'')}" onchange="_cmResultados[${i}].cups=this.value.toUpperCase().replace(/\s+/g,'')" style="width:130px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
+        <td style="padding:6px;"><input value="${r.cups||''}" onchange="_cmResultados[${i}].cups=this.value" style="width:130px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
         <td style="padding:6px;"><input value="${r.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:100px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
         <td style="padding:6px;"><input value="${r.direccion||''}" onchange="_cmResultados[${i}].direccion=this.value" style="width:120px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
         <td style="padding:6px;">${inp('dias',r.dias,'42px',bGray)}</td>
@@ -29428,19 +29324,18 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       inputs.forEach((inp, idx) => { if (fields[idx] !== undefined) r[fields[idx]] = parseFloat(inp.value)||0; });
       const modoEmp = document.querySelector('input[name="cm-modo-empresa"]:checked')?.value || 'misma';
       const allTexts = Array.from(document.querySelectorAll(`#cm-row-${i} input:not([type="number"]):not([type="checkbox"])`));
-      const normCups = v => (v||'').toUpperCase().replace(/\s+/g,''); // quitar espacios del CUPS
       if (modoEmp === 'diferentes') {
         // En modo diferentes la tabla tiene: empresa(0), cif(1), cups(2), nombre(3), direccion(4)
         // Priorizar valor del DOM si no está vacío, sino usar el valor ya en r (puesto por la IA)
         r.empresa   = (allTexts[0]?.value || '').trim() || r.empresa || '';
         r.cif       = (allTexts[1]?.value || '').trim() || r.cif || '';
-        r.cups      = normCups(allTexts[2]?.value) || normCups(r.cups) || '';
+        r.cups      = (allTexts[2]?.value || '').trim() || r.cups || '';
         r.nombre    = (allTexts[3]?.value || '').trim() || r.nombre || '';
         r.direccion = (allTexts[4]?.value || '').trim() || r.direccion || '';
       } else {
         // Modo misma empresa: cups(0), nombre(1), direccion(2)
         // Aun así preservar empresa/cif que la IA detectó (para snapshot posterior)
-        r.cups      = normCups(allTexts[0]?.value) || normCups(r.cups) || '';
+        r.cups      = (allTexts[0]?.value || '').trim() || r.cups || '';
         r.nombre    = (allTexts[1]?.value || '').trim() || r.nombre || '';
         r.direccion = (allTexts[2]?.value || '').trim() || r.direccion || '';
         // empresa y cif ya están en r desde la IA, no los sobreescribimos
@@ -29466,69 +29361,12 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       console.log('📸 Snapshot empresas guardado:', window._cmSnapshotEmpresas.map(s => `${s.cups} | empresa:"${s.empresa}" | cif:"${s.cif}"`));
     }
 
-    // ═══ MODO ESTUDIO ANUAL ELECTRICIDAD: no usar cola, generar PDF anual directamente ═══
+    // ═══ MODO ESTUDIO ANUAL: no usar cola, generar PDF anual directamente ═══
     if (window._cmEstudioAnual && window._cmEstudioAnual.length > 0) {
       cerrarCargaMasiva();
+      // Pequeña pausa para que se cierre el modal, luego generar PDF
       setTimeout(() => cmGenerarPDFAnual(), 300);
       return;
-    }
-    // ═══ MODO ESTUDIO ANUAL GAS ═══
-    if (window._cmEstudioAnualGas && window._cmEstudioAnualGas.length > 0) {
-      cerrarCargaMasiva();
-      setTimeout(() => _cmGenerarPDFAnualGas(), 300);
-      return;
-    }
-
-    // ═══ DETECCIÓN EN TIEMPO REAL — funciona en CUALQUIER modo empresa ═══
-    // GAS: detectar mismo CUPS con meses distintos en la cola actual
-    const _cupsGasRT = {};
-    cola.filter(r => r.ok && r.cups && r.tipoSuministro === 'gas').forEach(r => {
-      if (!_cupsGasRT[r.cups]) _cupsGasRT[r.cups] = [];
-      _cupsGasRT[r.cups].push(r);
-    });
-    const _cupsAnualesGasRT = Object.entries(_cupsGasRT).filter(([c, fs]) =>
-      fs.length >= 2 && new Set(fs.map(f => f.mesNumero).filter(m => m > 0)).size >= 2
-    );
-    if (_cupsAnualesGasRT.length > 0) {
-      cerrarCargaMasiva();
-      (async () => {
-        const resp = await cmMostrarModalEstudioAnual(_cupsAnualesGasRT, 'gas');
-        if (resp === 'anual') {
-          window._cmEstudioAnualGas = _cupsAnualesGasRT.map(([cups, facturas]) => ({ cups, facturas }));
-          setTimeout(() => _cmGenerarPDFAnualGas(), 200);
-        } else {
-          window._cmEstudioAnualGas = null;
-          window._cmCola = cola; window._cmColaIdx = 0; window._cmColaTotal = cola.length;
-          cmMostrarBannerCola(); cmProcesarSiguienteDeCola();
-        }
-      })();
-      return;
-    }
-    // ELECTRICIDAD: detectar mismo CUPS si no fue seteado por el flujo IA
-    if (!window._cmEstudioAnual) {
-      const _cupsElecRT = {};
-      cola.filter(r => r.ok && r.cups && r.tipoSuministro !== 'gas').forEach(r => {
-        if (!_cupsElecRT[r.cups]) _cupsElecRT[r.cups] = [];
-        _cupsElecRT[r.cups].push(r);
-      });
-      const _cupsAnualesElecRT = Object.entries(_cupsElecRT).filter(([c, fs]) =>
-        fs.length >= 2 && new Set(fs.map(f => f.mesNumero).filter(m => m > 0)).size >= 2
-      );
-      if (_cupsAnualesElecRT.length > 0) {
-        cerrarCargaMasiva();
-        (async () => {
-          const resp = await cmMostrarModalEstudioAnual(_cupsAnualesElecRT, 'electricidad');
-          if (resp === 'anual') {
-            window._cmEstudioAnual = _cupsAnualesElecRT.map(([cups, facturas]) => ({ cups, facturas }));
-            setTimeout(() => cmGenerarPDFAnual(), 200);
-          } else {
-            window._cmEstudioAnual = null;
-            window._cmCola = cola; window._cmColaIdx = 0; window._cmColaTotal = cola.length;
-            cmMostrarBannerCola(); cmProcesarSiguienteDeCola();
-          }
-        })();
-        return;
-      }
     }
 
     // Cerrar modal masiva y arrancar cola
@@ -29614,17 +29452,7 @@ Si no encuentras ningún CIF/NIF → pon "".`;
       consumo_valle: r.e3 || 0,
     };
 
-    // FIX: pasar datos completos de potencias y energia para que el formulario se rellene correctamente en DUAL
-    window.aiExtractedData = {
-      cups: data.cups,
-      nombre_cliente: data.nombre_cliente,
-      direccion_suministro: data.direccion_suministro,
-      dias: data.dias_facturados,
-      total_factura: data.importe_total,
-      tarifa: r.tarifa || '2.0TD',
-      potencias_kw: { p1: r.p1||0, p2: r.p2||0, p3: r.p3||0, p4: r.p4||0, p5: r.p5||0, p6: r.p6||0 },
-      energia_kwh: { e1: r.e1||0, e2: r.e2||0, e3: r.e3||0, e4: r.e4||0, e5: r.e5||0, e6: r.e6||0 }
-    };
+    window.aiExtractedData = { cups: data.cups, nombre_cliente: data.nombre_cliente, direccion_suministro: data.direccion_suministro };
     window.elecUsedIA = true;
 
     // Activar modo según origen (DUAL o MULTICUPS)
@@ -29650,7 +29478,6 @@ Si no encuentras ningún CIF/NIF → pon "".`;
     if (banner) banner.textContent = `📋 Suministro ${idx + 1}/${cola.length}: ${nombreCorto} — elige tarifa y confirma`;
 
     // Llamar saveSupply o dualSelectTariff según tipo
-    console.log('🚀 cmProcesarSiguienteDeCola - tipoSuministro:', r.tipoSuministro, '| tarifa:', r.tarifa, '| cups:', r.cups, '| dualMode:', window.dualMode, '| typeof saveSupply:', typeof saveSupply);
     if (typeof saveSupply === 'function') {
       if (window._cmModoDual && r.tipoSuministro === 'gas') {
         // Gas en DUAL: usar el flujo de gas
@@ -29712,126 +29539,31 @@ Si no encuentras ningún CIF/NIF → pon "".`;
           }
         }, 100);
       } else {
-        // Electricidad en DUAL cola masiva
+        // Electricidad: asegurar dualCurrentType correcto antes de saveSupply
         if (window._cmModoDual) {
           window.dualCurrentType = 'electricidad';
           if (typeof dualCurrentType !== 'undefined') dualCurrentType = 'electricidad';
         }
+        // Esperar a que las tarifas estén cargadas antes de saveSupply
         const tarifa = r.tarifa || '2.0TD';
-
-        // FIX CRÍTICO: Re-extraer SOLO el suministro eléctrico con prompt individual detallado
-        // El prompt multipunto DUAL extrae potencias/kWh incorrectamente en PDFs complejos.
-        // Solución: llamar a la IA de nuevo con prompt individual + CUPS específico como ancla.
-        const doSaveSupplyWithData = (finalData) => {
-          console.log('⚡ doSaveSupply FINAL - tarifa:', tarifa, '| p1_kw:', finalData.potencia_p1_kw, '| p2_kw:', finalData.potencia_p2_kw, '| e1:', finalData.consumo_punta, '| e2:', finalData.consumo_llano, '| e3:', finalData.consumo_valle, '| total:', finalData.importe_total);
-          const run = () => saveSupply(finalData, tarifa);
-          if (typeof currentTariffs !== 'undefined' && currentTariffs[tarifa] && currentTariffs[tarifa].length > 0) {
-            run();
-          } else if (typeof fetchTariffsFromSheet === 'function') {
-            fetchTariffsFromSheet(tarifa).then(() => run()).catch(() => run());
-          } else {
-            let w = 0; const wi = setInterval(() => { w++; if ((typeof currentTariffs !== 'undefined' && currentTariffs[tarifa]?.length > 0) || w > 80) { clearInterval(wi); run(); } }, 100);
-          }
-        };
-
-        // Re-extraer con prompt individual si tenemos el archivo
-        console.log('🔍 DUAL CHECK - r.file:', !!r.file, '| getPromptIA:', typeof getPromptIA, '| cups:', data.cups);
-        if (r.file && typeof getPromptIA === 'function') {
-          const cupsElec = data.cups || r.cups || '';
-          console.log('⚡ DUAL cola - re-extrayendo electricidad con prompt individual. CUPS:', cupsElec);
-          (async () => {
-            try {
-              const base64 = await new Promise((res, rej) => {
-                const reader = new FileReader();
-                reader.onload = () => res(reader.result.split(',')[1]);
-                reader.onerror = () => rej(new Error('Error leyendo archivo'));
-                reader.readAsDataURL(r.file);
-              });
-              const mediaType = r.file.type === 'application/pdf' ? 'application/pdf' : r.file.type;
-              const contentType = r.file.type === 'application/pdf' ? 'document' : 'image';
-              // Prompt individual + ancla por CUPS específico para PDFs multipunto
-              const promptIndividual = getPromptIA() + (cupsElec
-                ? `
-
-=== CRÍTICO: FACTURA MULTIPUNTO ===
-Esta factura contiene MÁS DE UN suministro (electricidad + gas en el mismo PDF).
-Extrae ÚNICAMENTE los datos del suministro ELÉCTRICO con CUPS: ${cupsElec}
-Ignora completamente el suministro de gas y sus datos.
-En especial:
-- El campo "dias" debe ser el periodo de facturación del suministro ELÉCTRICO (CUPS ${cupsElec}), NO el del gas.
-- El campo "total_factura" debe ser SOLO el importe del suministro ELÉCTRICO (CUPS ${cupsElec}), NO el total global de la factura que suma electricidad + gas.
-- Busca la sección específica del CUPS eléctrico y extrae su subtotal o total propio, NO el importe final combinado de la factura completa.
-- Si los dos suministros tienen periodos o importes diferentes, usa SOLO los del CUPS eléctrico indicado.`
-                : '');
-              const msgContent = [
-                { type: contentType, source: { type: 'base64', media_type: mediaType, data: base64 } },
-                { type: 'text', text: promptIndividual }
-              ];
-              const resp = await fetch('https://drk-ai-proxy.f-araujo-teixeira-drk.workers.dev', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000, messages: [{ role: 'user', content: msgContent }] })
-              });
-              if (!resp.ok) throw new Error('API error ' + resp.status);
-              const apiData = await resp.json();
-              const rawText = apiData.content?.[0]?.text || '';
-              const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-              const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
-              const p = parsed.potencias_kw || {};
-              const e = parsed.energia_kwh || {};
-              // Validación: si p1 > 15 y tarifa es 2.0TD, probablemente error de extracción
-              const p1Val = p.p1 || 0;
-              if (tarifa === '2.0TD' && p1Val > 15) {
-                console.warn('⚠️ p1_kw=' + p1Val + ' parece incorrecto para 2.0TD (max 15kW). Usando datos originales.');
-                doSaveSupplyWithData(data);
-                return;
-              }
-              // FIX CRÍTICO: incluir dias del prompt individual (más preciso que el multipunto)
-              const diasIndividual = parsed.dias > 0 ? parsed.dias : data.dias_facturados;
-              // FIX DUAL TOTAL: validar que el total extraído corresponde SOLO a electricidad
-              // Si la IA devuelve el total combinado (gas+luz), el total del multipunto (r.total)
-              // es más fiable porque fue extraído para ese suministro específico.
-              // Heurística: si parsed.total_factura > r.total * 1.4, probablemente es el total global.
-              let totalIndividual;
-              const totalMultipunto = r.total || data.importe_total || 0;
-              const totalIAIndividual = parsed.total_factura || 0;
-              if (totalIAIndividual > 0 && totalMultipunto > 0 && totalIAIndividual > totalMultipunto * 1.4) {
-                console.warn('DUAL total validation: IA devolvio ' + totalIAIndividual + ' pero multipunto tenia ' + totalMultipunto + '. Usando multipunto (probable total combinado gas+luz).');
-                totalIndividual = totalMultipunto;
-              } else if (totalIAIndividual > 0) {
-                totalIndividual = totalIAIndividual;
-              } else {
-                totalIndividual = totalMultipunto || data.importe_total;
-              }
-              const precisaData = {
-                ...data,
-                dias: diasIndividual,
-                dias_facturados: diasIndividual,
-                importe_total: totalIndividual,
-                total_cliente: totalIndividual,
-                potencia_p1_kw: p.p1 > 0 ? p.p1 : data.potencia_p1_kw,
-                potencia_p2_kw: p.p2 > 0 ? p.p2 : data.potencia_p2_kw,
-                potencia_p3_kw: p.p3 > 0 ? p.p3 : 0,
-                potencia_p4_kw: p.p4 > 0 ? p.p4 : 0,
-                potencia_p5_kw: p.p5 > 0 ? p.p5 : 0,
-                potencia_p6_kw: p.p6 > 0 ? p.p6 : 0,
-                consumo_p1: e.e1 > 0 ? e.e1 : data.consumo_p1,
-                consumo_p2: e.e2 > 0 ? e.e2 : data.consumo_p2,
-                consumo_p3: e.e3 > 0 ? e.e3 : data.consumo_p3,
-                consumo_punta: e.e1 > 0 ? e.e1 : data.consumo_punta,
-                consumo_llano: e.e2 > 0 ? e.e2 : data.consumo_llano,
-                consumo_valle: e.e3 > 0 ? e.e3 : data.consumo_valle,
-              };
-              console.log('✅ Re-extracción DUAL OK - dias:', precisaData.dias_facturados, '| p1_kw:', precisaData.potencia_p1_kw, '| e1:', precisaData.consumo_punta, '| e2:', precisaData.consumo_llano, '| e3:', precisaData.consumo_valle, '| total:', precisaData.importe_total);
-              doSaveSupplyWithData(precisaData);
-            } catch(reExtractErr) {
-              console.warn('⚠️ Re-extracción fallida, usando datos originales del prompt multipunto:', reExtractErr.message);
-              doSaveSupplyWithData(data);
-            }
-          })();
+        const doSaveSupply = () => saveSupply(data, tarifa);
+        if (typeof currentTariffs !== 'undefined' && currentTariffs[tarifa] && currentTariffs[tarifa].length > 0) {
+          doSaveSupply();
         } else {
-          console.log('⚡ DUAL cola - sin archivo, usando datos originales');
-          doSaveSupplyWithData(data);
+          // Tarifas no cargadas — cargarlas primero
+          if (typeof fetchTariffsFromSheet === 'function') {
+            fetchTariffsFromSheet(tarifa).then(() => doSaveSupply()).catch(() => doSaveSupply());
+          } else {
+            // Esperar polling hasta 8s
+            let elecWait = 0;
+            const waitElec = setInterval(() => {
+              elecWait++;
+              if ((typeof currentTariffs !== 'undefined' && currentTariffs[tarifa] && currentTariffs[tarifa].length > 0) || elecWait > 80) {
+                clearInterval(waitElec);
+                doSaveSupply();
+              }
+            }, 100);
+          }
         }
       }
     }
@@ -30048,7 +29780,7 @@ En especial:
               <option value="3.0TD" ${f.tarifa==='3.0TD'?'selected':''}>3.0TD</option>
             </select>
           </td>
-          <td style="padding:6px;"><input value="${(f.cups||'').replace(/\s+/g,'')}" onchange="_cmResultados[${i}].cups=this.value.toUpperCase().replace(/\s+/g,'')" style="width:130px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
+          <td style="padding:6px;"><input value="${f.cups||''}" onchange="_cmResultados[${i}].cups=this.value" style="width:130px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:4px;font-size:0.7rem;font-family:monospace;"></td>
           <td style="padding:6px;"><input value="${f.nombre||''}" onchange="_cmResultados[${i}].nombre=this.value" style="width:90px;padding:2px 4px;${bGray}border-radius:4px;font-size:0.72rem;"></td>
           <td style="padding:6px;">${inp('dias',i,f.dias,'42px',bGray)}</td>
           <td style="padding:6px;">${inp('p1',i,f.p1,'42px',bGray)}</td>
@@ -30106,632 +29838,6 @@ En especial:
       btnPDF.setAttribute('onclick', 'cmGenerarPDFAnual()');
       btnPDF.innerHTML = '📊 Generar Estudio Anual PDF';
     }
-  }
-
-
-  // ════════════════════════════════════════════════════════════════
-  //   ESTUDIO ANUAL DE GAS — flujo completo (análogo a electricidad)
-  // ════════════════════════════════════════════════════════════════
-  function _cmGenerarPDFAnualGas() {
-    const grupos = window._cmEstudioAnualGas || [];
-    if (grupos.length === 0) return;
-    const isPC = (typeof comparisonMode !== 'undefined') && comparisonMode === 'overall_best';
-    const grad  = isPC ? 'linear-gradient(135deg,#15803d,#16a34a)' : 'linear-gradient(135deg,#1e3a8a,#2563eb)';
-    const brand = isPC ? 'POWER CUP' : 'DRK';
-
-    // ── Modal datos cliente ──
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
-    const nombreAuto = grupos[0]?.facturas[0]?.nombre || '';
-    overlay.innerHTML = `
-      <div style="background:white;border-radius:20px;width:100%;max-width:400px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
-        <div style="background:${grad};padding:18px 22px;">
-          <div style="font-size:1rem;font-weight:900;color:white;">🔥 Datos para el Estudio Anual de Gas · ${brand}</div>
-          <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">Introduce los datos del cliente</div>
-        </div>
-        <div style="padding:20px;display:flex;flex-direction:column;gap:10px;">
-          <input id="ga-codigo" placeholder="Código Comercial (Obligatorio)"
-            style="padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.85rem;width:100%;box-sizing:border-box;">
-          <input id="ga-nombre" placeholder="Nombre del cliente / empresa" value="${nombreAuto}"
-            style="padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.85rem;width:100%;box-sizing:border-box;">
-          <input id="ga-telefono" placeholder="Teléfono (opcional)"
-            style="padding:10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.85rem;width:100%;box-sizing:border-box;">
-          <div style="display:flex;gap:10px;margin-top:6px;">
-            <button id="ga-cancelar" style="flex:1;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.84rem;color:#64748b;">Cancelar</button>
-            <button id="ga-generar" style="flex:2;padding:11px;background:${grad};border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.84rem;color:white;">📄 Siguiente →</button>
-          </div>
-        </div>
-      </div>`;
-    document.body.appendChild(overlay);
-    overlay.querySelector('#ga-cancelar').onclick = () => document.body.removeChild(overlay);
-    overlay.querySelector('#ga-generar').onclick = () => {
-      const codigo = overlay.querySelector('#ga-codigo').value.trim();
-      const nombre = overlay.querySelector('#ga-nombre').value.trim();
-      const telefono = overlay.querySelector('#ga-telefono').value.trim();
-      if (!codigo) { overlay.querySelector('#ga-codigo').style.borderColor='#dc2626'; return; }
-      document.body.removeChild(overlay);
-      _cmModalSeleccionTarifaGas(grupos, codigo, nombre, telefono);
-    };
-  }
-
-  function _cmModalSeleccionTarifaGas(grupos, codigo, nombre, telefono) {
-    const isPC = (typeof comparisonMode !== 'undefined') && comparisonMode === 'overall_best';
-    const grad  = isPC ? 'linear-gradient(135deg,#15803d,#16a34a)' : 'linear-gradient(135deg,#1e3a8a,#2563eb)';
-    const brand = isPC ? 'POWER CUP' : 'DRK';
-    const rlTarifa = grupos[0]?.facturas[0]?.tarifa || 'RL1';
-    const rlBase = rlTarifa.toUpperCase().replace(/[\s\.]/g,''); // → "RL1"
-    const fmt = v => v.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
-
-    // ── Filtrar y calcular ──
-    function _filtrarTarifasGas(data) {
-      let lista = data.filter(t => {
-        const tv = (t.Tarifa || '').trim().toUpperCase().replace(/[\s\.]/g,'');
-        if (tv !== rlBase) return false;
-        if (isPC) return true;
-        const nm = (t.name || t.Name || t.Nombre || '').toLowerCase();
-        return nm.includes('drk') || nm.includes('direct');
-      });
-      if (!isPC && lista.length === 0) lista = data.filter(t => (t.Tarifa||'').trim().toUpperCase().replace(/[\s\.]/g,'') === rlBase);
-      if (lista.length === 0) lista = [...data];
-      const seen = new Set();
-      return lista.filter(t => {
-        const k = (t.name||t.Name||t.Nombre||'').trim()+'_'+parseFloat((t.p1_price||t.P1_price||'0').toString().replace(',','.'))||0 +'_'+parseFloat((t.p_fijo_1||t.P_fijo_1||'0').toString().replace(',','.'))||0;
-        if (seen.has(k)) return false; seen.add(k); return true;
-      });
-    }
-    function _calcAhorro(tarifa) {
-      let suma = 0, n = 0;
-      grupos.forEach(g => g.facturas.forEach(f => {
-        const kwh = f.consumoGasKwh || f.e1 || 0;
-        if (kwh <= 0) return;
-        const r = calculateGasTariff(tarifa, f.dias||30, kwh, f.total||0);
-        suma += r.ahorro_periodo || 0; n++;
-      }));
-      return n > 0 ? (suma / n) * 12 : 0;
-    }
-
-    // ── Construir y mostrar el modal con las tarifas ──
-    function _mostrarModalTarifas(data) {
-      const tarifasGas = _filtrarTarifasGas(data);
-      const tarifasConAhorro = tarifasGas.map(t => ({
-        t,
-        nombre: (t.name||t.Name||t.Nombre||'') + ((t.description||t.Description) ? ' - '+(t.description||t.Description) : ''),
-        ahorro: _calcAhorro(t)
-      })).sort((a,b) => b.ahorro - a.ahorro);
-      const ahorroAuto = tarifasConAhorro[0]?.ahorro || 0;
-      window._cmTarifasGasAnual = tarifasConAhorro;
-
-      // Quitar overlay de carga si existe
-      const prevLoad = document.getElementById('ga-carga-overlay');
-      if (prevLoad) document.body.removeChild(prevLoad);
-
-      const overlay2 = document.createElement('div');
-      overlay2.id = 'ga-tarifa-overlay';
-      overlay2.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;';
-      overlay2.innerHTML = `
-        <div style="background:white;border-radius:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
-          <div style="background:${grad};padding:18px 22px;position:sticky;top:0;z-index:1;border-radius:20px 20px 0 0;">
-            <div style="font-size:1rem;font-weight:900;color:white;">🔥 Selecciona la tarifa de Gas · ${brand}</div>
-            <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">${rlTarifa} · ${tarifasConAhorro.length} tarifas disponibles · Ordenadas por mayor ahorro</div>
-          </div>
-          <div style="padding:16px;display:flex;flex-direction:column;gap:8px;">
-            <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f0fdf4;border-radius:10px;border:2px solid #16a34a;cursor:pointer;" id="ga-tarifa-label-auto"
-              onclick="document.querySelectorAll('[id^=ga-tarifa-label-]').forEach(l=>{l.style.borderColor='#e2e8f0';l.style.background='#f8fafc'});this.style.borderColor='#16a34a';this.style.background='#f0fdf4';">
-              <input type="radio" name="ga-tarifa-sel" value="auto" checked style="accent-color:#16a34a;flex-shrink:0;">
-              <div style="flex:1;">
-                <div style="font-weight:800;color:#15803d;font-size:0.88rem;">🏆 Mejor tarifa para este cliente</div>
-                <div style="font-size:0.7rem;color:#16a34a;margin-top:2px;">La tarifa con mayor ahorro total acumulado</div>
-              </div>
-              <div style="font-weight:900;color:#16a34a;font-size:0.9rem;white-space:nowrap;">+${fmt(ahorroAuto)} €/año</div>
-            </label>
-            <div style="font-size:0.72rem;font-weight:700;color:#64748b;padding:4px 2px;margin-top:4px;">ELIGE UNA TARIFA ESPECÍFICA (${tarifasConAhorro.length}):</div>
-            ${tarifasConAhorro.map((item,i) => `
-              <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8fafc;border-radius:10px;border:2px solid #e2e8f0;cursor:pointer;" id="ga-tarifa-label-${i}"
-                onclick="document.querySelectorAll('[id^=ga-tarifa-label-]').forEach(l=>{l.style.borderColor='#e2e8f0';l.style.background='#f8fafc'});this.style.borderColor='#6366f1';this.style.background='#eef2ff';">
-                <input type="radio" name="ga-tarifa-sel" value="${i}" style="accent-color:#6366f1;flex-shrink:0;">
-                <div style="flex:1;">
-                  <div style="font-weight:700;color:#1e3a8a;font-size:0.84rem;">${item.nombre}</div>
-                  <div style="font-size:0.68rem;color:#64748b;margin-top:2px;">
-                    Fijo: ${(parseFloat((item.t.p_fijo_1||item.t.P_fijo_1||'0').toString().replace(/\./g,'').replace(',','.'))||0).toFixed(4)} €/año &nbsp;|&nbsp; Energía: ${(parseFloat((item.t.p1_price||item.t.P1_price||'0').toString().replace(/\./g,'').replace(',','.'))||0).toFixed(6)} €/kWh
-                  </div>
-                </div>
-                <div style="font-weight:900;color:${item.ahorro>=0?'#16a34a':'#dc2626'};font-size:0.9rem;white-space:nowrap;">${item.ahorro>=0?'+':''}${fmt(item.ahorro)} €/año</div>
-              </label>`).join('')}
-            <div style="display:flex;gap:10px;margin-top:10px;position:sticky;bottom:0;background:white;padding:8px 0 4px;">
-              <button id="ga-tarifa-cancelar" style="flex:1;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.84rem;color:#64748b;">← Atrás</button>
-              <button id="ga-tarifa-confirmar" style="flex:2;padding:11px;background:${grad};border:none;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.84rem;color:white;">🔥 Generar PDF con esta tarifa</button>
-            </div>
-          </div>
-        </div>`;
-      document.body.appendChild(overlay2);
-      overlay2.querySelector('#ga-tarifa-cancelar').onclick = () => { document.body.removeChild(overlay2); _cmGenerarPDFAnualGas(); };
-      overlay2.querySelector('#ga-tarifa-confirmar').onclick = () => {
-        const sel = overlay2.querySelector('input[name="ga-tarifa-sel"]:checked');
-        const val = sel?.value;
-        document.body.removeChild(overlay2);
-        const tf = (!val||val==='auto') ? (window._cmTarifasGasAnual[0]?.t||null) : (window._cmTarifasGasAnual[parseInt(val)]?.t||null);
-        _cmGenerarPDFAnualGasReal(grupos, codigo, nombre, telefono, tf);
-      };
-    }
-
-    // ── Si hay datos → mostrar directamente ──
-    if ((gasTariffsData||[]).length > 0) { _mostrarModalTarifas(gasTariffsData); return; }
-
-    // ── Sin datos: spinner + intentar recargar ──
-    const overlayCarga = document.createElement('div');
-    overlayCarga.id = 'ga-carga-overlay';
-    overlayCarga.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
-    overlayCarga.innerHTML = `
-      <div style="background:white;border-radius:20px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,0.4);">
-        <div style="background:${grad};padding:18px 22px;">
-          <div style="font-size:1rem;font-weight:900;color:white;">🔥 Tarifas de Gas · ${brand}</div>
-          <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:3px;">Cargando tarifas disponibles...</div>
-        </div>
-        <div style="padding:20px;display:flex;flex-direction:column;gap:12px;">
-          <div id="ga-carga-spinner" style="display:flex;align-items:center;gap:12px;padding:14px;background:#f0fdf4;border-radius:10px;border:2px solid #86efac;">
-            <div style="width:22px;height:22px;border:3px solid #16a34a;border-top-color:transparent;border-radius:50%;animation:gaSpin 0.8s linear infinite;flex-shrink:0;"></div>
-            <div style="font-size:0.84rem;color:#15803d;font-weight:700;">Conectando con el servidor de tarifas...</div>
-          </div>
-          <div id="ga-upload-zone" style="display:none;border:2px dashed #cbd5e1;border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:white;"
-            ondragover="event.preventDefault();this.style.borderColor='#16a34a';this.style.background='#f0fdf4';"
-            ondragleave="this.style.borderColor='#cbd5e1';this.style.background='white';"
-            ondrop="event.preventDefault();this.style.borderColor='#cbd5e1';this.style.background='white';window._gaHandleCSV(event.dataTransfer.files[0]);">
-            <div style="font-size:1.8rem;margin-bottom:6px;">📄</div>
-            <div style="font-weight:700;color:#475569;font-size:0.88rem;">Sube el CSV de tarifas de gas</div>
-            <div style="color:#94a3b8;font-size:0.75rem;margin:4px 0 10px;">Arrastra aquí o haz clic para seleccionar</div>
-            <input type="file" accept=".csv,.txt" id="ga-csv-input" style="display:none;" onchange="window._gaHandleCSV(this.files[0]);">
-            <button onclick="document.getElementById('ga-csv-input').click()" style="padding:9px 20px;background:${grad};color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.82rem;">📂 Seleccionar CSV</button>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button id="ga-carga-cancelar" style="flex:1;padding:11px;background:#f1f5f9;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.84rem;color:#64748b;">Cancelar</button>
-            <button id="ga-carga-reintentar" style="flex:1;padding:11px;background:${grad};border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.84rem;color:white;display:none;">🔄 Reintentar</button>
-          </div>
-        </div>
-      </div>
-      <style>@keyframes gaSpin{to{transform:rotate(360deg)}}</style>`;
-    document.body.appendChild(overlayCarga);
-    overlayCarga.querySelector('#ga-carga-cancelar').onclick = () => { const o=document.getElementById('ga-carga-overlay'); if(o) document.body.removeChild(o); };
-
-    window._gaHandleCSV = (file) => {
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const parsed = parseGasCSV(e.target.result);
-        if (parsed.length > 0) { gasTariffsData = parsed; _mostrarModalTarifas(gasTariffsData); }
-        else { document.getElementById('ga-carga-spinner').innerHTML = '<div style="color:#dc2626;font-weight:700;font-size:0.84rem;">❌ No se leyeron tarifas. Verifica el formato del CSV.</div>'; }
-      };
-      reader.readAsText(file);
-    };
-
-    const _intentarCarga = async () => {
-      try {
-        const url = `https://docs.google.com/spreadsheets/d/${GAS_SHEET_ID}/export?format=csv&gid=0&t=${Date.now()}`;
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error('HTTP '+resp.status);
-        const text = await resp.text();
-        if (!text || text.length < 10) throw new Error('CSV vacío');
-        const parsed = parseGasCSV(text);
-        if (parsed.length === 0) throw new Error('Sin tarifas');
-        gasTariffsData = parsed;
-        _mostrarModalTarifas(gasTariffsData);
-      } catch(err) {
-        console.warn('[GAS] Fallo carga:', err.message);
-        const sp = document.getElementById('ga-carga-spinner');
-        const uz = document.getElementById('ga-upload-zone');
-        const rb = document.getElementById('ga-carga-reintentar');
-        if (sp) sp.innerHTML = `<div style="font-size:0.84rem;color:#b45309;font-weight:700;">⚠️ No se pudieron cargar las tarifas automáticamente.<br><span style="font-weight:400;font-size:0.78rem;">Sube el CSV de tarifas de gas manualmente:</span></div>`;
-        if (uz) uz.style.display = 'block';
-        if (rb) { rb.style.display='block'; rb.onclick=()=>{ if(sp) sp.innerHTML='<div style="display:flex;align-items:center;gap:10px;"><div style="width:20px;height:20px;border:3px solid #16a34a;border-top-color:transparent;border-radius:50%;animation:gaSpin 0.8s linear infinite;"></div><span style="font-size:0.84rem;color:#15803d;font-weight:700;">Reintentando...</span></div>'; if(uz) uz.style.display='none'; rb.style.display='none'; _intentarCarga(); }; }
-      }
-    };
-    _intentarCarga();
-  }
-
-  function _cmGenerarPDFAnualGasReal(grupos, comercialCode, clienteNombre, clienteTel, tarifaForzada) {
-    const mesesNombre = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    const isDrk = (typeof comparisonMode === 'undefined') ? true : (comparisonMode !== 'overall_best');
-    const parseEuro = v => { if(!v && v!==0) return 0; const s=String(v).trim(); return parseFloat(s.replace(/\./g,'').replace(',','.'))||0; };
-
-    // ─── CALCULAR AHORROS por periodo real ───
-    grupos.forEach(grupo => {
-      const { facturas } = grupo;
-      facturas.forEach(f => {
-        const kwh = f.consumoGasKwh || f.e1 || 0;
-        const dias = f.dias || 30;
-        const total = f.total || 0;
-        if (!kwh || !tarifaForzada) { f._ahorroGas=0; f._costeGas=0; f._tarifaGasNombre='—'; return; }
-        const r = calculateGasTariff(tarifaForzada, dias, kwh, total);
-        f._costeGas   = r.total || 0;
-        f._ahorroGas  = r.ahorro_periodo || 0;
-        f._tarifaGasNombre = (tarifaForzada.name || tarifaForzada.Name || '') +
-          ((tarifaForzada.description || tarifaForzada.Description)
-            ? ' - ' + (tarifaForzada.description || tarifaForzada.Description) : '');
-      });
-      facturas.sort((a,b) => (a.mesNumero||0) - (b.mesNumero||0));
-      const n = facturas.length;
-      const sumaAhorro = facturas.reduce((s,f) => s + (f._ahorroGas||0), 0);
-      const sumaDias = facturas.reduce((s,f) => s + (f.dias||30), 0);
-      grupo._sumaAhorrosGas = sumaAhorro;
-      grupo._mediaAhorroMesGas = n > 0 ? sumaAhorro / n : 0;
-      grupo._ahorroAnual = sumaDias > 0 ? (sumaAhorro/sumaDias)*365 : 0;
-      grupo._nFacturas = n;
-      grupo._sumaDias = sumaDias;
-      grupo._mediaAhorroMes = n > 0 ? sumaAhorro/n : 0;
-    });
-
-    // ─── Totales globales ───
-    const allFacturas = grupos.flatMap(g => g.facturas);
-    const nMeses = allFacturas.length;
-    const totalDiasReal = allFacturas.reduce((s,f) => s + (f.dias||30), 0);
-    const totalFacturaPer  = allFacturas.reduce((s,f) => s + (f.total||0), 0);
-    const totalCostePer    = allFacturas.reduce((s,f) => s + (f._costeGas||0), 0);
-    const totalAhorroAnual = grupos.reduce((a,g) => a+(g._ahorroAnual||0), 0);
-    const totalActualAnual = totalDiasReal > 0 ? (totalFacturaPer/totalDiasReal)*365 : 0;
-    const totalDRKAnual    = totalDiasReal > 0 ? (totalCostePer/totalDiasReal)*365 : 0;
-
-    // ─── Setup jsPDF — idéntico al PDF electricidad ───
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('p','mm','a4');
-    const W=210, m=15, cw=W-2*m;
-    const primaryColor = isDrk ? [90,120,145] : [130,145,100];
-    const darkColor    = isDrk ? [107,125,142] : [115,130,95];
-    const greenColor   = [22,163,74];
-    const grisActual   = [104,125,142];
-    const verdeAhorro  = [22,163,74];
-    const grayBg       = [245,247,250];
-    const fmt = v => v.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
-    let y=0;
-
-    // ─── HELPER: cabecera — idéntica al PDF electricidad ───
-    function drawPageHeader() {
-      for (let i=0;i<W;i++) {
-        const r2=i/W;
-        doc.setFillColor(
-          Math.round(darkColor[0]+(240-darkColor[0])*r2),
-          Math.round(darkColor[1]+(245-darkColor[1])*r2),
-          Math.round(darkColor[2]+(250-darkColor[2])*r2)
-        );
-        doc.rect(i,0,1,45,'F');
-      }
-      const lx=m+8, ly=15, lr=6;
-      if (isDrk) {
-        doc.setFillColor(219,68,55);  doc.circle(lx-1,ly+1,lr*0.8,'F');
-        doc.setFillColor(66,133,244); doc.circle(lx+1,ly-1,lr*0.8,'F');
-        doc.setFillColor(244,180,0);  doc.circle(lx-1,ly-1,lr*0.7,'F');
-        doc.setFillColor(15,157,88);  doc.circle(lx+1,ly+1,lr*0.7,'F');
-        doc.setFillColor(255,255,255);doc.circle(lx,ly,lr*0.4,'F');
-      } else {
-        doc.setFillColor(60,90,50); doc.rect(lx-5,ly+4,10,1,'F');
-        doc.setDrawColor(60,90,50); doc.setLineWidth(1.2);
-        doc.roundedRect(lx-3.5,ly-2,7,6,0.5,0.5,'S');
-        doc.setLineWidth(1);
-        doc.line(lx+3.5,ly,lx+5,ly-0.5); doc.line(lx+5,ly-0.5,lx+5.5,ly+1);
-        doc.line(lx+5.5,ly+1,lx+5,ly+2.5); doc.line(lx+5,ly+2.5,lx+3.5,ly+2);
-        doc.setFillColor(100,150,70);
-        doc.rect(lx-3,ly+2.5,6,0.8,'F'); doc.rect(lx-3,ly+0.8,6,0.8,'F'); doc.rect(lx-3,ly-0.9,6,0.8,'F');
-        doc.setFillColor(255,200,0);
-        const ry=ly-7;
-        doc.triangle(lx-1,ry,lx-2,ry+2.5,lx,ry+2,'F');
-        doc.triangle(lx,ry+2,lx-1,ry+4.5,lx+1.5,ry+4.5,'F');
-      }
-      doc.setTextColor(255,255,255);
-      doc.setFontSize(24); doc.setFont('helvetica','bold');
-      doc.text(isDrk?'DRK':'POWER CUP', lx+12, 15);
-      doc.text('GAS NATURAL', lx+12, 23);
-      doc.setFontSize(9); doc.setFont('helvetica','normal');
-      doc.setTextColor(200,220,240);
-      doc.text('Liderando el ahorro y la', lx+12, 31);
-      doc.text('eficiencia energética.', lx+12, 36);
-      doc.setTextColor(40,60,80); doc.setFontSize(11); doc.setFont('helvetica','bold');
-      doc.text('ESTUDIO DE AHORRO', W-m-3, 17, {align:'right'});
-      doc.setFontSize(14); doc.setTextColor(255,255,255);
-      doc.text('COMPARATIVA', W-m-3, 25, {align:'right'});
-      doc.setFontSize(12); doc.setTextColor(100,120,140);
-      doc.text('PROFESIONAL', W-m-3, 33, {align:'right'});
-    }
-
-    // ════ PÁGINA 1: PORTADA ════
-    drawPageHeader();
-    y=50;
-
-    // Bloque cliente
-    doc.setFillColor(...greenColor);
-    doc.roundedRect(m,y,cw,8,3,3,'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('ESTUDIO ANUAL DE AHORRO — GAS NATURAL', m+5, y+5.5);
-    doc.setFillColor(255,255,255); doc.setDrawColor(...darkColor); doc.setLineWidth(1);
-    doc.roundedRect(m,y+8,cw,22,3,3,'FD');
-    doc.setTextColor(...darkColor); doc.setFontSize(10); doc.setFont('helvetica','bold');
-    doc.text('COMPARATIVA PROFESIONAL - ' + (isDrk?'DRK':'POWER CUP'), m+5, y+16);
-    doc.setFontSize(8.5); doc.setFont('helvetica','normal');
-    doc.text('CLIENTE: ' + (clienteNombre||grupos[0]?.facturas[0]?.nombre||''), m+5, y+22);
-    doc.text('CUPS TOTALES: ' + grupos.length, m+5, y+27);
-    doc.setFillColor(...grayBg); doc.setDrawColor(200,210,220); doc.setLineWidth(0.5);
-    doc.roundedRect(W-m-45, y+10, 43, 13, 3,3,'FD');
-    doc.setTextColor(...darkColor); doc.setFontSize(8); doc.setFont('helvetica','bold');
-    doc.text('COMERCIAL: ' + comercialCode, W-m-43, y+19);
-    y+=36;
-
-    // Banner "La mejor opción"
-    doc.setFillColor(...primaryColor);
-    doc.roundedRect(m,y,cw,28,4,4,'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('LA MEJOR OPCIÓN PARA TI ES', W/2, y+7, {align:'center'});
-    doc.setFontSize(22);
-    doc.text(isDrk?'DRK':'POWER CUP', W/2, y+18, {align:'center'});
-    doc.setFontSize(8.5); doc.setFont('helvetica','normal');
-    doc.text('Ofrece el mayor ahorro consolidado con ' + (isDrk?'DRK':'POWER CUP') + '.', W/2, y+25, {align:'center'});
-    y+=34;
-
-    // Caja ahorro principal
-    doc.setFillColor(255,255,255); doc.setDrawColor(220,225,230); doc.setLineWidth(0.5);
-    doc.roundedRect(m,y,cw,52,4,4,'FD');
-    doc.setTextColor(...darkColor); doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('TU AHORRO ANUAL ESTIMADO', W/2, y+9, {align:'center'});
-    doc.setTextColor(...greenColor); doc.setFontSize(28); doc.setFont('helvetica','bold');
-    doc.text(fmt(totalAhorroAnual) + ' €', W/2, y+22, {align:'center'});
-    doc.setDrawColor(220,225,230); doc.setLineWidth(0.5);
-    doc.line(W/2, y+27, W/2, y+50);
-    // Izquierda: factura actual
-    doc.setTextColor(...grisActual); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
-    doc.text('TU FACTURA ACTUAL', m+15, y+29, {align:'center'});
-    doc.setTextColor(220,38,38); doc.setFontSize(13); doc.setFont('helvetica','bold');
-    const actPerStr = fmt(totalFacturaPer) + ' €';
-    const actPerW = doc.getTextWidth(actPerStr);
-    doc.text(actPerStr, m+15, y+37, {align:'center'});
-    doc.setDrawColor(220,38,38); doc.setLineWidth(0.6);
-    doc.line(m+15-actPerW/2, y+35.5, m+15+actPerW/2, y+35.5);
-    doc.setTextColor(...grisActual); doc.setFontSize(7); doc.setFont('helvetica','normal');
-    doc.text('Total Periodo (' + nMeses + ' meses)', m+15, y+42, {align:'center'});
-    doc.setTextColor(220,38,38); doc.setFontSize(10); doc.setFont('helvetica','bold');
-    const actAnStr = fmt(totalActualAnual) + ' €/año';
-    const actAnW = doc.getTextWidth(actAnStr);
-    doc.text(actAnStr, m+15, y+49, {align:'center'});
-    doc.setDrawColor(220,38,38); doc.setLineWidth(0.5);
-    doc.line(m+15-actAnW/2, y+47.5, m+15+actAnW/2, y+47.5);
-    // Derecha: nuevo coste
-    doc.setTextColor(...darkColor); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
-    doc.text('TU NUEVO COSTE ' + (isDrk?'DRK':'POWER CUP'), W/2+30, y+29, {align:'center'});
-    doc.setTextColor(...darkColor); doc.setFontSize(13); doc.setFont('helvetica','bold');
-    doc.text(fmt(totalCostePer) + ' €', W/2+30, y+37, {align:'center'});
-    doc.setTextColor(...grisActual); doc.setFontSize(7); doc.setFont('helvetica','normal');
-    doc.text('Estimado Mensual', W/2+30, y+42, {align:'center'});
-    doc.setTextColor(...darkColor); doc.setFontSize(10); doc.setFont('helvetica','bold');
-    doc.text(fmt(totalDRKAnual) + ' €/año', W/2+30, y+49, {align:'center'});
-    y+=58;
-
-    // Tabla resumen CUPS
-    doc.setFillColor(...greenColor);
-    doc.roundedRect(m,y,cw,7,2,2,'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(8.5); doc.setFont('helvetica','bold');
-    doc.text('RESUMEN DE ' + grupos.length + ' SUMINISTROS (MISMO CUPS — ESTUDIO ANUAL GAS)', m+4, y+5);
-    y+=7;
-    doc.setFillColor(...darkColor);
-    doc.rect(m,y,cw,6,'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont('helvetica','bold');
-    const rCols=[8,70,14,14,28,28];
-    const rHdrs=['Nº','CUPS','Tarifa','Meses','Factura (período)','Ahorro anual proy.'];
-    let xh=m;
-    rHdrs.forEach((h,i)=>{ doc.text(h,xh+1.5,y+4.5); xh+=rCols[i]; });
-    y+=6;
-    grupos.forEach((g,gi)=>{
-      doc.setFillColor(...(gi%2===0?[255,255,255]:grayBg));
-      doc.rect(m,y,cw,7,'F');
-      doc.setTextColor(30,30,30); doc.setFontSize(7); doc.setFont('helvetica','normal');
-      const sumPer = g.facturas.reduce((a,f)=>a+(f.total||0),0);
-      const tarRL = g.facturas[0]?.tarifa || 'RL';
-      const row=[`[${gi+1}]`, g.cups, tarRL, String(g._nFacturas),
-        fmt(sumPer)+' €', fmt(g._ahorroAnual)+' €'];
-      let xr=m;
-      row.forEach((v,i)=>{
-        if(i===5){ doc.setTextColor(...verdeAhorro); doc.setFont('helvetica','bold'); }
-        doc.text(v,xr+1.5,y+4.5);
-        doc.setTextColor(30,30,30); doc.setFont('helvetica','normal');
-        xr+=rCols[i];
-      });
-      const n0=g.facturas[0]?.nombre||'';
-      if(n0){ doc.setTextColor(...grisActual); doc.setFontSize(6.5); doc.text(n0, m+rCols[0]+1.5, y+4.5+3.5); y+=3.5; }
-      y+=7;
-    });
-
-    // Footer pág 1
-    doc.setTextColor(160,170,180); doc.setFontSize(6.5); doc.setFont('helvetica','normal');
-    doc.text('[Colaborador: '+comercialCode+'] | Estudio anual gas proyectado. Generado el '+new Date().toLocaleDateString('es-ES'), W/2, 292, {align:'center'});
-
-    // ════ PÁGINAS DE DETALLE por grupo ════
-    grupos.forEach((grupo) => {
-      doc.addPage();
-      drawPageHeader();
-      const { cups, facturas, _ahorroAnual, _nFacturas, _mediaAhorroMes, _sumaDias } = grupo;
-      const ordenadas = [...facturas].sort((a,b)=>(a.mesNumero||0)-(b.mesNumero||0));
-      const nombre0 = ordenadas[0]?.nombre||'';
-      const tarRL = ordenadas[0]?.tarifa || 'RL';
-      y=50;
-
-      // Header CUPS
-      doc.setFillColor(...greenColor);
-      doc.roundedRect(m,y,cw,7,2,2,'F');
-      doc.setTextColor(255,255,255); doc.setFontSize(8.5); doc.setFont('helvetica','bold');
-      doc.text('DESGLOSE MENSUAL — CUPS: '+cups, m+4, y+5);
-      y+=7;
-      doc.setFillColor(...grayBg); doc.setDrawColor(220,225,230); doc.setLineWidth(0.5);
-      doc.roundedRect(m,y,cw,8,2,2,'FD');
-      doc.setTextColor(...darkColor); doc.setFontSize(8); doc.setFont('helvetica','normal');
-      doc.text(tarRL+' · '+nombre0+' · '+_nFacturas+' facturas analizadas', m+4, y+5.5);
-      y+=12;
-
-      // Tabla mensual
-      const cws2=[18,26,11,16,30,30,29];
-      const hdrs2=['Mes','Fecha emisión','Días','kWh','Factura actual','Coste '+(isDrk?'DRK':'POWER CUP'),'Ahorro periodo'];
-      doc.setFillColor(...darkColor);
-      doc.rect(m,y,cw,6.5,'F');
-      doc.setTextColor(255,255,255); doc.setFontSize(6.5); doc.setFont('helvetica','bold');
-      let xhd=m;
-      hdrs2.forEach((h,i)=>{ doc.text(h,xhd+1.5,y+5); xhd+=cws2[i]; });
-      y+=6.5;
-
-      let sumA=0,sumD=0,sumAh=0;
-      ordenadas.forEach((f,ri)=>{
-        doc.setFillColor(...(ri%2===0?[255,255,255]:grayBg));
-        doc.rect(m,y,cw,7,'F');
-        doc.setTextColor(30,30,30); doc.setFontSize(6.5); doc.setFont('helvetica','normal');
-        const mes=mesesNombre[f.mesNumero]||('M'+(f.mesNumero||0));
-        const kwh = f.consumoGasKwh||f.e1||0;
-        const fA=f.total||0, fD=f._costeGas||0, fAh=f._ahorroGas||0;
-        sumA+=fA; sumD+=fD; sumAh+=fAh;
-        const row2=[mes, f.fechaEmision||'—', String(f.dias||0), String(kwh),
-          fmt(fA)+' €', fmt(fD)+' €', (fAh>=0?'+':'')+fmt(fAh)+' €'];
-        let xr2=m;
-        row2.forEach((v,i)=>{
-          if(i===4){ doc.setTextColor(...grisActual); doc.setFont('helvetica','normal'); }
-          else if(i===5){ doc.setTextColor(...verdeAhorro); doc.setFont('helvetica','bold'); }
-          else if(i===6){ doc.setTextColor(fAh>=0?22:200, fAh>=0?163:38, fAh>=0?74:38); doc.setFont('helvetica','bold'); }
-          else { doc.setTextColor(30,30,30); doc.setFont('helvetica','normal'); }
-          doc.text(v,xr2+1.5,y+5);
-          xr2+=cws2[i];
-        });
-        y+=7;
-      });
-
-      // Fila TOTALES
-      doc.setFillColor(230,242,232);
-      doc.rect(m,y,cw,7,'F');
-      doc.setFontSize(6.5);
-      const rowT2=['TOTAL',String(ordenadas.length)+' fact.','','',
-        fmt(sumA)+' €', fmt(sumD)+' €', (sumAh>=0?'+':'')+fmt(sumAh)+' €'];
-      let xt2=m;
-      rowT2.forEach((v,i)=>{
-        if(i===4){ doc.setTextColor(...grisActual); doc.setFont('helvetica','bold'); }
-        else if(i===5){ doc.setTextColor(...verdeAhorro); doc.setFont('helvetica','bold'); }
-        else if(i===6){ doc.setTextColor(...verdeAhorro); doc.setFont('helvetica','bold'); }
-        else { doc.setTextColor(30,30,30); doc.setFont('helvetica','bold'); }
-        doc.text(v,xt2+1.5,y+5);
-        xt2+=cws2[i];
-      });
-      y+=12;
-
-      // Banner proyección anual
-      doc.setFillColor(...primaryColor);
-      doc.roundedRect(m,y,cw,22,4,4,'F');
-      doc.setTextColor(255,255,255); doc.setFontSize(10); doc.setFont('helvetica','bold');
-      doc.text('AHORRO ANUAL PROYECTADO: '+fmt(_ahorroAnual)+' €', W/2, y+10, {align:'center'});
-      doc.setFont('helvetica','normal'); doc.setFontSize(8);
-      doc.text(_nFacturas+' fact. analizadas · '+(_sumaDias||0)+' días totales · (Ahorro/días)×365', W/2, y+17, {align:'center'});
-      y+=28;
-
-      // Desglose calculado por mes
-      doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...darkColor);
-      doc.text('Desglose de cálculo por mes:', m, y);
-      y+=5;
-
-      ordenadas.forEach(f=>{
-        if(y>262){ doc.addPage(); drawPageHeader(); y=50; }
-        const mes=mesesNombre[f.mesNumero]||('Mes '+(f.mesNumero||0));
-        const kwh = f.consumoGasKwh||f.e1||0;
-        doc.setFillColor(240,245,252);
-        doc.roundedRect(m,y,cw,6,1,1,'F');
-        doc.setTextColor(...darkColor); doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
-        doc.text(mes+' ('+f.fechaEmision+')'+(f._tarifaGasNombre?' · '+f._tarifaGasNombre:''), m+3, y+4.5);
-        doc.setTextColor(...verdeAhorro);
-        doc.text('Ahorro: '+(f._ahorroGas>=0?'+':'')+fmt(f._ahorroGas||0)+' €', W-m-3, y+4.5, {align:'right'});
-        y+=6;
-        doc.setFont('helvetica','normal'); doc.setFontSize(6.5);
-        doc.setTextColor(...grisActual);
-        doc.text('Factura actual: '+fmt(f.total||0)+' €', m+3, y+4);
-        doc.setTextColor(...verdeAhorro);
-        doc.text('Coste '+(isDrk?'DRK':'POWER CUP')+': '+fmt(f._costeGas||0)+' €', m+50, y+4);
-        doc.setTextColor(60,60,60);
-        doc.text('Días: '+(f.dias||0)+'   kWh: '+kwh, m+100, y+4);
-        y+=9;
-      });
-
-      // Footer
-      doc.setTextColor(160,170,180); doc.setFontSize(6.5); doc.setFont('helvetica','normal');
-      doc.text('['+comercialCode+'] | Estudio anual gas proyectado '+(isDrk?'DRK':'POWER CUP')+' · '+new Date().toLocaleDateString('es-ES'), W/2, 292, {align:'center'});
-    });
-
-    // ════ ÚLTIMA PÁGINA: PRECIOS + AHORRO + FORMALIZACIÓN ════
-    doc.addPage();
-    drawPageHeader();
-    y=50;
-
-    // Header precios
-    doc.setFillColor(...greenColor);
-    doc.roundedRect(m,y,cw,10,3,3,'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont('helvetica','bold');
-    doc.text('PRECIOS DE LAS OFERTAS DE GAS SELECCIONADAS', m+3, y+6.5);
-    y+=14;
-
-    // Caja de tarifa
-    if (tarifaForzada) {
-      const nm = (tarifaForzada.name||tarifaForzada.Name||'') +
-        ((tarifaForzada.description||tarifaForzada.Description)
-          ? ' - '+(tarifaForzada.description||tarifaForzada.Description) : '');
-      const pFijo = parseEuro(tarifaForzada.p_fijo_1||tarifaForzada.P_fijo_1||0);
-      const p1    = parseEuro(tarifaForzada.p1_price||tarifaForzada.P1_price||0);
-      const pFijoDia = pFijo / 365;
-
-      doc.setFillColor(...darkColor);
-      doc.setDrawColor(255,255,255); doc.setLineWidth(2);
-      doc.roundedRect(m,y,cw,36,3,3,'FD');
-      doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
-      doc.text('TARIFA GAS #1: '+nm, m+3, y+5);
-      let yb=y+10;
-      doc.setFontSize(7); doc.setFont('helvetica','bold');
-      doc.text('TÉRMINO FIJO:', m+3, yb); yb+=4;
-      doc.setFont('helvetica','normal');
-      doc.text('Término fijo: '+pFijoDia.toFixed(6)+' €/día  ('+pFijo.toFixed(4)+' €/año)', m+5, yb); yb+=8;
-      doc.setFont('helvetica','bold');
-      doc.text('ENERGÍA:', m+3, yb); yb+=4;
-      doc.setFont('helvetica','normal');
-      doc.text('Precio energía: '+p1.toFixed(6)+' €/kWh', m+5, yb);
-      y+=44;
-    }
-
-    doc.setTextColor(...grisActual); doc.setFontSize(7); doc.setFont('helvetica','italic');
-    doc.text('*Los precios mostrados son de la tarifa ganadora seleccionada para este cliente.', m+3, y);
-    y+=14;
-
-    // Banner rojo ahorro anual — IDÉNTICO al PDF electricidad
-    doc.setFillColor(220,38,38);
-    doc.roundedRect(m,y,cw,18,3,3,'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(10); doc.setFont('helvetica','bold');
-    doc.text('TU AHORRO ANUAL ESTIMADO EN GAS ES:', m+5, y+7);
-    doc.setFontSize(22);
-    doc.text(fmt(totalAhorroAnual)+' € / AÑO', m+5, y+16);
-    y+=24;
-
-    // Caja formalización — IDÉNTICA al PDF electricidad
-    doc.setDrawColor(255,255,255); doc.setLineWidth(3);
-    doc.setFillColor(...darkColor);
-    doc.roundedRect(m,y,cw,50,3,3,'FD');
-    doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont('helvetica','bold');
-    doc.text('PARA FORMALIZAR ESTE CONTRATO:', m+5, y+7);
-    y+=11;
-    doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('Responde a este email adjuntando la documentación de los '+grupos.length+' CUPS:', m+5, y);
-    y+=5;
-    const docs = [
-      '1. Foto del DNI/CIF (anverso y reverso)',
-      '2. Ultima factura de gas (mínimo 3 meses de antigüedad)',
-      '3. Email de contacto para validación',
-      '4. Teléfono de contacto',
-      '5. Número de cuenta bancaria (IBAN)'
-    ];
-    doc.setFontSize(8); doc.setFont('helvetica','normal');
-    docs.forEach(d => { doc.text(d, m+8, y); y+=4; });
-    y+=2;
-    doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('Envía la documentación al comercial: '+comercialCode, m+5, y);
-
-    // Footer última página
-    doc.setTextColor(160,170,180); doc.setFontSize(6.5); doc.setFont('helvetica','normal');
-    doc.text('Documento generado el '+new Date().toLocaleDateString('es-ES')+' '+(isDrk?'DRK':'POWER CUP')+' Gas - Comparativa Profesional', W/2, 292, {align:'center'});
-
-    // Guardar
-    const clientSlug = (clienteNombre||'cliente').replace(/[^a-zA-Z0-9]/g,'-').substring(0,20);
-    doc.save('Estudio_Anual_Gas_'+(isDrk?'DRK':'POWER_CUP')+'_'+clientSlug+'.pdf');
-    alert('✅ PDF de Estudio Anual de Gas generado correctamente.');
   }
 
   window.cmGenerarPDFAnual = function() {
@@ -30806,7 +29912,7 @@ En especial:
 
     // Pre-calcular ahorro estimado por tarifa (usando todas las facturas de todos los grupos)
     function calcAhorroTarifa(tarifa) {
-      let sumaAhorros = 0, sumaDias = 0, nFacturas = 0;
+      let sumaAhorros = 0, nFacturas = 0;
       grupos.forEach(g => {
         g.facturas.forEach(f => {
           const dias = f.dias || 30;
@@ -30822,16 +29928,16 @@ En especial:
           };
           const r = calculateTariffCost(tarifa, data, tipoTarifa);
           sumaAhorros += (f.total||0) - (r.totalPeriod||0);
-          sumaDias += dias;
           nFacturas++;
         });
       });
-      return sumaDias > 0 ? (sumaAhorros / sumaDias) * 365 : 0;
+      return nFacturas > 0 ? (sumaAhorros / nFacturas) * 12 : 0;
     }
 
+    // Calcular ahorro automático (mejor tarifa por mes)
     function calcAhorroAuto() {
       const tarifas = currentTariffs[tipoTarifa] || [];
-      let sumaAhorros = 0, sumaDias = 0, nFacturas = 0;
+      let sumaAhorros = 0, nFacturas = 0;
       grupos.forEach(g => {
         g.facturas.forEach(f => {
           const dias = f.dias || 30;
@@ -30849,11 +29955,10 @@ En especial:
             .map(t => calculateTariffCost(t, data, tipoTarifa))
             .sort((a,b)=>(a.totalPeriod||0)-(b.totalPeriod||0));
           if (drkRes[0]) sumaAhorros += (f.total||0) - (drkRes[0].totalPeriod||0);
-          sumaDias += dias;
           nFacturas++;
         });
       });
-      return sumaDias > 0 ? (sumaAhorros / sumaDias) * 365 : 0;
+      return nFacturas > 0 ? (sumaAhorros / nFacturas) * 12 : 0;
     }
 
     const fmt = v => v.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -31020,10 +30125,8 @@ En especial:
       });
       const n = facturas.length;
       const suma = facturas.reduce((a,f)=>a+(f._ahorroMes||0),0);
-      const sumaDias = facturas.reduce((a,f)=>a+(f.dias||30),0);
       grupo._sumaAhorros=suma; grupo._mediaAhorroMes=suma/n;
-      grupo._ahorroAnual = sumaDias > 0 ? (suma/sumaDias)*365 : 0;
-      grupo._nFacturas=n; grupo._sumaDias=sumaDias;
+      grupo._ahorroAnual=(suma/n)*12; grupo._nFacturas=n;
     });
 
     // ─── COLORES CORPORATIVOS (igual que PDF multicups) ───
@@ -31118,9 +30221,8 @@ En especial:
     const totalAhorroAnual  = grupos.reduce((a,g)=>a+(g._ahorroAnual||0),0);
     const totalActualPer    = grupos.reduce((a,g)=>g.facturas.reduce((b,f)=>b+(f.total||0),a),0);
     const totalDRKPer       = grupos.reduce((a,g)=>g.facturas.reduce((b,f)=>b+(f._totalDRK||0),a),0);
-    const totalDiasElec     = grupos.reduce((a,g)=>g.facturas.reduce((b,f)=>b+(f.dias||30),a),0);
-    const totalActualAnual  = totalDiasElec > 0 ? (totalActualPer/totalDiasElec)*365 : 0;
-    const totalDRKAnual     = totalDiasElec > 0 ? (totalDRKPer/totalDiasElec)*365 : 0;
+    const totalActualAnual  = grupos.reduce((a,g)=>{const n=g.facturas.length||1;return a+(g.facturas.reduce((b,f)=>b+(f.total||0),0)/n)*12;},0);
+    const totalDRKAnual     = grupos.reduce((a,g)=>{const n=g.facturas.length||1;return a+(g.facturas.reduce((b,f)=>b+(f._totalDRK||0),0)/n)*12;},0);
 
     // Banner "La mejor opción" (estilo multicups)
     doc.setFillColor(...primaryColor);
@@ -31222,7 +30324,7 @@ En especial:
     grupos.forEach((grupo, gi) => {
       doc.addPage();
       drawPageHeader();
-      const { cups, facturas, _ahorroAnual, _tarifaReciente, _nFacturas, _mediaAhorroMes, _sumaDias } = grupo;
+      const { cups, facturas, _ahorroAnual, _tarifaReciente, _nFacturas, _mediaAhorroMes } = grupo;
       const ordenadas = [...facturas].sort((a,b)=>(a.mesNumero||0)-(b.mesNumero||0));
       const nombre0 = ordenadas[0]?.nombre||'';
       y=50;
@@ -31301,7 +30403,7 @@ En especial:
       doc.setTextColor(255,255,255); doc.setFontSize(10); doc.setFont('helvetica','bold');
       doc.text(`AHORRO ANUAL PROYECTADO: ${fmt(_ahorroAnual)} €`, W/2, y+10, {align:'center'});
       doc.setFont('helvetica','normal'); doc.setFontSize(8);
-      doc.text(`${_nFacturas} fact. analizadas · ${_sumaDias||0} días totales · (Ahorro/días)×365`, W/2, y+17, {align:'center'});
+      doc.text(`${_nFacturas} mes${_nFacturas>1?'es':''} analizados · Media: ${fmt(_mediaAhorroMes)} €/mes × 12`, W/2, y+17, {align:'center'});
       y+=28;
 
       // Desglose calculado por mes
@@ -31844,18 +30946,12 @@ En especial:
     statusEl.style.display = 'block';
     statusEl.textContent = '⏳ Convirtiendo fotos a PDF...';
     document.getElementById('ia-btn-enviar-fotos').style.display = 'none';
-    // CRÍTICO: guardar la zona ANTES de cerrar el modal
-    const zonaCopia = _iaZone;
     try {
       const pdfBlob = await iaFotosAPDF(fotos, statusEl);
       statusEl.textContent = '🤖 Enviando a IA...';
       cerrarModalIAUpload();
       const pdfFile = new File([pdfBlob], 'factura_fotos.pdf', { type: 'application/pdf' });
-      if (zonaCopia === 'gas') {
-        if (typeof procesarFacturaGasIA === 'function') procesarFacturaGasIA(pdfFile);
-      } else {
-        if (typeof procesarFacturaIA === 'function') procesarFacturaIA(pdfFile, zonaCopia === '30td' ? '3.0TD' : '2.0TD');
-      }
+      iaEnviarArchivo(pdfFile);
     } catch(e) {
       statusEl.textContent = '❌ Error: ' + e.message;
     }
@@ -31894,19 +30990,12 @@ En especial:
     const statusEl = document.getElementById('ia-multi-status');
     statusEl.style.display = 'block';
     document.getElementById('ia-btn-enviar-multi').style.display = 'none';
-    // CRÍTICO: guardar la zona ANTES de cerrar el modal (cerrarModalIAUpload resetea _iaZone)
-    const zonaCopia = _iaZone;
 
     // Si solo hay 1 archivo, enviar directamente
     if (files.length === 1) {
       statusEl.textContent = '🤖 Enviando a IA...';
       cerrarModalIAUpload();
-      // Usar la copia de zona guardada
-      if (zonaCopia === 'gas') {
-        if (typeof procesarFacturaGasIA === 'function') procesarFacturaGasIA(files[0]);
-      } else {
-        if (typeof procesarFacturaIA === 'function') procesarFacturaIA(files[0], zonaCopia === '30td' ? '3.0TD' : '2.0TD');
-      }
+      iaEnviarArchivo(files[0]);
       return;
     }
     // Varios: juntar en 1 PDF
@@ -31916,12 +31005,7 @@ En especial:
       statusEl.textContent = '🤖 Enviando a IA...';
       cerrarModalIAUpload();
       const pdfFile = new File([pdfBlob], 'factura_multi.pdf', { type: 'application/pdf' });
-      // Usar la copia de zona guardada
-      if (zonaCopia === 'gas') {
-        if (typeof procesarFacturaGasIA === 'function') procesarFacturaGasIA(pdfFile);
-      } else {
-        if (typeof procesarFacturaIA === 'function') procesarFacturaIA(pdfFile, zonaCopia === '30td' ? '3.0TD' : '2.0TD');
-      }
+      iaEnviarArchivo(pdfFile);
     } catch(e) {
       statusEl.textContent = '❌ Error: ' + e.message;
     }
@@ -32293,20 +31377,6 @@ Reglas:
 
   // Inicializar slot multi al abrir
   document.addEventListener('DOMContentLoaded', function() { _iaMultiSlotCount = 0; });
-
-  // ── Cargar tarifas de gas automáticamente al iniciar la app ──
-  document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(() => {
-      if (typeof loadGasData === 'function' && (typeof gasTariffsData === 'undefined' || gasTariffsData.length === 0)) {
-        console.log('🔄 [INIT] Precargando tarifas de gas al inicio...');
-        loadGasData().then(() => {
-          if (typeof gasTariffsData !== 'undefined' && gasTariffsData.length > 0) {
-            console.log(`✅ [INIT] Tarifas gas precargadas: ${gasTariffsData.length}`);
-          }
-        }).catch(e => console.warn('⚠️ [INIT] No se pudieron precargar tarifas gas:', e));
-      }
-    }, 1500); // Esperar 1.5s a que la app arranque completamente
-  });
 })();
 </script>
 </body></html>

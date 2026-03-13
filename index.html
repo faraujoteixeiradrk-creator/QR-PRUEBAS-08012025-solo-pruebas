@@ -1666,7 +1666,7 @@ Y ejecuta este script de nuevo." buttons {"OK"} with icon stop
     end if
     
     -- Buscar Excel de comisiones (sin restricción de fecha)
-    set comandoBuscarExcel to "find " & quoted form of rutaDescargas & " -maxdepth 1 -iname '*comision*.xlsx' -type f | sort | tail -1"
+    set comandoBuscarExcel to "find " & quoted form of rutaDescargas & " -maxdepth 1 -iname '*comision*.xlsx' -not -name '~$*' -type f | sort | tail -1"
     set archivoExcel to do shell script comandoBuscarExcel
     
     if archivoExcel is "" then

@@ -1665,14 +1665,17 @@ Y ejecuta este script de nuevo." buttons {"OK"} with icon stop
         return
     end if
     
-    -- Buscar Excel de comisiones (sin restricción de fecha)
-    set comandoBuscarExcel to "find " & quoted form of rutaDescargas & " -maxdepth 1 -iname '*comision*.xlsx' -not -name '~$*' -type f | sort | tail -1"
-    set archivoExcel to do shell script comandoBuscarExcel
+    -- Buscar Excel: primero exacto COMISIONES.xlsx, luego fallback excluyendo ~$ y EJEMPLO*
+    set archivoExcel to do shell script "find " & quoted form of rutaDescargas & " -maxdepth 1 -name 'COMISIONES.xlsx' -type f | head -1"
+    
+    if archivoExcel is "" then
+        set archivoExcel to do shell script "find " & quoted form of rutaDescargas & " -maxdepth 1 -iname '*comision*.xlsx' -not -name '~$*' -not -iname 'EJEMPLO*' -type f | sort | tail -1"
+    end if
     
     if archivoExcel is "" then
         display dialog "❌ No se encontró el Excel de comisiones.
 
-Asegúrate de que COMISIONES.xlsx está en la carpeta Descargas." buttons {"OK"} with icon stop
+Pon COMISIONES.xlsx en tu carpeta Descargas." buttons {"OK"} with icon stop
         return
     end if
     
